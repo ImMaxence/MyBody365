@@ -13,6 +13,7 @@ import { KcalRingComponent } from '../../shared/kcal-ring.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { NutriscoreComponent } from '../../shared/nutriscore.component';
 import { SegDirective } from '../../shared/seg.directive';
+import { DayScoreComponent } from './day-score.component';
 
 const SLOT_ICON: Record<Slot, string> = { BREAKFAST: 'sun', LUNCH: 'utensils', DINNER: 'moon', SNACK: 'leaf' };
 const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'check', over: 'arrowUp', under: 'arrowDown', ongoing: null, logged: null };
@@ -21,15 +22,16 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
 @Component({
   selector: 'app-meals',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, NutriscoreComponent, NumberStepperComponent],
+  imports: [DayScoreComponent, SegDirective, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, NutriscoreComponent, NumberStepperComponent],
   template: `
     <main class="page">
       <header class="page-head">
         <h1 class="title">{{ 'meals.title' | t }}</h1>
-        <span class="spacer"></span>
-        <a routerLink="/app/meals/stats" class="icon-btn" [attr.aria-label]="'meals.stats.title' | t"><app-icon name="bars" /></a>
-        <a routerLink="/app/meals/recipes" class="btn btn-secondary btn-s"><app-icon name="book" [size]="18" /> {{ 'meals.recipes' | t }}</a>
       </header>
+      <nav class="shortcuts" [attr.aria-label]="'meals.title' | t">
+        <a routerLink="/app/meals/stats" class="btn btn-secondary btn-s"><app-icon name="bars" [size]="18" /> {{ 'meals.stats.title' | t }}</a>
+        <a routerLink="/app/meals/recipes" class="btn btn-secondary btn-s"><app-icon name="book" [size]="18" /> {{ 'meals.recipes' | t }}</a>
+      </nav>
 
       <nav class="days" [attr.aria-label]="'meals.title' | t">
         <button type="button" class="icon-btn" [attr.aria-label]="'meals.previousDay' | t" (click)="go(-1)"><app-icon name="chevronLeft" /></button>
@@ -63,8 +65,8 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       }
 
       @if (store.data(); as d) {
-        @for (k of [d.day]; track k) {
-          <div class="day-pane" [class.from-left]="dir() < 0" [class.from-right]="dir() > 0">
+          <div class="day-pane" [class.calm]="shown() > 0" [class.swap-a]="shown() > 0 && shown() % 2 === 1" [class.swap-b]="shown() > 0 && shown() % 2 === 0"
+            [style.--dx]="(dir() < 0 ? -10 : 10) + 'px'">
         <section class="card summary">
           <app-kcal-ring [eaten]="d.totals.kcal" [target]="d.targetKcal" [size]="128" />
           <div class="macros">
@@ -77,6 +79,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
             }
           </div>
         </section>
+        <app-day-score [day]="d" />
 
         @for (slot of slots; track slot; let i = $index) {
           <section class="card slot" [style.--i]="i">
@@ -115,7 +118,6 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
         }
         <p class="tiny muted hint">{{ 'meals.macroHint' | t }}</p>
           </div>
-        }
       } @else {
         <div class="skeleton" style="height: 168px; border-radius: 24px"></div>
         <div class="skeleton" style="height: 110px; border-radius: 24px"></div>
@@ -201,6 +203,12 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
     .spacer {
       flex: 1;
     }
+    .shortcuts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2);
+      margin-top: calc(-1 * var(--space-2));
+    }
     .days {
       display: grid;
       grid-template-columns: auto 1fr auto;
@@ -230,24 +238,51 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       display: inline-block;
       text-transform: capitalize;
     }
-    /* the day slides in from the side it comes from */
+    /* the date and the week come in from the side of the move, briefly */
     .from-right {
-      animation: from-right 340ms var(--ease-out) both;
+      animation: from-right 260ms var(--ease-out) both;
     }
     .from-left {
-      animation: from-left 340ms var(--ease-out) both;
+      animation: from-left 260ms var(--ease-out) both;
     }
     @keyframes from-right {
       from {
         opacity: 0;
-        transform: translateX(28px);
+        transform: translateX(10px);
       }
     }
     @keyframes from-left {
       from {
         opacity: 0;
-        transform: translateX(-28px);
+        transform: translateX(-10px);
       }
+    }
+    /*
+     * the day's content stays in place: once the new day is there, it fades in with a small shift
+     * (two identical animations, alternated, so each change plays it again); the cards do not replay
+     * their own entrance and the ring glides to its new value
+     */
+    .day-pane.swap-a {
+      animation: day-a 300ms var(--ease-out);
+    }
+    .day-pane.swap-b {
+      animation: day-b 300ms var(--ease-out);
+    }
+    @keyframes day-a {
+      from {
+        opacity: 0.25;
+        transform: translateX(var(--dx));
+      }
+    }
+    @keyframes day-b {
+      from {
+        opacity: 0.25;
+        transform: translateX(var(--dx));
+      }
+    }
+    .day-pane.calm .slot,
+    .day-pane.calm .bar i {
+      animation: none;
     }
     .day-pane {
       display: grid;
@@ -438,6 +473,8 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       color: var(--st-ink);
     }
     @media (prefers-reduced-motion: reduce) {
+      .day-pane.swap-a,
+      .day-pane.swap-b,
       .from-right,
       .from-left,
       .cal-day,
@@ -600,6 +637,9 @@ export class MealsPage {
   protected readonly statusIcon = STATUS_ICON;
   /** -1: going back in time, 1: forward (the side the new day slides in from) */
   protected readonly dir = signal(0);
+  /** how many other days were shown since the page opened (0: the first one, no animation) */
+  protected readonly shown = signal(0);
+  private lastDay: string | null = null;
   protected readonly monthDir = signal(0);
   protected readonly today = signal(localDay());
   protected readonly maxDay = computed(() => shiftDay(this.today(), 1));
@@ -657,6 +697,13 @@ export class MealsPage {
 
   constructor() {
     void this.store.load().catch(() => undefined);
+    // a new day on screen (once its data is there): its content fades in
+    effect(() => {
+      const day = this.store.data()?.day ?? null;
+      if (!day || day === this.lastDay) return;
+      if (this.lastDay !== null) this.shown.update((n) => n + 1);
+      this.lastDay = day;
+    });
     // the totals of the week on screen (icons of the strip)
     effect(() => {
       const w = this.week();

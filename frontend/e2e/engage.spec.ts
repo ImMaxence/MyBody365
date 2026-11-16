@@ -52,6 +52,19 @@ test.describe('engagement', () => {
     await expectNoHorizontalOverflow(page);
     await page.getByRole('button', { name: 'Arrêter' }).click();
     await expect(page.getByRole('button', { name: 'Démarrer' })).toBeVisible();
+
+    // saved under a name of one's own, then deleted
+    await page.getByRole('button', { name: 'Enregistrer ce chrono' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Enregistrer ce chrono' });
+    await sheet.getByLabel('Nom du chrono').fill('Gainage du soir');
+    await sheet.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByRole('button', { name: 'Gainage du soir', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: 'Tabata' }).click();
+    await expect(page.getByRole('button', { name: 'Tabata' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: 'Gainage du soir', exact: true })).toHaveAttribute('aria-pressed', 'false');
+    await page.getByRole('button', { name: 'Gainage du soir', exact: true }).click();
+    await page.getByRole('button', { name: 'Supprimer « Gainage du soir »' }).click();
+    await expect(page.getByRole('button', { name: 'Gainage du soir', exact: true })).toHaveCount(0);
     expect(errors).toEqual([]);
   });
 

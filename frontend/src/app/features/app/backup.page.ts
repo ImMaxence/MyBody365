@@ -273,7 +273,7 @@ export class BackupPage {
   protected readonly i18n = inject(I18nService);
   private readonly previewDialog = viewChild.required<ElementRef<HTMLDialogElement>>('previewDialog');
 
-  protected readonly categories = ['logs', 'photos', 'meals', 'foods', 'recipes', 'workouts'];
+  protected readonly categories = ['logs', 'photos', 'meals', 'foods', 'recipes', 'water', 'timers', 'workouts'];
   protected readonly driveConfigured = signal(false);
   protected readonly drive = signal<DriveStatus | null>(null);
   protected readonly files = signal<DriveFile[]>([]);

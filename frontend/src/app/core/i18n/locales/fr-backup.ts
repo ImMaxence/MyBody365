@@ -13,6 +13,8 @@ export const frBackup = {
   exportedAt: 'Sauvegarde du {date}',
   categories: {
     logs: 'Pesées et mensurations',
+    water: 'Verres d’eau',
+    timers: 'Chronos enregistrés',
     photos: 'Photos',
     meals: 'Repas (par jour)',
     foods: 'Mes aliments',

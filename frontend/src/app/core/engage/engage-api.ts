@@ -18,7 +18,16 @@ export interface NotificationSettings {
   prefs: NotificationPrefs;
 }
 
-/** Notifications: devices and reminders. */
+/** a timer saved under a name: effort and rest in seconds, rounds */
+export interface SavedTimer {
+  id: string;
+  name: string;
+  work: number;
+  rest: number;
+  rounds: number;
+}
+
+/** Notifications (devices and reminders) and the saved timers. */
 @Injectable({ providedIn: 'root' })
 export class EngageApi {
   private readonly http = inject(HttpClient);
@@ -43,4 +52,16 @@ export class EngageApi {
     return firstValueFrom(this.http.post<{ sent: number }>('/api/me/push/test', null));
   }
 
+
+  timers(): Promise<SavedTimer[]> {
+    return firstValueFrom(this.http.get<SavedTimer[]>('/api/me/timers'));
+  }
+
+  saveTimer(t: { name: string; work: number; rest: number; rounds: number }): Promise<SavedTimer[]> {
+    return firstValueFrom(this.http.post<SavedTimer[]>('/api/me/timers', t));
+  }
+
+  deleteTimer(id: string): Promise<SavedTimer[]> {
+    return firstValueFrom(this.http.delete<SavedTimer[]>(`/api/me/timers/${id}`));
+  }
 }

@@ -38,19 +38,19 @@ On ne transforme pas son corps en trois semaines. MyBody365 est pensé pour teni
 
 | | |
 |---|---|
-| ⚖️ **Poids et prévision** | Ta courbe lissée, ta tendance réelle et la date estimée de ton objectif, à un rythme sûr (1 % du poids par semaine au plus) |
+| ⚖️ **Poids et prévision** | Ta courbe lissée, ta tendance réelle, la prévision mois par mois et la date de ton objectif, à un rythme sûr (1 % du poids par semaine au plus) |
 | 📸 **Photo du jour** | Un comparateur avant / après, puis le time-lapse de ton année |
 | 🍽️ **Repas en trois taps** | Code-barres (Open Food Facts), aliments du quotidien (Ciqual), fast-food en ajout rapide, Nutri-Score |
-| 📅 **Calendrier et statistiques** | Chaque jour marqué dans l'objectif, au-dessus ou en dessous, et un bilan clair du mois avec des conseils |
+| 📅 **Calendrier et statistiques** | Chaque jour marqué dans l'objectif, au-dessus ou en dessous, une note d'équilibre sur 10 et un bilan clair du mois avec des conseils |
 | 📖 **Recettes** | Les tiennes, celles de tes amis, la communauté, et l'import depuis un site de recettes en collant le lien |
 | 🔥 **La flamme** | Chaque jour validé fait grandir ta série. Tous les 7 jours, un gel qui sauve un jour oublié |
 | 🔔 **Rappels** | Une notification à l'heure de ton choix, seulement s'il te manque ta pesée ou ta photo |
-| ⏱️ **Minuteur** | Effort, repos, tours : un chrono simple pour ta séance, avec bips, vibrations et écran allumé |
+| ⏱️ **Minuteur** | Effort, repos, tours : un chrono simple pour ta séance, tes chronos enregistrés, bips, vibrations et écran allumé |
 | 💧 **Verres d'eau** | Facultatif : un verre à cocher, un objectif selon ton poids |
 | 👥 **Entre potes** | Retrouve-les par nom d'utilisateur, suivez vos flammes, des coups de pouce, une photo partagée quand tu le décides |
 | 💾 **Tes données à toi** | Sauvegarde complète en un tap, chaque nuit sur ton Google Drive, restauration avec aperçu |
 
-> Version **0.8.0** : calendrier et statistiques des repas, import de recettes, ajout rapide pour le fast-food, amis par nom d'utilisateur, photo de profil. Le détail version par version est dans le [changelog](CHANGELOG.md).
+> Version **1.0.0** : note d'équilibre de chaque journée, prévision mois par mois, calendrier et statistiques des repas, import de recettes, ajout rapide pour le fast-food, amis par nom d'utilisateur, minuteur, verres d'eau. Le détail version par version est dans le [changelog](CHANGELOG.md).
 
 ## L'app
 
@@ -112,8 +112,8 @@ Le parcours suit ensuite les étapes clés, du jour 0 (l'installation) au jour 3
 | | Résultat |
 |---|---|
 | Lighthouse, pages publiques (mobile, réseau bridé, processeur ralenti 4×) | Accessibilité **100** · Bonnes pratiques **100** · SEO **100** · Performance **72 à 85** selon les pages (LCP autour d'une seconde) |
-| Tests back (JUnit + Testcontainers, avec un vrai SeaweedFS) | 73 tests : accès et rôles, CSRF, en-têtes, limitation de débit, calculs, flamme et gels, photos (réencodage, quotas, confidentialité), Ciqual et Open Food Facts simulés, repas, ajout rapide, calendrier et statistiques, recettes et visibilité, import de recettes (sites simulés, adresses privées refusées), communauté, chiffrement Web Push, rappels, amis, noms d'utilisateur, suggestions et demandes, photo de profil, verres d'eau, rythme limité, partages, signalements, sauvegardes et fichiers piégés |
-| Tests front (Vitest) | 23 tests : traductions complètes FR / EN, plateformes, passkeys, erreurs, navigation, calendrier des repas, noms d'utilisateur |
+| Tests back (JUnit + Testcontainers, avec un vrai SeaweedFS) | 75 tests : accès et rôles, CSRF, en-têtes, limitation de débit, calculs, flamme et gels, photos (réencodage, quotas, confidentialité), Ciqual et Open Food Facts simulés, repas, ajout rapide, calendrier et statistiques, recettes et visibilité, import de recettes (sites simulés, adresses privées refusées), communauté, chiffrement Web Push, rappels, amis, noms d'utilisateur, suggestions et demandes, photo de profil, verres d'eau, chronos enregistrés, rythme limité, partages, signalements, sauvegardes et fichiers piégés |
+| Tests front (Vitest) | 28 tests : traductions complètes FR / EN, plateformes, passkeys, erreurs, navigation, calendrier des repas, note d'équilibre, prévision mois par mois, noms d'utilisateur |
 | Tests de bout en bout (Playwright + axe-core) | 53 tests : site, installation, connexion, admin, parcours de bienvenue, pesée, photos, repas, ajout rapide, calendrier et statistiques, recettes, flamme, rappels, minuteur, verres d'eau, amis par lien et par nom d'utilisateur, photo de profil, partage et modération, sauvegarde et restauration, accessibilité, débordements mobile |
 | Sécurité | CSP stricte (`script-src 'self'` + deux empreintes), CSRF, cookie de session HttpOnly / SameSite / Secure, limitation par IP, journal admin. Rapport complet : [docs/security-audit.md](docs/security-audit.md) |
 | Sessions | Gardées en base (Spring Session JDBC) : une nouvelle version déployée ne déconnecte personne, et un compte suspendu est coupé tout de suite |
@@ -193,7 +193,7 @@ Les images de ce README et les captures de l'aperçu du site (`frontend/public/s
 | 0.5 | Engagement : gels de flamme, notifications quotidiennes, rappels salle, programmes | ✅ |
 | 0.6 | Amis : ajout par lien ou QR code, partage photo par photo, coups de pouce, modération | ✅ |
 | 0.7 | Sauvegardes : Google Drive automatique, export, restauration avec aperçu des différences | ✅ |
-| 0.8 | Repas lisibles : calendrier, statistiques et conseils, ajout rapide fast-food, import de recettes, recettes entre amis, Nutri-Score en avant, noms d'utilisateur, photo de profil, minuteur, verres d'eau, date d'arrivée | ✅ |
+| 1.0 | Repas lisibles : note d'équilibre, calendrier, statistiques et conseils, ajout rapide fast-food, import de recettes, recettes entre amis, Nutri-Score en avant, noms d'utilisateur, photo de profil, minuteur, verres d'eau, date d'arrivée et prévision mois par mois | ✅ |
 
 Le détail de chaque version est dans le [changelog](CHANGELOG.md), aussi publié sur le site.
 

@@ -91,6 +91,22 @@ class EngagementTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void savedTimers() throws Exception {
+        String body = "{\"name\":\" Gainage du soir \",\"work\":40,\"rest\":20,\"rounds\":5}";
+        mvc.perform(post("/api/me/timers").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$[0].name").value("Gainage du soir")).andExpect(jsonPath("$[0].work").value(40));
+        mvc.perform(post("/api/me/timers").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"" + "x".repeat(31) + "\",\"work\":40,\"rest\":20,\"rounds\":5}")).andExpect(status().isBadRequest());
+        mvc.perform(post("/api/me/timers").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Trop court\",\"work\":2,\"rest\":20,\"rounds\":5}")).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/me/timers").with(as(hugo))).andExpect(jsonPath("$.length()").value(0));
+        String id = com.jayway.jsonpath.JsonPath.read(mvc.perform(get("/api/me/timers").with(as(lea))).andReturn().getResponse().getContentAsString(),
+                "$[0].id");
+        mvc.perform(delete("/api/me/timers/" + id).with(as(hugo)).with(csrf())).andExpect(status().isNotFound());
+        mvc.perform(delete("/api/me/timers/" + id).with(as(lea)).with(csrf())).andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
     void workoutSessions() throws Exception {
         String today = TrackingService.today().toString();
         String body = mvc.perform(post("/api/me/workouts").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""

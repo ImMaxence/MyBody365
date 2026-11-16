@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Every minute (Paris time): the daily reminder of whoever set it for now and has not weighed in (or
- * taken the photo) yet. Each one goes at most once a day. (The gym reminders went with the workout programs in 0.8.)
+ * taken the photo) yet. Each one goes at most once a day. (The gym reminders went with the workout programs in 1.0.)
  */
 @Component
 public class ReminderScheduler {

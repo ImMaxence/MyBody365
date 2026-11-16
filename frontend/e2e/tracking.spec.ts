@@ -50,6 +50,7 @@ test.describe('tracking', () => {
 
     // the plan computed by the server
     await expect(page.getByRole('heading', { name: 'Ton plan est prêt' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Prévision mois par mois' })).toBeVisible();
     await expect(page.getByText('Objectif calorique')).toBeVisible();
     await expect(page.getByText(/4,9 kg/)).toBeVisible();
     await page.getByRole('button', { name: /C’est parti/ }).click();

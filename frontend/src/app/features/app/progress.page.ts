@@ -7,6 +7,7 @@ import { IconComponent } from '../../shared/icon.component';
 import { WeighSheetComponent } from './weigh-sheet.component';
 import { WeightChartComponent } from './weight-chart.component';
 import { SegDirective } from '../../shared/seg.directive';
+import { MonthlyForecastComponent } from './monthly-forecast.component';
 
 type Range = 'm1' | 'm3' | 'all';
 const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
@@ -15,7 +16,7 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
 @Component({
   selector: 'app-progress',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
+  imports: [MonthlyForecastComponent, SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
   template: `
     <main class="page">
       <header class="page-head"><h1 class="title">{{ 'progress.title' | t }}</h1></header>
@@ -63,6 +64,10 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
                 }
               </div>
             </section>
+          }
+
+          @if (forecast(); as f) {
+            <app-monthly-forecast [fromKg]="f.from" [goalKg]="f.goal" [kgPerWeek]="f.pace" [basis]="f.basis" />
           }
 
           <h2 class="section-title">{{ 'progress.history' | t }}</h2>
@@ -237,6 +242,17 @@ export class ProgressPage {
   protected readonly logs = this.tracking.logs;
   protected readonly hasWeights = computed(() => (this.logs() ?? []).some((l) => l.weightKg != null));
   protected readonly history = computed(() => [...(this.logs() ?? [])].reverse());
+  /** month by month: at the real pace of the last weeks when it goes the right way, at the planned pace otherwise */
+  protected readonly forecast = computed(() => {
+    const s = this.summary();
+    if (!s || s.goal.reached) return null;
+    const from = s.current.trendKg ?? s.current.weightKg ?? s.profile.startWeightKg;
+    const goal = s.goal.goalKg;
+    const losing = goal < from;
+    const trend = s.goal.trendKgPerWeek;
+    const goodTrend = trend != null && Math.abs(trend) >= 0.05 && (losing ? trend < 0 : trend > 0);
+    return { from, goal, pace: goodTrend ? Math.abs(trend!) : s.profile.weeklyRateKg, basis: (goodTrend ? 'trend' : 'plan') as 'trend' | 'plan' };
+  });
   protected readonly goalDate = computed(() => this.summary()?.goal.trendDate ?? this.summary()?.goal.planDate ?? null);
 
   constructor() {

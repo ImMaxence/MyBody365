@@ -5,6 +5,8 @@ import { IconComponent } from '../../shared/icon.component';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { SegDirective } from '../../shared/seg.directive';
 import { AdminStore } from './admin.store';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { SITE } from '../../core/site';
 
 /** Admin area inside the app: accounts, access requests, links and the journal. */
 @Component({
@@ -35,6 +37,18 @@ import { AdminStore } from './admin.store';
         }
       </nav>
       <router-outlet />
+
+      <section class="card contact">
+        <span class="contact-ico"><app-icon name="mail" /></span>
+        <div class="contact-copy">
+          <h2 class="h3">{{ 'admin.contact.title' | t }}</h2>
+          <p class="small muted">{{ 'admin.contact.text' | t }}</p>
+        </div>
+        <div class="contact-actions">
+          <a class="btn btn-secondary" [href]="'mailto:' + site.email"><app-icon name="mail" [size]="18" /> {{ 'admin.contact.email' | t }}</a>
+          <a class="btn btn-ghost" [href]="site.contact[i18n.lang()]" target="_blank" rel="noopener"><app-icon name="link" [size]="18" /> {{ 'admin.contact.form' | t }}</a>
+        </div>
+      </section>
     </main>
   `,
   styles: `
@@ -72,6 +86,33 @@ import { AdminStore } from './admin.store';
         grid-template-columns: repeat(6, 1fr);
       }
     }
+    .contact {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: var(--space-3) var(--space-4);
+      align-items: center;
+      margin-top: var(--space-6);
+      padding: var(--space-4);
+    }
+    .contact-ico {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: var(--accent-soft);
+      color: var(--accent-text);
+    }
+    .contact-copy {
+      display: grid;
+      gap: 2px;
+    }
+    .contact-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
     .tabs .count-badge {
       position: absolute;
       top: 2px;
@@ -80,6 +121,8 @@ import { AdminStore } from './admin.store';
   `,
 })
 export class AdminPage {
+  protected readonly site = SITE;
+  protected readonly i18n = inject(I18nService);
   protected readonly store = inject(AdminStore);
   protected readonly tabs = [
     { path: 'users', icon: 'users' },

@@ -2,14 +2,17 @@ import { DOCUMENT, Injectable, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { SITE } from './site';
 
-/** Title, description, canonical and language alternates of the public pages. */
+/**
+ * Title, description, canonical and language alternates of the public pages, and their structured data
+ * (JSON-LD, read by search engines and AI assistants; not a script that runs, so the CSP is not involved).
+ */
 @Injectable({ providedIn: 'root' })
 export class SeoService {
   private readonly title = inject(Title);
   private readonly meta = inject(Meta);
   private readonly document = inject(DOCUMENT);
 
-  set(opts: { title: string; description: string; path: string; alternates?: { fr: string; en: string }; index?: boolean }): void {
+  set(opts: { title: string; description: string; path: string; alternates?: { fr: string; en: string }; index?: boolean; ld?: object }): void {
     this.title.setTitle(opts.title);
     this.meta.updateTag({ name: 'description', content: opts.description });
     this.meta.updateTag({ property: 'og:title', content: opts.title });
@@ -22,6 +25,15 @@ export class SeoService {
       this.alternate('fr', SITE.url + opts.alternates.fr);
       this.alternate('en', SITE.url + opts.alternates.en);
       this.alternate('x-default', SITE.url + opts.alternates.fr);
+    }
+    this.document.head.querySelector('script#ld')?.remove();
+    if (opts.ld) {
+      const el = this.document.createElement('script');
+      el.type = 'application/ld+json';
+      el.id = 'ld';
+      // "<" written as \u003c: the JSON cannot close the script element
+      el.textContent = JSON.stringify(opts.ld).replace(/</g, '\\u003c');
+      this.document.head.appendChild(el);
     }
   }
 

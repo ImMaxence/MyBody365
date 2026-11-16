@@ -11,6 +11,7 @@ import { IconComponent } from '../../shared/icon.component';
 import { PacePickerComponent } from './pace-picker.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { SegDirective } from '../../shared/seg.directive';
+import { MonthlyForecastComponent } from './monthly-forecast.component';
 
 type Step = 'consent' | 'about' | 'body' | 'goal' | 'plan';
 
@@ -23,7 +24,7 @@ const ACTIVITIES: Activity[] = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VER
 @Component({
   selector: 'app-welcome',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PacePickerComponent, SegDirective, FormsModule, RouterLink, TranslatePipe, IconComponent, NumberStepperComponent],
+  imports: [MonthlyForecastComponent, PacePickerComponent, SegDirective, FormsModule, RouterLink, TranslatePipe, IconComponent, NumberStepperComponent],
   template: `
     <main class="page no-tabs">
       <header class="top">
@@ -151,6 +152,7 @@ const ACTIVITIES: Activity[] = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VER
                   <span class="mid">{{ p.goal.planDate ? i18n.date(p.goal.planDate, { day: 'numeric', month: 'long' }) : '—' }}</span>
                 </div>
               </div>
+              <app-monthly-forecast [fromKg]="p.current.weightKg ?? p.profile.startWeightKg" [goalKg]="p.goal.goalKg" [kgPerWeek]="p.profile.weeklyRateKg" />
               @if (p.energy.floorApplied) {
                 <p class="notice notice-accent"><app-icon name="alert" /> {{ 'setup.planFloor' | t }}</p>
               }

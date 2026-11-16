@@ -88,6 +88,7 @@ export const en: Dictionary = {
     recipe_url_invalid: 'This link cannot be imported: paste the full address of a web page (https://…)',
     recipe_unreachable: 'The site does not answer or refuses to be read. Try again later, or enter the recipe by hand',
     recipe_not_found: 'No readable recipe on this page: enter it by hand, it is quick',
+    too_many_timers: '20 saved timers at most: delete one first',
     pace_too_fast: 'Too fast for your weight: at most 1% of your weight a week',
     self_request: 'This is your own username',
     too_many_requests: 'Too many requests waiting: wait for some answers first',
@@ -308,6 +309,7 @@ export const en: Dictionary = {
     devAdmin: 'Local sign-in (admin)',
     devUser: 'Local sign-in (user)',
     devNew: 'Local sign-in (new account)',
+    devDemo: 'Local sign-in (filled demo: photos, friends, meals)',
     noAccess: 'No access yet?',
     requestAccess: 'Request access',
     lostAccess: 'Lost access to your account?',
@@ -498,6 +500,13 @@ export const en: Dictionary = {
   },
 
   progress: {
+    forecast: {
+      title: 'Month by month',
+      trend: 'At your real pace of the last weeks: {kg} kg a week',
+      plan: 'At the planned pace: {kg} kg a week',
+      reached: 'Goal reached around {date}',
+      note: 'A projection at a steady pace: real weeks vary, the trend is worked out again with every weigh-in',
+    },
     title: 'Progress',
     range: { m1: '1 month', m3: '3 months', all: 'All' },
     chartLabel: 'Weight curve',
@@ -616,6 +625,12 @@ export const en: Dictionary = {
   },
 
   admin: {
+    contact: {
+      title: 'Contact the creator',
+      text: 'A bug, a question, an idea for the app: write to Maxence directly',
+      email: 'Send an email',
+      form: 'Contact form',
+    },
     title: 'Administration',
     tabs: { users: 'Accounts', requests: 'Requests', links: 'Links', foods: 'Foods', moderation: 'Moderation', journal: 'Journal' },
     summary: '{users} account(s) · {admins} admin(s)',
@@ -714,6 +729,11 @@ export const en: Dictionary = {
   },
 
   legal: {
+    descriptions: {
+      mentions: 'MyBody365 legal notice: publisher, hosting in France, contact',
+      confidentialite: 'MyBody365 privacy: data processed, who sees what, retention and your rights (GDPR)',
+      cgu: 'Terms of use of MyBody365, an invite-only body transformation app for adults',
+    },
     updated: 'Last updated: {date}',
     back: 'Back',
     docs: { mentions: 'Legal notice', confidentialite: 'Privacy', cgu: 'Terms of use' },
@@ -781,7 +801,7 @@ export const en: Dictionary = {
           h: 'Data processed',
           p: [
             'Account: email address, first name, username, profile picture (Google’s, or the one you upload, redrawn and without metadata, the old one being deleted when you change it), language, role, sign-in dates, sign-in methods (Google identifier, passkeys: public keys only).',
-            'Tracking: weight, measurements, goal, meals, foods you created, recipes, workouts recorded before version 0.8, glasses of water (if you turn that tracking on), progress photos. These are health data under article 9 of the GDPR: they are only processed with your explicit consent, given when the account is created. Every photo is drawn again and re-saved by the server: no metadata of the original file is kept, not even the GPS position.',
+            'Tracking: weight, measurements, goal, meals, foods you created, recipes, workouts recorded before version 1.0, saved timers, glasses of water (if you turn that tracking on), progress photos. These are health data under article 9 of the GDPR: they are only processed with your explicit consent, given when the account is created. Every photo is drawn again and re-saved by the server: no metadata of the original file is kept, not even the GPS position.',
             'Friends: your list of friends, the friend requests sent and received, the nudges, the photos and recipes you share and with whom, the reports you send. A member can only find you with your exact username.',
             'Notifications: the technical address your browser provides for each device where you turn them on (Web Push subscription) and your reminder settings.',
             'Google Drive backups (if you turn them on): a token that only gives access to the files created by MyBody365, kept encrypted.',

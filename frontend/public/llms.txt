@@ -1,0 +1,36 @@
+# MyBody365
+
+> MyBody365 est une application web à installer sur son téléphone (PWA) pour transformer son corps en un an : une pesée par jour, une photo de progression, ses repas et ses calories, une flamme quotidienne et la date estimée de son objectif. Gratuite, sur invitation, réservée aux personnes majeures, hébergée en France, sans publicité ni traceur. En français et en anglais.
+
+MyBody365 (English): an installable web app (PWA) to transform your body over one year: a daily weigh-in, a progress photo, meals and calories, a daily streak and the estimated date of your goal. Free, invite-only, adults only, hosted in France, no ads, no trackers.
+
+## Pages
+
+- [Accueil](https://mybody365.mbonnici.fr/): la présentation, l'aperçu de l'app en captures, le parcours du jour 0 au jour 365, la vie privée, les questions fréquentes
+- [Home (English)](https://mybody365.mbonnici.fr/en): the same page in English
+- [Nouveautés](https://mybody365.mbonnici.fr/changelog): ce qui change à chaque version
+- [Mentions légales](https://mybody365.mbonnici.fr/legal/mentions), [Confidentialité](https://mybody365.mbonnici.fr/legal/confidentialite), [Conditions d'utilisation](https://mybody365.mbonnici.fr/legal/cgu)
+
+## Fonctionnalités
+
+- Poids : pesée du jour, courbe lissée, tendance réelle, prévision mois par mois et date d'arrivée, à un rythme limité à 1 % du poids par semaine
+- Photos : photo du jour avec calque de cadrage, comparateur avant / après, time-lapse exportable ; visibles par la personne seule
+- Repas : recherche dans la table Ciqual (Anses) et Open Food Facts, code-barres, Nutri-Score, ajout rapide pour le fast-food, calendrier, statistiques et note d'équilibre de la journée sur 10
+- Recettes : calculées depuis les aliments ou importées depuis un site de recettes, partagées avec ses amis ou la communauté
+- Motivation : flamme quotidienne avec jours gelés, rappels, amis par nom d'utilisateur, coups de pouce
+- Outils : minuteur effort / repos / tours, verres d'eau (facultatif)
+- Données : sauvegarde complète, Google Drive chaque nuit si on le souhaite, restauration avec aperçu
+
+## Vie privée
+
+- Les photos ne sont visibles que par leur auteur ; partage photo par photo avec un ami
+- Aucune publicité, aucun traceur, deux cookies strictement nécessaires
+- Hébergé en France ; données de santé traitées avec un consentement explicite (RGPD, article 9)
+
+## Installer
+
+- Ouvrir https://mybody365.mbonnici.fr sur son téléphone, l'ajouter à l'écran d'accueil (Safari : Partager puis Sur l'écran d'accueil ; Chrome : Installer l'application), puis demander un accès depuis l'app
+
+## Auteur
+
+- Maxence Bonnici, https://mbonnici.fr ; le code source est publié sous licence MIT

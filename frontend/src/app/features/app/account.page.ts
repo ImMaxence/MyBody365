@@ -16,11 +16,12 @@ import { CURRENT_VERSION } from '../changelog/changelog.data';
 import { SegDirective } from '../../shared/seg.directive';
 import { FlagComponent } from '../../shared/flag.component';
 import { normalizeUsername } from '../../core/friends/friends-api';
+import { PushPromptComponent } from '../../shared/push-prompt.component';
 
 @Component({
   selector: 'app-account',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, FlagComponent, FormsModule, RouterLink, TranslatePipe, IconComponent],
+  imports: [PushPromptComponent, SegDirective, FlagComponent, FormsModule, RouterLink, TranslatePipe, IconComponent],
   template: `
     <main class="page">
       <header class="page-head"><h1 class="title">{{ 'account.title' | t }}</h1></header>
@@ -53,6 +54,8 @@ import { normalizeUsername } from '../../core/friends/friends-api';
           }
         </div>
       </section>
+
+      <app-push-prompt />
 
       <h2 class="section-title">{{ 'account.appearance' | t }}</h2>
       <div class="seg" role="group" [attr.aria-label]="'theme.label' | t">

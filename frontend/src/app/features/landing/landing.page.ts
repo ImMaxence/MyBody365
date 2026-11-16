@@ -12,6 +12,7 @@ import { ThemeToggleComponent } from '../../shared/theme-toggle.component';
 import { InstallGuideComponent } from './install-guide.component';
 import { JourneyVignetteComponent } from './journey-vignette.component';
 import { SiteFooterComponent } from './site-footer.component';
+import { SITE } from '../../core/site';
 
 interface Stop {
   day: string;
@@ -1078,11 +1079,37 @@ export class LandingPage {
 
   ngOnInit(): void {
     this.i18n.set(this.lang());
+    const en = this.lang() === 'en';
     this.seo.set({
       title: this.i18n.t('meta.title'),
       description: this.i18n.t('meta.description'),
-      path: this.lang() === 'en' ? '/en' : '/',
+      path: en ? '/en' : '/',
       alternates: { fr: '/', en: '/en' },
+      // what the app is and the questions of the page, for search engines and AI assistants
+      ld: {
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'WebApplication',
+            name: 'MyBody365',
+            url: SITE.url + (en ? '/en' : '/'),
+            description: this.i18n.t('meta.description'),
+            applicationCategory: 'HealthApplication',
+            operatingSystem: 'iOS, Android, Windows, macOS (PWA)',
+            inLanguage: en ? 'en' : 'fr',
+            isAccessibleForFree: true,
+            offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+            image: SITE.url + '/og.png',
+            screenshot: this.shots().map((s) => SITE.url + '/shots/' + s.key + '-light.webp'),
+            featureList: this.shots().map((s) => s.title + ' : ' + s.text),
+            author: { '@type': 'Person', name: SITE.owner, url: SITE.ownerSite },
+          },
+          {
+            '@type': 'FAQPage',
+            mainEntity: this.faq().map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+          },
+        ],
+      },
     });
   }
 }

@@ -2,13 +2,18 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
-## [0.8.0] - 2026-11-16
+## [1.0.0] - 2026-11-16
 
-Tes repas en un coup d'œil, des recettes à importer, et des amis qu'on trouve par leur nom d'utilisateur
+La version 1.0 : tes repas en un coup d'œil avec une note d'équilibre, une prévision mois par mois, des recettes à importer, des amis qu'on trouve par leur nom d'utilisateur, un minuteur et des verres d'eau
 
 ### Ajouté
+- Note d'équilibre de la journée sur 10, à partir de ce que tu as noté : calories, macros, qualité des aliments (Nutri-Score) et nutriments, avec le détail de chaque critère
+- Prévision mois par mois jusqu'à ton objectif, sur l'écran Progrès et dans ton plan, à ton rythme réel ou au rythme prévu
+- Chronos enregistrés sous le nom de ton choix (30 caractères au plus), sur tous tes appareils et dans les sauvegardes ; le minuteur démarre en mode Personnalisé
+- L'activation des notifications mise en avant sur le Profil et sur Aujourd'hui
+- Bouton « Contacter le créateur » en bas de l'administration
+- Référencement : données structurées (application et questions fréquentes), plan du site complet avec les versions anglaises, fichier llms.txt pour les assistants IA, image d'aperçu quand le site est partagé
 - Repas : la semaine sous le pouce, chaque jour marqué d'une icône (dans l'objectif, au-dessus, en dessous, en cours), et un calendrier du mois en touchant la date
-- Le jour change en glissant, du côté où l'on va
 - Statistiques des repas sur 7 jours, 30 jours ou 3 mois : moyenne par jour, bilan de la période en kcal et en kilos, jours dans l'objectif, calories jour par jour (semaine par semaine sur 3 mois), d'où viennent tes calories, ce que tu manges le plus, par repas, Nutri-Score de tes calories, et des conseils tirés de tout ça
 - Chaque graphique a son tableau de chiffres, et se lit au doigt, à la souris ou au clavier
 - Importer une recette depuis un site de recettes : colle le lien (ou partage la page vers MyBody365 sur Android), le nom, les parts, les ingrédients et les étapes sont remplis, tu indiques les calories par part. Le lien vers le site reste sur la recette
@@ -27,7 +32,7 @@ Tes repas en un coup d'œil, des recettes à importer, et des amis qu'on trouve 
 - Choisir une date d'arrivée pour son objectif : l'app calcule le rythme, et dit quand la date est trop proche pour rester en bonne santé
 - Suggestions en tapant le nom d'utilisateur d'un ami (à partir de 3 lettres), avec un réglage pour ne pas y apparaître
 - Nutri-Score bien en avant, comme sur les emballages : les 5 lettres sur une étiquette blanche, celle de l'aliment en grand, avec la mention « estimé » quand l'app le calcule elle-même
-- Connexion locale avec un nouveau compte, pour tester le parcours de bienvenue (développement uniquement)
+- Connexion locale avec un nouveau compte, pour tester le parcours de bienvenue, ou avec un compte de démo rempli : deux mois de pesées, des photos, trois semaines de repas, des amis, un partage et une demande d'ami (développement uniquement)
 - Progrès : l'objectif toujours visible sur le graphique
 
 ### Modifié
@@ -37,6 +42,9 @@ Tes repas en un coup d'œil, des recettes à importer, et des amis qu'on trouve 
 - Sélecteur de poids : le nombre est bien centré et bouge à chaque appui sur − ou +
 - Boutons principaux en texte blanc sur un dégradé plus profond, lisible partout (contraste AA)
 - Administration : changer d'onglet ne rejoue plus l'animation de la page
+- Minuteur plus fluide : l'anneau suit chaque image, un halo à chaque changement de phase
+- Repas : le changement de jour est un fondu doux, les boutons Statistiques et Recettes sont bien visibles
+- Sur ordinateur, les rangées de filtres passent à la ligne au lieu de défiler hors de l'écran
 - Le minuteur remplace les programmes de séances et les rappels de salle : l'app reste centrée sur les repas et le poids, le sport en complément, sans ajouter de calories au budget du jour. Les séances déjà enregistrées restent dans les sauvegardes
 - Rythme limité à 1 % de ton poids par semaine (1 kg au plus), les rythmes plus rapides sont grisés
 - Pages légales : les onglets glissent comme ailleurs, sans animation de page, et les noms longs passent sur deux lignes
@@ -48,6 +56,8 @@ Tes repas en un coup d'œil, des recettes à importer, et des amis qu'on trouve 
 - Retour depuis Amis ou le minuteur après une réouverture de l'app : vers le profil
 - Aujourd'hui : plus d'espace entre « Ton objectif » et le poids visé
 - La carte « Créer un aliment » s'affichait mal (titre et texte collés)
+- Le texte d'aide des cases à cocher (verres d'eau, suggestions…) était collé à leur titre
+- Photos : « 3 Photo(S) » à côté du mois, une majuscule de trop
 
 ### Sécurité
 - Import de recettes : le serveur ne va que vers des sites publics (ni réseau interne ni adresse privée, vérifié à chaque redirection), lit 3 Mo au plus en 10 secondes, sans rien transmettre sur toi

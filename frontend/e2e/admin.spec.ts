@@ -18,6 +18,7 @@ test.describe('admin area', () => {
     await tab(page, 'Profil').click();
     await page.getByRole('link', { name: /Administration/ }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Administration');
+    await expect(page.getByRole('link', { name: 'Écrire un e-mail' })).toHaveAttribute('href', /^mailto:/);
     await expect(page.getByRole('button', { name: /admin@localhost/ })).toBeVisible();
     await expectAccessible(page);
 

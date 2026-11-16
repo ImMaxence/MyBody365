@@ -133,7 +133,7 @@ export class LegalPage {
       const path = (this.lang() === 'en' ? '/en' : '') + '/legal/' + key;
       this.seo.set({
         title: `${this.i18n.t('legal.' + key + '.title')} · MyBody365`,
-        description: this.i18n.t('meta.description'),
+        description: this.i18n.t('legal.descriptions.' + key),
         path,
         alternates: { fr: '/legal/' + key, en: '/en/legal/' + key },
       });

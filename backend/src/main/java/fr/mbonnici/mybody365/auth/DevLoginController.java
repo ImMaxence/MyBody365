@@ -20,7 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
  * <b>Local-only</b> sign-in without Google, for development and the end-to-end tests. It needs
  * {@code DEV_LOGIN=true} <em>and</em> an {@code APP_URL} on localhost, so a production deployment
  * can never expose it by accident. {@code as=admin} signs in as the first ADMIN_EMAILS address,
- * {@code as=user} as a regular demo account, {@code as=new} as a new account each time.
+ * {@code as=user} as a regular demo account, {@code as=new} as a new account each time, {@code as=demo} as a new
+ * account filled with two months of data and friends (see DemoSeed).
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -32,11 +33,13 @@ public class DevLoginController {
     private final AppProperties props;
     private final AppUserRepository users;
     private final AuthSessions sessions;
+    private final DemoSeed demo;
 
-    public DevLoginController(AppProperties props, AppUserRepository users, AuthSessions sessions) {
+    public DevLoginController(AppProperties props, AppUserRepository users, AuthSessions sessions, DemoSeed demo) {
         this.props = props;
         this.users = users;
         this.sessions = sessions;
+        this.demo = demo;
     }
 
     static boolean allowed(AppProperties props) {
@@ -53,6 +56,13 @@ public class DevLoginController {
             HttpServletResponse response) throws IOException {
         if (!allowed(props)) {
             throw ApiException.notFound();
+        }
+        if ("demo".equals(as)) {
+            AppUser lea = demo.create(props.adminEmails().getFirst());
+            sessions.signIn(lea, AppUser.LoginMethod.DEV, request, response);
+            log.warn("DEV LOGIN used: demo account {} filled and opened", lea.getEmail());
+            response.sendRedirect(props.url() + "/app");
+            return;
         }
         boolean admin = !"user".equals(as) && !"new".equals(as);
         // "new": a brand-new account each time, to go through the whole onboarding (end-to-end tests)

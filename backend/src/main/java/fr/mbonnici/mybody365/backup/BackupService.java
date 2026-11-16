@@ -62,7 +62,7 @@ public class BackupService {
 
     public record Preview(String token, String exportedAt, String appVersion, boolean profile, Map<String, Change> changes) {}
 
-    public record Result(int logs, int photos, int meals, int foods, int recipes, int workouts, int water) {}
+    public record Result(int logs, int photos, int meals, int foods, int recipes, int workouts, int water, int timers) {}
 
     /** what a backup file holds, read and checked */
     record Parsed(Map<String, Object> manifest, Map<String, Object> data, Set<String> files, long filesBytes) {}
@@ -102,6 +102,7 @@ public class BackupService {
         data.put("photos", photos);
         data.put("workouts", rows(BackupFormat.WORKOUTS, "user_id = ? order by day", userId));
         data.put("water", rows(BackupFormat.WATER, "user_id = ? order by day", userId));
+        data.put("timers", rows(BackupFormat.TIMERS, "user_id = ? order by created_at", userId));
         List<Map<String, Object>> prefs = rows(BackupFormat.PREFS, "user_id = ?", userId);
         data.put("notifications", prefs.isEmpty() ? null : prefs.getFirst());
 
@@ -244,6 +245,8 @@ public class BackupService {
                 keyed(list(data, "workouts"), BackupService::workoutKey), r -> ""));
         out.put("water", compare(keyed(rows(BackupFormat.WATER, "user_id = ?", userId), r -> str(r.get("day"))),
                 keyed(list(data, "water"), r -> str(r.get("day"))), r -> String.valueOf(r.get("glasses"))));
+        out.put("timers", compare(keyed(rows(BackupFormat.TIMERS, "user_id = ?", userId), r -> lower(r.get("name"))),
+                keyed(list(data, "timers"), r -> lower(r.get("name"))), r -> r.get("work_s") + "/" + r.get("rest_s") + "/" + r.get("rounds")));
         return out;
     }
 
@@ -389,6 +392,7 @@ public class BackupService {
             jdbc.update("delete from workout_session where user_id = ?", userId);
             jdbc.update("delete from body_log where user_id = ?", userId);
             jdbc.update("delete from water_log where user_id = ?", userId);
+            jdbc.update("delete from timer_preset where user_id = ?", userId);
         }
         try (ZipFile zip = new ZipFile(zipPath.toFile())) {
             Map<String, UUID> foodIds = new HashMap<>();
@@ -575,6 +579,28 @@ public class BackupService {
                 insert("water_log", v, Map.of("user_id", userId));
                 water++;
             }
+            // saved timers: same name, same timer (20 at most)
+            int timers = 0;
+            for (Map<String, Object> w : list(p.data(), "timers")) {
+                Map<String, Object> v = typed(BackupFormat.TIMERS, w);
+                Object name = v.get("name");
+                if (!(name instanceof String s) || s.isBlank() || s.length() > 30 || !(v.get("work_s") instanceof Number work)
+                        || !(v.get("rest_s") instanceof Number rest) || !(v.get("rounds") instanceof Number rounds)
+                        || work.intValue() < 5 || work.intValue() > 3600 || rest.intValue() < 0 || rest.intValue() > 600
+                        || rounds.intValue() < 1 || rounds.intValue() > 30) {
+                    continue;
+                }
+                jdbc.update("delete from timer_preset where user_id = ? and lower(name) = lower(?)", userId, s);
+                Integer count = jdbc.queryForObject("select count(*) from timer_preset where user_id = ?", Integer.class, userId);
+                if (count != null && count >= 20) {
+                    continue;
+                }
+                if (v.get("created_at") == null) {
+                    v.put("created_at", Timestamp.from(Instant.now()));
+                }
+                insert("timer_preset", v, Map.of("id", UUID.randomUUID(), "user_id", userId));
+                timers++;
+            }
             Object profile = p.data().get("profile");
             if (profile instanceof Map<?, ?> pm) {
                 @SuppressWarnings("unchecked")
@@ -593,7 +619,7 @@ public class BackupService {
                     insert("notification_pref", v, Map.of("user_id", userId));
                 }
             }
-            return new Result(logs, photos, meals, foods, recipes, workouts, water);
+            return new Result(logs, photos, meals, foods, recipes, workouts, water, timers);
         } catch (IOException e) {
             throw ApiException.badRequest("backup_invalid");
         }

@@ -79,6 +79,14 @@ test.describe('meals', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'Enregistrer' }).click();
     await expect(entry).toContainText('960');
 
+    // the balance of the day, provisional, and what it is made of
+    await page.getByRole('button', { name: /Équilibre de la journée/ }).click();
+    const balance = page.getByRole('dialog', { name: 'Équilibre de la journée' });
+    await expect(balance.getByText('Nutriments', { exact: true })).toBeVisible();
+    await expectAccessible(page);
+    await balance.locator('.sheet-grip').click();
+    await expect(balance).toBeHidden();
+
     // the week strip marks the day, the calendar opens from the date and closes from its grip
     await expect(page.getByRole('group', { name: 'Jours de la semaine' }).getByRole('button', { pressed: true })).toHaveAttribute('aria-label', /960 kcal/);
     await page.getByRole('button', { name: /Aujourd’hui/ }).click();

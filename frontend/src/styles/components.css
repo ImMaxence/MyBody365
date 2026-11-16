@@ -186,6 +186,11 @@
   cursor: pointer;
   transition: border-color var(--dur-2), background-color var(--dur-2);
 }
+/* a title and its hint: the hint under the title, not glued to it */
+.check > span > b + .small {
+  display: block;
+  margin-top: 2px;
+}
 .check:has(input:checked) {
   border-color: color-mix(in srgb, var(--accent) 55%, transparent);
   background: var(--accent-soft);
@@ -319,6 +324,13 @@
 }
 .slide-chips::-webkit-scrollbar {
   display: none;
+}
+/* with a mouse there is no swipe: the chips go to the next line instead of hiding off to the right */
+@media (hover: hover) and (pointer: fine) {
+  .slide-chips {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
 }
 .slide-chips > button {
   flex: none;

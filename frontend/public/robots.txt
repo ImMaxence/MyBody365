@@ -2,5 +2,8 @@ User-agent: *
 Allow: /
 Disallow: /app
 Disallow: /link
+Disallow: /friends/add
 Disallow: /api/
+
+# a summary of the site for AI assistants: https://mybody365.mbonnici.fr/llms.txt
 Sitemap: https://mybody365.mbonnici.fr/sitemap.xml

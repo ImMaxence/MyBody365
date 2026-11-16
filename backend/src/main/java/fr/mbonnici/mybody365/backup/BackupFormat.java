@@ -44,6 +44,9 @@ final class BackupFormat {
 
     static final Table WATER = new Table("water_log", cols("day", Type.DATE, "glasses", Type.INT));
 
+    static final Table TIMERS = new Table("timer_preset", cols("name", Type.TEXT, "work_s", Type.INT, "rest_s", Type.INT, "rounds", Type.INT,
+            "created_at", Type.TIMESTAMP));
+
     static final Table LOGS = new Table("body_log", cols("day", Type.DATE, "weight_kg", Type.NUM, "body_fat_pct", Type.NUM, "waist_cm",
             Type.NUM, "hips_cm", Type.NUM, "chest_cm", Type.NUM, "arm_cm", Type.NUM, "thigh_cm", Type.NUM, "note", Type.TEXT));
 

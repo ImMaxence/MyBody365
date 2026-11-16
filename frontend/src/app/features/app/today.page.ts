@@ -11,12 +11,13 @@ import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
 import { IconComponent } from '../../shared/icon.component';
 import { WeighSheetComponent } from './weigh-sheet.component';
 import { WaterRowComponent } from './water-row.component';
+import { PushPromptComponent } from '../../shared/push-prompt.component';
 
 /** "Today": the streak, the day's to-do (the weigh-in validates the day) and the goal. */
 @Component({
   selector: 'app-today',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [WaterRowComponent, RouterLink, TranslatePipe, IconComponent, WeighSheetComponent],
+  imports: [PushPromptComponent, WaterRowComponent, RouterLink, TranslatePipe, IconComponent, WeighSheetComponent],
   template: `
     <main class="page">
       <header class="head">
@@ -117,6 +118,8 @@ import { WaterRowComponent } from './water-row.component';
           <button type="button" class="btn btn-ghost btn-block" (click)="flameDialog.close()">{{ 'common.close' | t }}</button>
         </div>
       </dialog>
+
+      <app-push-prompt [dismissable]="true" />
 
       <h2 class="section-title">{{ 'today.todo' | t }}</h2>
       <div class="list">

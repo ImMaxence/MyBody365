@@ -16,6 +16,8 @@ export const enBackup: Widen<typeof frBackup> = {
   exportedAt: 'Backup of {date}',
   categories: {
     logs: 'Weigh-ins and measurements',
+    water: 'Glasses of water',
+    timers: 'Saved timers',
     photos: 'Photos',
     meals: 'Meals (per day)',
     foods: 'My foods',

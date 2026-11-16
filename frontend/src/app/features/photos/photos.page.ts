@@ -60,7 +60,7 @@ interface Month {
           </div>
           @for (m of months(); track m.key) {
             <section class="month">
-              <h2 class="section-title">{{ m.label }} <span class="faint">· {{ 'photos.count' | t: { n: m.photos.length } }}</span></h2>
+              <h2 class="section-title"><span class="month-name">{{ m.label }}</span> <span class="faint">· {{ 'photos.count' | t: { n: m.photos.length } }}</span></h2>
               <div class="grid">
                 @for (p of m.photos; track p.id; let i = $index) {
                   <a class="tile" [routerLink]="['/app/photos', p.id]" [style.--i]="i" [attr.aria-label]="'photos.open' | t: { date: i18n.date(p.day) }">
@@ -160,7 +160,13 @@ interface Month {
     }
     .month .section-title {
       margin: 0;
-      text-transform: capitalize;
+    }
+    /* "novembre 2026" → "Novembre 2026", the count after it untouched */
+    .month-name {
+      display: inline-block;
+    }
+    .month-name::first-letter {
+      text-transform: uppercase;
     }
     .grid {
       display: grid;

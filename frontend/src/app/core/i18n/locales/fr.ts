@@ -89,6 +89,7 @@ export const fr = {
     recipe_url_invalid: 'Ce lien ne peut pas être importé : colle l’adresse complète d’une page web (https://…)',
     recipe_unreachable: 'Le site ne répond pas ou refuse la lecture. Réessaie plus tard, ou saisis la recette à la main',
     recipe_not_found: 'Pas de recette lisible sur cette page : saisis-la à la main, c’est rapide',
+    too_many_timers: '20 chronos enregistrés au plus : supprimes-en un d’abord',
     pace_too_fast: 'Trop rapide pour ton poids : au plus 1 % de ton poids par semaine',
     self_request: 'C’est ton propre nom d’utilisateur',
     too_many_requests: 'Trop de demandes en attente : attends que certaines reçoivent une réponse',
@@ -309,6 +310,7 @@ export const fr = {
     devAdmin: 'Connexion locale (admin)',
     devUser: 'Connexion locale (utilisateur)',
     devNew: 'Connexion locale (nouveau compte)',
+    devDemo: 'Connexion locale (démo remplie : photos, amis, repas)',
     noAccess: 'Pas encore d’accès ?',
     requestAccess: 'Demander un accès',
     lostAccess: 'Tu as perdu l’accès à ton compte ?',
@@ -499,6 +501,13 @@ export const fr = {
   },
 
   progress: {
+    forecast: {
+      title: 'Prévision mois par mois',
+      trend: 'À ton rythme réel des dernières semaines : {kg} kg par semaine',
+      plan: 'Au rythme prévu : {kg} kg par semaine',
+      reached: 'Objectif atteint vers le {date}',
+      note: 'Une projection à rythme constant : les semaines réelles varient, la tendance se recalcule à chaque pesée',
+    },
     title: 'Progrès',
     range: { m1: '1 mois', m3: '3 mois', all: 'Tout' },
     chartLabel: 'Courbe de poids',
@@ -617,6 +626,12 @@ export const fr = {
   },
 
   admin: {
+    contact: {
+      title: 'Contacter le créateur',
+      text: 'Un bug, une question, une idée pour l’app : écris directement à Maxence',
+      email: 'Écrire un e-mail',
+      form: 'Formulaire de contact',
+    },
     title: 'Administration',
     tabs: { users: 'Comptes', requests: 'Demandes', links: 'Liens', foods: 'Aliments', moderation: 'Modération', journal: 'Journal' },
     summary: '{users} compte(s) · {admins} admin(s)',
@@ -715,6 +730,11 @@ export const fr = {
   },
 
   legal: {
+    descriptions: {
+      mentions: 'Mentions légales de MyBody365 : éditeur, hébergement en France, contact',
+      confidentialite: 'Confidentialité de MyBody365 : données traitées, qui voit quoi, durées de conservation et tes droits (RGPD)',
+      cgu: 'Conditions d’utilisation de MyBody365, application de transformation physique sur invitation, réservée aux personnes majeures',
+    },
     updated: 'Dernière mise à jour : {date}',
     back: 'Retour',
     docs: { mentions: 'Mentions légales', confidentialite: 'Confidentialité', cgu: 'Conditions d’utilisation' },
@@ -782,7 +802,7 @@ export const fr = {
           h: 'Données traitées',
           p: [
             'Compte : adresse e-mail, prénom, nom d’utilisateur, photo de profil (celle de Google, ou celle que tu envoies, redessinée et sans métadonnées, l’ancienne étant effacée quand tu la changes), langue, rôle, dates de connexion, moyens de connexion (identifiant Google, passkeys : clés publiques uniquement).',
-            'Suivi : poids, mensurations, objectif, repas, aliments créés, recettes, séances enregistrées avant la version 0.8, verres d’eau (si tu actives ce suivi), photos de progression. Ce sont des données de santé au sens de l’article 9 du RGPD : elles ne sont traitées qu’avec ton consentement explicite, donné à la création du compte. Chaque photo est redessinée et réenregistrée par le serveur : aucune métadonnée du fichier d’origine n’est conservée, pas même la position GPS.',
+            'Suivi : poids, mensurations, objectif, repas, aliments créés, recettes, séances enregistrées avant la version 1.0, chronos enregistrés, verres d’eau (si tu actives ce suivi), photos de progression. Ce sont des données de santé au sens de l’article 9 du RGPD : elles ne sont traitées qu’avec ton consentement explicite, donné à la création du compte. Chaque photo est redessinée et réenregistrée par le serveur : aucune métadonnée du fichier d’origine n’est conservée, pas même la position GPS.',
             'Amis : la liste de tes amis, les demandes d’ami envoyées et reçues, les coups de pouce, les photos et recettes que tu partages et avec qui, les signalements que tu envoies. Un membre ne peut te trouver qu’avec ton nom d’utilisateur exact.',
             'Notifications : l’adresse technique fournie par ton navigateur pour chaque appareil où tu les actives (abonnement Web Push) et tes réglages de rappels.',
             'Sauvegardes Google Drive (si tu les actives) : un jeton qui ne donne accès qu’aux fichiers créés par MyBody365, conservé chiffré.',

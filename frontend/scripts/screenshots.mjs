@@ -183,6 +183,8 @@ await seed.close();
 const raw = {};
 for (const scheme of ['dark', 'light']) {
   const ctx = await browser.newContext({ ...phone, colorScheme: scheme });
+  // the pictures show the app itself: the notifications card is put off (as after "later")
+  await ctx.addInitScript(() => localStorage.setItem('mb-push-later', String(Date.now() + 1e10)));
   const page = await ctx.newPage();
   await asInProduction(page);
   await page.goto(BASE + '/app/login?browser=1', { waitUntil: 'networkidle' });
@@ -346,6 +348,17 @@ await compose(
     </div>
   </div>`,
 );
+
+// the picture shown when the site is shared (og:image): the banner, 1200 × 630
+{
+  const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
+  const src = `data:image/png;base64,${readFileSync(`${OUT}/banner.png`).toString('base64')}`;
+  await page.setContent(`<html><body style="margin:0;background:#0a0a0c"><img src="${src}" style="width:1200px;height:630px;object-fit:cover"></body></html>`);
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: 'public/og.png' });
+  await page.close();
+  console.log('public/og.png');
+}
 
 await compose(
   'app',

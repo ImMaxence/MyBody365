@@ -1,8 +1,8 @@
-# Audit de sécurité — MyBody365 0.8.0
+# Audit de sécurité — MyBody365 1.0.0
 
-Date : 16 novembre 2026. Périmètre : le dépôt complet (back Spring Boot, front Angular, nginx, fichiers Docker Compose), dans sa version 0.8.0 : photos, repas, notifications, amis, sauvegardes, import de recettes, noms d'utilisateur et photos de profil compris.
+Date : 16 novembre 2026. Périmètre : le dépôt complet (back Spring Boot, front Angular, nginx, fichiers Docker Compose), dans sa version 1.0.0 : photos, repas, notifications, amis, sauvegardes, import de recettes, noms d'utilisateur et photos de profil compris.
 
-Méthode : relecture du code de chaque point d'entrée, vérification des règles d'accès ressource par ressource, tests d'intégration ciblés (`backend/src/test`, 73 tests) et de bout en bout (`frontend/e2e`), `npm audit` sur les dépendances livrées.
+Méthode : relecture du code de chaque point d'entrée, vérification des règles d'accès ressource par ressource, tests d'intégration ciblés (`backend/src/test`, 75 tests) et de bout en bout (`frontend/e2e`), `npm audit` sur les dépendances livrées.
 
 ## Résumé
 
