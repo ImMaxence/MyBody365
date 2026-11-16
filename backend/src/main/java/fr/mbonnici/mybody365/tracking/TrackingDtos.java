@@ -1,0 +1,83 @@
+package fr.mbonnici.mybody365.tracking;
+
+import fr.mbonnici.mybody365.tracking.BodyMath.Activity;
+import fr.mbonnici.mybody365.tracking.BodyMath.Sex;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+
+public final class TrackingDtos {
+
+    private TrackingDtos() {}
+
+    public record ProfileInput(
+            @NotNull Sex sex,
+            @NotNull @Past LocalDate birthDate,
+            @NotNull @DecimalMin("100") @DecimalMax("250") BigDecimal heightCm,
+            @NotNull Activity activityLevel,
+            /** today's weight: the starting point on the first save */
+            @NotNull @DecimalMin("30") @DecimalMax("350") BigDecimal currentWeightKg,
+            @NotNull @DecimalMin("30") @DecimalMax("350") BigDecimal goalWeightKg,
+            @NotNull @DecimalMin("0.25") @DecimalMax("1.0") BigDecimal weeklyRateKg) {}
+
+    public record ProfileDto(
+            Sex sex,
+            LocalDate birthDate,
+            int age,
+            double heightCm,
+            Activity activityLevel,
+            double startWeightKg,
+            LocalDate startDate,
+            double goalWeightKg,
+            double weeklyRateKg,
+            /** the lowest goal allowed for this height (BMI 18.5) */
+            double minGoalKg) {}
+
+    public record LogInput(
+            @DecimalMin("30") @DecimalMax("350") BigDecimal weightKg,
+            @DecimalMin("2") @DecimalMax("70") BigDecimal bodyFatPct,
+            @DecimalMin("20") @DecimalMax("250") BigDecimal waistCm,
+            @DecimalMin("20") @DecimalMax("250") BigDecimal hipsCm,
+            @DecimalMin("20") @DecimalMax("250") BigDecimal chestCm,
+            @DecimalMin("10") @DecimalMax("100") BigDecimal armCm,
+            @DecimalMin("10") @DecimalMax("150") BigDecimal thighCm,
+            @Size(max = 200) String note) {}
+
+    public record LogDto(
+            LocalDate day,
+            Double weightKg,
+            Double trendKg,
+            Double bodyFatPct,
+            Double waistCm,
+            Double hipsCm,
+            Double chestCm,
+            Double armCm,
+            Double thighCm,
+            String note) {}
+
+    public record Current(Double weightKg, LocalDate day, Double trendKg, Double bmi, Double changeKg) {}
+
+    public record Energy(int bmr, int tdee, int targetKcal, boolean floorApplied) {}
+
+    public record Goal(
+            double goalKg,
+            double remainingKg,
+            int progressPct,
+            boolean reached,
+            /** at the chosen pace */
+            LocalDate planDate,
+            /** at the real pace of the last four weeks, when there is enough data */
+            LocalDate trendDate,
+            Double trendKgPerWeek) {}
+
+    public record Day(LocalDate day, boolean done, boolean future) {}
+
+    public record Streak(int days, boolean todayDone, List<Day> week) {}
+
+    public record Summary(ProfileDto profile, Current current, Energy energy, Goal goal, Streak streak, List<String> warnings) {}
+}

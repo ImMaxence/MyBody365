@@ -1,0 +1,115 @@
+import { expect, test } from '@playwright/test';
+import { expectAccessible, expectNoHorizontalOverflow, openApp, tab, watchErrors } from './helpers';
+
+test.describe('tracking', () => {
+  test('a new account: consents, profile, plan, then day 1 of the streak', async ({ page }) => {
+    const errors = watchErrors(page);
+    await openApp(page);
+    await page.goto('/api/auth/dev-login?as=new');
+
+    // consents
+    await page.getByRole('checkbox', { name: /18 ans/ }).check();
+    await page.getByRole('checkbox', { name: /données de santé/ }).check();
+    await page.getByRole('button', { name: 'Continuer' }).click();
+
+    // about you: a birth date under 18 is refused
+    await expect(page.getByRole('heading', { name: 'Parle-nous de toi' })).toBeVisible();
+    await page.getByRole('radio', { name: 'Homme' }).click();
+    const next = page.getByRole('button', { name: 'Continuer' });
+    await page.getByLabel('Date de naissance').fill(`${new Date().getFullYear() - 10}-01-01`);
+    await expect(next).toBeDisabled();
+    await page.getByLabel('Date de naissance').fill('1992-03-08');
+    await next.click();
+
+    // starting point: height 182 cm, 88.4 kg (typed and with the steppers)
+    await expect(page.getByRole('heading', { name: 'Ton point de départ' })).toBeVisible();
+    const height = page.getByLabel('Taille');
+    await height.fill('182');
+    await height.press('Tab');
+    const weight = page.getByLabel('Poids aujourd’hui');
+    await weight.fill('88');
+    await weight.press('Tab');
+    for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Plus 100 grammes' }).click();
+    await expect(weight).toHaveValue('88,4');
+    await expectAccessible(page);
+    await page.getByRole('button', { name: 'Continuer' }).click();
+
+    // goal: proposed 5 kg lower, pace and activity
+    await expect(page.getByRole('heading', { name: 'Ton objectif' })).toBeVisible();
+    await expect(page.getByLabel('Poids visé')).toHaveValue('83,5');
+    await page.getByRole('radio', { name: /Soutenu/ }).click();
+    await page.getByRole('radio', { name: /Modérée/ }).click();
+    await expect(page.getByText(/Arrivée estimée/)).toBeVisible();
+    await page.getByRole('button', { name: 'Voir mon plan' }).click();
+
+    // the plan computed by the server
+    await expect(page.getByRole('heading', { name: 'Ton plan est prêt' })).toBeVisible();
+    await expect(page.getByText('Objectif calorique')).toBeVisible();
+    await expect(page.getByText(/4,9 kg/)).toBeVisible();
+    await page.getByRole('button', { name: /C’est parti/ }).click();
+
+    // Today: the onboarding weigh-in validated day 1
+    await expect(page).toHaveURL(/\/app$/);
+    await expect(page.locator('.streak .big')).toContainText('1');
+    await expect(page.getByText('Journée validée, à demain')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Pesée du jour/ })).toContainText('88,4 kg');
+    await expect(page.getByText(/kcal par jour/)).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+    expect(errors).toEqual([]);
+  });
+
+  test('weigh-in, progress curve and goal', async ({ page }) => {
+    await openApp(page);
+    await page.goto('/api/auth/dev-login?as=new');
+    const { completeOnboarding } = await import('./helpers');
+    await completeOnboarding(page);
+
+    // today's weigh-in, edited with a measurement
+    await page.getByRole('button', { name: /Pesée du jour/ }).click();
+    const sheet = page.locator('dialog[open]');
+    await expect(sheet.getByRole('heading', { name: 'Pesée du jour' })).toBeVisible();
+    await sheet.getByRole('button', { name: 'Moins 100 grammes' }).click();
+    await sheet.getByRole('button', { name: 'Moins 100 grammes' }).click();
+    await sheet.getByRole('button', { name: /Ajouter des mensurations/ }).click();
+    await sheet.getByLabel('Tour de taille (cm)').fill('84,5');
+    await sheet.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByText('Pesée enregistrée')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Pesée du jour/ })).toContainText('74,8 kg');
+
+    // the progress tab: curve, figures, history
+    await tab(page, 'Progrès').click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Progrès');
+    await expect(page.getByRole('img', { name: 'Courbe de poids' })).toBeVisible();
+    await expect(page.locator('.stat', { hasText: 'Départ' })).toContainText('75');
+    await expect(page.locator('.stat', { hasText: 'Variation' })).toContainText('−0,2');
+    const row = page.locator('.list-item').first();
+    await expect(row).toContainText('74,8 kg');
+    await expect(row).toContainText('Mensurations (1)');
+    await page.getByRole('button', { name: '3 mois' }).click();
+    await expect(page.getByRole('img', { name: 'Courbe de poids' })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+
+    // my goal, from the profile
+    await tab(page, 'Profil').click();
+    await page.getByRole('link', { name: /Mon objectif/ }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mon objectif');
+    await page.getByRole('radio', { name: /Doux/ }).click();
+    await page.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByText('Objectif mis à jour')).toBeVisible();
+    await expect(page).toHaveURL(/\/app\/account$/);
+    await expect(page.getByRole('link', { name: /Mon objectif/ })).toContainText('0,25 kg / semaine');
+  });
+
+  test('a goal under a healthy weight is refused', async ({ page }) => {
+    await openApp(page);
+    await page.goto('/api/auth/dev-login?as=new');
+    const { completeOnboarding } = await import('./helpers');
+    await completeOnboarding(page);
+    const res = await page.request.put('/api/me/profile', {
+      data: { sex: 'FEMALE', birthDate: '1995-06-15', heightCm: 170, activityLevel: 'LIGHT', currentWeightKg: 75, goalWeightKg: 45, weeklyRateKg: 0.5 },
+      headers: { 'X-XSRF-TOKEN': (await page.context().cookies()).find((c) => c.name === 'XSRF-TOKEN')?.value ?? '' },
+    });
+    expect(res.status()).toBe(400);
+    expect((await res.json()).message).toBe('goal_too_low');
+  });
+});

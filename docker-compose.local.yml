@@ -1,0 +1,80 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Full stack on your machine, built from source, no .env and no Google account needed:
+#
+#   docker compose -f docker-compose.local.yml up --build -d --wait
+#   open http://localhost:4300/                 (public site)
+#   open http://localhost:4300/app?browser=1    (the app in a browser tab → "Connexion locale")
+#
+# The app normally only opens once installed; ?browser=1 lifts that on localhost only.
+# The local sign-in shortcut (DEV_LOGIN) is refused unless APP_URL is localhost.
+# Google sign-in also works if GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are exported
+# (authorised redirect URI: http://localhost:4300/api/auth/oauth2/code/google).
+# Host ports: 4300 (LOCAL_PORT to change it) and 5436 for psql.
+# ──────────────────────────────────────────────────────────────────────────────
+name: mybody365-local
+
+services:
+  frontend:
+    build:
+      # root context: the image also ships CHANGELOG.md (the site's "Nouveautés" page)
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "127.0.0.1:${LOCAL_PORT:-4300}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/mybody365
+      DB_USER: mybody365
+      DB_PASSWORD: mybody365
+      PORT: "8080"
+      APP_URL: http://localhost:${LOCAL_PORT:-4300}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-not-configured}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-not-configured}
+      # the local sign-in opens an admin session for the first address
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-admin@localhost}
+      TRUST_PROXY: "false"
+      FORWARD_HEADERS_STRATEGY: framework
+      COOKIE_SECURE: "false"
+      DEV_LOGIN: "true"
+      # the end-to-end tests sign in and send requests many times from the same IP
+      RATE_LIMIT_AUTH_PER_MINUTE: "1000"
+      RATE_LIMIT_ACCESS_REQUEST_PER_HOUR: "1000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/actuator/health | grep -q '\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 40s
+
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: mybody365
+      POSTGRES_USER: mybody365
+      POSTGRES_PASSWORD: mybody365
+    ports:
+      - "127.0.0.1:${LOCAL_DB_PORT:-5436}:5432"
+    volumes:
+      - local-db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mybody365 -d mybody365"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  local-db:

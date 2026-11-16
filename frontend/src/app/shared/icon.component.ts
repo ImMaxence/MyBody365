@@ -1,0 +1,220 @@
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+
+/**
+ * Inline SVG icons (24×24, stroke), drawn after Lucide (ISC licence, © Lucide Contributors; parts © Cole
+ * Bemis, Feather, MIT): see THIRD_PARTY_NOTICES.md. No icon font, no request.
+ * Elements: [tag, attributes].
+ */
+type El = [string, Record<string, string>];
+const p = (d: string): El => ['path', { d }];
+const c = (cx: number, cy: number, r: number): El => ['circle', { cx: `${cx}`, cy: `${cy}`, r: `${r}` }];
+const rect = (x: number, y: number, w: number, h: number, rx: number): El => [
+  'rect',
+  { x: `${x}`, y: `${y}`, width: `${w}`, height: `${h}`, rx: `${rx}` },
+];
+
+export const ICONS: Record<string, El[]> = {
+  flame: [
+    p('M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z'),
+  ],
+  home: [
+    p('M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8'),
+    p('M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'),
+  ],
+  utensils: [p('M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2'), p('M7 2v20'), p('M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7')],
+  camera: [p('M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z'), c(12, 13, 3)],
+  chart: [p('M22 7 13.5 15.5 8.5 10.5 2 17'), p('M16 7h6v6')],
+  user: [p('M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'), c(12, 7, 4)],
+  users: [
+    p('M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'),
+    c(9, 7, 4),
+    p('M22 21v-2a4 4 0 0 0-3-3.87'),
+    p('M16 3.13a4 4 0 0 1 0 7.75'),
+  ],
+  shield: [
+    p('M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'),
+  ],
+  shieldCheck: [
+    p('M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'),
+    p('m9 12 2 2 4-4'),
+  ],
+  plus: [p('M5 12h14'), p('M12 5v14')],
+  minus: [p('M5 12h14')],
+  play: [p('M6 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L7.5 3.64A1 1 0 0 0 6 4.5z')],
+  pause: [rect(6, 4, 4, 16, 1), rect(14, 4, 4, 16, 1)],
+  snowflake: [
+    p('m10 20-1.25-2.5L6 18'),
+    p('M10 4 8.75 6.5 6 6'),
+    p('m14 20 1.25-2.5L18 18'),
+    p('m14 4 1.25 2.5L18 6'),
+    p('m17 21-3-6h-4'),
+    p('m17 3-3 6 1.5 3'),
+    p('M2 12h6.5L10 9'),
+    p('m20 10-1.5 2 1.5 2'),
+    p('M22 12h-6.5L14 15'),
+    p('m4 10 1.5 2L4 14'),
+    p('m7 21 3-6-1.5-3'),
+    p('m7 3 3 6h4'),
+  ],
+  pencil: [p('M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z')],
+  ruler: [
+    p('M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z'),
+    p('m14.5 12.5 2-2'),
+    p('m11.5 9.5 2-2'),
+    p('m8.5 6.5 2-2'),
+    p('m17.5 15.5 2-2'),
+  ],
+  check: [p('M20 6 9 17l-5-5')],
+  x: [p('M18 6 6 18'), p('m6 6 12 12')],
+  chevronRight: [p('m9 18 6-6-6-6')],
+  chevronLeft: [p('m15 18-6-6 6-6')],
+  chevronDown: [p('m6 9 6 6 6-6')],
+  arrowRight: [p('M5 12h14'), p('m12 5 7 7-7 7')],
+  key: [
+    p('M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z'),
+    c(16.5, 7.5, 0.5),
+  ],
+  fingerprint: [
+    p('M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4'),
+    p('M14 13.12c0 2.38 0 6.38-1 8.88'),
+    p('M17.29 21.02c.12-.6.43-2.3.5-3.02'),
+    p('M2 12a10 10 0 0 1 18-6'),
+    p('M2 16h.01'),
+    p('M21.8 16c.2-2 .131-5.354 0-6'),
+    p('M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2'),
+    p('M8.65 22c.21-.66.45-1.32.57-2'),
+    p('M9 6.8a6 6 0 0 1 9 5.2v2'),
+  ],
+  share: [p('M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8'), p('M16 6l-4-4-4 4'), p('M12 2v13')],
+  plusSquare: [rect(3, 3, 18, 18, 3), p('M8 12h8'), p('M12 8v8')],
+  more: [c(12, 5, 1), c(12, 12, 1), c(12, 19, 1)],
+  download: [p('M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'), p('M7 10l5 5 5-5'), p('M12 15V3')],
+  monitor: [rect(2, 3, 20, 14, 2), p('M8 21h8'), p('M12 17v4')],
+  smartphone: [rect(5, 2, 14, 20, 2), p('M12 18h.01')],
+  chrome: [c(12, 12, 10), c(12, 12, 4), p('M21.17 8H12'), p('M3.95 6.06 8.54 14'), p('M10.88 21.94 15.46 14')],
+  safari: [c(12, 12, 10), p('m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z')],
+  sun: [
+    c(12, 12, 4),
+    p('M12 2v2'),
+    p('M12 20v2'),
+    p('m4.93 4.93 1.41 1.41'),
+    p('m17.66 17.66 1.41 1.41'),
+    p('M2 12h2'),
+    p('M20 12h2'),
+    p('m6.34 17.66-1.41 1.41'),
+    p('m19.07 4.93-1.41 1.41'),
+  ],
+  moon: [p('M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z')],
+  contrast: [c(12, 12, 10), p('M12 18a6 6 0 0 0 0-12v12z')],
+  globe: [c(12, 12, 10), p('M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20'), p('M2 12h20')],
+  logout: [p('M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'), p('m16 17 5-5-5-5'), p('M21 12H9')],
+  trash: [p('M3 6h18'), p('M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6'), p('M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2')],
+  link: [
+    p('M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'),
+    p('M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'),
+  ],
+  copy: [rect(8, 8, 14, 14, 2), p('M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2')],
+  mail: [rect(2, 4, 20, 16, 2), p('m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7')],
+  clock: [c(12, 12, 10), p('M12 6v6l4 2')],
+  inbox: [
+    p('M22 12h-6l-2 3h-4l-2-3H2'),
+    p('M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'),
+  ],
+  list: [p('M8 6h13'), p('M8 12h13'), p('M8 18h13'), p('M3 6h.01'), p('M3 12h.01'), p('M3 18h.01')],
+  lock: [rect(3, 11, 18, 11, 2), p('M7 11V7a5 5 0 0 1 10 0v4')],
+  weight: [
+    c(12, 5, 3),
+    p('M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.5A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.5A2 2 0 0 0 17.48 8Z'),
+  ],
+  target: [c(12, 12, 10), c(12, 12, 6), c(12, 12, 2)],
+  dumbbell: [
+    p('M14.4 14.4 9.6 9.6'),
+    p('M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z'),
+    p('m21.5 21.5-1.4-1.4'),
+    p('M3.9 3.9 2.5 2.5'),
+    p('M6.404 12.768a2 2 0 1 1-2.829-2.829l1.768-1.767a2 2 0 1 1-2.828-2.829l2.828-2.828a2 2 0 1 1 2.829 2.828l1.767-1.768a2 2 0 1 1 2.829 2.829z'),
+  ],
+  bell: [
+    p('M10.268 21a2 2 0 0 0 3.464 0'),
+    p('M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326'),
+  ],
+  info: [c(12, 12, 10), p('M12 16v-4'), p('M12 8h.01')],
+  alert: [p('m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3'), p('M12 9v4'), p('M12 17h.01')],
+  sparkles: [
+    p('M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z'),
+  ],
+  search: [c(11, 11, 8), p('m21 21-4.3-4.3')],
+  userPlus: [p('M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'), c(9, 7, 4), p('M19 8v6'), p('M22 11h-6')],
+  ban: [c(12, 12, 10), p('m4.9 4.9 14.2 14.2')],
+  refresh: [p('M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8'), p('M21 3v5h-5'), p('M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16'), p('M8 16H3v5')],
+  eyeOff: [
+    p('M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49'),
+    p('M14.084 14.158a3 3 0 0 1-4.242-4.242'),
+    p('M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143'),
+    p('m2 2 20 20'),
+  ],
+  heart: [p('M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z')],
+  scroll: [p('M15 12h-5'), p('M15 8h-5'), p('M19 17V5a2 2 0 0 0-2-2H4'), p('M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3')],
+};
+
+@Component({
+  selector: 'app-icon',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { 'aria-hidden': 'true', style: 'display:contents' },
+  // the whole <svg> is written in one go into an HTML wrapper: one DOM write per icon instead of one
+  // Angular view per shape (much cheaper hydration), and the prerender can serialise it
+  template: `<span class="ico" [innerHTML]="markup()"></span>`,
+  styles: `
+    .ico {
+      display: contents;
+    }
+  `,
+})
+export class IconComponent {
+  readonly name = input.required<string>();
+  readonly size = input<number | string>(24);
+  readonly stroke = input<number>(1.9);
+  private readonly sanitizer = inject(DomSanitizer);
+  protected readonly markup = computed(() => iconMarkup(this.name(), this.size(), this.stroke(), this.sanitizer));
+}
+
+const MARKUP = new Map<string, SafeHtml>();
+
+/**
+ * The icon as SVG markup. Built only from the constants above and numeric sizes (never from user
+ * input), which is what makes bypassing the sanitizer (it drops every SVG element) safe here.
+ */
+function iconMarkup(name: string, size: number | string, stroke: number, sanitizer: DomSanitizer): SafeHtml {
+  const key = `${name}|${size}|${stroke}`;
+  let html = MARKUP.get(key);
+  if (!html) {
+    const s = Number(size) || 24;
+    const w = Number(stroke) || 1.9;
+    const shapes = (ICONS[name] ?? [])
+      .map(([tag, attrs]) => `<${tag} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ')}/>`)
+      .join('');
+    html = sanitizer.bypassSecurityTrustHtml(
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" ` +
+        `stroke-linejoin="round" width="${s}" height="${s}" focusable="false">${shapes}</svg>`,
+    );
+    MARKUP.set(key, html);
+  }
+  return html;
+}
+
+/** Google's "G", in its own colours (Google sign-in branding guidelines). */
+@Component({
+  selector: 'app-google-g',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { 'aria-hidden': 'true', style: 'display:contents' },
+  template: `
+    <svg viewBox="0 0 24 24" width="20" height="20" focusable="false">
+      <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z" />
+      <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z" />
+      <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z" />
+      <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z" />
+    </svg>
+  `,
+})
+export class GoogleGComponent {}

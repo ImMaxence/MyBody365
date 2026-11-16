@@ -1,0 +1,14 @@
+# Root build context of the frontend image (the backend image uses ./backend). Keep it small.
+.git/
+backend/
+**/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/coverage/
+.env
+.env.*
+!.env.example
+*.log

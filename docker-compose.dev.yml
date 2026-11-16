@@ -1,0 +1,28 @@
+# Development: only the database. Run the backend with ./mvnw spring-boot:run (ADMIN_EMAILS=you@example.com
+# DEV_LOGIN=true APP_URL=http://localhost:4300) and the frontend with npm start (http://localhost:4300,
+# /api proxied to :8082).
+#
+#   docker compose -f docker-compose.dev.yml up -d --wait
+#
+# Host port 5435 so it never clashes with other projects on 5432-5434.
+name: mybody365-dev
+
+services:
+  db:
+    image: postgres:18-alpine
+    ports:
+      - "127.0.0.1:5435:5432"
+    environment:
+      POSTGRES_DB: mybody365
+      POSTGRES_USER: mybody365
+      POSTGRES_PASSWORD: mybody365
+    volumes:
+      - dev-db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mybody365 -d mybody365"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  dev-db:

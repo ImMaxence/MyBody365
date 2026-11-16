@@ -1,0 +1,142 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Screen transitions (see core/nav/stack-navigation.ts):
+   push = the new screen slides in from the right over the old one, which backs off a little;
+   pop  = the current screen slides out to the right, uncovering the previous one;
+   fade = switching tabs: a quick cross-fade with a hint of depth;
+   page = the public site, from page to page.
+   The tab bar is captured on its own during push / pop / fade, so it never moves.
+   ───────────────────────────────────────────────────────────────────────────── */
+:root {
+  --nav-dur: 420ms;
+  --nav-ease: cubic-bezier(0.2, 0.85, 0.25, 1);
+}
+
+html[data-nav='push']::view-transition-old(root) {
+  animation: var(--nav-dur) var(--nav-ease) both nav-back-off;
+}
+html[data-nav='push']::view-transition-new(root) {
+  animation: var(--nav-dur) var(--nav-ease) both nav-from-right;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.28);
+}
+
+html[data-nav='pop']::view-transition-old(root) {
+  z-index: 1;
+  animation: var(--nav-dur) var(--nav-ease) both nav-to-right;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.28);
+}
+html[data-nav='pop']::view-transition-new(root) {
+  animation: var(--nav-dur) var(--nav-ease) both nav-back-in;
+}
+
+html[data-nav='fade']::view-transition-old(root) {
+  animation: 200ms ease-out both nav-fade-out;
+}
+html[data-nav='fade']::view-transition-new(root) {
+  animation: 320ms var(--nav-ease) 40ms both nav-fade-in;
+}
+
+html[data-nav='page']::view-transition-old(root) {
+  animation: 260ms ease-out both nav-fade-out;
+}
+html[data-nav='page']::view-transition-new(root) {
+  animation: 460ms var(--nav-ease) 60ms both nav-rise-in;
+}
+
+/* the tab bar stays where it is while the screens move */
+html[data-nav]::view-transition-group(tabbar),
+html[data-nav]::view-transition-new(tabbar) {
+  animation: none;
+}
+html[data-nav]::view-transition-old(tabbar) {
+  display: none;
+}
+/* a theme switch: the new colours grow in a circle from the button (ThemeService), tab bar included */
+html.theming .tabbar {
+  view-transition-name: none !important;
+}
+html.theming::view-transition-old(root),
+html.theming::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+@keyframes nav-from-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes nav-back-off {
+  to {
+    transform: translateX(-28%);
+    filter: brightness(0.82);
+  }
+}
+@keyframes nav-to-right {
+  /* after an edge swipe, from where the finger left the screen */
+  from {
+    transform: translateX(var(--swipe-from, 0px));
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes nav-back-in {
+  from {
+    transform: translateX(-28%);
+    filter: brightness(0.82);
+  }
+}
+@keyframes nav-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes nav-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985) translateY(6px);
+  }
+}
+@keyframes nav-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+/* the content of a screen arrives in a short cascade */
+.page > * {
+  animation: content-in 460ms var(--nav-ease) both;
+}
+.page > :nth-child(2) {
+  animation-delay: 40ms;
+}
+.page > :nth-child(3) {
+  animation-delay: 80ms;
+}
+.page > :nth-child(4) {
+  animation-delay: 120ms;
+}
+.page > :nth-child(5) {
+  animation-delay: 160ms;
+}
+.page > :nth-child(n + 6) {
+  animation-delay: 200ms;
+}
+@keyframes content-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+  .page > * {
+    animation: none;
+  }
+}

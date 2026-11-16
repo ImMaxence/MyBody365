@@ -1,0 +1,15 @@
+app:
+  url: http://localhost:4300
+  admin-emails: admin@example.com;second-admin@example.com
+  trust-proxy: false
+  dev-login: false
+  rate-limit:
+    enabled: true
+    api-per-minute: 5000
+    auth-per-minute: 5000
+    access-request-per-hour: 5
+
+logging:
+  level:
+    org.testcontainers: warn
+    com.github.dockerjava: warn

@@ -1,0 +1,5 @@
+{
+  "/api": { "target": "http://localhost:8082", "secure": false, "changeOrigin": false, "xfwd": true },
+  "/webauthn": { "target": "http://localhost:8082", "secure": false, "changeOrigin": false, "xfwd": true },
+  "/login/webauthn": { "target": "http://localhost:8082", "secure": false, "changeOrigin": false, "xfwd": true }
+}
