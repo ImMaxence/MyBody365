@@ -1,0 +1,111 @@
+package fr.mbonnici.mybody365;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.jayway.jsonpath.JsonPath;
+import fr.mbonnici.mybody365.push.ReminderScheduler;
+import fr.mbonnici.mybody365.push.WebPushCrypto;
+import fr.mbonnici.mybody365.tracking.TrackingService;
+import fr.mbonnici.mybody365.user.AppUser;
+import java.security.interfaces.ECPublicKey;
+import java.time.LocalTime;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+
+/** Notification settings, device subscriptions (push services only) and workout sessions. */
+class EngagementTest extends AbstractIntegrationTest {
+
+    @Autowired
+    ReminderScheduler reminders;
+
+    @Autowired
+    RecordingPushTransport pushes;
+
+    private AppUser lea;
+    private AppUser hugo;
+
+    @BeforeEach
+    void setUp() {
+        wipe();
+        lea = account("lea@example.com", AppUser.Role.USER);
+        hugo = account("hugo@example.com", AppUser.Role.USER);
+    }
+
+    private String subscription(String endpoint) throws Exception {
+        String key = WebPushCrypto.b64(WebPushCrypto.rawPublic((ECPublicKey) WebPushCrypto.newKeyPair().getPublic()));
+        return "{\"endpoint\":\"" + endpoint + "\",\"keys\":{\"p256dh\":\"" + key + "\",\"auth\":\"" + WebPushCrypto.b64(new byte[16]) + "\"}}";
+    }
+
+    @Test
+    void settingsAndDevices() throws Exception {
+        String publicKey = JsonPath.read(mvc.perform(get("/api/me/notifications").with(as(lea))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.devices").value(0))
+                .andExpect(jsonPath("$.prefs.dailyTime").value("08:00"))
+                .andReturn().getResponse().getContentAsString(), "$.publicKey");
+        // the same key for everybody, 65 bytes
+        mvc.perform(get("/api/me/notifications").with(as(hugo))).andExpect(jsonPath("$.publicKey").value(publicKey));
+        org.assertj.core.api.Assertions.assertThat(WebPushCrypto.unb64(publicKey)).hasSize(65);
+
+        mvc.perform(post("/api/me/push/subscriptions").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(subscription("https://fcm.googleapis.com/fcm/send/abc123")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.devices").value(1));
+        // never a request to anything but a push service (no SSRF through a "subscription")
+        for (String bad : new String[] {"http://fcm.googleapis.com/x", "https://evil.example.com/push", "https://169.254.169.254/latest",
+                "https://googleapis.com.evil.io/x"}) {
+            mvc.perform(post("/api/me/push/subscriptions").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                    .content(subscription(bad))).andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value("push_unsupported"));
+        }
+
+        mvc.perform(put("/api/me/notifications").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
+                {"dailyEnabled":true,"dailyTime":"07:30","gymEnabled":true,"gymDays":"1,3,5","gymTime":"18:15","friendsEnabled":false}"""))
+                .andExpect(jsonPath("$.prefs.dailyTime").value("07:30"))
+                .andExpect(jsonPath("$.prefs.gymDays").value("1,3,5"))
+                .andExpect(jsonPath("$.prefs.friendsEnabled").value(false));
+        mvc.perform(put("/api/me/notifications").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
+                {"dailyEnabled":true,"dailyTime":"25:00","gymEnabled":false,"gymDays":"8","gymTime":"18:00","friendsEnabled":true}"""))
+                .andExpect(status().isBadRequest());
+
+        // the reminder minute: one notification (no weigh-in yet), signed with the app key, and only once that day
+        pushes.sent.clear();
+        reminders.run(TrackingService.today(), LocalTime.of(7, 29));
+        org.assertj.core.api.Assertions.assertThat(pushes.sent).isEmpty();
+        reminders.run(TrackingService.today(), LocalTime.of(7, 30));
+        org.assertj.core.api.Assertions.assertThat(pushes.sent).hasSize(1);
+        org.assertj.core.api.Assertions.assertThat(pushes.sent.getFirst().headers().get("Authorization")).startsWith("vapid t=").endsWith(", k=" + publicKey);
+        org.assertj.core.api.Assertions.assertThat(pushes.sent.getFirst().headers().get("Content-Encoding")).isEqualTo("aes128gcm");
+        reminders.run(TrackingService.today(), LocalTime.of(7, 30));
+        org.assertj.core.api.Assertions.assertThat(pushes.sent).hasSize(1);
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject("select last_daily from notification_pref where user_id = ?",
+                java.time.LocalDate.class, lea.getId())).isEqualTo(TrackingService.today());
+
+        mvc.perform(delete("/api/me/push/subscriptions").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"endpoint\":\"https://fcm.googleapis.com/fcm/send/abc123\"}")).andExpect(jsonPath("$.devices").value(0));
+    }
+
+    @Test
+    void workoutSessions() throws Exception {
+        String today = TrackingService.today().toString();
+        String body = mvc.perform(post("/api/me/workouts").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
+                {"day":"%s","program":"full-body","workout":"a","durationMin":45,
+                 "exercises":[{"id":"squat","sets":3,"weightKg":40},{"id":"push-up","sets":3}]}""".formatted(today)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$[0].exercises[0].weightKg").value(40.0))
+                .andExpect(jsonPath("$[0].durationMin").value(45))
+                .andReturn().getResponse().getContentAsString();
+        String id = JsonPath.read(body, "$[0].id");
+        mvc.perform(get("/api/me/workouts").with(as(hugo))).andExpect(jsonPath("$.length()").value(0));
+        mvc.perform(delete("/api/me/workouts/" + id).with(as(hugo)).with(csrf())).andExpect(status().isNotFound());
+        mvc.perform(post("/api/me/workouts").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"day\":\"" + today + "\",\"program\":\"../etc\",\"workout\":\"a\",\"exercises\":[]}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(delete("/api/me/workouts/" + id).with(as(lea)).with(csrf())).andExpect(status().isNoContent());
+    }
+}

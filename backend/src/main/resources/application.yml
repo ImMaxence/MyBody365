@@ -26,6 +26,12 @@ spring:
       cleanup-cron: "0 */30 * * * *"
   jackson:
     default-property-inclusion: non_null
+  servlet:
+    multipart:
+      # pictures are resized by the app before upload; backups (zip) can be much larger
+      max-file-size: 512MB
+      max-request-size: 512MB
+      file-size-threshold: 2MB
   security:
     oauth2:
       client:
@@ -79,6 +85,19 @@ app:
     api-per-minute: ${RATE_LIMIT_API_PER_MINUTE:600}
     auth-per-minute: ${RATE_LIMIT_AUTH_PER_MINUTE:20}
     access-request-per-hour: ${RATE_LIMIT_ACCESS_REQUEST_PER_HOUR:5}
+    upload-per-hour: ${RATE_LIMIT_UPLOAD_PER_HOUR:120}
+    food-search-per-minute: ${RATE_LIMIT_FOOD_SEARCH_PER_MINUTE:60}
+  # photos and pictures: an S3-compatible service (SeaweedFS in the Compose files)
+  storage:
+    endpoint: ${S3_ENDPOINT:http://localhost:8333}
+    region: ${S3_REGION:us-east-1}
+    bucket: ${S3_BUCKET:mybody365}
+    access-key: ${S3_ACCESS_KEY:mybody365}
+    secret-key: ${S3_SECRET_KEY:mybody365-local-secret}
+    quota-mb: ${STORAGE_QUOTA_MB:1024}
+    max-upload-mb: 20
+  nutrition:
+    off-user-agent: ${OFF_USER_AGENT:MyBody365}
 
 logging:
   level:

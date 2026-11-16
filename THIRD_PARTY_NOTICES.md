@@ -56,7 +56,29 @@ The SIL Open Font License 1.1 allows using, modifying and redistributing the fon
 web pages, as long as they are not sold on their own and modified versions stay under the same
 licence. Full text: https://openfontlicense.org/open-font-license-official-text/
 
-## Data (upcoming)
+## Libraries shipped in the app
 
-- Open Food Facts database: Open Database License (ODbL) 1.0, © Open Food Facts contributors.
-- Ciqual food composition table: Licence Ouverte / Etalab 2.0, © Anses.
+The app bundles these libraries (loaded only on the screens that use them). Their licences ship with their
+packages in `node_modules`; the notices below are the ones they require.
+
+- **ZXing** (`@zxing/library`, barcode and QR code reading): Apache License 2.0, © ZXing authors.
+  <https://github.com/zxing-js/library>. `@zxing/browser`: MIT License, © ZXing authors.
+- **node-qrcode** (`qrcode`, invitation QR codes): MIT License, © 2012 Ryan Day. Its dependency **dijkstrajs**:
+  MIT License, © 2008 Tom Carden.
+
+The server uses (Maven, licences in their jars):
+
+- **AWS SDK for Java 2.x** (object storage client): Apache License 2.0, © Amazon.com, Inc. or its affiliates.
+- **TwelveMonkeys ImageIO** (WebP and JPEG decoding): BSD 3-Clause License, © Harald Kuhr.
+- Spring Boot, Spring Security, Hibernate, Flyway, the PostgreSQL JDBC driver: Apache License 2.0 / BSD.
+- **cwebp** (libwebp tools, installed in the server image): BSD 3-Clause License, © Google Inc.
+
+## Data
+
+- **Open Food Facts**: the database is available under the Open Database License (ODbL) 1.0, its contents under the
+  Database Contents License 1.0, © Open Food Facts contributors (<https://world.openfoodfacts.org>). Products found
+  are cached by the server; no personal data is ever sent to Open Food Facts.
+- **Ciqual**, French food composition table: Licence Ouverte / Etalab 2.0, © Anses
+  (<https://ciqual.anses.fr>, dataset doi:10.57745/RDMHWY). Imported by an administrator; older versions are kept.
+- **Nutri-Score** is a trademark of Santé publique France. Grades that do not come from Open Food Facts are estimated
+  by MyBody365 with the 2023 algorithm for general foods.

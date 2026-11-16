@@ -1,3 +1,11 @@
+import { frAdminFoods, frAdminModeration } from './fr-admin';
+import { frBackup } from './fr-backup';
+import { frEngage } from './fr-engage';
+import { frFriends } from './fr-friends';
+import { frMeals } from './fr-meals';
+import { frPhotos } from './fr-photos';
+import type { Widen } from './widen';
+
 /** French: the reference dictionary. en.ts must have exactly the same keys (checked by the compiler). */
 export const fr = {
   meta: {
@@ -62,6 +70,32 @@ export const fr = {
     empty_log: 'Indique au moins une valeur',
     invalid_day: 'Cette date n’est pas valide',
     profile_missing: 'Termine d’abord la configuration de ton profil',
+    not_found: 'Introuvable : cet élément a peut-être été supprimé',
+    unsupported_image: 'Ce format d’image n’est pas pris en charge. Utilise une photo JPEG, PNG ou WebP',
+    invalid_image: 'Cette image est illisible',
+    image_too_large: 'Cette image est trop grande',
+    file_too_large: 'Ce fichier est trop lourd',
+    quota_exceeded: 'Ton espace de stockage est plein. Supprime quelques photos ou demande plus d’espace à un administrateur',
+    food_not_found: 'Aucun produit trouvé pour ce code-barres',
+    off_unavailable: 'Open Food Facts ne répond pas pour le moment. Réessaie ou saisis l’aliment à la main',
+    import_running: 'Une mise à jour est déjà en cours',
+    recipe_empty: 'Ajoute au moins un ingrédient',
+    invalid_quantity: 'Indique une quantité valide',
+    already_voted: 'Tu as déjà voté pour cette recette',
+    own_recipe: 'Tu ne peux pas voter pour ta propre recette',
+    invite_invalid: 'Ce lien d’ami n’est pas valide ou a expiré',
+    self_invite: 'C’est ton propre lien',
+    already_friends: 'Vous êtes déjà amis',
+    not_friends: 'Vous n’êtes pas amis',
+    nudge_too_soon: 'Tu as déjà envoyé un rappel aujourd’hui à cet ami',
+    push_unsupported: 'Les notifications ne sont pas disponibles sur cet appareil. Sur iPhone, installe d’abord l’app sur l’écran d’accueil',
+    push_denied: 'Les notifications sont bloquées. Autorise-les dans les réglages de ton téléphone',
+    backup_invalid: 'Ce fichier n’est pas une sauvegarde MyBody365',
+    restore_expired: 'Cet aperçu a expiré. Choisis à nouveau ta sauvegarde',
+    drive_not_connected: 'Google Drive n’est pas relié',
+    drive_failed: 'Google Drive n’a pas répondu. Réessaie plus tard',
+    already_reported: 'Tu l’as déjà signalé, merci',
+    drive_not_configured: 'La sauvegarde Google Drive n’est pas encore disponible sur ce serveur',
   },
 
   theme: {
@@ -334,6 +368,8 @@ export const fr = {
     photoHint: 'Même endroit, même lumière, chaque jour',
     meals: 'Repas',
     mealsHint: 'Petit-déjeuner, déjeuner, dîner, collations',
+    mealsKcal: '{eaten} kcal sur {target}',
+    friendsLine: '{n} ami(s) · {done} ont validé leur journée',
     goal: 'Ton objectif',
     goalHint: 'Définis ton poids cible pour voir ta date d’arrivée',
     buildingTitle: 'L’app se construit',
@@ -456,6 +492,14 @@ export const fr = {
     saved: 'Objectif mis à jour',
   },
 
+  photos: frPhotos,
+  meals: frMeals,
+  engage: frEngage,
+  friends: frFriends,
+  backup: frBackup,
+  adminFoods: frAdminFoods,
+  adminModeration: frAdminModeration,
+
   soon: {
     title: 'Bientôt ici',
     meals: 'Note tes repas en trois taps : code-barres, aliments du quotidien, recettes perso et Nutri-Score',
@@ -509,7 +553,7 @@ export const fr = {
 
   admin: {
     title: 'Administration',
-    tabs: { users: 'Comptes', requests: 'Demandes', links: 'Liens', journal: 'Journal' },
+    tabs: { users: 'Comptes', requests: 'Demandes', links: 'Liens', foods: 'Aliments', moderation: 'Modération', journal: 'Journal' },
     summary: '{users} compte(s) · {admins} admin(s)',
     users: {
       search: 'Rechercher un compte',
@@ -532,6 +576,11 @@ export const fr = {
       noMethod: 'Aucune',
       lastLogin: 'Dernière connexion : {date}',
       never: 'jamais',
+      storage: 'Stockage',
+      storageUsed: '{used} utilisés',
+      quota: 'Quota de stockage',
+      quotaDefault: 'Par défaut ({quota})',
+      quotaSaved: 'Quota mis à jour',
       created: 'Créé le {date}',
       onboarded: 'Consentements donnés',
       notOnboarded: 'Consentements en attente',
@@ -629,9 +678,10 @@ export const fr = {
           h: 'Polices, icônes et données',
           p: [
             'Polices Inter (© Rasmus Andersson et les auteurs du projet Inter) et Archivo (© les auteurs du projet Archivo, Omnibus-Type), sous licence SIL Open Font License 1.1. Archivo est utilisée dans une version allégée (caractères latins, graisses 600 à 900), ce que la licence autorise ; elle reste distribuée sous la même licence. Les deux polices sont servies depuis le même serveur que l’application : aucune requête n’est envoyée à Google Fonts ni à un autre service.',
-            'Icônes dessinées d’après Lucide (© Lucide Contributors, licence ISC, et © Cole Bemis pour les parties issues de Feather, licence MIT) ; les notices de licence complètes figurent dans le fichier THIRD_PARTY_NOTICES.md du code source. Le logo, les illustrations et les silhouettes ont été dessinés pour MyBody365.',
+            'Icônes dessinées d’après Lucide (© Lucide Contributors, licence ISC, et © Cole Bemis pour les parties issues de Feather, licence MIT) ; les notices de licence complètes figurent dans le fichier THIRD_PARTY_NOTICES.md du code source. Le logo et les illustrations ont été dessinés pour MyBody365.',
+            'La lecture des codes-barres et des QR codes utilise ZXing (© les auteurs de ZXing, licence Apache 2.0) ; les QR codes d’invitation sont dessinés avec node-qrcode (© Ryan Day, licence MIT).',
             'Le logo Google est une marque de Google LLC, utilisé uniquement pour désigner la connexion avec Google. Nutri-Score est une marque de Santé publique France, utilisée pour afficher le score des produits.',
-            'Les données nutritionnelles proviendront d’Open Food Facts (licence ODbL) et de la table Ciqual de l’Anses (Licence Ouverte Etalab).',
+            'Les produits du commerce viennent d’Open Food Facts (© les contributeurs d’Open Food Facts, base de données sous licence Open Database License, contenus sous licence Database Contents License). Les aliments du quotidien viennent de la table de composition nutritionnelle Ciqual de l’Anses (Licence Ouverte Etalab 2.0) ; la version utilisée est indiquée dans l’application. Les Nutri-Score des aliments hors Open Food Facts sont estimés par MyBody365 à partir des nutriments.',
           ],
         },
         {
@@ -644,7 +694,8 @@ export const fr = {
         {
           h: 'Signaler un contenu',
           p: [
-            'Pour signaler un contenu illicite ou un problème, écris à {email} ou utilise le formulaire de {contactSite}, en précisant le contenu concerné et la raison du signalement.',
+            'Dans l’application, le bouton « Signaler » d’une recette de la communauté ou d’une photo partagée avec toi transmet le contenu aux administrateurs, sans révéler ton identité à la personne concernée.',
+            'Pour tout autre signalement, écris à {email} ou utilise le formulaire de {contactSite}, en précisant le contenu concerné et la raison du signalement.',
           ],
         },
       ],
@@ -666,7 +717,10 @@ export const fr = {
           h: 'Données traitées',
           p: [
             'Compte : adresse e-mail, prénom, photo de profil Google, langue, rôle, dates de connexion, moyens de connexion (identifiant Google, passkeys : clés publiques uniquement).',
-            'Suivi : poids, mensurations, objectif, repas, recettes, séances, photos de progression. Ce sont des données de santé au sens de l’article 9 du RGPD : elles ne sont traitées qu’avec ton consentement explicite, donné à la création du compte.',
+            'Suivi : poids, mensurations, objectif, repas, aliments créés, recettes, séances, photos de progression. Ce sont des données de santé au sens de l’article 9 du RGPD : elles ne sont traitées qu’avec ton consentement explicite, donné à la création du compte. Chaque photo est redessinée et réenregistrée par le serveur : aucune métadonnée du fichier d’origine n’est conservée, pas même la position GPS.',
+            'Amis : la liste de tes amis, les coups de pouce envoyés et reçus, les photos que tu partages et avec qui, les signalements que tu envoies.',
+            'Notifications : l’adresse technique fournie par ton navigateur pour chaque appareil où tu les actives (abonnement Web Push) et tes réglages de rappels.',
+            'Sauvegardes Google Drive (si tu les actives) : un jeton qui ne donne accès qu’aux fichiers créés par MyBody365, conservé chiffré.',
             'Sécurité : adresse IP et date des connexions, des demandes d’accès et des envois de photos, pour lutter contre les abus et répondre à une éventuelle réquisition judiciaire.',
           ],
         },
@@ -674,7 +728,8 @@ export const fr = {
           h: 'Qui voit quoi',
           p: [
             'Tes photos de progression ne sont visibles que par toi. Personne d’autre, administrateurs compris, n’y a accès dans l’application, sauf les photos que tu choisis de partager avec un ami, jusqu’à ce que tu retires ce partage.',
-            'Les administrateurs voient la liste des comptes (adresse, prénom, rôle, moyens de connexion, dernières connexions), les demandes d’accès et les recettes publiées dans la communauté.',
+            'Tes amis voient ton prénom, ta photo de profil, le nombre de jours de ta flamme et si tu as validé ta journée. Rien d’autre : ni ton poids, ni tes repas, ni tes photos, sauf celles que tu partages.',
+            'Les administrateurs voient la liste des comptes (adresse, prénom, rôle, moyens de connexion, dernières connexions, espace de stockage utilisé), les demandes d’accès et les recettes publiées dans la communauté. Une photo partagée qui a été signalée devient visible des administrateurs, et d’eux seuls, le temps de traiter le signalement.',
             'L’éditeur, qui administre le serveur, a techniquement accès au stockage ; il s’engage à ne pas consulter tes contenus, sauf réquisition judiciaire ou signalement d’un contenu manifestement illicite.',
           ],
         },
@@ -683,20 +738,21 @@ export const fr = {
           p: [
             'Google LLC : connexion avec Google (si tu la choisis) et stockage chiffré des sauvegardes sur Google Drive.',
             'Cloudflare, Inc. : réseau de diffusion et protection du site ; le trafic transite par ses serveurs, y compris hors de l’Union européenne, dans le cadre des clauses contractuelles types.',
-            'Open Food Facts : les recherches d’aliments sont faites depuis le serveur, sans aucune donnée personnelle.',
+            'Open Food Facts : les recherches d’aliments et de codes-barres sont faites depuis le serveur, sans aucune donnée personnelle. La table Ciqual est téléchargée depuis l’entrepôt de données de recherche data.gouv.fr par un administrateur.',
+            'Services de notification des navigateurs et des téléphones (Google, Apple, Mozilla, Microsoft) : ils acheminent les notifications, dont le contenu est chiffré de bout en bout entre le serveur et ton appareil.',
           ],
         },
         {
           h: 'Durées de conservation',
           p: [
             'Les données de ton compte sont conservées tant que ton compte existe, puis supprimées définitivement à sa suppression (sauvegardes comprises sous 30 jours).',
-            'Les journaux techniques (IP, connexions, envois) sont conservés un an. Les demandes d’accès sont supprimées douze mois après leur traitement.',
+            'Les journaux techniques (IP, connexions, envois) sont conservés un an. Les demandes d’accès et les signalements traités sont supprimés douze mois après leur traitement, les coups de pouce après trente jours. Une sauvegarde envoyée pour restauration est effacée du serveur dès sa restauration, ou au bout d’une heure.',
           ],
         },
         {
           h: 'Tes droits',
           p: [
-            'Tu peux accéder à tes données, les corriger, les exporter, retirer ton consentement et supprimer ton compte à tout moment depuis ton profil. Retirer ton consentement aux données de santé revient à supprimer ton compte.',
+            'Tu peux accéder à tes données, les corriger, les exporter (Profil › Sauvegardes : un fichier avec toutes tes données et toutes tes photos), retirer ton consentement et supprimer ton compte à tout moment depuis ton profil. Retirer ton consentement aux données de santé revient à supprimer ton compte, photos comprises.',
             'Pour toute question, écris à {email}. Tu peux aussi adresser une réclamation à la CNIL (cnil.fr).',
           ],
         },
@@ -727,7 +783,8 @@ export const fr = {
           h: 'Tes contenus',
           p: [
             'Tu es seul responsable des contenus que tu ajoutes (photos, repas, recettes, messages). Sont interdits : tout contenu illicite, toute image d’une autre personne sans son accord, toute image d’un mineur, tout contenu haineux, violent ou à caractère sexuel explicite.',
-            'Les recettes que tu publies dans la communauté sont visibles par tous les utilisateurs et peuvent être retirées par un administrateur.',
+            'Les recettes que tu publies dans la communauté sont visibles par tous les utilisateurs, peuvent être notées, copiées et retirées par un administrateur. Une photo que tu partages avec un ami peut être signalée par lui ; un administrateur peut alors la supprimer.',
+            'Les coups de pouce entre amis sont limités à un par jour et par ami ; n’en abuse pas.',
           ],
         },
         {
@@ -750,13 +807,5 @@ export const fr = {
     },
   },
 };
-
-type Widen<T> = T extends string
-  ? string
-  : T extends readonly (infer U)[]
-    ? Widen<U>[]
-    : T extends object
-      ? { [K in keyof T]: Widen<T[K]> }
-      : T;
 
 export type Dictionary = Widen<typeof fr>;

@@ -59,6 +59,9 @@ public class AppUser {
     @Enumerated(EnumType.STRING)
     private LoginMethod lastLoginMethod;
 
+    /** storage allowed in MB; null = the default (STORAGE_QUOTA_MB) */
+    private Integer storageQuotaMb;
+
     protected AppUser() {}
 
     public static AppUser create(String email, String displayName, Role role) {
@@ -171,6 +174,14 @@ public class AppUser {
 
     public Instant getLastLoginAt() {
         return lastLoginAt;
+    }
+
+    public Integer getStorageQuotaMb() {
+        return storageQuotaMb;
+    }
+
+    public void setStorageQuotaMb(Integer storageQuotaMb) {
+        this.storageQuotaMb = storageQuotaMb;
     }
 
     public LoginMethod getLastLoginMethod() {

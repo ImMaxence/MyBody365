@@ -11,6 +11,8 @@ export const routes: Routes = [
   { path: 'changelog', loadComponent: () => import('./features/changelog/changelog.page').then((m) => m.ChangelogPage) },
   // invitation / recovery links: work in any browser tab
   { path: 'link', loadComponent: () => import('./features/link/link.page').then((m) => m.LinkPage) },
+  // friend links: work in any browser tab too (QR codes often open outside the installed app)
+  { path: 'friends/add', loadComponent: () => import('./features/friends/friend-link.page').then((m) => m.FriendLinkPage) },
 
   // the app: installed only
   {
@@ -27,12 +29,29 @@ export const routes: Routes = [
         children: [
           // depth 0: the five tabs; depth 1+: screens pushed on top of them (see core/nav/stack-navigation.ts)
           { path: '', loadComponent: () => import('./features/app/today.page').then((m) => m.TodayPage), data: { depth: 0 } },
-          { path: 'meals', loadComponent: () => import('./features/app/soon.page').then((m) => m.SoonPage), data: { section: 'meals', depth: 0 } },
-          { path: 'photos', loadComponent: () => import('./features/app/soon.page').then((m) => m.SoonPage), data: { section: 'photos', depth: 0 } },
+          { path: 'meals', loadComponent: () => import('./features/meals/meals.page').then((m) => m.MealsPage), data: { depth: 0 } },
+          { path: 'meals/add', loadComponent: () => import('./features/meals/meal-add.page').then((m) => m.MealAddPage), data: { depth: 1, back: '/app/meals' } },
+          { path: 'meals/scan', loadComponent: () => import('./features/meals/barcode-scan.page').then((m) => m.BarcodeScanPage), data: { depth: 2, back: '/app/meals/add' } },
+          { path: 'meals/food/new', loadComponent: () => import('./features/meals/food-edit.page').then((m) => m.FoodEditPage), data: { depth: 2, back: '/app/meals/add' } },
+          { path: 'meals/food/:id', loadComponent: () => import('./features/meals/food-edit.page').then((m) => m.FoodEditPage), data: { depth: 2, back: '/app/meals' } },
+          { path: 'meals/recipes', loadComponent: () => import('./features/meals/recipes.page').then((m) => m.RecipesPage), data: { depth: 1, back: '/app/meals' } },
+          { path: 'meals/recipes/new', loadComponent: () => import('./features/meals/recipe-edit.page').then((m) => m.RecipeEditPage), data: { depth: 2, back: '/app/meals/recipes' } },
+          { path: 'meals/recipes/:id', loadComponent: () => import('./features/meals/recipe.page').then((m) => m.RecipePage), data: { depth: 2, back: '/app/meals/recipes' } },
+          { path: 'meals/recipes/:id/edit', loadComponent: () => import('./features/meals/recipe-edit.page').then((m) => m.RecipeEditPage), data: { depth: 3, back: '/app/meals/recipes' } },
+          { path: 'photos', loadComponent: () => import('./features/photos/photos.page').then((m) => m.PhotosPage), data: { depth: 0 } },
+          { path: 'photos/camera', loadComponent: () => import('./features/photos/camera.page').then((m) => m.CameraPage), data: { depth: 1, back: '/app/photos' } },
+          { path: 'photos/compare', loadComponent: () => import('./features/photos/compare.page').then((m) => m.ComparePage), data: { depth: 1, back: '/app/photos' } },
+          { path: 'photos/timelapse', loadComponent: () => import('./features/photos/timelapse.page').then((m) => m.TimelapsePage), data: { depth: 1, back: '/app/photos' } },
+          { path: 'photos/:id', loadComponent: () => import('./features/photos/photo-viewer.page').then((m) => m.PhotoViewerPage), data: { depth: 1, back: '/app/photos' } },
           { path: 'progress', loadComponent: () => import('./features/app/progress.page').then((m) => m.ProgressPage), data: { depth: 0 } },
           { path: 'account', loadComponent: () => import('./features/app/account.page').then((m) => m.AccountPage), data: { depth: 0 } },
           { path: 'account/goal', loadComponent: () => import('./features/app/goal.page').then((m) => m.GoalPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/security', loadComponent: () => import('./features/app/security.page').then((m) => m.SecurityPage), data: { depth: 1, back: '/app/account' } },
+          { path: 'account/backup', loadComponent: () => import('./features/app/backup.page').then((m) => m.BackupPage), data: { depth: 1, back: '/app/account' } },
+          { path: 'account/notifications', loadComponent: () => import('./features/app/notifications.page').then((m) => m.NotificationsPage), data: { depth: 1, back: '/app/account' } },
+          { path: 'friends', loadComponent: () => import('./features/friends/friends.page').then((m) => m.FriendsPage), data: { depth: 1, back: '/app' } },
+          { path: 'workouts', loadComponent: () => import('./features/workouts/workouts.page').then((m) => m.WorkoutsPage), data: { depth: 1, back: '/app' } },
+          { path: 'workouts/session', loadComponent: () => import('./features/workouts/workout-session.page').then((m) => m.WorkoutSessionPage), data: { depth: 2, back: '/app/workouts' } },
           {
             path: 'admin',
             canActivate: [adminGuard],
@@ -43,6 +62,8 @@ export const routes: Routes = [
               { path: 'users', loadComponent: () => import('./features/admin/users.tab').then((m) => m.AdminUsersTab) },
               { path: 'requests', loadComponent: () => import('./features/admin/requests.tab').then((m) => m.AdminRequestsTab) },
               { path: 'links', loadComponent: () => import('./features/admin/links.tab').then((m) => m.AdminLinksTab) },
+              { path: 'foods', loadComponent: () => import('./features/admin/foods.tab').then((m) => m.AdminFoodsTab) },
+              { path: 'moderation', loadComponent: () => import('./features/admin/moderation.tab').then((m) => m.AdminModerationTab) },
               { path: 'journal', loadComponent: () => import('./features/admin/journal.tab').then((m) => m.AdminJournalTab) },
             ],
           },

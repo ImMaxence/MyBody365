@@ -49,11 +49,16 @@ public final class AdminDtos {
             Instant createdAt,
             Instant lastLoginAt,
             String lastLoginMethod,
-            LinkDto activeLink) {}
+            LinkDto activeLink,
+            long storageUsedBytes,
+            /** null: the default quota */
+            Integer storageQuotaMb,
+            int defaultQuotaMb) {}
 
     public record CreateUser(@NotBlank @Email @Size(max = 254) String email, @Size(max = 80) String displayName) {}
 
-    public record UpdateUser(AppUser.Role role, AppUser.Status status) {}
+    /** storageQuotaMb: -1 goes back to the default quota */
+    public record UpdateUser(AppUser.Role role, AppUser.Status status, Integer storageQuotaMb) {}
 
     public record CreateLink(@NotNull AccountLink.Kind kind) {}
 

@@ -16,6 +16,9 @@ import type {
   Summary,
   LinkKind,
   Me,
+  Photo,
+  Pose,
+  StorageUsage,
   Providers,
   SecurityInfo,
 } from './models';
@@ -109,6 +112,27 @@ export class ApiService {
     return firstValueFrom(this.http.delete<void>(`/api/me/logs/${day}`));
   }
 
+  // ── photos ────────────────────────────────────────────────────────────────
+  photos(): Promise<Photo[]> {
+    return this.get('/api/me/photos');
+  }
+
+  uploadPhoto(file: Blob, day: string, pose: Pose): Promise<Photo> {
+    const form = new FormData();
+    form.append('file', file, file.type === 'image/webp' ? 'photo.webp' : 'photo.jpg');
+    form.append('day', day);
+    form.append('pose', pose);
+    return this.post('/api/me/photos', form);
+  }
+
+  deletePhoto(id: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`/api/me/photos/${id}`));
+  }
+
+  storage(): Promise<StorageUsage> {
+    return this.get('/api/me/storage');
+  }
+
   // ── admin ─────────────────────────────────────────────────────────────────
   adminSummary(): Promise<AdminSummary> {
     return this.get('/api/admin/summary');
@@ -122,7 +146,7 @@ export class ApiService {
     return this.post('/api/admin/users', { email, displayName });
   }
 
-  adminUpdateUser(id: string, patch: { role?: 'USER' | 'ADMIN'; status?: 'ACTIVE' | 'SUSPENDED' }): Promise<AdminUser> {
+  adminUpdateUser(id: string, patch: { role?: 'USER' | 'ADMIN'; status?: 'ACTIVE' | 'SUSPENDED'; storageQuotaMb?: number }): Promise<AdminUser> {
     return firstValueFrom(this.http.patch<AdminUser>(`/api/admin/users/${id}`, patch));
   }
 

@@ -6,6 +6,7 @@ import fr.mbonnici.mybody365.config.AppProperties;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,13 +27,15 @@ public class UserService {
     private final AppProperties props;
     private final JdbcTemplate jdbc;
     private final FindByIndexNameSessionRepository<? extends Session> sessions;
+    private final ApplicationEventPublisher events;
 
     public UserService(AppUserRepository users, AppProperties props, JdbcTemplate jdbc,
-            FindByIndexNameSessionRepository<? extends Session> sessions) {
+            FindByIndexNameSessionRepository<? extends Session> sessions, ApplicationEventPublisher events) {
         this.users = users;
         this.props = props;
         this.jdbc = jdbc;
         this.sessions = sessions;
+        this.events = events;
     }
 
     public Optional<AppUser> findByEmail(String email) {
@@ -103,7 +106,7 @@ public class UserService {
         endSessions(old);
     }
 
-    /** Deletes the account and everything attached to it (passkeys, sessions, links). */
+    /** Deletes the account and everything attached to it (passkeys, sessions, links, data, pictures). */
     @Transactional
     public void delete(AppUser user) {
         jdbc.update("delete from user_credentials where user_entity_user_id in (select id from user_entities where name = ?)",
@@ -111,5 +114,6 @@ public class UserService {
         jdbc.update("delete from user_entities where name = ?", user.getEmail());
         users.delete(user);
         endSessions(user.getEmail());
+        events.publishEvent(new AccountDeletedEvent(user.getId()));
     }
 }

@@ -26,6 +26,12 @@ public class AuditService {
         ACCESS_REJECTED,
         LINK_CREATED,
         LINK_REVOKED,
+        USER_QUOTA_CHANGED,
+        CIQUAL_IMPORT_STARTED,
+        REPORT_DISMISSED,
+        REPORTED_PHOTO_DELETED,
+        RECIPE_HIDDEN,
+        RECIPE_RESTORED,
     }
 
     public record Target(String type, String id, String label) {

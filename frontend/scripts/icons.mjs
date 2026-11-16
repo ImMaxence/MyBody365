@@ -27,6 +27,9 @@ function svg({ rounded, scale }) {
 </svg>`;
 }
 
+/** notification badge (Android): a white silhouette on transparency, the system tints it */
+const BADGE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="15 15 18 18"><path fill="#fff" d="${FLAME}"/></svg>`;
+
 mkdirSync('public/icons', { recursive: true });
 writeFileSync('public/favicon.svg', svg({ rounded: true, scale: 1 }));
 const png = (s, size, file) => sharp(Buffer.from(s), { density: 1200 }).resize(size, size).png({ compressionLevel: 9 }).toFile(file);
@@ -39,5 +42,6 @@ await Promise.all([
   // iOS rounds the corners itself: a full square, no transparency
   png(svg({ rounded: false, scale: 0.86 }), 180, 'public/icons/apple-touch-icon.png'),
   png(svg({ rounded: true, scale: 1 }), 32, 'public/icons/favicon-32.png'),
+  png(BADGE, 96, 'public/icons/badge-96.png'),
 ]);
 console.log('icons written');

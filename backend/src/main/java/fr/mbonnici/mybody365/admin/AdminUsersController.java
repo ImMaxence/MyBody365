@@ -120,6 +120,15 @@ public class AdminUsersController {
                 audit.record(me, Action.USER_REACTIVATED, Target.user(user), null);
             }
         }
+        if (body.storageQuotaMb() != null) {
+            Integer quota = body.storageQuotaMb() < 0 ? null : Math.min(body.storageQuotaMb(), 1_048_576);
+            if (!java.util.Objects.equals(quota, user.getStorageQuotaMb())) {
+                String before = user.getStorageQuotaMb() == null ? "default" : user.getStorageQuotaMb() + " MB";
+                user.setStorageQuotaMb(quota);
+                audit.record(me, Action.USER_QUOTA_CHANGED, Target.user(user),
+                        before + " → " + (quota == null ? "default" : quota + " MB"));
+            }
+        }
         return views.user(userRepository.save(user), me);
     }
 

@@ -19,7 +19,9 @@ public record AppProperties(
         @DefaultValue("false") boolean devLogin,
         /** lifetime of the invitation and recovery links made by admins */
         @DefaultValue("24") int recoveryLinkHours,
-        @DefaultValue RateLimit rateLimit) {
+        @DefaultValue RateLimit rateLimit,
+        @DefaultValue Storage storage,
+        @DefaultValue Nutrition nutrition) {
 
     public AppProperties {
         url = url == null ? "" : url.replaceAll("/+$", "");
@@ -75,5 +77,36 @@ public record AppProperties(
             @DefaultValue("true") boolean enabled,
             @DefaultValue("600") int apiPerMinute,
             @DefaultValue("20") int authPerMinute,
-            @DefaultValue("5") int accessRequestPerHour) {}
+            @DefaultValue("5") int accessRequestPerHour,
+            /** photo and recipe image uploads, backup restores */
+            @DefaultValue("120") int uploadPerHour,
+            /** food searches and barcode lookups (Open Food Facts is asked through us) */
+            @DefaultValue("60") int foodSearchPerMinute) {}
+
+    /**
+     * Object storage for photos and pictures: any S3-compatible service (SeaweedFS in the Compose files).
+     * Every object lives under u/{userId}/, so an account's files go with it.
+     */
+    public record Storage(
+            @DefaultValue("http://localhost:8333") String endpoint,
+            @DefaultValue("us-east-1") String region,
+            @DefaultValue("mybody365") String bucket,
+            String accessKey,
+            String secretKey,
+            /** storage allowed per account unless an admin sets another quota */
+            @DefaultValue("1024") int quotaMb,
+            /** the largest picture accepted before processing */
+            @DefaultValue("20") int maxUploadMb) {}
+
+    /** Food data: Open Food Facts (asked live, then cached) and the Ciqual table (imported by an admin). */
+    public record Nutrition(
+            @DefaultValue("https://world.openfoodfacts.org") String offUrl,
+            @DefaultValue("https://search.openfoodfacts.org") String offSearchUrl,
+            /** Open Food Facts asks every client to name itself */
+            @DefaultValue("MyBody365") String offUserAgent,
+            /**
+             * the Ciqual table (ANSES) on the French research data repository (Dataverse API): the import picks the
+             * newest alim / compo XML files of the dataset; an admin starts it from the app
+             */
+            @DefaultValue("https://entrepot.recherche.data.gouv.fr/api/datasets/:persistentId/?persistentId=doi:10.57745/RDMHWY") String ciqualDatasetUrl) {}
 }

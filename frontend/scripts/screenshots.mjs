@@ -83,6 +83,53 @@ await seed.close();
   const pending = await api(ctx, 'GET', '/api/admin/access-requests');
   const ines = pending.find((r) => r.name === 'Inès');
   if (ines) await api(ctx, 'POST', `/api/admin/access-requests/${ines.id}/approve`);
+
+  // today's meals, from foods of his own
+  const food = async (name, kcal, proteinG, carbsG, fatG, sugarsG, satFatG, saltG, fiberG, servingG) =>
+    (await api(ctx, 'POST', '/api/me/foods', { name, kcal, proteinG, carbsG, fatG, sugarsG, satFatG, saltG, fiberG, servingG })).id;
+  const skyr = await food('Skyr nature', 63, 11, 4, 0.2, 4, 0.1, 0.1, 0, 150);
+  const oats = await food('Flocons d’avoine', 372, 13, 59, 7, 1, 1.3, 0, 10, 50);
+  const banana = await food('Banane', 90, 1.1, 20, 0.3, 17, 0.1, 0, 2.6, 120);
+  const chicken = await food('Blanc de poulet grillé', 165, 31, 0, 3.6, 0, 1, 0.2, 0, 150);
+  const rice = await food('Riz complet cuit', 130, 2.7, 27, 1, 0.4, 0.2, 0, 1.8, 200);
+  const broccoli = await food('Brocolis vapeur', 35, 2.4, 4, 0.4, 1.4, 0.1, 0, 3.3, 150);
+  const apple = await food('Pomme', 52, 0.3, 12, 0.2, 9, 0, 0, 1.4, 150);
+  const today = day(0);
+  for (const [slot, foodId, grams] of [
+    ['BREAKFAST', skyr, 150],
+    ['BREAKFAST', oats, 50],
+    ['BREAKFAST', banana, 120],
+    ['LUNCH', chicken, 150],
+    ['LUNCH', rice, 200],
+    ['LUNCH', broccoli, 150],
+    ['SNACK', apple, 150],
+  ]) {
+    await api(ctx, 'POST', '/api/me/meals', { day: today, slot, foodId, grams });
+  }
+  await api(ctx, 'POST', '/api/me/recipes', {
+    name: 'Bowl poulet, riz et brocolis', type: 'LUNCH', servings: 2, shared: true,
+    ingredients: [{ foodId: chicken, grams: 300 }, { foodId: rice, grams: 400 }, { foodId: broccoli, grams: 300 }],
+  });
+
+  // three friends, each with a flame of their own
+  const invite = (await api(ctx, 'POST', '/api/me/friends/invite')).url;
+  const token = invite.slice(invite.indexOf('#') + 1);
+  for (const [as, name, days, weighedToday] of [['user', 'Léa', 34, true], ['new', 'Hugo', 12, false], ['new', 'Inès', 61, true]]) {
+    const f = await browser.newContext(phone);
+    const p = await f.newPage();
+    await p.goto(BASE + '/app/login?browser=1');
+    await p.goto(BASE + '/api/auth/dev-login?as=' + as);
+    await api(f, 'POST', '/api/me/consent', { adult: true, health: true });
+    await api(f, 'PATCH', '/api/me', { displayName: name });
+    await api(f, 'PUT', '/api/me/profile', {
+      sex: 'FEMALE', birthDate: '1995-05-05', heightCm: 168, activityLevel: 'LIGHT', currentWeightKg: 72, goalWeightKg: 65, weeklyRateKg: 0.5,
+    });
+    for (let i = days; i >= 1; i--) await api(f, 'PUT', `/api/me/logs/${day(i)}`, { weightKg: 72 - (days - i) * 0.05 });
+    // the onboarding weighed today in: taken back for the one who has not weighed in yet
+    if (!weighedToday) await api(f, 'DELETE', `/api/me/logs/${day(0)}`);
+    await api(f, 'POST', '/api/me/friends/accept', { token });
+    await f.close();
+  }
   await ctx.close();
 }
 
@@ -98,6 +145,11 @@ for (const scheme of ['dark', 'light']) {
   await page.goto(BASE + '/api/auth/dev-login?as=admin', { waitUntil: 'networkidle' });
   await page.goto(BASE + '/app', { waitUntil: 'networkidle' });
   raw[`today-${scheme}`] = await shot(page, `today-${scheme}`);
+  await page.goto(BASE + '/app/meals', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(900);
+  raw[`meals-${scheme}`] = await shot(page, `meals-${scheme}`);
+  await page.goto(BASE + '/app/friends', { waitUntil: 'networkidle' });
+  raw[`friends-${scheme}`] = await shot(page, `friends-${scheme}`);
   await page.goto(BASE + '/app/progress', { waitUntil: 'networkidle' });
   await page.waitForTimeout(900);
   raw[`progress-${scheme}`] = await shot(page, `progress-${scheme}`);
@@ -217,10 +269,10 @@ await compose(
   1000,
   `<div class="canvas" style="width:1600px;height:1000px;gap:44px;align-items:flex-start;padding-top:80px">
     ${[
-      ['setup-light', 'Ton objectif', 'Poids visé, rythme, activité'],
-      ['today-dark', 'Aujourd’hui', 'La flamme et la pesée'],
+      ['today-dark', 'Aujourd’hui', 'La flamme et ta journée'],
+      ['meals-light', 'Repas', 'Calories, macros, Nutri-Score'],
+      ['friends-dark', 'Amis', 'Flammes et coups de pouce'],
       ['progress-light', 'Progrès', 'Courbe, tendance, prévision'],
-      ['requests-dark', 'Administration', 'Demandes, liens, journal'],
     ]
       .map(([k, t, s]) => `<div style="width:320px"><div class="phone"><img src="${img(k)}"></div><div class="cap">${t}<small>${s}</small></div></div>`)
       .join('')}

@@ -42,7 +42,7 @@ import { AdminStore } from './admin.store';
       top: calc(var(--safe-top) + 4px);
       z-index: 10;
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 4px;
       padding: 4px;
       border-radius: var(--radius-m);
@@ -67,6 +67,11 @@ import { AdminStore } from './admin.store';
       color: var(--fg);
       box-shadow: var(--shadow-1);
     }
+    @media (min-width: 440px) {
+      .tabs {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
     .tabs .count-badge {
       position: absolute;
       top: 2px;
@@ -80,6 +85,8 @@ export class AdminPage {
     { path: 'users', icon: 'users' },
     { path: 'requests', icon: 'inbox' },
     { path: 'links', icon: 'link' },
+    { path: 'foods', icon: 'leaf' },
+    { path: 'moderation', icon: 'flag' },
     { path: 'journal', icon: 'list' },
   ];
 

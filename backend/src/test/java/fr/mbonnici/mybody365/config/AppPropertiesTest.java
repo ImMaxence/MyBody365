@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test;
 class AppPropertiesTest {
 
     private static AppProperties props(String url, String admins) {
-        return new AppProperties(url, List.of(admins), false, false, 24, new AppProperties.RateLimit(true, 600, 20, 5));
+        return new AppProperties(url, List.of(admins), false, false, 24, new AppProperties.RateLimit(true, 600, 20, 5, 120, 60),
+                null, null);
     }
 
     @Test

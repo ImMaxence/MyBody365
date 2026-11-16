@@ -155,7 +155,7 @@ export class ShellComponent {
   protected readonly showTabs = computed(() => {
     const url = this.url();
     const account = this.session.account();
-    return account?.onboarded === true && account.profileComplete && !/^\/app\/(login|request|welcome)/.test(url);
+    return account?.onboarded === true && account.profileComplete && !/^\/app\/(login|request|welcome|photos\/camera|meals\/scan)/.test(url);
   });
 
   /** the tab of the current screen (pushed screens belong to the tab they were opened from) */

@@ -7,6 +7,7 @@ import { I18nService, Lang } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ThemeMode, ThemeService } from '../../core/theme/theme.service';
 import { TrackingStore } from '../../core/tracking/tracking.store';
+import { UserDataService } from '../../core/user-data.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
 import { CURRENT_VERSION } from '../changelog/changelog.data';
@@ -62,6 +63,38 @@ import { CURRENT_VERSION } from '../changelog/changelog.data';
             @if (tracking.summary(); as s) {
               <span class="list-sub">{{ 'goal.sub' | t: { goal: i18n.number(s.profile.goalWeightKg, 1), pace: i18n.number(s.profile.weeklyRateKg, 2) } }}</span>
             }
+          </span>
+          <app-icon name="chevronRight" />
+        </a>
+        <a routerLink="/app/account/notifications" class="list-item">
+          <span class="list-icon"><app-icon name="bell" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'engage.notifications.title' | t }}</span>
+            <span class="list-sub">{{ 'engage.notifications.sub' | t }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </a>
+        <a routerLink="/app/friends" class="list-item">
+          <span class="list-icon"><app-icon name="users" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'friends.title' | t }}</span>
+            <span class="list-sub">{{ 'friends.sub' | t }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </a>
+        <a routerLink="/app/workouts" class="list-item">
+          <span class="list-icon"><app-icon name="dumbbell" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'engage.workouts.title' | t }}</span>
+            <span class="list-sub">{{ 'engage.workouts.sub' | t }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </a>
+        <a routerLink="/app/account/backup" class="list-item">
+          <span class="list-icon"><app-icon name="archive" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'backup.title' | t }}</span>
+            <span class="list-sub">{{ 'backup.sub' | t }}</span>
           </span>
           <app-icon name="chevronRight" />
         </a>
@@ -174,6 +207,7 @@ import { CURRENT_VERSION } from '../changelog/changelog.data';
 export class AccountPage {
   protected readonly session = inject(SessionStore);
   protected readonly tracking = inject(TrackingStore);
+  private readonly userData = inject(UserDataService);
   protected readonly i18n = inject(I18nService);
   protected readonly theme = inject(ThemeService);
   private readonly api = inject(ApiService);
@@ -223,7 +257,7 @@ export class AccountPage {
 
   protected async logout(): Promise<void> {
     await this.session.logout();
-    this.tracking.clear();
+    this.userData.clear();
     await this.router.navigateByUrl('/app/login');
   }
 
@@ -237,6 +271,7 @@ export class AccountPage {
       await this.api.deleteAccount(this.confirmEmail.trim());
       this.dialog().nativeElement.close();
       this.session.clear();
+      this.userData.clear();
       this.toast.show(this.i18n.t('account.deleted'));
       await this.router.navigateByUrl('/app/login');
     } catch (e) {

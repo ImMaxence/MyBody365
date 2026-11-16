@@ -5,6 +5,8 @@ import fr.mbonnici.mybody365.admin.AdminDtos.LinkDto;
 import fr.mbonnici.mybody365.admin.AdminDtos.UserDto;
 import fr.mbonnici.mybody365.auth.AccountLink;
 import fr.mbonnici.mybody365.auth.AccountLinkRepository;
+import fr.mbonnici.mybody365.config.AppProperties;
+import fr.mbonnici.mybody365.storage.QuotaService;
 import fr.mbonnici.mybody365.user.AppUser;
 import fr.mbonnici.mybody365.user.AppUserRepository;
 import fr.mbonnici.mybody365.user.UserService;
@@ -22,8 +24,13 @@ class AdminViews {
     private final UserService users;
     private final AppUserRepository userRepository;
     private final AccountLinkRepository links;
+    private final QuotaService quota;
+    private final AppProperties props;
 
-    AdminViews(UserService users, AppUserRepository userRepository, AccountLinkRepository links) {
+    AdminViews(UserService users, AppUserRepository userRepository, AccountLinkRepository links, QuotaService quota,
+            AppProperties props) {
+        this.quota = quota;
+        this.props = props;
         this.users = users;
         this.userRepository = userRepository;
         this.links = links;
@@ -40,7 +47,8 @@ class AdminViews {
                 users.isAdmin(u) ? "ADMIN" : "USER", u.getStatus().name(), users.isEnvAdmin(u),
                 viewer != null && viewer.getId().equals(u.getId()),
                 new GoogleDto(u.getGoogleSub() != null, u.getGoogleEmail()), users.passkeyCount(u), u.isOnboarded(),
-                u.getCreatedAt(), u.getLastLoginAt(), u.getLastLoginMethod() == null ? null : u.getLastLoginMethod().name(), active);
+                u.getCreatedAt(), u.getLastLoginAt(), u.getLastLoginMethod() == null ? null : u.getLastLoginMethod().name(), active,
+                quota.usedBytes(u.getId()), u.getStorageQuotaMb(), props.storage().quotaMb());
     }
 
     LinkDto link(AccountLink l, AppUser owner, String createdBy, String url) {

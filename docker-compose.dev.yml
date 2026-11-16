@@ -1,4 +1,4 @@
-# Development: only the database. Run the backend with ./mvnw spring-boot:run (ADMIN_EMAILS=you@example.com
+# Development: the database and the object storage (S3 on :8333). Run the backend with ./mvnw spring-boot:run (ADMIN_EMAILS=you@example.com
 # DEV_LOGIN=true APP_URL=http://localhost:4300) and the frontend with npm start (http://localhost:4300,
 # /api proxied to :8082).
 #
@@ -8,6 +8,30 @@
 name: mybody365-dev
 
 services:
+  storage:
+    image: chrislusf/seaweedfs:4.54
+    # SeaweedFS with its S3 gateway: photos and pictures (u/{user}/...). One identity, the backend.
+    environment:
+      S3_ACCESS_KEY: mybody365
+      S3_SECRET_KEY: mybody365-local-secret
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        printf '{"identities":[{"name":"app","credentials":[{"accessKey":"%s","secretKey":"%s"}],"actions":["Admin","Read","Write","List","Tagging"]}]}'
+        "$$S3_ACCESS_KEY" "$$S3_SECRET_KEY" > /tmp/s3.json
+        && exec weed server -dir=/data -ip.bind=0.0.0.0 -s3 -s3.config=/tmp/s3.json -master.volumeSizeLimitMB=1024
+    volumes:
+      - dev-storage:/data
+    ports:
+      - "127.0.0.1:8333:8333"
+    healthcheck:
+      # the S3 gateway answers 403 to anonymous requests: any HTTP answer means it is up
+      test: ["CMD-SHELL", "wget -S --spider http://127.0.0.1:8333/ 2>&1 | grep -q 'HTTP/'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
   db:
     image: postgres:18-alpine
     ports:
@@ -26,3 +50,4 @@ services:
 
 volumes:
   dev-db:
+  dev-storage:

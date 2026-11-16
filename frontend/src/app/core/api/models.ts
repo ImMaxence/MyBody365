@@ -81,6 +81,9 @@ export interface AdminUser {
   lastLoginAt?: string;
   lastLoginMethod?: 'GOOGLE' | 'PASSKEY' | 'LINK' | 'DEV';
   activeLink?: AdminLink;
+  storageUsedBytes: number;
+  storageQuotaMb?: number;
+  defaultQuotaMb: number;
 }
 
 export interface AdminSummary {
@@ -154,6 +157,13 @@ export interface BodyProfile {
   minGoalKg: number;
 }
 
+export interface StreakDay {
+  day: string;
+  done: boolean;
+  future: boolean;
+  frozen: boolean;
+}
+
 export interface Summary {
   profile: BodyProfile;
   current: { weightKg?: number; day?: string; trendKg: number; bmi: number; changeKg?: number };
@@ -167,7 +177,7 @@ export interface Summary {
     trendDate?: string;
     trendKgPerWeek?: number;
   };
-  streak: { days: number; todayDone: boolean; week: { day: string; done: boolean; future: boolean }[] };
+  streak: { days: number; todayDone: boolean; week: StreakDay[]; best: number; freezes: number; calendar: StreakDay[] };
   warnings: string[];
 }
 
@@ -185,4 +195,165 @@ export interface LogInput {
 export interface BodyLogEntry extends LogInput {
   day: string;
   trendKg?: number;
+}
+
+// ── photos (0.3) ─────────────────────────────────────────────────────────────
+export type Pose = 'FRONT' | 'SIDE' | 'BACK';
+
+export interface Photo {
+  id: string;
+  day: string;
+  pose: Pose;
+  width: number;
+  height: number;
+  weightKg?: number;
+  /** same-origin URLs, served to the owner only (or a friend it was shared with) */
+  url: string;
+  thumbUrl: string;
+  createdAt: string;
+}
+
+export interface StorageUsage {
+  usedBytes: number;
+  quotaBytes: number;
+}
+
+// ── meals (0.4) ──────────────────────────────────────────────────────────────
+export interface Nutrients {
+  kcal: number;
+  proteinG?: number;
+  carbsG?: number;
+  sugarsG?: number;
+  fatG?: number;
+  satFatG?: number;
+  fiberG?: number;
+  saltG?: number;
+}
+
+export type FoodSource = 'CIQUAL' | 'OFF' | 'USER';
+export type Grade = 'a' | 'b' | 'c' | 'd' | 'e';
+
+export interface Food {
+  id: string;
+  source: FoodSource;
+  name: string;
+  brand?: string;
+  category?: string;
+  per100: Nutrients;
+  nutriscore?: Grade;
+  nutriscoreEstimated: boolean;
+  servingG?: number;
+  mine: boolean;
+}
+
+export interface FoodInput {
+  name: string;
+  brand?: string | null;
+  kcal: number;
+  proteinG?: number | null;
+  carbsG?: number | null;
+  sugarsG?: number | null;
+  fatG?: number | null;
+  satFatG?: number | null;
+  fiberG?: number | null;
+  saltG?: number | null;
+  servingG?: number | null;
+}
+
+export type Slot = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
+
+export interface MealEntry {
+  id: string;
+  day: string;
+  slot: Slot;
+  foodId?: string;
+  recipeId?: string;
+  name: string;
+  detail?: string;
+  grams?: number;
+  servings?: number;
+  nutrients: Nutrients;
+  nutriscore?: Grade;
+  createdAt: string;
+}
+
+export interface MealDay {
+  day: string;
+  targetKcal?: number;
+  totals: Nutrients;
+  entries: MealEntry[];
+}
+
+export interface MealInput {
+  day: string;
+  slot: Slot;
+  foodId?: string;
+  recipeId?: string;
+  grams?: number;
+  servings?: number;
+}
+
+export interface RecentItem {
+  kind: 'FOOD' | 'RECIPE';
+  id: string;
+  name: string;
+  detail?: string;
+  grams?: number;
+  servings?: number;
+  kcal: number;
+  nutriscore?: Grade;
+}
+
+export type RecipeType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'DESSERT' | 'DRINK';
+
+export interface Recipe {
+  id: string;
+  name: string;
+  type: RecipeType;
+  servings: number;
+  notes?: string;
+  shared: boolean;
+  hidden: boolean;
+  mine: boolean;
+  author?: string;
+  perServing: Nutrients;
+  servingG?: number;
+  nutriscore?: Grade;
+  score: number;
+  myVote?: number;
+  imageUrl?: string;
+  thumbUrl?: string;
+  ingredients?: { foodId?: string; name: string; grams: number; kcal: number }[];
+  createdAt: string;
+}
+
+export interface RecipeInput {
+  name: string;
+  type: RecipeType;
+  servings: number;
+  notes?: string | null;
+  shared: boolean;
+  ingredients: { foodId: string; grams: number }[];
+}
+
+export interface CiqualImport {
+  id: string;
+  version?: string;
+  status: 'RUNNING' | 'DONE' | 'UP_TO_DATE' | 'FAILED';
+  step?: string;
+  progress: number;
+  foods?: number;
+  message?: string;
+  startedAt: string;
+  finishedAt?: string;
+  startedBy?: string;
+}
+
+export interface FoodsOverview {
+  ciqualVersion?: string;
+  ciqualFoods: number;
+  supersededFoods: number;
+  offProducts: number;
+  userFoods: number;
+  imports: CiqualImport[];
 }

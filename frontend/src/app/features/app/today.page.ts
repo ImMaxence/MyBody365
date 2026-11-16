@@ -4,6 +4,9 @@ import { ApiService } from '../../core/api/api.service';
 import { SessionStore } from '../../core/auth/session.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { Friend, FriendsApi } from '../../core/friends/friends-api';
+import { MealsStore } from '../../core/meals/meals.store';
+import { PhotosStore } from '../../core/photos/photos.store';
 import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
 import { IconComponent } from '../../shared/icon.component';
 import { WeighSheetComponent } from './weigh-sheet.component';
@@ -44,12 +47,20 @@ import { WeighSheetComponent } from './weigh-sheet.component';
           <span class="label">{{ 'today.streak' | t }}</span>
           <span class="big num">{{ streakDays() }} <small>{{ 'today.streakDays' | t }}</small></span>
         </div>
+        <button type="button" class="icon-btn flame-more" [attr.aria-label]="'engage.flame.open' | t" (click)="flameDialog.showModal()">
+          @if (freezes() > 0) {
+            <span class="freeze-chip num"><app-icon name="snowflake" [size]="14" [stroke]="2.4" /> {{ freezes() }}</span>
+          }
+          <app-icon name="chevronRight" />
+        </button>
         <div class="week" aria-hidden="true">
           @for (d of week(); track d.day; let i = $index) {
-            <span class="day" [class.done]="d.done" [class.now]="d.today" [style.--i]="i">
+            <span class="day" [class.done]="d.done" [class.frozen]="d.frozen" [class.now]="d.today" [style.--i]="i">
               <i>
                 @if (d.done) {
                   <app-icon name="check" [size]="12" [stroke]="3" />
+                } @else if (d.frozen) {
+                  <app-icon name="snowflake" [size]="13" [stroke]="2.2" />
                 }
               </i>
               {{ d.label }}
@@ -58,6 +69,53 @@ import { WeighSheetComponent } from './weigh-sheet.component';
         </div>
         <p class="small hint">{{ streakMessage() | t }}</p>
       </section>
+
+      <dialog class="sheet" #flameDialog>
+        <div class="sheet-grip"></div>
+        <div class="stack flame-sheet">
+          <div class="flame-head">
+            <span class="flame-big"><app-icon name="flame" [size]="30" [stroke]="2.1" /></span>
+            <div>
+              <h2 class="h3">{{ 'engage.flame.title' | t }} · {{ 'engage.flame.days' | t: { n: streakDays() } }}</h2>
+              <p class="small muted">{{ 'engage.flame.best' | t: { n: summary()?.streak?.best ?? 0 } }}</p>
+            </div>
+          </div>
+          <div class="freezes">
+            <span class="small"><b>{{ 'engage.flame.freezes' | t }}</b></span>
+            <span class="ice" role="img" [attr.aria-label]="'engage.flame.freezesValue' | t: { n: freezes() }">
+              @for (k of [0, 1]; track k) {
+                <i [class.on]="k < freezes()"><app-icon name="snowflake" [size]="16" [stroke]="2.2" /></i>
+              }
+            </span>
+          </div>
+          <p class="small muted">{{ 'engage.flame.rules' | t }}</p>
+          <h3 class="section-title">{{ 'engage.flame.calendar' | t }}</h3>
+          <div class="cal" role="img" [attr.aria-label]="'engage.flame.calendar' | t">
+            @for (c of calendar(); track c.day; let i = $index) {
+              <span class="cell" [class]="'cell ' + c.state" [style.--i]="i">
+                @switch (c.state) {
+                  @case ('done') {
+                    <app-icon name="check" [size]="13" [stroke]="3" />
+                  }
+                  @case ('frozen') {
+                    <app-icon name="snowflake" [size]="14" [stroke]="2.2" />
+                  }
+                  @case ('today') {
+                    <app-icon name="flame" [size]="15" [stroke]="2.3" />
+                  }
+                }
+              </span>
+            }
+          </div>
+          <div class="legend tiny">
+            <span><i class="k done"></i>{{ 'engage.flame.legendDone' | t }}</span>
+            <span><i class="k frozen"></i>{{ 'engage.flame.legendFrozen' | t }}</span>
+            <span><i class="k missed"></i>{{ 'engage.flame.legendMissed' | t }}</span>
+            <span><i class="k today"></i>{{ 'engage.flame.legendToday' | t }}</span>
+          </div>
+          <button type="button" class="btn btn-ghost btn-block" (click)="flameDialog.close()">{{ 'common.close' | t }}</button>
+        </div>
+      </dialog>
 
       <h2 class="section-title">{{ 'today.todo' | t }}</h2>
       <div class="list">
@@ -75,16 +133,44 @@ import { WeighSheetComponent } from './weigh-sheet.component';
           </span>
           <app-icon [name]="weighedIn() ? 'pencil' : 'plus'" />
         </button>
-        @for (item of later; track item.key) {
-          <div class="list-item soon">
-            <span class="list-icon"><app-icon [name]="item.icon" /></span>
-            <span class="list-body">
-              <span class="list-title">{{ 'today.' + item.key | t }}</span>
-              <span class="list-sub">{{ 'today.' + item.key + 'Hint' | t }}</span>
+        <a class="list-item task" [class.done]="photos.todayDone()" routerLink="/app/photos/camera">
+          <span class="list-icon"><app-icon [name]="photos.todayDone() ? 'check' : 'camera'" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'today.photo' | t }}</span>
+            <span class="list-sub">{{ (photos.todayDone() ? 'photos.todayDone' : 'today.photoHint') | t }}</span>
+          </span>
+          <app-icon [name]="photos.todayDone() ? 'repeat' : 'plus'" />
+        </a>
+        <a class="list-item task" routerLink="/app/friends">
+          <span class="list-icon"><app-icon name="users" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'friends.title' | t }}</span>
+            <span class="list-sub">{{ friendsLine() }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </a>
+        <a class="list-item task" routerLink="/app/workouts">
+          <span class="list-icon"><app-icon name="dumbbell" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'engage.workouts.todayCta' | t }}</span>
+            <span class="list-sub">{{ 'engage.workouts.sub' | t }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </a>
+        <a class="list-item task" routerLink="/app/meals">
+          <span class="list-icon"><app-icon name="utensils" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'today.meals' | t }}</span>
+            <span class="list-sub">
+              @if (meals.today()?.entries?.length) {
+                {{ 'today.mealsKcal' | t: { eaten: i18n.number(meals.today()!.totals.kcal), target: i18n.number(meals.today()!.targetKcal ?? 0) } }}
+              } @else {
+                {{ 'today.mealsHint' | t }}
+              }
             </span>
-            <span class="chip">{{ 'common.soon' | t }}</span>
-          </div>
-        }
+          </span>
+          <app-icon name="chevronRight" />
+        </a>
       </div>
 
       @if (summary(); as s) {
@@ -240,7 +326,137 @@ import { WeighSheetComponent } from './weigh-sheet.component';
       animation-delay: calc(var(--i) * 45ms);
     }
     .day.done i {
-      background: #16a34a;
+      background: var(--cal-done);
+      color: var(--cal-done-ink);
+    }
+    .day.frozen i {
+      background: var(--cal-freeze);
+      color: var(--cal-freeze-ink);
+    }
+    .flame-more {
+      position: absolute;
+      top: var(--space-3);
+      right: var(--space-3);
+      width: auto;
+      min-width: 44px;
+      padding-inline: 8px;
+      gap: 4px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .freeze-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--cal-freeze);
+      color: var(--cal-freeze-ink);
+      font-size: 12px;
+      font-weight: 750;
+    }
+    .flame-head {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .flame-big {
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      background: var(--flame);
+      color: var(--accent-ink);
+      flex: none;
+    }
+    .freezes {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-radius: var(--radius-m);
+      background: var(--surface-2);
+    }
+    .ice {
+      display: flex;
+      gap: 6px;
+    }
+    .ice i {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--surface-3);
+      color: var(--fg-3);
+    }
+    .ice i.on {
+      background: var(--cal-freeze);
+      color: var(--cal-freeze-ink);
+    }
+    .cal {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+    }
+    .cell {
+      display: grid;
+      place-items: center;
+      aspect-ratio: 1;
+      border-radius: 10px;
+      background: transparent;
+      border: 1.5px dashed var(--line-strong);
+      animation: cell-in 380ms var(--ease-out) both;
+      animation-delay: calc(var(--i) * 18ms);
+    }
+    .cell.done {
+      border: 0;
+      background: var(--cal-done);
+      color: var(--cal-done-ink);
+    }
+    .cell.frozen {
+      border: 0;
+      background: var(--cal-freeze);
+      color: var(--cal-freeze-ink);
+    }
+    .cell.missed {
+      border: 0;
+      background: var(--surface-3);
+    }
+    .cell.today {
+      border: 2px solid var(--cal-today-ink);
+      background: var(--cal-today);
+      color: var(--cal-today-ink);
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      color: var(--fg-2);
+      font-weight: 600;
+    }
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .k {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+    .k.done {
+      background: var(--cal-done-ink);
+    }
+    .k.frozen {
+      background: var(--cal-freeze-ink);
+    }
+    .k.missed {
+      background: var(--fg-3);
+    }
+    .k.today {
+      background: var(--cal-today-ink);
     }
     .day.now {
       color: var(--accent-text);
@@ -332,16 +548,21 @@ export class TodayPage {
   protected readonly i18n = inject(I18nService);
   private readonly api = inject(ApiService);
   private readonly tracking = inject(TrackingStore);
+  protected readonly photos = inject(PhotosStore);
+  protected readonly meals = inject(MealsStore);
+  private readonly friendsApi = inject(FriendsApi);
+  protected readonly friends = signal<Friend[] | null>(null);
+  protected readonly friendsLine = computed(() => {
+    const f = this.friends();
+    if (!f || !f.length) return this.i18n.t('friends.sub');
+    return this.i18n.t('today.friendsLine', { n: f.length, done: f.filter((x) => x.todayDone).length });
+  });
   private readonly sheet = viewChild.required(WeighSheetComponent);
   protected readonly Math = Math;
 
   protected readonly account = this.session.account;
   protected readonly summary = this.tracking.summary;
   protected readonly pending = signal(0);
-  protected readonly later = [
-    { key: 'photo', icon: 'camera' },
-    { key: 'meals', icon: 'utensils' },
-  ];
 
   protected readonly weighedIn = computed(() => this.summary()?.streak.todayDone === true);
   protected readonly streakDays = computed(() => this.summary()?.streak.days ?? 0);
@@ -364,7 +585,7 @@ export class TodayPage {
     if (days) {
       return days.map((d) => {
         const date = new Date(d.day + 'T12:00:00');
-        return { day: d.day, label: fmt.format(date), done: d.done, today: date.toDateString() === today };
+        return { day: d.day, label: fmt.format(date), done: d.done, frozen: d.frozen, today: date.toDateString() === today };
       });
     }
     const monday = new Date();
@@ -372,8 +593,19 @@ export class TodayPage {
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(monday);
       date.setDate(monday.getDate() + i);
-      return { day: String(i), label: fmt.format(date), done: false, today: date.toDateString() === today };
+      return { day: String(i), label: fmt.format(date), done: false, frozen: false, today: date.toDateString() === today };
     });
+  });
+  protected readonly freezes = computed(() => this.summary()?.streak.freezes ?? 0);
+  /** the last 28 days: weighed, frozen, missed, today, or before the start */
+  protected readonly calendar = computed(() => {
+    const s = this.summary();
+    const today = localDay();
+    const start = s?.profile.startDate ?? today;
+    return (s?.streak.calendar ?? []).map((d) => ({
+      day: d.day,
+      state: d.done ? 'done' : d.frozen ? 'frozen' : d.day === today ? 'today' : d.day < start ? 'none' : 'missed',
+    }));
   });
   protected readonly eta = computed(() => {
     const g = this.summary()?.goal;
@@ -383,6 +615,12 @@ export class TodayPage {
 
   constructor() {
     void this.tracking.load();
+    void this.photos.load().catch(() => undefined);
+    void this.meals.loadToday();
+    void this.friendsApi
+      .list()
+      .then((v) => this.friends.set(v.friends))
+      .catch(() => undefined);
     if (this.session.isAdmin()) {
       this.api
         .adminSummary()

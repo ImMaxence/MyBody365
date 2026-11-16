@@ -78,6 +78,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final Policy api;
     private final Policy auth;
     private final Policy accessRequest;
+    private final Policy upload;
+    private final Policy foodSearch;
 
     public RateLimitFilter(AppProperties props) {
         this.props = props;
@@ -85,6 +87,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
         this.api = new Policy("api", rl.apiPerMinute(), rl.apiPerMinute() / 60d);
         this.auth = new Policy("auth", rl.authPerMinute(), rl.authPerMinute() / 60d);
         this.accessRequest = new Policy("access-request", rl.accessRequestPerHour(), rl.accessRequestPerHour() / 3600d);
+        this.upload = new Policy("upload", rl.uploadPerHour(), rl.uploadPerHour() / 3600d);
+        this.foodSearch = new Policy("food-search", rl.foodSearchPerMinute(), rl.foodSearchPerMinute() / 60d);
     }
 
     @Override
@@ -122,6 +126,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         if (path.equals("/api/access-requests") && "POST".equals(method)) {
             return accessRequest;
+        }
+        // pictures are decoded and re-encoded, backups unpacked: the costly requests
+        if (("POST".equals(method) && (path.equals("/api/me/photos") || path.matches("/api/me/recipes/[^/]+/image")))
+                || path.startsWith("/api/me/backup/") || path.startsWith("/api/me/drive/backup")) {
+            return upload;
+        }
+        // each search may go out to Open Food Facts
+        if ("GET".equals(method) && (path.equals("/api/foods/search") || path.startsWith("/api/foods/barcode/"))) {
+            return foodSearch;
         }
         // sign-in flows are tightly limited; the read-only session probes run on every app start
         if (path.startsWith("/webauthn/") || path.startsWith("/login/")

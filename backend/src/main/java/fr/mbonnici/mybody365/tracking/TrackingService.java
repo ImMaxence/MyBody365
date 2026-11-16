@@ -188,10 +188,7 @@ public class TrackingService {
         return new Summary(profile, current, energy, goal, streak(all, today), warnings);
     }
 
-    /**
-     * Consecutive days with a weigh-in, up to today; a streak whose last day is yesterday is still
-     * alive (today is not over). Freezes come with the streak feature.
-     */
+    /** The flame and its freezes (see {@link Streaks}), with the week and the last 28 days to draw them. */
     static Streak streak(List<BodyLog> all, LocalDate today) {
         Set<LocalDate> done = new HashSet<>();
         for (BodyLog l : all) {
@@ -199,20 +196,22 @@ public class TrackingService {
                 done.add(l.getDay());
             }
         }
-        boolean todayDone = done.contains(today);
-        LocalDate d = todayDone ? today : today.minusDays(1);
-        int days = 0;
-        while (done.contains(d)) {
-            days++;
-            d = d.minusDays(1);
-        }
+        Streaks.Result r = Streaks.compute(done, today);
         LocalDate monday = today.with(DayOfWeek.MONDAY);
         List<Day> week = new ArrayList<>(7);
         for (int i = 0; i < 7; i++) {
-            LocalDate day = monday.plusDays(i);
-            week.add(new Day(day, done.contains(day), day.isAfter(today)));
+            week.add(day(monday.plusDays(i), r, today));
         }
-        return new Streak(days, todayDone, week);
+        List<Day> calendar = new ArrayList<>(28);
+        for (int i = 27; i >= 0; i--) {
+            calendar.add(day(today.minusDays(i), r, today));
+        }
+        return new Streak(r.days(), r.todayDone(), week, r.best(), r.freezes(), calendar);
+    }
+
+    private static Day day(LocalDate d, Streaks.Result r, LocalDate today) {
+        Streaks.State s = r.state(d);
+        return new Day(d, s == Streaks.State.DONE, d.isAfter(today), s == Streaks.State.FROZEN);
     }
 
     private static List<Point> points(List<BodyLog> all) {

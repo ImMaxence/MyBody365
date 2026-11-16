@@ -75,9 +75,13 @@ public final class TrackingDtos {
             LocalDate trendDate,
             Double trendKgPerWeek) {}
 
-    public record Day(LocalDate day, boolean done, boolean future) {}
+    public record Day(LocalDate day, boolean done, boolean future, boolean frozen) {}
 
-    public record Streak(int days, boolean todayDone, List<Day> week) {}
+    /**
+     * week: Monday to Sunday of the current week; calendar: the last 28 days (oldest first);
+     * freezes: in stock (one every 7 days in a row, 2 at most), used up by a missed day.
+     */
+    public record Streak(int days, boolean todayDone, List<Day> week, int best, int freezes, List<Day> calendar) {}
 
     public record Summary(ProfileDto profile, Current current, Energy energy, Goal goal, Streak streak, List<String> warnings) {}
 }

@@ -2,6 +2,88 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [0.7.0] - 2026-11-16
+
+Tes données sont à toi : une sauvegarde complète en un tap, chaque nuit sur ton Google Drive si tu veux, et une restauration qui montre d'abord ce qui va changer
+
+### Ajouté
+- Sauvegarde à télécharger : un seul fichier avec tout ce que tu as saisi et toutes tes photos et images de recettes
+- Restauration d'une sauvegarde avec un aperçu détaillé avant de confirmer : ce qui sera ajouté, modifié ou absent, catégorie par catégorie (pesées, photos, repas, aliments, recettes, séances)
+- Deux façons de restaurer : fusionner (la sauvegarde l'emporte sur les jours qu'elle contient) ou tout remplacer
+- Google Drive : sauvegarde automatique chaque nuit dans un dossier MyBody365, les 10 dernières gardées, sauvegarde à la demande et restauration depuis ton Drive
+- Pages légales et mentions des licences mises à jour pour les photos, les repas, les notifications, les amis et les sauvegardes
+
+### Sécurité
+- Google Drive avec la permission la plus restreinte : l'app ne voit que les fichiers qu'elle crée. Le jeton est conservé chiffré
+- Une sauvegarde est vérifiée avant tout : format, taille, noms de fichiers ; seul ce que l'app connaît est lu, et chaque donnée va au compte qui restaure
+- Une sauvegarde envoyée pour restauration est effacée du serveur dès sa restauration, ou au bout d'une heure
+- Les durées de conservation de la politique de confidentialité sont appliquées automatiquement chaque nuit
+
+## [0.6.0] - 2026-11-16
+
+À plusieurs, la flamme tient mieux : tes amis, leurs flammes, des coups de pouce et des photos partagées une par une
+
+### Ajouté
+- Amis : invite avec un QR code ou un lien valable 7 jours, ajoute un ami en scannant son QR code ou en collant son lien
+- Le lien d'ami fonctionne aussi dans le navigateur : il ajoute l'ami tout de suite si tu es connecté, sinon il explique comment finir dans l'app
+- La flamme de chacun de tes amis et s'il a déjà validé sa journée, aussi sur l'écran Aujourd'hui
+- Coup de pouce : une notification sur le téléphone de ton ami, une fois par jour au plus, s'il accepte les rappels de ses amis
+- Partage d'une photo précise avec les amis de ton choix, et arrêt du partage quand tu veux. Les photos partagées avec toi sont rangées à part
+- Signalement d'une recette de la communauté ou d'une photo partagée avec toi
+- Administration : onglet Modération avec les signalements à traiter, la recette à masquer ou la photo à supprimer, et la liste des recettes partagées
+
+### Sécurité
+- Les administrateurs ne voient une photo que si elle a été signalée, et seulement le temps de traiter le signalement
+- Le lien d'ami n'est jamais conservé en clair et disparaît de la barre d'adresse dès son ouverture
+- Retirer un ami arrête aussitôt tous les partages de photos entre vous
+
+## [0.5.0] - 2026-11-16
+
+Ta flamme résiste aux jours sans, tes rappels arrivent sur ton téléphone et tes séances sont prêtes
+
+### Ajouté
+- Gels de flamme : tous les 7 jours d'affilée, tu gagnes un gel (2 au maximum) qui sauve automatiquement un jour oublié
+- Détail de ta flamme : ton record, tes gels en stock et le calendrier de tes 28 derniers jours
+- Notifications sur ton téléphone : un rappel du jour à l'heure de ton choix, seulement s'il te manque ta pesée ou ta photo
+- Rappel salle les jours que tu choisis, à l'heure que tu choisis
+- Notification de test pour vérifier que tout fonctionne sur ton appareil
+- Salle et séances : trois programmes prêts à suivre (full body débutant, haut / bas, à la maison sans matériel), la prochaine séance proposée automatiquement
+- Séance guidée : les séries à cocher, un minuteur de repos, la charge de chaque exercice, la durée, puis l'historique de tes séances
+
+## [0.4.0] - 2026-11-16
+
+Les repas arrivent : un aliment en trois taps, ton objectif calorique en un coup d'œil et des recettes à partager
+
+### Ajouté
+- Onglet Repas : tes calories du jour face à ton objectif dans un anneau, tes protéines, glucides et lipides, et tes quatre repas
+- Trois sources d'aliments dans une seule recherche : tes aliments, les aliments du quotidien de la table Ciqual (ANSES) et les produits du commerce d'Open Food Facts
+- Scan du code-barres d'un produit avec l'appareil photo, ou saisie du code à la main
+- Création d'aliments à la main, gardés dans ton compte, quand un produit est introuvable
+- Quantité au gramme, à la portion ou à la part, avec les calories qui se mettent à jour en direct
+- Récents en haut de la recherche, et « Comme hier » pour reprendre un repas de la veille
+- Nutri-Score de chaque aliment : l'officiel pour les produits du commerce, estimé à partir des nutriments pour les autres
+- Recettes : ingrédients pesés, nombre de parts, photo et préparation, calories et nutriments par part calculés pour toi
+- Recettes de la communauté : partage les tiennes, note celles des autres, copie-les dans tes recettes, filtre par type de repas
+- Les calories du jour sur l'écran Aujourd'hui
+- Administration : mise à jour de la table Ciqual en un bouton, avec sa progression en direct et l'historique des versions. Les anciennes versions sont conservées : les repas déjà notés ne changent jamais
+
+## [0.3.0] - 2026-11-16
+
+Les photos arrivent : une par jour, toujours le même cadrage, et ton année qui défile en quelques secondes
+
+### Ajouté
+- Onglet Photos : la photo du jour, toutes tes photos mois par mois, de face, de profil ou de dos
+- Caméra plein écran avec le calque de ta dernière photo pour garder le même cadrage, un retardateur de 3 ou 10 secondes et le choix de la caméra, ou une photo importée depuis ta galerie
+- Comparateur avant / après : un curseur à faire glisser ou les deux photos côte à côte, avec les jours d'écart et les kilos de différence
+- Time-lapse de ta transformation, avec la date et le poids de chaque jour, exportable en vidéo
+- La photo du jour apparaît dans ta journée sur l'écran Aujourd'hui
+- Espace de stockage affiché sous tes photos, et quota réglable par compte pour les administrateurs
+
+### Sécurité
+- Chaque photo est redessinée et réenregistrée en WebP : aucune donnée cachée du fichier d'origine n'est conservée, pas même la position GPS
+- Tes photos ne sont visibles que par toi, administrateurs compris
+- Nombre d'envois limité par heure
+
 ## [0.2.0] - 2026-11-16
 
 Le suivi arrive : ton point de départ, ta pesée du jour, ta courbe et la date à laquelle tu atteindras ton objectif. Et une app bien plus vivante

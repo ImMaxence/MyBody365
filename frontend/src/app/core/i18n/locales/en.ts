@@ -1,3 +1,9 @@
+import { enAdminFoods, enAdminModeration } from './en-admin';
+import { enBackup } from './en-backup';
+import { enEngage } from './en-engage';
+import { enFriends } from './en-friends';
+import { enMeals } from './en-meals';
+import { enPhotos } from './en-photos';
 import type { Dictionary } from './fr';
 
 export const en: Dictionary = {
@@ -63,6 +69,32 @@ export const en: Dictionary = {
     empty_log: 'Enter at least one value',
     invalid_day: 'This date is not valid',
     profile_missing: 'Finish setting up your profile first',
+    not_found: 'Not found: it may have been deleted',
+    unsupported_image: 'This image format is not supported. Use a JPEG, PNG or WebP photo',
+    invalid_image: 'This image cannot be read',
+    image_too_large: 'This image is too large',
+    file_too_large: 'This file is too heavy',
+    quota_exceeded: 'Your storage is full. Delete a few photos or ask an administrator for more space',
+    food_not_found: 'No product found for this barcode',
+    off_unavailable: 'Open Food Facts is not answering right now. Try again or enter the food by hand',
+    import_running: 'An update is already running',
+    recipe_empty: 'Add at least one ingredient',
+    invalid_quantity: 'Enter a valid quantity',
+    already_voted: 'You already voted for this recipe',
+    own_recipe: 'You cannot vote for your own recipe',
+    invite_invalid: 'This friend link is not valid or has expired',
+    self_invite: 'This is your own link',
+    already_friends: 'You are already friends',
+    not_friends: 'You are not friends',
+    nudge_too_soon: 'You already sent this friend a reminder today',
+    push_unsupported: 'Notifications are not available on this device. On iPhone, add the app to the home screen first',
+    push_denied: 'Notifications are blocked. Allow them in your phone settings',
+    backup_invalid: 'This file is not a MyBody365 backup',
+    restore_expired: 'This preview has expired. Pick your backup again',
+    drive_not_connected: 'Google Drive is not connected',
+    drive_failed: 'Google Drive did not answer. Try again later',
+    already_reported: 'You already reported it, thank you',
+    drive_not_configured: 'Google Drive backups are not available on this server yet',
   },
 
   theme: {
@@ -334,6 +366,8 @@ export const en: Dictionary = {
     photo: 'Photo of the day',
     photoHint: 'Same place, same light, every day',
     meals: 'Meals',
+    mealsKcal: '{eaten} kcal out of {target}',
+    friendsLine: '{n} friend(s) · {done} done for the day',
     mealsHint: 'Breakfast, lunch, dinner, snacks',
     goal: 'Your goal',
     goalHint: 'Set your target weight to see your arrival date',
@@ -457,6 +491,14 @@ export const en: Dictionary = {
     saved: 'Goal updated',
   },
 
+  photos: enPhotos,
+  meals: enMeals,
+  engage: enEngage,
+  friends: enFriends,
+  backup: enBackup,
+  adminFoods: enAdminFoods,
+  adminModeration: enAdminModeration,
+
   soon: {
     title: 'Coming soon',
     meals: 'Log your meals in three taps: barcode, everyday foods, your recipes and Nutri-Score',
@@ -510,7 +552,7 @@ export const en: Dictionary = {
 
   admin: {
     title: 'Administration',
-    tabs: { users: 'Accounts', requests: 'Requests', links: 'Links', journal: 'Journal' },
+    tabs: { users: 'Accounts', requests: 'Requests', links: 'Links', foods: 'Foods', moderation: 'Moderation', journal: 'Journal' },
     summary: '{users} account(s) · {admins} admin(s)',
     users: {
       search: 'Search an account',
@@ -533,6 +575,11 @@ export const en: Dictionary = {
       noMethod: 'None',
       lastLogin: 'Last sign-in: {date}',
       never: 'never',
+      storage: 'Storage',
+      storageUsed: '{used} used',
+      quota: 'Storage quota',
+      quotaDefault: 'Default ({quota})',
+      quotaSaved: 'Quota updated',
       created: 'Created on {date}',
       onboarded: 'Consents given',
       notOnboarded: 'Consents pending',
@@ -630,9 +677,10 @@ export const en: Dictionary = {
           h: 'Fonts, icons and data',
           p: [
             'Inter (© Rasmus Andersson and the Inter project authors) and Archivo (© the Archivo project authors, Omnibus-Type) fonts, under the SIL Open Font License 1.1. Archivo is used in a trimmed version (latin characters, weights 600 to 900), which the licence allows; it remains distributed under the same licence. Both fonts are served from the same server as the application: no request goes to Google Fonts or any other service.',
-            'Icons drawn after Lucide (© Lucide Contributors, ISC licence, and © Cole Bemis for the parts from Feather, MIT licence); the full licence notices are in the THIRD_PARTY_NOTICES.md file of the source code. The logo, illustrations and figures were drawn for MyBody365.',
+            'Icons drawn after Lucide (© Lucide Contributors, ISC licence, and © Cole Bemis for the parts from Feather, MIT licence); the full licence notices are in the THIRD_PARTY_NOTICES.md file of the source code. The logo and illustrations were drawn for MyBody365.',
+            'Barcode and QR code reading uses ZXing (© the ZXing authors, Apache 2.0 licence); invitation QR codes are drawn with node-qrcode (© Ryan Day, MIT licence).',
             'The Google logo is a trademark of Google LLC, used only to designate signing in with Google. Nutri-Score is a trademark of Santé publique France, used to show the score of products.',
-            'Nutrition data will come from Open Food Facts (ODbL licence) and the Anses Ciqual table (Etalab Open Licence).',
+            'Packaged products come from Open Food Facts (© Open Food Facts contributors, database under the Open Database License, contents under the Database Contents License). Everyday foods come from the Ciqual food composition table of Anses (Etalab Open Licence 2.0); the version in use is shown in the application. The Nutri-Score of foods outside Open Food Facts is estimated by MyBody365 from their nutrients.',
           ],
         },
         {
@@ -645,7 +693,8 @@ export const en: Dictionary = {
         {
           h: 'Report content',
           p: [
-            'To report unlawful content or a problem, write to {email} or use the form of {contactSite}, stating the content concerned and the reason for the report.',
+            'In the application, the “Report” button of a community recipe or of a photo shared with you sends the content to the administrators, without telling the person concerned who reported it.',
+            'For any other report, write to {email} or use the form of {contactSite}, stating the content concerned and the reason for the report.',
           ],
         },
       ],
@@ -667,7 +716,10 @@ export const en: Dictionary = {
           h: 'Data processed',
           p: [
             'Account: email address, first name, Google profile picture, language, role, sign-in dates, sign-in methods (Google identifier, passkeys: public keys only).',
-            'Tracking: weight, measurements, goal, meals, recipes, workouts, progress photos. These are health data under article 9 of the GDPR: they are only processed with your explicit consent, given when the account is created.',
+            'Tracking: weight, measurements, goal, meals, foods you created, recipes, workouts, progress photos. These are health data under article 9 of the GDPR: they are only processed with your explicit consent, given when the account is created. Every photo is drawn again and re-saved by the server: no metadata of the original file is kept, not even the GPS position.',
+            'Friends: your list of friends, the nudges sent and received, the photos you share and with whom, the reports you send.',
+            'Notifications: the technical address your browser provides for each device where you turn them on (Web Push subscription) and your reminder settings.',
+            'Google Drive backups (if you turn them on): a token that only gives access to the files created by MyBody365, kept encrypted.',
             'Security: IP address and date of sign-ins, access requests and photo uploads, to fight abuse and answer any court order.',
           ],
         },
@@ -675,7 +727,8 @@ export const en: Dictionary = {
           h: 'Who sees what',
           p: [
             'Your progress photos are visible to you only. Nobody else, administrators included, can access them in the application, except the photos you choose to share with a friend, until you stop sharing them.',
-            'Administrators see the list of accounts (address, first name, role, sign-in methods, last sign-ins), access requests and the recipes published in the community.',
+            'Your friends see your first name, your profile picture, the number of days of your flame and whether you have done your day. Nothing else: not your weight, not your meals, not your photos, except those you share.',
+            'Administrators see the list of accounts (address, first name, role, sign-in methods, last sign-ins, storage used), access requests and the recipes published in the community. A shared photo that has been reported becomes visible to the administrators, and to them only, while the report is handled.',
             'The publisher, who runs the server, technically has access to the storage; they undertake not to look at your content, except under a court order or after a report of manifestly unlawful content.',
           ],
         },
@@ -684,20 +737,21 @@ export const en: Dictionary = {
           p: [
             'Google LLC: sign-in with Google (if you choose it) and encrypted storage of backups on Google Drive.',
             'Cloudflare, Inc.: content delivery and protection of the site; traffic goes through its servers, including outside the European Union, under standard contractual clauses.',
-            'Open Food Facts: food searches are made from the server, without any personal data.',
+            'Open Food Facts: food and barcode searches are made from the server, without any personal data. The Ciqual table is downloaded from the data.gouv.fr research data repository by an administrator.',
+            'Notification services of browsers and phones (Google, Apple, Mozilla, Microsoft): they carry the notifications, whose content is end-to-end encrypted between the server and your device.',
           ],
         },
         {
           h: 'Retention',
           p: [
             'Your account data is kept as long as your account exists, then permanently deleted when it is deleted (backups included within 30 days).',
-            'Technical logs (IP, sign-ins, uploads) are kept for one year. Access requests are deleted twelve months after being handled.',
+            'Technical logs (IP, sign-ins, uploads) are kept for one year. Access requests and handled reports are deleted twelve months after being handled, nudges after thirty days. A backup sent for a restore is erased from the server as soon as it is restored, or after one hour.',
           ],
         },
         {
           h: 'Your rights',
           p: [
-            'You can access your data, correct it, export it, withdraw your consent and delete your account at any time from your profile. Withdrawing your consent to health data means deleting your account.',
+            'You can access your data, correct it, export it (Profile › Backups: one file with all your data and all your photos), withdraw your consent and delete your account at any time from your profile. Withdrawing your consent to health data means deleting your account, photos included.',
             'For any question, write to {email}. You can also lodge a complaint with the CNIL (cnil.fr).',
           ],
         },
@@ -728,7 +782,8 @@ export const en: Dictionary = {
           h: 'Your content',
           p: [
             'You alone are responsible for the content you add (photos, meals, recipes, messages). Forbidden: any unlawful content, any image of another person without their consent, any image of a minor, any hateful, violent or sexually explicit content.',
-            'Recipes you publish in the community are visible to all users and can be removed by an administrator.',
+            'Recipes you publish in the community are visible to all users, can be rated, copied and removed by an administrator. A photo you share with a friend can be reported by them; an administrator may then delete it.',
+            'Nudges between friends are limited to one a day per friend; do not overdo it.',
           ],
         },
         {

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService, errorCode } from '../../core/api/api.service';
 import type { AdminUser, LinkKind } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { formatBytes } from '../../core/photos/image-tools';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
@@ -115,6 +116,18 @@ import { LinkSheetComponent } from './link-sheet.component';
             <div>
               <dt>RGPD</dt>
               <dd>{{ (u.onboarded ? 'admin.users.onboarded' : 'admin.users.notOnboarded') | t }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'admin.users.storage' | t }}</dt>
+              <dd class="quota">
+                <span>{{ 'admin.users.storageUsed' | t: { used: bytes(u.storageUsedBytes) } }}</span>
+                <select class="select" [attr.aria-label]="'admin.users.quota' | t" [value]="u.storageQuotaMb ?? -1" (change)="setQuota(u, +$any($event.target).value)">
+                  <option [value]="-1">{{ 'admin.users.quotaDefault' | t: { quota: bytes(u.defaultQuotaMb * 1048576) } }}</option>
+                  @for (q of quotas; track q) {
+                    <option [value]="q">{{ bytes(q * 1048576) }}</option>
+                  }
+                </select>
+              </dd>
             </div>
             @if (u.activeLink) {
               <div>
@@ -260,6 +273,14 @@ import { LinkSheetComponent } from './link-sheet.component';
     .facts dd {
       margin: 0;
     }
+    .facts .quota {
+      display: grid;
+      gap: 6px;
+    }
+    .facts .quota .select {
+      min-height: 40px;
+      padding-block: 6px;
+    }
     .actions .list-item:disabled {
       opacity: 0.5;
     }
@@ -324,6 +345,21 @@ export class AdminUsersTab {
       void this.store.refreshSummary();
     } catch (e) {
       this.fail(e);
+    }
+  }
+
+  protected readonly quotas = [100, 250, 500, 1024, 2048, 5120, 10240];
+
+  protected bytes(n: number): string {
+    return formatBytes(n, this.i18n.lang());
+  }
+
+  protected async setQuota(u: AdminUser, mb: number): Promise<void> {
+    try {
+      this.replace(await this.api.adminUpdateUser(u.id, { storageQuotaMb: mb }));
+      this.toast.show(this.i18n.t('admin.users.quotaSaved'));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
     }
   }
 

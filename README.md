@@ -41,27 +41,34 @@ On ne transforme pas son corps en trois semaines. MyBody365 est pensé pour teni
 | ⚖️ **Poids et prévision** | Ta courbe lissée, ta tendance réelle et la date estimée de ton objectif |
 | 📸 **Photo du jour** | Un comparateur avant / après, puis le time-lapse de ton année |
 | 🍽️ **Repas en trois taps** | Code-barres (Open Food Facts), aliments du quotidien (Ciqual), recettes perso, Nutri-Score |
-| 🔥 **La flamme** | Chaque jour validé fait grandir ta série. Un jour manqué l'éteint |
-| 🏋️ **Salle et séances** | Rappels aux heures de ta salle et programmes prêts à suivre |
-| 👥 **Entre potes** | Suis la flamme de tes amis, partage tes recettes, envoie un rappel |
+| 🔥 **La flamme** | Chaque jour validé fait grandir ta série. Tous les 7 jours, un gel qui sauve un jour oublié |
+| 🔔 **Rappels** | Une notification à l'heure de ton choix, seulement s'il te manque ta pesée ou ta photo |
+| 🏋️ **Salle et séances** | Trois programmes prêts à suivre, séance guidée avec minuteur de repos, rappels les jours de salle |
+| 👥 **Entre potes** | La flamme de tes amis, des coups de pouce sur leur téléphone, une photo partagée quand tu le décides |
+| 💾 **Tes données à toi** | Sauvegarde complète en un tap, chaque nuit sur ton Google Drive, restauration avec aperçu |
 
-> Version **0.2.0** : le suivi du poids est là (parcours de bienvenue, plan calorique, pesée du jour, flamme, courbe, prévision). Les photos, les repas et les amis arrivent dans les prochaines versions, voir la [feuille de route](#feuille-de-route).
+> Version **0.7.0** : toutes les fonctionnalités sont là, de la pesée du matin aux sauvegardes. Le détail version par version est dans le [changelog](CHANGELOG.md).
 
 ## L'app
 
 Pensée **uniquement pour le téléphone** : barre d'onglets flottante, écrans qui s'empilent et se dépilent comme dans une app native, retour par balayage depuis le bord, thème qui bascule dans un cercle qui s'ouvre depuis le bouton, français et anglais.
 
 <p align="center">
-  <img src="docs/readme/app.png" alt="Écrans de l'app : objectif, aujourd'hui, progrès, administration" width="100%">
+  <img src="docs/readme/app.png" alt="Écrans de l'app : aujourd'hui, repas, amis, progrès" width="100%">
 </p>
 
 - **Un plan dès la première minute** : quatre questions (toi, ta taille et ton poids, ton objectif, ton rythme), puis un objectif calorique calculé avec Mifflin-St Jeor, un plancher de sécurité et une date d'arrivée estimée
 - **Une pesée par jour** : boutons − / + à garder appuyés ou clavier numérique, mensurations facultatives, et la flamme qui grandit
 - **Une courbe honnête** : la tendance lissée gomme les variations d'eau, la prévision se recalcule sur tes quatre dernières semaines
+- **La photo du jour** : caméra plein écran avec le calque de ta dernière photo (même cadrage chaque jour) et un retardateur, comparateur avant / après à faire glisser, time-lapse de l'année exportable en vidéo
+- **Repas en trois taps** : une seule recherche pour tes aliments, la table Ciqual de l'Anses et Open Food Facts, scan du code-barres, quantité au gramme ou à la portion, Nutri-Score, « Comme hier »
+- **Recettes** : ingrédients pesés, calories par part calculées pour toi, photo, et une communauté qui partage, note et copie les meilleures
+- **Amis** : invitation par QR code ou lien, flammes des amis, coups de pouce, photo partagée une par une avec qui tu veux
+- **Sauvegardes** : un fichier avec toutes tes données et photos, Google Drive chaque nuit, restauration qui montre d'abord ce qui change
 - **Connexion sans mot de passe** : Google ou passkey (Face ID, empreinte, code du téléphone)
 - **Sur invitation** : on demande un accès depuis l'écran de connexion, un administrateur valide et envoie un lien d'invitation valable 24 h
 - **Accès perdu ?** Un lien de récupération à usage unique permet d'ajouter une passkey ou de relier un autre compte Google
-- **Administration dans l'app** : comptes et rôles, demandes d'accès, liens actifs révocables, journal de toutes les actions des admins
+- **Administration dans l'app** : comptes, rôles et quotas de stockage, demandes d'accès, liens actifs révocables, mise à jour de la table Ciqual en un bouton, modération des signalements, journal de toutes les actions des admins
 
 ## Le site
 
@@ -75,31 +82,37 @@ Le parcours suit ensuite les étapes clés, du jour 0 (l'installation) au jour 3
 
 ## Privé par défaut
 
-- **Tes photos ne sont visibles que par toi.** Même les administrateurs ne les voient pas. Tu choisis, photo par photo, ce que tu partages avec un ami
+- **Tes photos ne sont visibles que par toi.** Même les administrateurs ne les voient pas, sauf une photo partagée qui leur a été signalée, le temps de traiter le signalement. Tu choisis, photo par photo, ce que tu partages avec un ami
+- **Chaque photo est redessinée** par le serveur et enregistrée en WebP : aucune donnée cachée du fichier d'origine ne survit, pas même la position GPS
+- **Tes amis voient ta flamme, pas ta balance** : prénom, nombre de jours, journée validée. Rien d'autre
 - **Aucune pub, aucun traceur, aucune revente.** Deux cookies, strictement nécessaires : la session et la protection CSRF
 - **Hébergé en France**, réservé aux personnes majeures, données de santé traitées avec un consentement explicite (RGPD art. 9)
-- Les polices sont servies par le site lui-même : pas une requête vers Google Fonts
+- Les polices sont servies par le site lui-même : pas une requête vers Google Fonts. Open Food Facts est interrogé par le serveur, jamais par ton téléphone
+- **Google Drive avec la permission la plus restreinte** : l'app ne voit que les fichiers qu'elle crée
 
 ## Qualité
 
 | | Résultat |
 |---|---|
 | Lighthouse, pages publiques (mobile, réseau bridé, processeur ralenti 4×) | Accessibilité **100** · Bonnes pratiques **100** · SEO **100** · Performance **72 à 85** selon les pages (LCP autour d'une seconde) |
-| Tests back (JUnit + Testcontainers) | 31 tests : parcours d'accès, liens, rôles, suspension, CSRF, en-têtes, limitation de débit, calculs (Mifflin-St Jeor, tendance, prévision), suivi du poids |
+| Tests back (JUnit + Testcontainers, avec un vrai SeaweedFS) | 61 tests : accès et rôles, CSRF, en-têtes, limitation de débit, calculs, flamme et gels, photos (réencodage, quotas, confidentialité), Ciqual et Open Food Facts simulés, repas, recettes, communauté, chiffrement Web Push, rappels, amis, partages, signalements, sauvegardes et fichiers piégés |
 | Tests front (Vitest) | 18 tests : traductions complètes FR / EN, plateformes, passkeys, erreurs, navigation |
-| Tests de bout en bout (Playwright + axe-core) | 37 tests : site, installation, ancres du menu, connexion, invitations, admin, parcours de bienvenue, pesée, courbe, objectif, navigation en pile, accessibilité, débordements mobile |
-| Sécurité | CSP stricte (`script-src 'self'` + deux empreintes), CSRF, cookie de session HttpOnly / SameSite / Secure, limitation par IP, journal admin |
+| Tests de bout en bout (Playwright + axe-core) | 48 tests : site, installation, connexion, admin, parcours de bienvenue, pesée, photos, repas et recettes, flamme, rappels, séance guidée, amis, partage et modération, sauvegarde et restauration, accessibilité, débordements mobile |
+| Sécurité | CSP stricte (`script-src 'self'` + deux empreintes), CSRF, cookie de session HttpOnly / SameSite / Secure, limitation par IP, journal admin. Rapport complet : [docs/security-audit.md](docs/security-audit.md) |
 | Sessions | Gardées en base (Spring Session JDBC) : une nouvelle version déployée ne déconnecte personne, et un compte suspendu est coupé tout de suite |
 
 ## Stack technique
 
 ```
-Cloudflare ─► Traefik (Coolify, TLS) ─► nginx (app Angular + proxy /api) ─► Spring Boot ─► PostgreSQL
+Cloudflare ─► Traefik (Coolify, TLS) ─► nginx (app Angular + proxy /api) ─► Spring Boot ─┬► PostgreSQL
+                                                                                          └► SeaweedFS (S3)
 ```
 
 - **Front** : Angular 22 (signals, zoneless), service worker, pages publiques prérendues au build, nginx non root
 - **Back** : Spring Boot 4.1 / Java 25, Spring Security 7 (OAuth2 Google + WebAuthn), Spring Session JDBC, Flyway
-- **Base** : PostgreSQL 18
+- **Base** : PostgreSQL 18 ; photos et images de recettes sur SeaweedFS (S3), en WebP grâce à cwebp
+- **Notifications** : Web Push standard (chiffrement RFC 8291, signature VAPID), sans service tiers ni SDK
+- **Données** : Open Food Facts (via le serveur, avec cache) et la table Ciqual de l'Anses (importée depuis data.gouv.fr)
 - **Design** : système maison (Archivo + Inter, accent « flamme »), icônes d'après Lucide, aucun framework CSS
 
 ## Déploiement
@@ -108,7 +121,8 @@ Le dépôt se déploie tel quel sur [Coolify](https://coolify.io) (Docker Compos
 
 1. **Google Cloud Console** › API et services › Identifiants › ID client OAuth (application Web)
    - Origine JavaScript autorisée : `https://mybody365.mbonnici.fr`
-   - URI de redirection autorisée : `https://mybody365.mbonnici.fr/api/auth/oauth2/code/google`
+   - URI de redirection autorisées : `https://mybody365.mbonnici.fr/api/auth/oauth2/code/google` et, pour les sauvegardes, `https://mybody365.mbonnici.fr/api/me/drive/callback`
+   - Pour les sauvegardes Google Drive : activer **Google Drive API** dans la bibliothèque d'API et ajouter la portée `.../auth/drive.file` à l'écran de consentement (portée non sensible : pas de validation Google à demander)
 2. **Coolify** : ressource *Docker Compose* sur ce dépôt, domaine sur le service **frontend**, port **8080**
 3. **Variables obligatoires** (le déploiement s'arrête si l'une manque) :
 
@@ -117,7 +131,8 @@ Le dépôt se déploie tel quel sur [Coolify](https://coolify.io) (Docker Compos
    | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Client OAuth Google |
    | `ADMIN_EMAILS` | Adresses Google toujours administrateurs, séparées par `;` |
 
-   `SERVICE_USER_POSTGRES` et `SERVICE_PASSWORD_64_POSTGRES` sont générées par Coolify. Détails dans [.env.example](.env.example).
+   `SERVICE_USER_POSTGRES`, `SERVICE_PASSWORD_64_POSTGRES`, `SERVICE_USER_S3` et `SERVICE_PASSWORD_64_S3` sont générées par Coolify. Facultatives : `STORAGE_QUOTA_MB` (stockage par compte, 1024 par défaut) et `OFF_USER_AGENT`. Détails dans [.env.example](.env.example).
+4. **Après le premier déploiement** : dans l'app, Profil › Administration › Aliments › **Mettre à jour Ciqual** (téléchargement d'environ 70 Mo, suivi en direct). Les clés des notifications (VAPID) se créent toutes seules au premier démarrage.
 
 ## Développer
 
@@ -142,8 +157,11 @@ Tests du back (PostgreSQL lancé par Testcontainers) :
 ```bash
 cd backend
 docker run --rm -v "$PWD:/app" -v "$HOME/.m2:/root/.m2" -v /var/run/docker.sock:/var/run/docker.sock \
-  -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal -w /app eclipse-temurin:25-jdk-alpine ./mvnw -B test
+  -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal -w /app eclipse-temurin:25-jdk-alpine \
+  sh -c "apk add --no-cache libwebp-tools && ./mvnw -B test"
 ```
+
+Les tests du back lancent PostgreSQL et SeaweedFS ; Open Food Facts, l'entrepôt Ciqual et les services de notification sont simulés : aucun test ne sort de la machine.
 
 Les images de ce README se régénèrent avec `frontend/scripts/screenshots.mjs` (le mode d'emploi est en tête du fichier).
 
@@ -153,14 +171,14 @@ Les images de ce README se régénèrent avec `frontend/scripts/screenshots.mjs`
 |---|---|---|
 | 0.1 | Socle : site, installation, comptes Google et passkeys, invitations, récupération, administration, pages légales | ✅ |
 | 0.2 | Suivi : parcours de bienvenue, plan calorique, pesée et mensurations, flamme, courbe, tendance et prévision, objectif | ✅ |
-| 0.3 | Photos : photo du jour (stockage S3, WebP, quotas), comparateur avant / après, time-lapse | 🔜 |
-| 0.4 | Repas : Open Food Facts, Ciqual, aliments perso, recettes, Nutri-Score, recettes de la communauté | 🔜 |
-| 0.5 | Engagement : gels de flamme, notifications quotidiennes, rappels salle, programmes | 🔜 |
-| 0.6 | Amis : ajout par lien ou QR code, partage photo par photo, relances | 🔜 |
-| 0.7 | Sauvegardes : Google Drive automatique, export, restauration avec aperçu des différences | 🔜 |
+| 0.3 | Photos : photo du jour (stockage S3, WebP, quotas), comparateur avant / après, time-lapse | ✅ |
+| 0.4 | Repas : Open Food Facts, Ciqual, aliments perso, recettes, Nutri-Score, recettes de la communauté | ✅ |
+| 0.5 | Engagement : gels de flamme, notifications quotidiennes, rappels salle, programmes | ✅ |
+| 0.6 | Amis : ajout par lien ou QR code, partage photo par photo, coups de pouce, modération | ✅ |
+| 0.7 | Sauvegardes : Google Drive automatique, export, restauration avec aperçu des différences | ✅ |
 
 Le détail de chaque version est dans le [changelog](CHANGELOG.md), aussi publié sur le site.
 
 ## Crédits
 
-Un projet de [Maxence Bonnici](https://mbonnici.fr), publié sous [licence MIT](LICENSE). Polices Inter et Archivo (SIL OFL 1.1), icônes d'après Lucide (ISC) : voir [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Mentions légales, confidentialité et conditions d'utilisation sur [le site](https://mybody365.mbonnici.fr/legal/mentions).
+Un projet de [Maxence Bonnici](https://mbonnici.fr), publié sous [licence MIT](LICENSE). Polices Inter et Archivo (SIL OFL 1.1), icônes d'après Lucide (ISC), lecture des codes-barres avec ZXing (Apache 2.0), QR codes avec node-qrcode (MIT). Données : [Open Food Facts](https://world.openfoodfacts.org) (ODbL) et la table [Ciqual](https://ciqual.anses.fr) de l'Anses (Licence Ouverte 2.0). Voir [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Mentions légales, confidentialité et conditions d'utilisation sur [le site](https://mybody365.mbonnici.fr/legal/mentions).
