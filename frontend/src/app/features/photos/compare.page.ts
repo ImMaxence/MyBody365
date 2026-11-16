@@ -5,12 +5,13 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { POSES, PhotosStore } from '../../core/photos/photos.store';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
+import { SegDirective } from '../../shared/seg.directive';
 
 /** Before / after: two photos of the same pose, one over the other with a slider, or side by side. */
 @Component({
   selector: 'app-compare',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, BackButtonComponent],
+  imports: [SegDirective, TranslatePipe, IconComponent, BackButtonComponent],
   template: `
     <main class="page">
       <header class="page-head">

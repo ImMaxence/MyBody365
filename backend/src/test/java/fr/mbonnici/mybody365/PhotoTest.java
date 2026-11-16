@@ -143,7 +143,7 @@ class PhotoTest extends AbstractIntegrationTest {
         assertThat(upload(lea, jpegWithSecret(), null, "FRONT").getResponse().getStatus()).isEqualTo(201);
         mvc.perform(get("/api/me/storage").with(as(lea)))
                 .andExpect(jsonPath("$.usedBytes").isNumber())
-                .andExpect(jsonPath("$.quotaBytes").value(1024L * 1024 * 1024));
+                .andExpect(jsonPath("$.quotaBytes").value(2048L * 1024 * 1024));
     }
 
     @Test

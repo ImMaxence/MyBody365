@@ -50,7 +50,8 @@ final class BackupFormat {
             "salt_g", Type.NUM, "nutriscore", Type.TEXT, "nutriscore_estimated", Type.BOOL, "serving_g", Type.NUM));
 
     static final Table RECIPES = new Table("recipe", cols("id", Type.UUID, "name", Type.TEXT, "type", Type.TEXT, "servings", Type.INT,
-            "notes", Type.TEXT, "shared", Type.BOOL, "kcal", Type.NUM, "protein_g", Type.NUM, "carbs_g", Type.NUM, "fat_g", Type.NUM,
+            "notes", Type.TEXT, "shared", Type.BOOL, "visibility", Type.TEXT, "manual_nutrition", Type.BOOL, "ingredient_lines", Type.TEXT,
+            "source_url", Type.TEXT, "kcal", Type.NUM, "protein_g", Type.NUM, "carbs_g", Type.NUM, "fat_g", Type.NUM,
             "sugars_g", Type.NUM, "fiber_g", Type.NUM, "sat_fat_g", Type.NUM, "salt_g", Type.NUM, "serving_g", Type.NUM, "nutriscore",
             Type.TEXT, "image_format", Type.TEXT));
 

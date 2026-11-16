@@ -94,7 +94,7 @@ public record AppProperties(
             String accessKey,
             String secretKey,
             /** storage allowed per account unless an admin sets another quota */
-            @DefaultValue("1024") int quotaMb,
+            @DefaultValue("2048") int quotaMb,
             /** the largest picture accepted before processing */
             @DefaultValue("20") int maxUploadMb) {}
 

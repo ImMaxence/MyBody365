@@ -8,18 +8,23 @@ import fr.mbonnici.mybody365.recipe.RecipeService;
 import fr.mbonnici.mybody365.recipe.RecipeService.RecipeRow;
 import fr.mbonnici.mybody365.tracking.TrackingService;
 import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +40,17 @@ public class MealService {
             UUID foodId,
             UUID recipeId,
             @DecimalMin("1") @DecimalMax("5000") Double grams,
-            @DecimalMin("0.25") @DecimalMax("20") Double servings) {}
+            @DecimalMin("0.25") @DecimalMax("20") Double servings,
+            /** a portion with only its calories (a fast-food menu, a restaurant dish): no food, no recipe */
+            @Valid QuickInput quick) {}
+
+    /** what was eaten and its calories, the macros when known: the whole portion */
+    public record QuickInput(
+            @NotBlank @Size(max = 120) String name,
+            @NotNull @DecimalMin("1") @DecimalMax("5000") Double kcal,
+            @DecimalMin("0") @DecimalMax("500") Double proteinG,
+            @DecimalMin("0") @DecimalMax("500") Double carbsG,
+            @DecimalMin("0") @DecimalMax("500") Double fatG) {}
 
     public record MealUpdate(Slot slot, @DecimalMin("1") @DecimalMax("5000") Double grams,
             @DecimalMin("0.25") @DecimalMax("20") Double servings) {}
@@ -47,9 +62,25 @@ public class MealService {
 
     public record DayDto(LocalDate day, Integer targetKcal, Nutrients totals, List<EntryDto> entries) {}
 
-    /** a food or recipe logged lately, with the amount used last time */
+    /** the totals of one day (days without anything logged are left out) */
+    public record DayTotal(LocalDate day, double kcal, double proteinG, double carbsG, double fatG, int entries) {}
+
+    public record DaysDto(Integer targetKcal, List<DayTotal> days) {}
+
+    /** what was eaten most over a period: same food (or recipe, or name) grouped */
+    public record FoodStat(String name, String detail, int times, double kcal) {}
+
+    public record SlotStat(Slot slot, double kcal, int days) {}
+
+    /** calories by Nutri-Score grade (null: unknown) */
+    public record GradeStat(String grade, double kcal) {}
+
+    public record StatsDto(int days, LocalDate from, LocalDate to, Integer targetKcal, List<DayTotal> daily, Nutrients totals,
+            List<FoodStat> topByCount, List<FoodStat> topByKcal, List<SlotStat> slots, List<GradeStat> grades) {}
+
+    /** a food, a recipe or a quick portion logged lately, with the amount used last time (the portion's nutrients for QUICK) */
     public record RecentDto(String kind, UUID id, String name, String detail, Double grams, Double servings, double kcal,
-            String nutriscore) {}
+            String nutriscore, Nutrients quick) {}
 
     private final JdbcTemplate jdbc;
     private final FoodService foods;
@@ -85,20 +116,80 @@ public class MealService {
         for (EntryDto e : entries) {
             total = total.plus(e.nutrients());
         }
-        Integer target = null;
-        if (tracking.hasProfile(userId)) {
-            target = tracking.summary(userId).energy().targetKcal();
+        return new DayDto(day, target(userId), total.rounded(), entries);
+    }
+
+    private Integer target(UUID userId) {
+        return tracking.hasProfile(userId) ? tracking.summary(userId).energy().targetKcal() : null;
+    }
+
+    private List<DayTotal> totals(UUID userId, LocalDate from, LocalDate to) {
+        return jdbc.query("""
+                select day, sum(kcal) kcal, coalesce(sum(protein_g), 0) p, coalesce(sum(carbs_g), 0) c, coalesce(sum(fat_g), 0) f,
+                  count(*) n
+                from meal_entry where user_id = ? and day between ? and ? group by day order by day""",
+                (rs, i) -> new DayTotal(rs.getObject("day", LocalDate.class), round(rs.getDouble("kcal")), round(rs.getDouble("p")),
+                        round(rs.getDouble("c")), round(rs.getDouble("f")), rs.getInt("n")),
+                userId, from, to);
+    }
+
+    private static double round(double v) {
+        return Math.round(v * 10) / 10.0;
+    }
+
+    /** the totals of each day of a range (the calendar of the Meals tab), at most 3 months and a half */
+    public DaysDto days(UUID userId, LocalDate from, LocalDate to) {
+        if (to.isBefore(from) || ChronoUnit.DAYS.between(from, to) > 106) {
+            throw ApiException.badRequest("invalid_day");
         }
-        return new DayDto(day, target, total.rounded(), entries);
+        return new DaysDto(target(userId), totals(userId, from, to));
+    }
+
+    /** the last 7, 30 or 90 days: calories day by day, macros, what is eaten most, by meal, by Nutri-Score */
+    public StatsDto stats(UUID userId, int days) {
+        if (days != 7 && days != 30 && days != 90) {
+            throw ApiException.badRequest("invalid_day");
+        }
+        LocalDate to = TrackingService.today();
+        LocalDate from = to.minusDays(days - 1L);
+        List<DayTotal> daily = totals(userId, from, to);
+        Nutrients sum = jdbc.queryForObject("""
+                select coalesce(sum(kcal), 0) kcal, sum(protein_g) protein_g, sum(carbs_g) carbs_g, sum(sugars_g) sugars_g, sum(fat_g) fat_g,
+                  sum(sat_fat_g) sat_fat_g, sum(fiber_g) fiber_g, sum(salt_g) salt_g
+                from meal_entry where user_id = ? and day between ? and ?""", (rs, i) -> Nutrients.from(rs), userId, from, to);
+        String foods = """
+                select max(name) name, max(detail) detail, count(*) n, sum(kcal) kcal
+                from meal_entry where user_id = ? and day between ? and ?
+                group by coalesce(food_id::text, recipe_id::text, lower(name)) order by %s limit %d""";
+        RowMapper<FoodStat> food = (rs, i) -> new FoodStat(rs.getString("name"), rs.getString("detail"),
+                rs.getInt("n"), Math.round(rs.getDouble("kcal")));
+        List<FoodStat> byCount = jdbc.query(foods.formatted("n desc, kcal desc", 8), food, userId, from, to);
+        List<FoodStat> byKcal = jdbc.query(foods.formatted("kcal desc, n desc", 8), food, userId, from, to);
+        List<SlotStat> slots = jdbc.query("""
+                select slot, sum(kcal) kcal, count(distinct day) d from meal_entry where user_id = ? and day between ? and ?
+                group by slot""", (rs, i) -> new SlotStat(Slot.valueOf(rs.getString("slot")), Math.round(rs.getDouble("kcal")),
+                        rs.getInt("d")), userId, from, to);
+        slots.sort(Comparator.comparing(SlotStat::slot));
+        List<GradeStat> grades = jdbc.query("""
+                select upper(nutriscore) grade, sum(kcal) kcal from meal_entry where user_id = ? and day between ? and ?
+                group by upper(nutriscore) order by 1 nulls last""",
+                (rs, i) -> new GradeStat(rs.getString("grade"), Math.round(rs.getDouble("kcal"))), userId, from, to);
+        return new StatsDto(days, from, to, target(userId), daily, sum == null ? Nutrients.ZERO : sum.rounded(), byCount, byKcal, slots,
+                grades);
     }
 
     @Transactional
     public DayDto add(UUID userId, MealInput in) {
         checkDay(in.day());
-        if ((in.foodId() == null) == (in.recipeId() == null)) {
+        int sources = (in.foodId() != null ? 1 : 0) + (in.recipeId() != null ? 1 : 0) + (in.quick() != null ? 1 : 0);
+        if (sources != 1) {
             throw ApiException.badRequest("invalid_quantity");
         }
-        if (in.foodId() != null) {
+        if (in.quick() != null) {
+            QuickInput q = in.quick();
+            insert(userId, in.day(), in.slot(), null, null, q.name().strip(), null, null, 1.0,
+                    new Nutrients(q.kcal(), q.proteinG(), q.carbsG(), null, q.fatG(), null, null, null), null);
+        } else if (in.foodId() != null) {
             Food f = foods.usable(in.foodId(), userId);
             double grams = in.grams() != null ? in.grams() : f.servingG() != null ? f.servingG() : 100;
             insert(userId, in.day(), in.slot(), f.id(), null, f.name(), f.brand(), grams, null, f.per100().times(grams / 100), f.nutriscore());
@@ -155,7 +246,7 @@ public class MealService {
 
     public List<RecentDto> recent(UUID userId) {
         List<RecentDto> out = new ArrayList<>();
-        List<Object[]> rows = jdbc.query("""
+        List<Object[]> rows = new ArrayList<>(jdbc.query("""
                 select distinct on (coalesce(food_id, recipe_id)) food_id, recipe_id, name, detail, grams, servings, kcal, nutriscore, created_at
                 from meal_entry where user_id = ? and (food_id is not null or recipe_id is not null)
                 order by coalesce(food_id, recipe_id), created_at desc""", (rs, i) -> {
@@ -166,9 +257,20 @@ public class MealService {
             UUID food = rs.getObject("food_id", UUID.class);
             UUID recipe = rs.getObject("recipe_id", UUID.class);
             return new Object[] {new RecentDto(food != null ? "FOOD" : "RECIPE", food != null ? food : recipe, rs.getString("name"),
-                    rs.getString("detail"), grams, servings, Math.round(rs.getDouble("kcal")), rs.getString("nutriscore")),
+                    rs.getString("detail"), grams, servings, Math.round(rs.getDouble("kcal")), rs.getString("nutriscore"), null),
                     rs.getTimestamp("created_at").toInstant()};
-        }, userId);
+        }, userId));
+        // quick portions (and lines whose food is gone): offered again by name, as one portion
+        rows.addAll(jdbc.query("""
+                select distinct on (lower(name)) name, servings, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g, salt_g, created_at
+                from meal_entry where user_id = ? and food_id is null and recipe_id is null
+                order by lower(name), created_at desc""", (rs, i) -> {
+            double s = rs.getDouble("servings");
+            double factor = rs.wasNull() || s <= 0 ? 1 : 1 / s;
+            Nutrients n = Nutrients.from(rs).times(factor).rounded();
+            return new Object[] {new RecentDto("QUICK", null, rs.getString("name"), null, null, 1.0, Math.round(n.kcal()), null, n),
+                    rs.getTimestamp("created_at").toInstant()};
+        }, userId));
         rows.sort(Comparator.comparing((Object[] r) -> (Instant) r[1]).reversed());
         for (Object[] r : rows.subList(0, Math.min(15, rows.size()))) {
             out.add((RecentDto) r[0]);

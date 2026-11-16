@@ -1,20 +1,24 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, inject, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, inject, input, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
-import type { Nutrients, RecipeType } from '../../core/api/models';
+import type { Nutrients, RecipeDraft, RecipeType, RecipeVisibility } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MealsApi } from '../../core/meals/meals-api';
 import { scaled } from '../../core/meals/meals.store';
 import { StackNavigation } from '../../core/nav/stack-navigation';
 import { prepareImage } from '../../core/photos/image-tools';
+import { closeSheet } from '../../core/ui/sheets';
 import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { FoodPickerComponent, Picked } from './food-picker.component';
 import { RECIPE_TYPES, TYPE_EMOJI } from './recipes.page';
+import { SegDirective } from '../../shared/seg.directive';
+
+const VISIBILITY_ICON: Record<RecipeVisibility, string> = { PRIVATE: 'lock', FRIENDS: 'users', PUBLIC: 'globe' };
 
 interface Line {
   foodId: string;
@@ -24,11 +28,14 @@ interface Line {
   per100: Nutrients;
 }
 
-/** A recipe of one's own: name, type, servings, picture, ingredients with their weights, method, sharing. */
+/**
+ * A recipe of one's own: name, type, servings, picture, ingredients with their weights (calories computed)
+ * or as written with the calories entered by hand (an imported recipe), method, who sees it.
+ */
 @Component({
   selector: 'app-recipe-edit',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, BackButtonComponent, NumberStepperComponent, FoodPickerComponent],
+  imports: [SegDirective, FormsModule, TranslatePipe, IconComponent, BackButtonComponent, NumberStepperComponent, FoodPickerComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -36,7 +43,25 @@ interface Line {
         <h1 class="title small-title">{{ (id() ? 'meals.recipe.editTitle' : 'meals.recipe.newTitle') | t }}</h1>
       </header>
 
+      @if (!id()) {
+        <button type="button" class="card import-cta" (click)="openImport()">
+          <span class="import-ico"><app-icon name="link" [size]="20" /></span>
+          <span class="import-copy">
+            <b>{{ 'meals.recipe.import.cta' | t }}</b>
+            <span class="small muted">{{ 'meals.recipe.import.ctaSub' | t }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </button>
+      }
+
       <form class="stack" (ngSubmit)="save()">
+        @if (source(); as src) {
+          <div class="source">
+            <app-icon name="link" [size]="16" />
+            <span class="small">{{ 'meals.recipe.import.from' | t: { site: src.name } }}</span>
+            <button type="button" class="icon-btn mini" [attr.aria-label]="'meals.recipe.import.forget' | t" (click)="source.set(null)"><app-icon name="x" [size]="16" /></button>
+          </div>
+        }
         <label class="photo" [class.has]="preview()">
           @if (preview()) {
             <img [src]="preview()" alt="" />
@@ -67,6 +92,33 @@ interface Line {
         <app-number-stepper [(value)]="servings" [step]="1" [min]="1" [max]="50" [decimals]="0" [label]="'meals.recipe.servingsLabel' | t" />
 
         <h2 class="section-title">{{ 'meals.recipe.ingredients' | t }}</h2>
+        <div class="seg" role="radiogroup" [attr.aria-label]="'meals.recipe.mode.title' | t">
+          <button type="button" role="radio" [attr.aria-checked]="mode() === 'computed'" (click)="mode.set('computed')"><app-icon name="search" [size]="16" /> {{ 'meals.recipe.mode.computed' | t }}</button>
+          <button type="button" role="radio" [attr.aria-checked]="mode() === 'manual'" (click)="mode.set('manual')"><app-icon name="pencil" [size]="16" /> {{ 'meals.recipe.mode.manual' | t }}</button>
+        </div>
+        @if (mode() === 'manual') {
+          <div class="manual">
+            <div class="field">
+              <label class="label" for="r-lines">{{ 'meals.recipe.mode.lines' | t }}</label>
+              <textarea class="textarea" id="r-lines" name="lines" rows="6" maxlength="8000" [placeholder]="'meals.recipe.mode.linesPlaceholder' | t" [(ngModel)]="ingredientText"></textarea>
+            </div>
+            <div class="kcal-row">
+              <div class="field">
+                <label class="label" for="r-kcal">{{ 'meals.recipe.mode.kcal' | t }}</label>
+                <div class="with-unit"><input class="input" id="r-kcal" name="kcal" type="text" inputmode="decimal" required [(ngModel)]="kcal" /><span>kcal</span></div>
+              </div>
+            </div>
+            <div class="macro-row">
+              @for (m of macroFields; track m.key) {
+                <div class="field">
+                  <label class="label tiny" [for]="'r-' + m.key">{{ m.label | t }}</label>
+                  <div class="with-unit"><input class="input" [id]="'r-' + m.key" [name]="m.key" type="text" inputmode="decimal" [(ngModel)]="macros[m.key]" /><span>g</span></div>
+                </div>
+              }
+            </div>
+            <p class="tiny muted">{{ 'meals.recipe.mode.hint' | t }}</p>
+          </div>
+        } @else {
         @if (lines().length) {
           <ul class="lines" role="list">
             @for (l of lines(); track $index; let i = $index) {
@@ -82,22 +134,47 @@ interface Line {
           <p class="totals small"><b class="num">{{ i18n.number(perServing().kcal) }} kcal</b> {{ 'meals.perServing' | t }}</p>
         }
         <button type="button" class="btn btn-secondary" (click)="openPicker()"><app-icon name="plus" /> {{ 'meals.recipe.addIngredient' | t }}</button>
+        }
 
         <div class="field">
           <label class="label" for="r-notes">{{ 'meals.recipe.notes' | t }}</label>
           <textarea class="textarea" id="r-notes" name="notes" rows="5" maxlength="4000" [(ngModel)]="notes"></textarea>
         </div>
 
-        <label class="check share">
-          <input type="checkbox" name="shared" [(ngModel)]="shared" />
-          <span>
-            <b>{{ 'meals.recipe.share' | t }}</b>
-            <span class="small muted">{{ 'meals.recipe.shareHint' | t }}</span>
-          </span>
-        </label>
+        <div class="field">
+          <span class="label" id="r-vis">{{ 'meals.recipe.visibility.title' | t }}</span>
+          <div class="seg vis" role="radiogroup" aria-labelledby="r-vis">
+            @for (v of visibilities; track v) {
+              <button type="button" role="radio" [attr.aria-checked]="visibility() === v" (click)="visibility.set(v)">
+                <app-icon [name]="visibilityIcon[v]" [size]="16" /> {{ 'meals.recipe.visibility.' + v | t }}
+              </button>
+            }
+          </div>
+          @for (v of [visibility()]; track v) {
+            <p class="small muted vis-hint">{{ 'meals.recipe.visibility.' + v + 'Hint' | t }}</p>
+          }
+        </div>
 
         <button type="submit" class="btn btn-primary btn-block" [disabled]="busy()"><app-icon name="check" /> {{ 'meals.recipe.save' | t }}</button>
       </form>
+
+      <dialog class="sheet" #importDialog [attr.aria-label]="'meals.recipe.import.title' | t">
+        <div class="sheet-grip"></div>
+        <form class="stack" (ngSubmit)="runImport()">
+          <div>
+            <h2 class="h3">{{ 'meals.recipe.import.title' | t }}</h2>
+            <p class="small muted">{{ 'meals.recipe.import.text' | t }}</p>
+          </div>
+          <div class="field">
+            <label class="label" for="r-url">{{ 'meals.recipe.import.label' | t }}</label>
+            <input class="input" id="r-url" name="url" type="url" inputmode="url" autocomplete="off" placeholder="https://…" [(ngModel)]="importUrl" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" [disabled]="importing() || !importUrl.trim()">
+            <app-icon [name]="importing() ? 'refresh' : 'download'" [class.spin]="importing()" /> {{ (importing() ? 'meals.recipe.import.reading' : 'meals.recipe.import.run') | t }}
+          </button>
+          <p class="tiny muted note"><app-icon name="info" [size]="14" /> {{ 'meals.recipe.import.note' | t }}</p>
+        </form>
+      </dialog>
 
       <dialog class="sheet picker" #picker>
         <div class="sheet-grip"></div>
@@ -200,12 +277,110 @@ interface Line {
       text-align: right;
       color: var(--fg-2);
     }
+    .vis-hint {
+      animation: hint-in 260ms var(--ease-out) both;
+    }
+    @keyframes hint-in {
+      from {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+    }
     .share {
       align-items: flex-start;
     }
     .share > span {
       display: grid;
       gap: 2px;
+    }
+    .import-cta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      text-align: left;
+      color: inherit;
+      transition: transform var(--dur-1) var(--ease-out);
+    }
+    .import-cta:active {
+      transform: scale(0.98);
+    }
+    .import-ico {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      flex: none;
+      border-radius: 14px;
+      background: var(--cool-soft);
+      color: var(--cool);
+    }
+    .import-copy {
+      display: grid;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+    .source {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 6px 6px 12px;
+      border-radius: var(--radius-pill);
+      background: var(--cool-soft);
+      color: var(--cool);
+      font-weight: 650;
+      animation: hint-in 300ms var(--ease-out) both;
+    }
+    .source span {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .icon-btn.mini {
+      width: 32px;
+      height: 32px;
+    }
+    .manual {
+      display: grid;
+      gap: var(--space-3);
+      animation: hint-in 300ms var(--ease-out) both;
+    }
+    .macro-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-2);
+    }
+    .with-unit {
+      position: relative;
+    }
+    .with-unit .input {
+      width: 100%;
+      padding-right: 44px;
+    }
+    .with-unit span {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--fg-2);
+      font-weight: 600;
+      pointer-events: none;
+    }
+    .note {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .spin {
+      animation: spin 900ms linear infinite;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
     .picker {
       min-height: 70dvh;
@@ -217,18 +392,37 @@ interface Line {
 })
 export class RecipeEditPage {
   readonly id = input<string | undefined>();
+  /** a link to import at once: ?import=… (from the recipes list) or what the phone shared (?url=… / ?text=…) */
+  readonly importParam = input<string | undefined>(undefined, { alias: 'import' });
+  readonly sharedUrl = input<string | undefined>(undefined, { alias: 'url' });
+  readonly sharedText = input<string | undefined>(undefined, { alias: 'text' });
   private readonly api = inject(MealsApi);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly stack = inject(StackNavigation);
   protected readonly i18n = inject(I18nService);
   private readonly pickerDialog = viewChild.required<ElementRef<HTMLDialogElement>>('picker');
+  private readonly importDialog = viewChild.required<ElementRef<HTMLDialogElement>>('importDialog');
+  protected readonly mode = signal<'computed' | 'manual'>('computed');
+  protected readonly source = signal<{ url: string; name: string } | null>(null);
+  protected readonly importing = signal(false);
+  protected importUrl = '';
+  protected ingredientText = '';
+  protected kcal = '';
+  protected macros: Record<'proteinG' | 'carbsG' | 'fatG', string> = { proteinG: '', carbsG: '', fatG: '' };
+  protected readonly macroFields: { key: 'proteinG' | 'carbsG' | 'fatG'; label: string }[] = [
+    { key: 'proteinG', label: 'meals.protein' },
+    { key: 'carbsG', label: 'meals.carbs' },
+    { key: 'fatG', label: 'meals.fat' },
+  ];
 
   protected readonly types = RECIPE_TYPES;
   protected readonly emoji = TYPE_EMOJI;
   protected name = '';
   protected notes = '';
-  protected shared = false;
+  protected readonly visibilities: RecipeVisibility[] = ['PRIVATE', 'FRIENDS', 'PUBLIC'];
+  protected readonly visibilityIcon = VISIBILITY_ICON;
+  protected readonly visibility = signal<RecipeVisibility>('PRIVATE');
   protected readonly type = signal<RecipeType>('LUNCH');
   protected readonly servings = signal(2);
   protected readonly lines = signal<Line[]>([]);
@@ -247,7 +441,18 @@ export class RecipeEditPage {
 
   constructor() {
     queueMicrotask(() => void this.load());
+    afterNextRender(() => this.importAtOnce());
     inject(DestroyRef).onDestroy(() => this.objectUrl && URL.revokeObjectURL(this.objectUrl));
+  }
+
+  /** opened with a link (shared from the phone's browser, or ?import from the list): the import sheet at once */
+  private importAtOnce(): void {
+    if (this.id()) return;
+    const shared = this.importParam() || this.sharedUrl() || /https?:\/\/\S+/.exec(this.sharedText() ?? '')?.[0];
+    if (!shared && this.importParam() === undefined) return;
+    this.importUrl = shared ?? '';
+    this.importDialog().nativeElement.showModal();
+    if (shared) void this.runImport();
   }
 
   private async load(): Promise<void> {
@@ -256,15 +461,57 @@ export class RecipeEditPage {
     const r = await this.api.recipe(id);
     this.name = r.name;
     this.notes = r.notes ?? '';
-    this.shared = r.shared;
+    this.visibility.set(r.visibility ?? (r.shared ? 'PUBLIC' : 'PRIVATE'));
     this.type.set(r.type);
     this.servings.set(r.servings);
     this.preview.set(r.imageUrl ?? null);
+    if (r.manualNutrition) {
+      this.mode.set('manual');
+      this.ingredientText = (r.ingredientLines ?? []).join('\n');
+      this.kcal = String(Math.round(r.perServing.kcal));
+      this.macros = { proteinG: this.num(r.perServing.proteinG), carbsG: this.num(r.perServing.carbsG), fatG: this.num(r.perServing.fatG) };
+    }
+    if (r.sourceUrl) this.source.set({ url: r.sourceUrl, name: r.sourceName ?? r.sourceUrl });
     this.lines.set(
       (r.ingredients ?? [])
         .filter((i) => i.foodId)
         .map((i) => ({ foodId: i.foodId!, name: i.name, grams: i.grams, per100: { kcal: i.grams ? (i.kcal * 100) / i.grams : 0 } })),
     );
+  }
+
+  private num(v?: number): string {
+    return v == null ? '' : this.i18n.number(v, v % 1 ? 1 : 0);
+  }
+
+  protected openImport(): void {
+    this.importDialog().nativeElement.showModal();
+  }
+
+  /** the draft fills the form; the calories are checked (or entered) by the member */
+  protected async runImport(): Promise<void> {
+    const url = this.importUrl.trim();
+    if (!url) return;
+    this.importing.set(true);
+    try {
+      const d: RecipeDraft = await this.api.importRecipe(url);
+      this.name = d.name;
+      this.type.set(d.type);
+      if (d.servings) this.servings.set(d.servings);
+      this.notes = d.instructions ?? this.notes;
+      this.mode.set('manual');
+      this.ingredientText = d.ingredients.join('\n');
+      this.kcal = d.kcal != null ? String(Math.round(d.kcal)) : '';
+      this.macros = { proteinG: this.num(d.proteinG), carbsG: this.num(d.carbsG), fatG: this.num(d.fatG) };
+      this.source.set({ url: d.sourceUrl, name: d.sourceName });
+      closeSheet(this.importDialog().nativeElement);
+      this.toast.show(this.i18n.t(d.kcal != null ? 'meals.recipe.import.doneKcal' : 'meals.recipe.import.done'));
+      // the calories are the member's part: straight to the field when the site gave none
+      if (d.kcal == null) setTimeout(() => document.getElementById('r-kcal')?.focus(), 450);
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.importing.set(false);
+    }
   }
 
   protected openPicker(): void {
@@ -317,7 +564,18 @@ export class RecipeEditPage {
       this.toast.error(this.i18n.error('validation_failed'));
       return;
     }
-    if (!this.lines().length) {
+    const manual = this.mode() === 'manual';
+    const toNumber = (s: string) => {
+      const n = Number(String(s).replace(',', '.').trim());
+      return String(s).trim() && Number.isFinite(n) ? n : null;
+    };
+    const kcal = toNumber(this.kcal);
+    if (manual && (kcal == null || kcal < 1 || kcal > 5000)) {
+      this.toast.error(this.i18n.t('meals.recipe.mode.kcalMissing'));
+      document.getElementById('r-kcal')?.focus();
+      return;
+    }
+    if (!manual && !this.lines().length) {
       this.toast.error(this.i18n.error('recipe_empty'));
       return;
     }
@@ -328,8 +586,13 @@ export class RecipeEditPage {
         type: this.type(),
         servings: this.servings(),
         notes: this.notes.trim() || null,
-        shared: this.shared,
-        ingredients: this.lines().map((l) => ({ foodId: l.foodId, grams: l.grams })),
+        visibility: this.visibility(),
+        ingredients: manual ? [] : this.lines().map((l) => ({ foodId: l.foodId, grams: l.grams })),
+        manual: manual
+          ? { kcal: kcal!, proteinG: toNumber(this.macros.proteinG), carbsG: toNumber(this.macros.carbsG), fatG: toNumber(this.macros.fatG) }
+          : null,
+        ingredientLines: manual ? this.ingredientText.split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 80) : [],
+        sourceUrl: this.source()?.url ?? null,
       };
       const id = this.id();
       let recipe = id ? await this.api.updateRecipe(id, input) : await this.api.createRecipe(input);

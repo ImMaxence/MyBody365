@@ -2,9 +2,11 @@ package fr.mbonnici.mybody365.meals;
 
 import fr.mbonnici.mybody365.meals.MealService.CopyInput;
 import fr.mbonnici.mybody365.meals.MealService.DayDto;
+import fr.mbonnici.mybody365.meals.MealService.DaysDto;
 import fr.mbonnici.mybody365.meals.MealService.MealInput;
 import fr.mbonnici.mybody365.meals.MealService.MealUpdate;
 import fr.mbonnici.mybody365.meals.MealService.RecentDto;
+import fr.mbonnici.mybody365.meals.MealService.StatsDto;
 import fr.mbonnici.mybody365.tracking.TrackingService;
 import fr.mbonnici.mybody365.user.UserService;
 import jakarta.validation.Valid;
@@ -62,6 +64,18 @@ public class MealController {
     @PostMapping("/copy")
     public DayDto copy(@Valid @RequestBody CopyInput body, Authentication auth) {
         return meals.copy(users.current(auth).getId(), body);
+    }
+
+    /** the totals of each day of a range: the calendar */
+    @GetMapping("/days")
+    public DaysDto days(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to, Authentication auth) {
+        return meals.days(users.current(auth).getId(), from, to);
+    }
+
+    @GetMapping("/stats")
+    public StatsDto stats(@RequestParam(defaultValue = "30") int days, Authentication auth) {
+        return meals.stats(users.current(auth).getId(), days);
     }
 
     @GetMapping("/recent")

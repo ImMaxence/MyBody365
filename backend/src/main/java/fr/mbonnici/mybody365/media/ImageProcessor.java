@@ -71,6 +71,17 @@ public class ImageProcessor {
         return new Processed(encode(full, 82), encode(thumb, 74), full.getWidth(), full.getHeight(), webp ? "webp" : "jpeg");
     }
 
+    /** a square picture (profile pictures): the centre of the image, at most side × side, a single file */
+    public Processed square(byte[] input, int side) {
+        sniff(input);
+        BufferedImage source = decode(input);
+        int s = Math.min(source.getWidth(), source.getHeight());
+        BufferedImage crop = source.getSubimage((source.getWidth() - s) / 2, (source.getHeight() - s) / 2, s, s);
+        BufferedImage out = scale(crop, side);
+        byte[] bytes = encode(out, 82);
+        return new Processed(bytes, bytes, out.getWidth(), out.getHeight(), webp ? "webp" : "jpeg");
+    }
+
     /** JPEG, PNG and WebP only: what browsers produce. HEIC is converted by the app before upload. */
     static void sniff(byte[] b) {
         if (b == null || b.length < 16) {

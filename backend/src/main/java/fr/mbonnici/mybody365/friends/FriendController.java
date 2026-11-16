@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -39,6 +40,34 @@ public class FriendController {
     public FriendsView list(Authentication auth) {
         UUID me = users.current(auth).getId();
         return new FriendsView(friends.list(me), friends.sharedWithMe(me));
+    }
+
+    /** a member by their exact username (rate-limited: see RateLimitFilter) */
+    @GetMapping("/api/me/friends/search")
+    public FriendService.MemberDto search(@RequestParam String username, Authentication auth) {
+        return friends.find(users.current(auth).getId(), username);
+    }
+
+    @GetMapping("/api/me/friends/requests")
+    public FriendService.Requests requests(Authentication auth) {
+        return friends.requests(users.current(auth).getId());
+    }
+
+    @PostMapping("/api/me/friends/requests")
+    public Map<String, String> request(@RequestBody Map<String, String> body, Authentication auth) {
+        return Map.of("relation", friends.request(users.current(auth).getId(), body.get("username")).name());
+    }
+
+    @PostMapping("/api/me/friends/requests/{id}/accept")
+    public FriendDto acceptRequest(@PathVariable UUID id, Authentication auth) {
+        return friends.acceptRequest(users.current(auth).getId(), id);
+    }
+
+    /** declines a request received, or withdraws one sent */
+    @DeleteMapping("/api/me/friends/requests/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void dropRequest(@PathVariable UUID id, Authentication auth) {
+        friends.dropRequest(users.current(auth).getId(), id);
     }
 
     @PostMapping("/api/me/friends/invite")

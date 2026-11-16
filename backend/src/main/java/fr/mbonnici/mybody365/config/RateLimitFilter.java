@@ -128,12 +128,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return accessRequest;
         }
         // pictures are decoded and re-encoded, backups unpacked: the costly requests
-        if (("POST".equals(method) && (path.equals("/api/me/photos") || path.matches("/api/me/recipes/[^/]+/image")))
+        if (("POST".equals(method) && (path.equals("/api/me/photos") || path.equals("/api/me/avatar") || path.equals("/api/me/recipes/import") || path.matches("/api/me/recipes/[^/]+/image")))
                 || path.startsWith("/api/me/backup/") || path.startsWith("/api/me/drive/backup")) {
             return upload;
         }
         // each search may go out to Open Food Facts
-        if ("GET".equals(method) && (path.equals("/api/foods/search") || path.startsWith("/api/foods/barcode/"))) {
+        // and a username search must not become a way to list the members
+        if ("GET".equals(method) && (path.equals("/api/foods/search") || path.startsWith("/api/foods/barcode/")
+                || path.equals("/api/me/friends/search"))) {
             return foodSearch;
         }
         // sign-in flows are tightly limited; the read-only session probes run on every app start

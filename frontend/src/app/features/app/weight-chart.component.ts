@@ -7,13 +7,16 @@ const H = 190;
 const PAD = { l: 34, r: 10, t: 12, b: 24 };
 const DAY = 86_400_000;
 
+let uid = 0;
+
 function t(day: string): number {
   return new Date(day + 'T12:00:00').getTime();
 }
 
 /**
  * Weigh-ins (dots), the smoothed trend (line), the goal (dashed level) and the forecast (dotted line
- * from the last trend point to the goal date). The lines draw themselves when the chart appears.
+ * from the last trend point towards the goal date). The lines draw themselves when the chart appears.
+ * Everything stays inside the plot: the vertical range covers the forecast end, and the lines are clipped.
  */
 @Component({
   selector: 'app-weight-chart',
@@ -21,23 +24,36 @@ function t(day: string): number {
   template: `
     @if (geometry(); as g) {
       <svg [attr.viewBox]="'0 0 ' + w + ' ' + h" role="img" [attr.aria-label]="label()">
+        <defs>
+          <clipPath [attr.id]="clip">
+            <rect [attr.x]="pad.l" [attr.y]="pad.t - 6" [attr.width]="w - pad.l - pad.r + 6" [attr.height]="h - pad.t - pad.b + 12" />
+          </clipPath>
+        </defs>
         @for (y of g.grid; track y.v) {
           <line [attr.x1]="pad.l" [attr.x2]="w - pad.r" [attr.y1]="y.y" [attr.y2]="y.y" class="grid" />
           <text [attr.x]="pad.l - 6" [attr.y]="y.y + 3" class="axis" text-anchor="end">{{ y.label }}</text>
         }
+        <g [attr.clip-path]="'url(#' + clip + ')'">
+          @if (g.goalY !== null) {
+            <line [attr.x1]="pad.l" [attr.x2]="w - pad.r" [attr.y1]="g.goalY" [attr.y2]="g.goalY" class="goal" />
+          }
+          @if (g.forecast) {
+            <path [attr.d]="g.forecast" class="forecast" pathLength="1" />
+          }
+          @if (g.trend) {
+            <path [attr.d]="g.trend" class="trend" pathLength="1" />
+          }
+        </g>
         @if (g.goalY !== null) {
-          <line [attr.x1]="pad.l" [attr.x2]="w - pad.r" [attr.y1]="g.goalY" [attr.y2]="g.goalY" class="goal" />
-        }
-        @if (g.forecast) {
-          <path [attr.d]="g.forecast" class="forecast" pathLength="1" />
-        }
-        @if (g.trend) {
-          <path [attr.d]="g.trend" class="trend" pathLength="1" />
+          <text [attr.x]="w - pad.r" [attr.y]="g.goalLabelY" class="goal-label" text-anchor="end">{{ g.goalLabel }}</text>
         }
         @for (p of g.dots; track p.x) {
           <circle [attr.cx]="p.x" [attr.cy]="p.y" r="2.6" class="dot" [style.--i]="$index" />
         }
         @if (g.last) {
+          @if (g.dots.length === 1) {
+            <circle [attr.cx]="g.last.x" [attr.cy]="g.last.y" r="11" class="halo" />
+          }
           <circle [attr.cx]="g.last.x" [attr.cy]="g.last.y" r="5" class="last" />
         }
         <text [attr.x]="pad.l" [attr.y]="h - 6" class="axis">{{ g.from }}</text>
@@ -50,9 +66,9 @@ function t(day: string): number {
       display: block;
     }
     svg {
+      display: block;
       width: 100%;
       height: auto;
-      overflow: visible;
     }
     .grid {
       stroke: var(--line);
@@ -68,6 +84,13 @@ function t(day: string): number {
       stroke: var(--cool);
       stroke-width: 1.5;
       stroke-dasharray: 4 4;
+    }
+    .goal-label {
+      fill: var(--cool);
+      font-size: 9px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      animation: fade 500ms 700ms both;
     }
     .trend,
     .forecast {
@@ -99,6 +122,23 @@ function t(day: string): number {
       stroke-width: 2.5;
       animation: fade 400ms 800ms both;
     }
+    .halo {
+      fill: var(--accent);
+      opacity: 0.18;
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: halo 2.4s var(--ease-out) infinite;
+    }
+    @keyframes halo {
+      0% {
+        transform: scale(0.5);
+        opacity: 0.35;
+      }
+      100% {
+        transform: scale(1.4);
+        opacity: 0;
+      }
+    }
     @keyframes draw {
       from {
         stroke-dashoffset: 1;
@@ -110,6 +150,11 @@ function t(day: string): number {
     @keyframes fade {
       from {
         opacity: 0;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .halo {
+        animation: none;
       }
     }
   `,
@@ -127,6 +172,7 @@ export class WeightChartComponent {
   protected readonly w = W;
   protected readonly h = H;
   protected readonly pad = PAD;
+  protected readonly clip = `wchart-${++uid}`;
 
   protected readonly geometry = computed(() => {
     const all = this.logs().filter((l) => l.weightKg != null);
@@ -137,11 +183,26 @@ export class WeightChartComponent {
     if (!shown.length) return null;
     const x0 = Math.min(start, t(shown[0].day));
     const lastDay = t(shown[shown.length - 1].day);
-    // room on the right for the beginning of the forecast
-    const x1 = Math.max(lastDay, now) + Math.max(3 * DAY, (Math.max(lastDay, now) - x0) * 0.18);
+    // room on the right for the beginning of the forecast (at least a week, so a single weigh-in is not glued to the edge)
+    const right = Math.max(lastDay, now);
+    const x1 = right + Math.max(7 * DAY, (right - x0) * 0.18);
+    const lastKg = shown[shown.length - 1].trendKg ?? shown[shown.length - 1].weightKg!;
 
+    // the forecast, in kg and time first: straight to the goal, cut at the right edge of the chart
     const goal = this.goalKg();
+    const date = this.goalDate();
+    let forecastEnd: { ms: number; kg: number } | null = null;
+    if (goal != null && date) {
+      const end = t(date);
+      if (end > lastDay) {
+        const ratio = Math.min(1, (x1 - lastDay) / (end - lastDay));
+        forecastEnd = { ms: lastDay + (end - lastDay) * ratio, kg: lastKg + (goal - lastKg) * ratio };
+      }
+    }
+
+    // the vertical range: the weigh-ins, the trend, the end of the forecast, and the goal when it is near
     const values = shown.flatMap((l) => [l.weightKg!, l.trendKg ?? l.weightKg!]);
+    if (forecastEnd) values.push(forecastEnd.kg);
     let lo = Math.min(...values);
     let hi = Math.max(...values);
     if (goal != null && goal > lo - 4 && goal < hi + 4) {
@@ -149,8 +210,9 @@ export class WeightChartComponent {
       hi = Math.max(hi, goal);
     }
     const span = Math.max(hi - lo, 2);
-    lo -= span * 0.12;
-    hi += span * 0.12;
+    const mid = (lo + hi) / 2;
+    lo = Math.min(lo, mid - span / 2) - span * 0.12;
+    hi = Math.max(hi, mid + span / 2) + span * 0.12;
 
     const sx = (ms: number) => PAD.l + ((ms - x0) / (x1 - x0)) * (W - PAD.l - PAD.r);
     const sy = (kg: number) => PAD.t + ((hi - kg) / (hi - lo)) * (H - PAD.t - PAD.b);
@@ -158,26 +220,16 @@ export class WeightChartComponent {
     const dots = shown.map((l) => ({ x: +sx(t(l.day)).toFixed(1), y: +sy(l.weightKg!).toFixed(1) }));
     const trendPts = shown.map((l) => [sx(t(l.day)), sy(l.trendKg ?? l.weightKg!)] as const);
     const trend = trendPts.length > 1 ? 'M' + trendPts.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L') : null;
-    const lastTrend = trendPts[trendPts.length - 1];
+    const [lx, ly] = trendPts[trendPts.length - 1];
+    const forecast = forecastEnd ? `M${lx.toFixed(1)} ${ly.toFixed(1)} L${sx(forecastEnd.ms).toFixed(1)} ${sy(forecastEnd.kg).toFixed(1)}` : null;
 
-    let forecast: string | null = null;
-    const date = this.goalDate();
-    if (goal != null && date && trendPts.length) {
-      const end = t(date);
-      const [lx, ly] = lastTrend;
-      const lastKg = shown[shown.length - 1].trendKg ?? shown[shown.length - 1].weightKg!;
-      // straight to the goal, cut at the right edge of the chart
-      const ratio = end > lastDay ? Math.min(1, (x1 - lastDay) / (end - lastDay)) : 1;
-      const fx = lastDay + (end - lastDay) * ratio;
-      const fkg = lastKg + (goal - lastKg) * ratio;
-      forecast = `M${lx.toFixed(1)} ${ly.toFixed(1)} L${sx(fx).toFixed(1)} ${sy(fkg).toFixed(1)}`;
-    }
-
-    const step = span > 12 ? 5 : span > 5 ? 2 : 1;
+    const visibleSpan = hi - lo;
+    const step = visibleSpan > 14 ? 5 : visibleSpan > 6 ? 2 : 1;
     const grid = [];
     for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) {
       grid.push({ v, y: +sy(v).toFixed(1), label: this.i18n.number(v) });
     }
+    const goalY = goal != null && goal >= lo && goal <= hi ? +sy(goal).toFixed(1) : null;
     const fmt = (ms: number) => this.i18n.date(new Date(ms).toISOString(), { day: 'numeric', month: 'short' });
     return {
       dots,
@@ -185,9 +237,12 @@ export class WeightChartComponent {
       forecast,
       grid,
       last: dots[dots.length - 1],
-      goalY: goal != null && goal >= lo && goal <= hi ? +sy(goal).toFixed(1) : null,
+      goalY,
+      // above the dashed line, below it when it runs along the top
+      goalLabelY: goalY === null ? 0 : goalY - 4 < PAD.t + 6 ? goalY + 11 : goalY - 4,
+      goalLabel: goal != null ? `${this.i18n.number(goal, 1)} kg` : '',
       from: fmt(x0),
-      to: fmt(Math.max(lastDay, now)),
+      to: fmt(right),
     };
   });
 }

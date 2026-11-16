@@ -25,7 +25,7 @@ test.describe('photos', () => {
     const tile = page.getByRole('link', { name: /Ouvrir la photo du/ });
     await expect(tile).toHaveCount(1);
     await expect(tile.getByText('Profil')).toBeVisible();
-    await expect(page.getByText(/Stockage : .* sur 1 Go/)).toBeVisible();
+    await expect(page.getByText(/Stockage : .* sur 2 Go/)).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
     // Today knows it too

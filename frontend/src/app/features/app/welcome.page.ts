@@ -9,6 +9,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
 import { IconComponent } from '../../shared/icon.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
+import { SegDirective } from '../../shared/seg.directive';
 
 type Step = 'consent' | 'about' | 'body' | 'goal' | 'plan';
 
@@ -22,7 +23,7 @@ const ACTIVITIES: Activity[] = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VER
 @Component({
   selector: 'app-welcome',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, TranslatePipe, IconComponent, NumberStepperComponent],
+  imports: [SegDirective, FormsModule, RouterLink, TranslatePipe, IconComponent, NumberStepperComponent],
   template: `
     <main class="page no-tabs">
       <header class="top">

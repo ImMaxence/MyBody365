@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, DOCUMENT, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DOCUMENT, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter } from 'rxjs';
@@ -6,6 +7,7 @@ import { I18nService } from './core/i18n/i18n.service';
 import { RouterOutlet } from '@angular/router';
 import { InstallService } from './core/pwa/install.service';
 import { ThemeService } from './core/theme/theme.service';
+import { installSheets } from './core/ui/sheets';
 import { ToastService } from './core/ui/toast.service';
 import { IconComponent } from './shared/icon.component';
 
@@ -37,6 +39,8 @@ export class App {
   private readonly document = inject(DOCUMENT);
 
   constructor() {
+    // every bottom sheet closes by a click outside, a tap on its grip or a swipe down
+    if (isPlatformBrowser(inject(PLATFORM_ID))) installSheets(this.document);
     // a new version of the app is downloaded in the background: offer to switch to it now (the session stays)
     const updates = inject(SwUpdate);
     if (!updates.isEnabled) return;

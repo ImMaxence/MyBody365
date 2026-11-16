@@ -3,13 +3,14 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/icon.component';
 import { BackButtonComponent } from '../../shared/back-button.component';
+import { SegDirective } from '../../shared/seg.directive';
 import { AdminStore } from './admin.store';
 
 /** Admin area inside the app: accounts, access requests, links and the journal. */
 @Component({
   selector: 'app-admin',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe, IconComponent, BackButtonComponent],
+  imports: [SegDirective, RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe, IconComponent, BackButtonComponent],
   providers: [AdminStore],
   template: `
     <main class="page">
@@ -22,7 +23,7 @@ import { AdminStore } from './admin.store';
           }
         </div>
       </header>
-      <nav class="tabs" [attr.aria-label]="'admin.title' | t">
+      <nav class="tabs" appSeg [attr.aria-label]="'admin.title' | t">
         @for (tab of tabs; track tab.path) {
           <a [routerLink]="tab.path" [replaceUrl]="true" routerLinkActive="on" #rla="routerLinkActive" [attr.aria-current]="rla.isActive ? 'page' : null">
             <app-icon [name]="tab.icon" [size]="18" />
@@ -50,6 +51,7 @@ import { AdminStore } from './admin.store';
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--glass-line);
+      --seg-radius: 12px;
     }
     .tabs a {
       position: relative;
@@ -63,9 +65,7 @@ import { AdminStore } from './admin.store';
       color: var(--fg-2);
     }
     .tabs a.on {
-      background: var(--surface);
-      color: var(--fg);
-      box-shadow: var(--shadow-1);
+      color: var(--accent-text);
     }
     @media (min-width: 440px) {
       .tabs {

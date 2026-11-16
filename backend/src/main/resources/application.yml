@@ -94,7 +94,7 @@ app:
     bucket: ${S3_BUCKET:mybody365}
     access-key: ${S3_ACCESS_KEY:mybody365}
     secret-key: ${S3_SECRET_KEY:mybody365-local-secret}
-    quota-mb: ${STORAGE_QUOTA_MB:1024}
+    quota-mb: ${STORAGE_QUOTA_MB:2048}
     max-upload-mb: 20
   nutrition:
     off-user-agent: ${OFF_USER_AGENT:MyBody365}

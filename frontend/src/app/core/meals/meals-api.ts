@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type { CiqualImport, Food, FoodInput, FoodsOverview, MealDay, MealInput, RecentItem, Recipe, RecipeInput, RecipeType, Slot } from '../api/models';
+import type { CiqualImport, Food, FoodInput, FoodsOverview, MealDay, MealDays, MealInput, MealStats, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, Slot } from '../api/models';
 
 /** Foods, meals and recipes (the server asks Open Food Facts itself: the app never calls a third party). */
 @Injectable({ providedIn: 'root' })
@@ -54,6 +54,15 @@ export class MealsApi {
     return firstValueFrom(this.http.delete<MealDay>(`/api/me/meals/${id}`));
   }
 
+  /** the totals of each day of a range (the calendar) */
+  days(from: string, to: string): Promise<MealDays> {
+    return firstValueFrom(this.http.get<MealDays>('/api/me/meals/days', { params: { from, to } }));
+  }
+
+  stats(days: 7 | 30 | 90): Promise<MealStats> {
+    return firstValueFrom(this.http.get<MealStats>('/api/me/meals/stats', { params: { days } }));
+  }
+
   copy(fromDay: string, toDay: string, slot: Slot): Promise<MealDay> {
     return firstValueFrom(this.http.post<MealDay>('/api/me/meals/copy', { fromDay, toDay, slot }));
   }
@@ -65,6 +74,16 @@ export class MealsApi {
   // ── recipes ───────────────────────────────────────────────────────────────
   myRecipes(): Promise<Recipe[]> {
     return firstValueFrom(this.http.get<Recipe[]>('/api/me/recipes'));
+  }
+
+  /** reads a recipe site (the server goes there, the app never calls a third party) */
+  importRecipe(url: string): Promise<RecipeDraft> {
+    return firstValueFrom(this.http.post<RecipeDraft>('/api/me/recipes/import', { url }));
+  }
+
+  /** my friends' recipes (shown to friends or to everyone), newest first */
+  friendsRecipes(type: RecipeType | null): Promise<Recipe[]> {
+    return firstValueFrom(this.http.get<Recipe[]>('/api/recipes/friends', { params: type ? { type } : {} }));
   }
 
   community(type: RecipeType | null, sort: 'top' | 'new', page = 0): Promise<Recipe[]> {

@@ -28,7 +28,7 @@ test.describe('friends', () => {
     const friend = await other.newPage();
     await signIn(friend, 'new');
     await friend.goto('/app/friends');
-    await friend.getByRole('button', { name: 'Ajouter un ami' }).click();
+    await friend.getByRole('button', { name: 'J’ai un lien' }).click();
     await friend.getByLabel('Lien d’ami').fill(url);
     await friend.getByRole('dialog').getByRole('button', { name: 'Ajouter', exact: true }).click();
     await expect(friend.getByText(/Vous êtes amis avec/)).toBeVisible();
@@ -40,6 +40,36 @@ test.describe('friends', () => {
 
     await page.reload();
     await expect(page.locator('.friend')).toHaveCount(1);
+    expect(errors).toEqual([]);
+  });
+
+  test('a request sent to a username, accepted from the list', async ({ page, browser }) => {
+    const errors = watchErrors(page);
+    await signIn(page, 'new');
+    const me = await (await page.request.get('/api/me')).json();
+    expect(me.username).toMatch(/^[a-z0-9._]{3,20}$/);
+
+    const other = await browser.newContext({ ...test.info().project.use });
+    const friend = await other.newPage();
+    await signIn(friend, 'new');
+    await friend.goto('/app/friends');
+    await friend.getByRole('textbox', { name: 'Nom d’utilisateur de ton ami' }).fill('nobody_' + Date.now() % 100000);
+    await friend.getByRole('button', { name: 'Chercher' }).click();
+    await expect(friend.getByText(/Personne n’a ce nom d’utilisateur/)).toBeVisible();
+    await friend.getByRole('textbox', { name: 'Nom d’utilisateur de ton ami' }).fill('@' + me.username);
+    await friend.getByRole('button', { name: 'Chercher' }).click();
+    await friend.getByRole('button', { name: 'Demander en ami' }).click();
+    await expect(friend.getByText(/Demande envoyée à/)).toBeVisible();
+    await expect(friend.getByRole('heading', { name: 'Demandes envoyées' })).toBeVisible();
+    await expectAccessible(friend);
+
+    await page.goto('/app/friends');
+    await expect(page.getByRole('heading', { name: 'Demandes reçues' })).toBeVisible();
+    await page.getByRole('button', { name: 'Accepter' }).click();
+    await expect(page.getByText(/Vous êtes amis avec/)).toBeVisible();
+    await expect(page.locator('.friend')).toHaveCount(1);
+    await expect(page.getByRole('heading', { name: 'Demandes reçues' })).toBeHidden();
+    await other.close();
     expect(errors).toEqual([]);
   });
 

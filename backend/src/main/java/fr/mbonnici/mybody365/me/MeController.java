@@ -2,8 +2,10 @@ package fr.mbonnici.mybody365.me;
 
 import fr.mbonnici.mybody365.tracking.TrackingService;
 import fr.mbonnici.mybody365.common.ApiException;
+import fr.mbonnici.mybody365.friends.FriendService;
 import fr.mbonnici.mybody365.user.AccountDto;
 import fr.mbonnici.mybody365.user.AppUser;
+import fr.mbonnici.mybody365.user.AvatarService;
 import fr.mbonnici.mybody365.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -12,10 +14,13 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,10 +30,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /** The signed-in account: profile, the two onboarding confirmations, sign-in methods, deletion. */
 @RestController
@@ -45,11 +53,19 @@ public class MeController {
 
     public record DeleteAccount(@NotBlank String confirmEmail) {}
 
+    public record UsernameInput(@NotBlank @Size(max = 24) String username) {}
+
+    /** names that could pass for the app or its team */
+    private static final Set<String> RESERVED = Set.of("admin", "administrateur", "mybody365", "mybody", "support", "moderation",
+            "moderateur", "staff", "team", "equipe", "root", "system", "null", "undefined");
+
     private final UserService users;
     private final TrackingService tracking;
     private final JdbcTemplate jdbc;
+    private final AvatarService avatars;
 
-    public MeController(UserService users, JdbcTemplate jdbc, TrackingService tracking) {
+    public MeController(UserService users, JdbcTemplate jdbc, TrackingService tracking, AvatarService avatars) {
+        this.avatars = avatars;
         this.users = users;
         this.tracking = tracking;
         this.jdbc = jdbc;
@@ -76,6 +92,45 @@ public class MeController {
             user.setLocale(body.locale());
         }
         return AccountDto.of(users.save(user), users.isAdmin(user), tracking.hasProfile(user.getId()));
+    }
+
+    /** the username friends can find me by: lowercase letters, digits, "." and "_", 3 to 20 characters, unique */
+    @PutMapping("/username")
+    @Transactional
+    public AccountDto username(@Valid @RequestBody UsernameInput body, Authentication auth) {
+        AppUser user = users.current(auth);
+        String u = FriendService.normalize(body.username());
+        if (u == null || u.startsWith(".") || u.endsWith(".") || u.contains("..")) {
+            throw ApiException.badRequest("username_invalid");
+        }
+        if (RESERVED.contains(u.replace(".", "").replace("_", ""))) {
+            throw ApiException.conflict("username_taken");
+        }
+        if (!u.equals(user.getUsername())) {
+            boolean taken = !jdbc.queryForList("select 1 from app_user where username = ? and id <> ?", Integer.class, u, user.getId())
+                    .isEmpty();
+            if (taken) {
+                throw ApiException.conflict("username_taken");
+            }
+            jdbc.update("update app_user set username = ? where id = ?", u, user.getId());
+        }
+        return AccountDto.of(user, users.isAdmin(user), tracking.hasProfile(user.getId())).withUsername(u);
+    }
+
+    /** a picture of one's own (square, re-encoded without metadata); the old one is deleted */
+    @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Transactional
+    public AccountDto avatar(@RequestParam("file") MultipartFile file, Authentication auth) throws IOException {
+        AppUser user = avatars.set(users.current(auth), file.getBytes());
+        return AccountDto.of(user, users.isAdmin(user), tracking.hasProfile(user.getId()));
+    }
+
+    /** back to the Google picture (or the initials) */
+    @DeleteMapping("/avatar")
+    @Transactional
+    public AccountDto removeAvatar(Authentication auth) {
+        AppUser user = avatars.remove(users.current(auth));
+        return AccountDto.of(user, users.isAdmin(user), tracking.hasProfile(user.getId()));
     }
 
     /** "I am 18 or older" and the explicit consent to the processing of health data (GDPR art. 9). */

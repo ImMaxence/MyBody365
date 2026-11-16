@@ -36,7 +36,7 @@ public class PushService {
     private static final List<String> PUSH_HOSTS = List.of("fcm.googleapis.com", "googleapis.com", "push.services.mozilla.com",
             "push.apple.com", "notify.windows.com");
 
-    public enum Kind { TEST, DAILY_WEIGH, DAILY_PHOTO, GYM, NUDGE }
+    public enum Kind { TEST, DAILY_WEIGH, DAILY_PHOTO, GYM, NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED }
 
     public record Subscription(String endpoint, String p256dh, String auth) {}
 
@@ -190,7 +190,7 @@ public class PushService {
         String url = switch (kind) {
             case DAILY_PHOTO -> "/app/photos/camera";
             case GYM -> "/app/workouts";
-            case NUDGE -> "/app/friends";
+            case NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED -> "/app/friends";
             default -> "/app";
         };
         return Map.of("notification", Map.of(
@@ -219,6 +219,10 @@ public class PushService {
                     : new String[] {"C’est l’heure de la salle 💪", "Ta séance t’attend. Tu te remercieras ce soir"};
             case NUDGE -> en ? new String[] {name + " is thinking of you 💪", "A little reminder for your MyBody365 day"}
                     : new String[] {name + " pense à toi 💪", "Un petit rappel pour ta journée MyBody365"};
+            case FRIEND_REQUEST -> en ? new String[] {name + " wants to be your friend 👋", "Open MyBody365 to accept or decline"}
+                    : new String[] {name + " veut devenir ton ami 👋", "Ouvre MyBody365 pour accepter ou refuser"};
+            case FRIEND_ACCEPTED -> en ? new String[] {name + " accepted your request 🎉", "You can now cheer each other on"}
+                    : new String[] {name + " a accepté ta demande 🎉", "Vous pouvez maintenant vous encourager"};
         };
     }
 }

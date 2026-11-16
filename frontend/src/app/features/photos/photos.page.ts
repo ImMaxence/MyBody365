@@ -6,6 +6,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { formatBytes } from '../../core/photos/image-tools';
 import { POSES, PhotosStore } from '../../core/photos/photos.store';
 import { IconComponent } from '../../shared/icon.component';
+import { SegDirective } from '../../shared/seg.directive';
 
 interface Month {
   key: string;
@@ -17,7 +18,7 @@ interface Month {
 @Component({
   selector: 'app-photos',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent],
+  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent],
   template: `
     <main class="page">
       <header class="page-head">

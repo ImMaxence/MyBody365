@@ -34,8 +34,10 @@ public class RecipeController {
 
     private final RecipeService recipes;
     private final UserService users;
+    private final RecipeImporter importer;
 
-    public RecipeController(RecipeService recipes, UserService users) {
+    public RecipeController(RecipeService recipes, UserService users, RecipeImporter importer) {
+        this.importer = importer;
         this.recipes = recipes;
         this.users = users;
     }
@@ -76,6 +78,19 @@ public class RecipeController {
     public List<RecipeDto> community(@RequestParam(required = false) Type type, @RequestParam(defaultValue = "top") String sort,
             @RequestParam(defaultValue = "0") int page, Authentication auth) {
         return recipes.community(users.current(auth).getId(), type, "new".equals(sort), page);
+    }
+
+    /** a draft read from a recipe site (nothing saved): the app fills its form with it */
+    @PostMapping("/api/me/recipes/import")
+    public RecipeImporter.Draft importRecipe(@RequestBody Map<String, String> body, Authentication auth) {
+        users.current(auth);
+        return importer.read(body.get("url"));
+    }
+
+    /** the recipes my friends show to their friends (or to everyone) */
+    @GetMapping("/api/recipes/friends")
+    public List<RecipeDto> friends(@RequestParam(required = false) Type type, Authentication auth) {
+        return recipes.ofFriends(users.current(auth).getId(), type);
     }
 
     @GetMapping("/api/recipes/{id}")

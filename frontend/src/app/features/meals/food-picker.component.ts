@@ -40,12 +40,28 @@ export type Picked = { kind: 'FOOD'; food: Food } | { kind: 'RECIPE'; recipe: Re
     </div>
 
     @if (words() < 2) {
+      @if (withExtras()) {
+        <button type="button" class="card list-row quick" (click)="quick.emit('')">
+          <span class="list-icon quick-ico"><app-icon name="zap" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'meals.quick.cta' | t }}</span>
+            <span class="list-sub">{{ 'meals.quick.ctaSub' | t }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </button>
+        <h2 class="section-title">{{ 'meals.quick.restaurant' | t }}</h2>
+        <div class="slide-chips" role="group" [attr.aria-label]="'meals.quick.restaurant' | t">
+          @for (c of restaurant; track c.q) {
+            <button type="button" (click)="query.set(c.q)"><span aria-hidden="true">{{ c.emoji }}</span> {{ 'meals.quick.dishes.' + c.key | t }}</button>
+          }
+        </div>
+      }
       @if (withExtras() && recent().length) {
         <h2 class="section-title">{{ 'meals.search.recent' | t }}</h2>
         <div class="list">
-          @for (r of recent(); track r.kind + r.id) {
+          @for (r of recent(); track r.kind + (r.id ?? r.name)) {
             <button type="button" class="list-item" (click)="picked.emit({ kind: 'RECENT', item: r })">
-              <span class="list-icon"><app-icon [name]="r.kind === 'RECIPE' ? 'book' : 'clock'" /></span>
+              <span class="list-icon"><app-icon [name]="r.kind === 'RECIPE' ? 'book' : r.kind === 'QUICK' ? 'zap' : 'clock'" /></span>
               <span class="list-body">
                 <span class="list-title">{{ r.name }}</span>
                 <span class="list-sub">{{ recentAmount(r) }} · {{ i18n.number(r.kcal) }} kcal</span>
@@ -125,8 +141,19 @@ export type Picked = { kind: 'FOOD'; food: Food } | { kind: 'RECIPE'; recipe: Re
       }
     }
 
+    @if (withExtras() && words() >= 2) {
+      <button type="button" class="card list-row quick" (click)="quick.emit(query().trim())">
+        <span class="list-icon quick-ico"><app-icon name="zap" /></span>
+        <span class="list-body">
+          <span class="list-title">{{ 'meals.quick.notFound' | t }}</span>
+          <span class="list-sub">{{ 'meals.quick.notFoundSub' | t: { name: query().trim() } }}</span>
+        </span>
+        <app-icon name="chevronRight" />
+      </button>
+    }
+
     @if (createLink()) {
-      <a class="create card" [routerLink]="createLink()" [queryParams]="createParams()">
+      <a class="create card list-row" [routerLink]="createLink()" [queryParams]="createParams()">
         <span class="list-icon"><app-icon name="plusSquare" /></span>
         <span class="list-body">
           <span class="list-title">{{ 'meals.search.create' | t }}</span>
@@ -149,6 +176,27 @@ export type Picked = { kind: 'FOOD'; food: Food } | { kind: 'RECIPE'; recipe: Re
     </ng-template>
   `,
   styles: `
+    .quick {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin: var(--space-3) 0;
+      padding: var(--space-3) var(--space-4);
+      width: 100%;
+      text-align: left;
+      color: inherit;
+      transition: transform var(--dur-1) var(--ease-out);
+    }
+    .quick:active {
+      transform: scale(0.98);
+    }
+    .quick-ico {
+      background: var(--accent-soft) !important;
+      color: var(--accent-text) !important;
+    }
+    .slide-chips {
+      margin-bottom: var(--space-2);
+    }
     :host {
       display: grid;
       gap: var(--space-3);
@@ -229,6 +277,20 @@ export class FoodPickerComponent {
   readonly createLink = input<string | null>(null);
   readonly createParams = input<Record<string, string>>({});
   readonly picked = output<Picked>();
+  /** the quick add (name and calories only), with what was typed as its name */
+  readonly quick = output<string>();
+  /** fast food and restaurant dishes: what to search (Ciqual's generic dishes and the products of Open Food Facts) */
+  protected readonly restaurant = [
+    { key: 'burger', q: 'hamburger', emoji: '🍔' },
+    { key: 'kebab', q: 'kebab', emoji: '🥙' },
+    { key: 'pizza', q: 'pizza', emoji: '🍕' },
+    { key: 'tacos', q: 'tacos', emoji: '🌮' },
+    { key: 'fries', q: 'frites', emoji: '🍟' },
+    { key: 'nuggets', q: 'nuggets', emoji: '🍗' },
+    { key: 'sushi', q: 'sushi', emoji: '🍣' },
+    { key: 'sandwich', q: 'sandwich', emoji: '🥪' },
+    { key: 'salad', q: 'salade composée', emoji: '🥗' },
+  ];
 
   protected readonly query = signal('');
   protected readonly local = signal<Food[] | null>(null);

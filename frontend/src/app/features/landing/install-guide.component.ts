@@ -3,6 +3,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { InstallService, Platform } from '../../core/pwa/install.service';
 import { IconComponent } from '../../shared/icon.component';
+import { SegDirective } from '../../shared/seg.directive';
 
 interface Step {
   icon: string;
@@ -13,7 +14,7 @@ interface Step {
 @Component({
   selector: 'app-install-guide',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent],
+  imports: [SegDirective, TranslatePipe, IconComponent],
   template: `
     <div class="seg" role="tablist" [attr.aria-label]="'landing.installTitle' | t">
       @for (p of platforms; track p) {

@@ -8,31 +8,45 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ThemeMode, ThemeService } from '../../core/theme/theme.service';
 import { TrackingStore } from '../../core/tracking/tracking.store';
 import { UserDataService } from '../../core/user-data.service';
+import { prepareImage } from '../../core/photos/image-tools';
+import { closeSheet } from '../../core/ui/sheets';
 import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
 import { CURRENT_VERSION } from '../changelog/changelog.data';
+import { SegDirective } from '../../shared/seg.directive';
+import { FlagComponent } from '../../shared/flag.component';
+import { normalizeUsername } from '../../core/friends/friends-api';
 
 @Component({
   selector: 'app-account',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, TranslatePipe, IconComponent],
+  imports: [SegDirective, FlagComponent, FormsModule, RouterLink, TranslatePipe, IconComponent],
   template: `
     <main class="page">
       <header class="page-head"><h1 class="title">{{ 'account.title' | t }}</h1></header>
 
       <section class="who card">
-        <span class="avatar big">
+        <button type="button" class="avatar big avatar-btn" [class.busy]="photoBusy()" [attr.aria-label]="'account.photoChange' | t" (click)="photoDialog.showModal()">
           @if (account()?.avatarUrl; as src) {
-            <img [src]="src" alt="" referrerpolicy="no-referrer" width="64" height="64" />
+            @for (s of [src]; track s) {
+              <img [src]="s" alt="" referrerpolicy="no-referrer" width="64" height="64" />
+            }
           } @else {
             {{ initial() }}
           }
-        </span>
+          <span class="cam" aria-hidden="true"><app-icon name="camera" [size]="13" [stroke]="2.4" /></span>
+        </button>
         <div class="who-text">
           <form class="name-form" (ngSubmit)="saveName()">
             <label class="sr-only" for="acc-name">{{ 'account.displayName' | t }}</label>
             <input id="acc-name" class="name-input" name="displayName" maxlength="40" [(ngModel)]="name" (blur)="saveName()" />
           </form>
+          <span class="handle-row">
+            <button type="button" class="handle" (click)="openUsername()" [attr.aria-label]="'account.usernameEdit' | t">
+              <app-icon name="at" [size]="14" /><span class="ellipsis">{{ account()?.username }}</span><app-icon name="pencil" [size]="13" />
+            </button>
+            <button type="button" class="icon-btn mini" [attr.aria-label]="'account.copyUsername' | t" (click)="copyUsername()"><app-icon name="copy" [size]="15" /></button>
+          </span>
           <span class="small muted ellipsis">{{ account()?.email }}</span>
           @if (session.isAdmin()) {
             <span class="chip chip-cool"><app-icon name="shield" /> {{ 'account.roleAdmin' | t }}</span>
@@ -51,8 +65,8 @@ import { CURRENT_VERSION } from '../changelog/changelog.data';
 
       <h2 class="section-title">{{ 'account.language' | t }}</h2>
       <div class="seg" role="group" [attr.aria-label]="'account.language' | t">
-        <button type="button" lang="fr" [attr.aria-pressed]="i18n.lang() === 'fr'" (click)="setLang('fr')">Français</button>
-        <button type="button" lang="en" [attr.aria-pressed]="i18n.lang() === 'en'" (click)="setLang('en')">English</button>
+        <button type="button" lang="fr" [attr.aria-pressed]="i18n.lang() === 'fr'" (click)="setLang('fr')"><app-flag lang="fr" /> Français</button>
+        <button type="button" lang="en" [attr.aria-pressed]="i18n.lang() === 'en'" (click)="setLang('en')"><app-flag lang="en" /> English</button>
       </div>
 
       <div class="list">
@@ -137,6 +151,46 @@ import { CURRENT_VERSION } from '../changelog/changelog.data';
       </button>
     </main>
 
+    <dialog class="sheet" #photoDialog [attr.aria-label]="'account.photo' | t">
+      <div class="sheet-grip"></div>
+      <div class="stack">
+        <div class="photo-head">
+          <span class="avatar huge">
+            @if (account()?.avatarUrl; as src) {
+              <img [src]="src" alt="" referrerpolicy="no-referrer" width="96" height="96" />
+            } @else {
+              {{ initial() }}
+            }
+          </span>
+          <h2 class="h3">{{ 'account.photo' | t }}</h2>
+        </div>
+        <label class="btn btn-primary btn-block file-btn" [class.disabled]="photoBusy()">
+          <app-icon name="image" /> {{ 'account.photoChoose' | t }}
+          <input type="file" accept="image/*" class="sr-only" [disabled]="photoBusy()" (change)="pickPhoto($event)" />
+        </label>
+        @if (account()?.ownAvatar) {
+          <button type="button" class="btn btn-ghost btn-block danger-text" [disabled]="photoBusy()" (click)="removePhoto()">
+            <app-icon name="trash" /> {{ 'account.photoRemove' | t }}
+          </button>
+        }
+        <p class="tiny muted note"><app-icon name="lock" [size]="14" /> {{ 'account.photoNote' | t }}</p>
+      </div>
+    </dialog>
+
+    <dialog class="sheet" #usernameDialog [attr.aria-label]="'account.username' | t">
+      <div class="sheet-grip"></div>
+      <form class="stack" (ngSubmit)="saveUsername()">
+        <h2 class="h3">{{ 'account.username' | t }}</h2>
+        <label class="handle-input" [class.invalid]="usernameDraft && !draftValid()">
+          <span aria-hidden="true">@</span>
+          <input name="username" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="21" [attr.aria-label]="'account.username' | t"
+            [(ngModel)]="usernameDraft" (ngModelChange)="usernameError.set(null)" />
+        </label>
+        <p class="tiny" [class.muted]="!usernameError()" [class.danger-text]="usernameError()">{{ usernameError() ?? ('account.usernameHint' | t) }}</p>
+        <button type="submit" class="btn btn-primary btn-block" [disabled]="!draftValid() || busy()"><app-icon name="check" /> {{ 'common.save' | t }}</button>
+      </form>
+    </dialog>
+
     <dialog class="sheet" #deleteDialog (close)="confirmEmail = ''">
       <div class="sheet-grip"></div>
       <form class="stack" (ngSubmit)="deleteAccount()">
@@ -160,6 +214,126 @@ import { CURRENT_VERSION } from '../changelog/changelog.data';
       width: 64px;
       height: 64px;
       font-size: 24px;
+    }
+    .avatar-btn {
+      position: relative;
+      flex: none;
+      overflow: visible;
+      transition: transform var(--dur-1) var(--ease-out);
+    }
+    .avatar-btn:active {
+      transform: scale(0.94);
+    }
+    .avatar-btn img {
+      border-radius: 50%;
+      animation: photo-in 420ms var(--ease-out) both;
+    }
+    .avatar-btn.busy img {
+      opacity: 0.5;
+    }
+    @keyframes photo-in {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+    }
+    .cam {
+      position: absolute;
+      right: -2px;
+      bottom: -2px;
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--fg);
+      box-shadow: var(--shadow-1), 0 0 0 2px var(--surface);
+    }
+    .avatar.huge {
+      width: 96px;
+      height: 96px;
+      font-size: 36px;
+    }
+    .avatar.huge img {
+      border-radius: 50%;
+    }
+    .photo-head {
+      display: grid;
+      justify-items: center;
+      gap: var(--space-3);
+      text-align: center;
+    }
+    .file-btn {
+      cursor: pointer;
+    }
+    .file-btn.disabled {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .file-btn:focus-within {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+    .note {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .handle-row {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      max-width: 100%;
+      margin-left: -8px;
+    }
+    .handle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+      min-height: 32px;
+      padding: 0 8px;
+      border-radius: var(--radius-pill);
+      color: var(--accent-text);
+      font-weight: 700;
+      transition: background-color var(--dur-2);
+    }
+    .handle:hover {
+      background: var(--accent-soft);
+    }
+    .icon-btn.mini {
+      width: 32px;
+      height: 32px;
+    }
+    .handle-input {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 52px;
+      padding: 0 14px;
+      border-radius: var(--radius-m);
+      background: var(--surface-2);
+      border: 1px solid var(--line-strong);
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--fg-2);
+      transition: border-color var(--dur-2);
+    }
+    .handle-input:focus-within {
+      border-color: var(--accent);
+    }
+    .handle-input.invalid {
+      border-color: var(--danger);
+    }
+    .handle-input input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      font: inherit;
+      color: var(--fg);
+      outline: none;
     }
     .who-text {
       display: grid;
@@ -214,6 +388,11 @@ export class AccountPage {
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('deleteDialog');
+  private readonly photoSheet = viewChild.required<ElementRef<HTMLDialogElement>>('photoDialog');
+  private readonly usernameSheet = viewChild.required<ElementRef<HTMLDialogElement>>('usernameDialog');
+  protected readonly photoBusy = signal(false);
+  protected usernameDraft = '';
+  protected readonly usernameError = signal<string | null>(null);
 
   protected readonly account = this.session.account;
   protected readonly initial = computed(() => (this.account()?.displayName ?? '?').charAt(0).toUpperCase());
@@ -243,6 +422,79 @@ export class AccountPage {
       this.toast.show(this.i18n.t('common.saved'));
     } catch (e) {
       this.toast.error(this.i18n.error(errorCode(e)));
+    }
+  }
+
+  /** resized and converted here (HEIC included), cropped square and re-encoded by the server */
+  protected async pickPhoto(e: Event): Promise<void> {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    this.photoBusy.set(true);
+    try {
+      const blob = await prepareImage(file, 900);
+      this.session.setAccount(await this.api.setAvatar(blob));
+      closeSheet(this.photoSheet().nativeElement);
+      this.toast.show(this.i18n.t('account.photoSaved'));
+    } catch (err) {
+      this.toast.error(this.i18n.error(errorCode(err)));
+    } finally {
+      this.photoBusy.set(false);
+    }
+  }
+
+  protected async removePhoto(): Promise<void> {
+    this.photoBusy.set(true);
+    try {
+      this.session.setAccount(await this.api.removeAvatar());
+      closeSheet(this.photoSheet().nativeElement);
+      this.toast.show(this.i18n.t('account.photoRemoved'));
+    } catch (err) {
+      this.toast.error(this.i18n.error(errorCode(err)));
+    } finally {
+      this.photoBusy.set(false);
+    }
+  }
+
+  protected openUsername(): void {
+    this.usernameDraft = this.account()?.username ?? '';
+    this.usernameError.set(null);
+    this.usernameSheet().nativeElement.showModal();
+  }
+
+  protected draftValid(): boolean {
+    const u = normalizeUsername(this.usernameDraft);
+    return !!u && !u.startsWith('.') && !u.endsWith('.') && !u.includes('..');
+  }
+
+  protected async saveUsername(): Promise<void> {
+    const u = normalizeUsername(this.usernameDraft);
+    if (!u || !this.draftValid()) return;
+    if (u === this.account()?.username) {
+      closeSheet(this.usernameSheet().nativeElement);
+      return;
+    }
+    this.busy.set(true);
+    try {
+      this.session.setAccount(await this.api.setUsername(u));
+      closeSheet(this.usernameSheet().nativeElement);
+      this.toast.show(this.i18n.t('account.usernameSaved'));
+    } catch (err) {
+      this.usernameError.set(this.i18n.error(errorCode(err)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  protected async copyUsername(): Promise<void> {
+    const u = this.account()?.username;
+    if (!u) return;
+    try {
+      await navigator.clipboard.writeText('@' + u);
+      this.toast.show(this.i18n.t('account.usernameCopied'));
+    } catch {
+      /* no clipboard: the username stays on screen */
     }
   }
 

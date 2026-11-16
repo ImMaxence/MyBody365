@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 
 @Entity
 @Table(name = "app_user")
@@ -36,6 +38,16 @@ public class AppUser {
     private String displayName;
 
     private String avatarUrl;
+
+    /** unique, made by the database from the name when the account is created (V8), changed with UsernameService */
+    @Generated(event = EventType.INSERT)
+    @Column(insertable = false, updatable = false)
+    private String username;
+
+    /** a picture of one's own (bucket: u/{id}/avatar_{version}.webp); null: the Google picture */
+    private Integer avatarVersion;
+
+    private Long avatarBytes;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -174,6 +186,35 @@ public class AppUser {
 
     public Instant getLastLoginAt() {
         return lastLoginAt;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public Integer getAvatarVersion() {
+        return avatarVersion;
+    }
+
+    public void setAvatarVersion(Integer avatarVersion) {
+        this.avatarVersion = avatarVersion;
+    }
+
+    public Long getAvatarBytes() {
+        return avatarBytes;
+    }
+
+    public void setAvatarBytes(Long avatarBytes) {
+        this.avatarBytes = avatarBytes;
+    }
+
+    /** the picture to show: one's own (served by the API, with its version so browsers may keep it), else Google's */
+    public String getPictureUrl() {
+        return pictureUrl(id, avatarVersion, avatarUrl);
+    }
+
+    public static String pictureUrl(UUID id, Integer avatarVersion, String googleUrl) {
+        return avatarVersion != null ? "/api/users/" + id + "/avatar?v=" + avatarVersion : googleUrl;
     }
 
     public Integer getStorageQuotaMb() {

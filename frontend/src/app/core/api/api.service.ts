@@ -71,6 +71,21 @@ export class ApiService {
   }
 
   // ── me ────────────────────────────────────────────────────────────────────
+  setUsername(username: string): Promise<Account> {
+    return firstValueFrom(this.http.put<Account>('/api/me/username', { username }));
+  }
+
+  /** a picture of one's own (the server crops it square and re-encodes it) */
+  setAvatar(file: Blob): Promise<Account> {
+    const form = new FormData();
+    form.append('file', file, 'avatar.jpg');
+    return firstValueFrom(this.http.post<Account>('/api/me/avatar', form));
+  }
+
+  removeAvatar(): Promise<Account> {
+    return firstValueFrom(this.http.delete<Account>('/api/me/avatar'));
+  }
+
   updateMe(patch: { displayName?: string; locale?: 'fr' | 'en' }): Promise<Account> {
     return firstValueFrom(this.http.patch<Account>('/api/me', patch));
   }

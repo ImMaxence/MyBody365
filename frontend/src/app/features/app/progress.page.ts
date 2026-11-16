@@ -6,6 +6,7 @@ import { TrackingStore } from '../../core/tracking/tracking.store';
 import { IconComponent } from '../../shared/icon.component';
 import { WeighSheetComponent } from './weigh-sheet.component';
 import { WeightChartComponent } from './weight-chart.component';
+import { SegDirective } from '../../shared/seg.directive';
 
 type Range = 'm1' | 'm3' | 'all';
 const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
@@ -14,7 +15,7 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
 @Component({
   selector: 'app-progress',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
+  imports: [SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
   template: `
     <main class="page">
       <header class="page-head"><h1 class="title">{{ 'progress.title' | t }}</h1></header>
@@ -46,15 +47,15 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
 
           @if (summary(); as s) {
             <section class="stats">
-              <div class="stat"><span class="label">{{ 'progress.start' | t }}</span><span class="v num">{{ i18n.number(s.profile.startWeightKg, 1) }}<small> kg</small></span></div>
-              <div class="stat"><span class="label">{{ 'progress.current' | t }}</span><span class="v num">{{ i18n.number(s.current.weightKg ?? s.current.trendKg, 1) }}<small> kg</small></span></div>
+              <div class="stat"><span class="label"><span class="s-ico"><app-icon name="flag" [size]="15" /></span>{{ 'progress.start' | t }}</span><span class="v num">{{ i18n.number(s.profile.startWeightKg, 1) }}<small> kg</small></span></div>
+              <div class="stat"><span class="label"><span class="s-ico accent"><app-icon name="weight" [size]="15" /></span>{{ 'progress.current' | t }}</span><span class="v num">{{ i18n.number(s.current.weightKg ?? s.current.trendKg, 1) }}<small> kg</small></span></div>
               <div class="stat">
-                <span class="label">{{ 'progress.change' | t }}</span>
+                <span class="label"><span class="s-ico" [class.good]="isGood(s.current.changeKg ?? 0)"><app-icon [name]="(s.current.changeKg ?? 0) > 0 ? 'trendUp' : 'trendDown'" [size]="15" /></span>{{ 'progress.change' | t }}</span>
                 <span class="v num" [class.good]="isGood(s.current.changeKg ?? 0)">{{ signed(s.current.changeKg ?? 0) }}<small> kg</small></span>
               </div>
-              <div class="stat"><span class="label">{{ 'progress.bmi' | t }}</span><span class="v num">{{ i18n.number(s.current.bmi, 1) }}</span></div>
+              <div class="stat"><span class="label"><span class="s-ico"><app-icon name="gauge" [size]="15" /></span>{{ 'progress.bmi' | t }}</span><span class="v num">{{ i18n.number(s.current.bmi, 1) }}</span></div>
               <div class="stat wide">
-                <span class="label">{{ 'progress.trendPace' | t }}</span>
+                <span class="label"><span class="s-ico cool"><app-icon name="activity" [size]="15" /></span>{{ 'progress.trendPace' | t }}</span>
                 @if (s.goal.trendKgPerWeek != null) {
                   <span class="v num">{{ 'progress.trendPaceValue' | t: { kg: signed(s.goal.trendKgPerWeek) } }}</span>
                 } @else {
@@ -166,6 +167,33 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
     }
     .stat.wide {
       grid-column: 1 / -1;
+    }
+    .stat .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .s-ico {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      flex: none;
+      border-radius: 9px;
+      background: var(--surface-3);
+      color: var(--fg-2);
+    }
+    .s-ico.accent {
+      background: var(--accent-soft);
+      color: var(--accent-text);
+    }
+    .s-ico.cool {
+      background: var(--cool-soft, var(--surface-3));
+      color: var(--cool);
+    }
+    .s-ico.good {
+      background: var(--success-soft, var(--surface-3));
+      color: var(--success);
     }
     .v {
       font-family: var(--font-display);

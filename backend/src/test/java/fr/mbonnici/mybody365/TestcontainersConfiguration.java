@@ -45,6 +45,13 @@ class TestcontainersConfiguration {
         return new RecordingPushTransport();
     }
 
+    /** recipe sites stay in the tests too */
+    @Bean
+    @Primary
+    CannedPages cannedPages() {
+        return new CannedPages();
+    }
+
     @Bean
     DynamicPropertyRegistrar storageProperties(GenericContainer<?> seaweedfsContainer) {
         return registry -> {

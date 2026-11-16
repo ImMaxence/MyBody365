@@ -6,6 +6,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { InstallService } from '../../core/pwa/install.service';
 import { SeoService } from '../../core/seo.service';
 import { IconComponent } from '../../shared/icon.component';
+import { FlagComponent } from '../../shared/flag.component';
 import { LogoComponent } from '../../shared/logo.component';
 import { ThemeToggleComponent } from '../../shared/theme-toggle.component';
 import { InstallGuideComponent } from './install-guide.component';
@@ -39,6 +40,7 @@ const CALENDAR: Cell[] = Array.from({ length: 28 }, (_, i) => {
     RouterLink,
     TranslatePipe,
     IconComponent,
+    FlagComponent,
     LogoComponent,
     InstallGuideComponent,
     JourneyVignetteComponent,
@@ -51,12 +53,13 @@ const CALENDAR: Cell[] = Array.from({ length: 28 }, (_, i) => {
       <div class="container bar-in">
         <a [routerLink]="home()" class="brand" aria-label="MyBody365"><app-logo [size]="32" /></a>
         <nav class="nav" aria-label="Sections">
+          <a href="#apercu">{{ 'landing.nav.preview' | t }}</a>
           <a href="#parcours">{{ 'landing.nav.journey' | t }}</a>
           <a href="#privacy">{{ 'landing.nav.privacy' | t }}</a>
           <a href="#faq">{{ 'landing.nav.faq' | t }}</a>
         </nav>
         <a class="lang" [routerLink]="otherHome()" [attr.hreflang]="i18n.other()" [attr.aria-label]="'common.switchToLabel' | t">
-          <app-icon name="globe" [size]="18" /> {{ i18n.other().toUpperCase() }}
+          <app-flag [lang]="i18n.other()" /> <span class="lang-code">{{ i18n.other().toUpperCase() }}</span>
         </a>
         <app-theme-toggle />
         <a href="#install" class="btn btn-dark btn-s">{{ 'landing.nav.install' | t }}</a>
@@ -110,10 +113,40 @@ const CALENDAR: Cell[] = Array.from({ length: 28 }, (_, i) => {
             <p class="lead">{{ 'landing.heroLead' | t }}</p>
             <div class="cta">
               <a href="#install" class="btn btn-primary"><app-icon name="download" /> {{ 'landing.installCta' | t }}</a>
-              <a href="#parcours" class="btn btn-secondary">{{ 'landing.journeyCta' | t }}</a>
+              <a href="#apercu" class="btn btn-secondary"><app-icon name="smartphone" /> {{ 'landing.previewCta' | t }}</a>
             </div>
             <p class="tiny muted">{{ 'landing.heroNote' | t }}</p>
           </div>
+        </div>
+      </section>
+
+      <section id="apercu" class="preview">
+        <div class="container preview-head">
+          <div>
+            <p class="eyebrow reveal">{{ 'landing.previewEyebrow' | t }}</p>
+            <h2 class="h2 reveal">{{ 'landing.previewTitle' | t }}</h2>
+            <p class="lead reveal">{{ 'landing.previewText' | t }}</p>
+          </div>
+          <div class="arrows">
+            <button type="button" class="icon-btn" [attr.aria-label]="'landing.previewPrev' | t" (click)="slide(shotsRow, -1)"><app-icon name="chevronLeft" /></button>
+            <button type="button" class="icon-btn" [attr.aria-label]="'landing.previewNext' | t" (click)="slide(shotsRow, 1)"><app-icon name="chevronRight" /></button>
+          </div>
+        </div>
+        <ul class="shots" role="list" #shotsRow tabindex="0" [attr.aria-label]="'landing.previewTitle' | t">
+          @for (s of shots(); track s.key; let i = $index) {
+            <li class="shot" [style.--i]="i">
+              <div class="device">
+                <img class="theme-light-only" [src]="'/shots/' + s.key + '-light.webp'" width="600" height="1301" loading="lazy" decoding="async" [alt]="s.alt" />
+                <img class="theme-dark-only" [src]="'/shots/' + s.key + '-dark.webp'" width="600" height="1301" loading="lazy" decoding="async" [alt]="s.alt" />
+              </div>
+              <h3 class="shot-title">{{ s.title }}</h3>
+              <p class="small muted">{{ s.text }}</p>
+            </li>
+          }
+        </ul>
+        <div class="container preview-foot">
+          <a href="#install" class="btn btn-primary"><app-icon name="download" /> {{ 'landing.installCta' | t }}</a>
+          <p class="small muted">{{ 'landing.previewNote' | t }}</p>
         </div>
       </section>
 
@@ -279,12 +312,16 @@ const CALENDAR: Cell[] = Array.from({ length: 28 }, (_, i) => {
       color: var(--fg);
     }
     @media (max-width: 480px) {
-      .lang app-icon {
-        display: none;
-      }
       .bar-in ::ng-deep app-theme-toggle .icon-btn {
         width: 40px;
         height: 40px;
+      }
+      /* the flag alone on a phone (the link keeps its label for screen readers) */
+      .lang .lang-code {
+        display: none;
+      }
+      .lang {
+        padding: 0 8px;
       }
     }
     @media (max-width: 360px) {
@@ -542,6 +579,117 @@ const CALENDAR: Cell[] = Array.from({ length: 28 }, (_, i) => {
     @keyframes lock-close {
       from {
         transform: translateY(-16px);
+      }
+    }
+
+    /* ── the preview: real screens, swiped on a phone, with arrows on a computer ── */
+    .preview {
+      padding: var(--space-12) 0 var(--space-8);
+      overflow: hidden;
+    }
+    .preview-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-6);
+    }
+    .preview-head .h2 {
+      margin: var(--space-3) 0 var(--space-4);
+      max-width: 18ch;
+    }
+    .preview-head .lead {
+      max-width: 56ch;
+    }
+    .arrows {
+      display: none;
+      gap: var(--space-2);
+      flex: none;
+    }
+    .shots {
+      --side: max(var(--space-4), calc((100vw - 1120px) / 2));
+      display: flex;
+      gap: clamp(18px, 3vw, 32px);
+      margin: var(--space-8) 0 0;
+      padding: 12px var(--side) 28px;
+      list-style: none;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--side);
+      scrollbar-width: none;
+      overscroll-behavior-x: contain;
+    }
+    .shots::-webkit-scrollbar {
+      display: none;
+    }
+    .shots:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+    .shot {
+      flex: none;
+      width: min(70vw, 260px);
+      scroll-snap-align: start;
+    }
+    .device {
+      position: relative;
+      padding: 7px;
+      border-radius: 40px;
+      background: #050506;
+      box-shadow:
+        0 0 0 1px var(--line-strong),
+        0 30px 60px -28px rgba(0, 0, 0, 0.55),
+        0 24px 60px -36px var(--accent-glow);
+      transition: transform 420ms var(--ease-out);
+    }
+    .device img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 600 / 1301;
+      border-radius: 33px;
+      background: var(--surface-3);
+    }
+    @media (hover: hover) {
+      .shot:hover .device {
+        transform: translateY(-8px) rotate(-1deg);
+      }
+    }
+    .shot-title {
+      margin: var(--space-4) 0 2px;
+      font-size: 1.05rem;
+      font-weight: 750;
+    }
+    .preview-foot {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-3) var(--space-5);
+      margin-top: var(--space-4);
+    }
+    .preview-foot p {
+      max-width: 48ch;
+    }
+    @media (min-width: 900px) {
+      .arrows {
+        display: flex;
+      }
+      .shot {
+        width: 270px;
+      }
+    }
+    @supports (animation-timeline: view()) {
+      @media (prefers-reduced-motion: no-preference) {
+        .device {
+          animation: device-in linear both;
+          animation-timeline: view(inline);
+          animation-range: entry 0% entry 60%;
+        }
+      }
+    }
+    @keyframes device-in {
+      from {
+        opacity: 0.35;
+        transform: scale(0.92) translateY(14px);
       }
     }
 
@@ -907,6 +1055,15 @@ export class LandingPage {
   protected readonly stops = computed(() => this.i18n.get<Stop[]>('landing.stops') ?? []);
   protected readonly privacyPoints = computed(() => this.i18n.get<string[]>('landing.privacyPoints') ?? []);
   protected readonly faq = computed(() => this.i18n.get<{ q: string; a: string }[]>('landing.faq') ?? []);
+  /** the screens of the preview (pictures: scripts/screenshots.mjs → public/shots) */
+  protected readonly shots = computed(() => this.i18n.get<{ key: string; title: string; text: string; alt: string }[]>('landing.previewShots') ?? []);
+
+  /** one screen further or back (the row snaps on each screen) */
+  protected slide(row: HTMLElement, dir: number): void {
+    const first = row.querySelector<HTMLElement>('.shot');
+    const step = first ? first.offsetWidth + parseFloat(getComputedStyle(row).columnGap || '24') : 300;
+    row.scrollBy({ left: dir * step, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
 
   constructor() {
     // the router scrolls to the anchors itself, and ignores scroll-margin: leave room for the sticky header

@@ -41,6 +41,11 @@ function pathOf(snapshot: ActivatedRouteSnapshot): string {
     .join('/');
 }
 
+/** the admin tabs switch in place: no page animation between them */
+function inAdmin(path: string): boolean {
+  return path === 'app/admin' || path.startsWith('app/admin/');
+}
+
 function inApp(snapshot: ActivatedRouteSnapshot): boolean {
   return snapshot.firstChild?.routeConfig?.path === 'app';
 }
@@ -53,7 +58,9 @@ export function onViewTransitionCreated(info: ViewTransitionInfo): void {
   const fromApp = inApp(info.from);
   const toApp = inApp(info.to);
   // between the public site and the app: a plain switch; an anchor of the same page (#parcours): only the scroll
-  if (reduced || fromApp !== toApp || pathOf(info.from) === pathOf(info.to)) {
+  const from = pathOf(info.from);
+  const to = pathOf(info.to);
+  if (reduced || fromApp !== toApp || from === to || (inAdmin(from) && inAdmin(to))) {
     stack.endSwipe();
     info.transition.skipTransition();
     return;

@@ -1,4 +1,5 @@
-// README pictures: real screenshots of the app, composed into marketing images (docs/readme/*.png).
+// README pictures: real screenshots of the app, composed into marketing images (docs/readme/*.png),
+// and the screens shown on the home page of the site (public/shots/*.webp, light and dark).
 //
 //   docker compose -p mybody365-shots -f docker-compose.local.yml up --build -d --wait   (LOCAL_PORT=4310 LOCAL_DB_PORT=5437)
 //   cd frontend && node scripts/screenshots.mjs
@@ -11,7 +12,9 @@ import { chromium, devices } from 'playwright';
 const BASE = process.env.SHOTS_URL ?? 'http://localhost:4310';
 const OUT = '../docs/readme';
 const RAW = 'test-results/shots';
+const SITE = 'public/shots';
 mkdirSync(OUT, { recursive: true });
+mkdirSync(SITE, { recursive: true });
 mkdirSync(RAW, { recursive: true });
 
 const browser = await chromium.launch();
@@ -94,7 +97,33 @@ await seed.close();
   const rice = await food('Riz complet cuit', 130, 2.7, 27, 1, 0.4, 0.2, 0, 1.8, 200);
   const broccoli = await food('Brocolis vapeur', 35, 2.4, 4, 0.4, 1.4, 0.1, 0, 3.3, 150);
   const apple = await food('Pomme', 52, 0.3, 12, 0.2, 9, 0, 0, 1.4, 150);
+  const salmon = await food('Saumon au four', 208, 22, 0, 13, 0, 3, 0.1, 0, 150);
+  const pasta = await food('Pâtes complètes cuites', 150, 5.5, 29, 0.9, 0.8, 0.2, 0, 4, 200);
+  const yogurt = await food('Yaourt grec', 97, 9, 4, 5, 4, 3.3, 0.1, 0, 150);
+  const almonds = await food('Amandes', 579, 21, 9, 50, 4.4, 3.8, 0, 12, 30);
   const today = day(0);
+  // three weeks: some days on target, a few above (the weekend), a few below
+  for (let i = 21; i >= 1; i--) {
+    const dow = new Date(day(i) + 'T12:00:00').getDay();
+    const f = (dow === 0 || dow === 6 ? 1.22 : 0.92) + Math.sin(i * 2.3) * 0.12;
+    const g = (x) => Math.round(x * f);
+    for (const [slot, foodId, grams] of [
+      ['BREAKFAST', skyr, 150],
+      ['BREAKFAST', oats, g(50)],
+      ['BREAKFAST', banana, 120],
+      ['LUNCH', i % 3 ? chicken : salmon, g(150)],
+      ['LUNCH', rice, g(200)],
+      ['LUNCH', broccoli, 150],
+      ['DINNER', i % 2 ? salmon : chicken, g(160)],
+      ['DINNER', pasta, g(230)],
+      ['DINNER', yogurt, 150],
+      ['SNACK', apple, 150],
+      ['SNACK', almonds, g(25)],
+    ]) {
+      await api(ctx, 'POST', '/api/me/meals', { day: day(i), slot, foodId, grams });
+    }
+  }
+  await api(ctx, 'PUT', '/api/me/username', { username: 'max.fit' });
   for (const [slot, foodId, grams] of [
     ['BREAKFAST', skyr, 150],
     ['BREAKFAST', oats, 50],
@@ -107,20 +136,25 @@ await seed.close();
     await api(ctx, 'POST', '/api/me/meals', { day: today, slot, foodId, grams });
   }
   await api(ctx, 'POST', '/api/me/recipes', {
-    name: 'Bowl poulet, riz et brocolis', type: 'LUNCH', servings: 2, shared: true,
+    name: 'Bowl poulet, riz et brocolis', type: 'LUNCH', servings: 2, visibility: 'PUBLIC',
     ingredients: [{ foodId: chicken, grams: 300 }, { foodId: rice, grams: 400 }, { foodId: broccoli, grams: 300 }],
   });
 
   // three friends, each with a flame of their own
   const invite = (await api(ctx, 'POST', '/api/me/friends/invite')).url;
   const token = invite.slice(invite.indexOf('#') + 1);
-  for (const [as, name, days, weighedToday] of [['user', 'Léa', 34, true], ['new', 'Hugo', 12, false], ['new', 'Inès', 61, true]]) {
+  for (const [as, name, days, weighedToday, username] of [
+    ['user', 'Léa', 34, true, 'lea.martin'],
+    ['new', 'Hugo', 12, false, 'hugo.b'],
+    ['new', 'Inès', 61, true, 'ines.fit'],
+  ]) {
     const f = await browser.newContext(phone);
     const p = await f.newPage();
     await p.goto(BASE + '/app/login?browser=1');
     await p.goto(BASE + '/api/auth/dev-login?as=' + as);
     await api(f, 'POST', '/api/me/consent', { adult: true, health: true });
     await api(f, 'PATCH', '/api/me', { displayName: name });
+    await api(f, 'PUT', '/api/me/username', { username });
     await api(f, 'PUT', '/api/me/profile', {
       sex: 'FEMALE', birthDate: '1995-05-05', heightCm: 168, activityLevel: 'LIGHT', currentWeightKg: 72, goalWeightKg: 65, weeklyRateKg: 0.5,
     });
@@ -128,6 +162,18 @@ await seed.close();
     // the onboarding weighed today in: taken back for the one who has not weighed in yet
     if (!weighedToday) await api(f, 'DELETE', `/api/me/logs/${day(0)}`);
     await api(f, 'POST', '/api/me/friends/accept', { token });
+    await f.close();
+  }
+  // and Camille, who found Max by his username
+  {
+    const f = await browser.newContext(phone);
+    const p = await f.newPage();
+    await p.goto(BASE + '/app/login?browser=1');
+    await p.goto(BASE + '/api/auth/dev-login?as=new');
+    await api(f, 'POST', '/api/me/consent', { adult: true, health: true });
+    await api(f, 'PATCH', '/api/me', { displayName: 'Camille' });
+    await api(f, 'PUT', '/api/me/username', { username: 'camille.run' });
+    await api(f, 'POST', '/api/me/friends/requests', { username: 'max.fit' });
     await f.close();
   }
   await ctx.close();
@@ -148,6 +194,19 @@ for (const scheme of ['dark', 'light']) {
   await page.goto(BASE + '/app/meals', { waitUntil: 'networkidle' });
   await page.waitForTimeout(900);
   raw[`meals-${scheme}`] = await shot(page, `meals-${scheme}`);
+  await page.getByRole('button', { name: /Aujourd’hui/ }).click();
+  await page.waitForTimeout(900);
+  raw[`calendar-${scheme}`] = await shot(page, `calendar-${scheme}`);
+  await page.goto(BASE + '/app/meals/stats', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1200);
+  raw[`stats-${scheme}`] = await shot(page, `stats-${scheme}`);
+  await page.evaluate(() => window.scrollTo(0, 820));
+  await page.waitForTimeout(900);
+  raw[`stats2-${scheme}`] = await shot(page, `stats2-${scheme}`);
+  await page.goto(BASE + '/app/meals/recipes', { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Communauté' }).click();
+  await page.waitForTimeout(900);
+  raw[`recipes-${scheme}`] = await shot(page, `recipes-${scheme}`);
   await page.goto(BASE + '/app/friends', { waitUntil: 'networkidle' });
   raw[`friends-${scheme}`] = await shot(page, `friends-${scheme}`);
   await page.goto(BASE + '/app/progress', { waitUntil: 'networkidle' });
@@ -244,6 +303,31 @@ async function compose(name, width, height, body) {
   console.log(`${OUT}/${name}.png`);
 }
 
+// the home page of the site: the screens alone, 600 px wide, WebP (the browser does the encoding)
+async function toWebp(key, name) {
+  const page = await browser.newPage();
+  const data = await page.evaluate(async (src) => {
+    const im = new Image();
+    im.src = src;
+    await im.decode();
+    const w = 600;
+    const h = Math.round((im.height * w) / im.width);
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const g = c.getContext('2d');
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(im, 0, 0, w, h);
+    return c.toDataURL('image/webp', 0.8);
+  }, img(key));
+  await page.close();
+  writeFileSync(`${SITE}/${name}.webp`, Buffer.from(data.split(',')[1], 'base64'));
+  console.log(`${SITE}/${name}.webp`);
+}
+for (const scheme of ['light', 'dark']) {
+  for (const k of ['today', 'meals', 'calendar', 'stats', 'progress', 'friends']) await toWebp(`${k}-${scheme}`, `${k}-${scheme}`);
+}
+
 await compose(
   'banner',
   1600,
@@ -270,9 +354,25 @@ await compose(
   `<div class="canvas" style="width:1600px;height:1000px;gap:44px;align-items:flex-start;padding-top:80px">
     ${[
       ['today-dark', 'Aujourd’hui', 'La flamme et ta journée'],
-      ['meals-light', 'Repas', 'Calories, macros, Nutri-Score'],
-      ['friends-dark', 'Amis', 'Flammes et coups de pouce'],
+      ['meals-light', 'Repas', 'Calendrier, calories, macros'],
+      ['friends-dark', 'Amis', 'Demandes, flammes, coups de pouce'],
       ['progress-light', 'Progrès', 'Courbe, tendance, prévision'],
+    ]
+      .map(([k, t, s]) => `<div style="width:320px"><div class="phone"><img src="${img(k)}"></div><div class="cap">${t}<small>${s}</small></div></div>`)
+      .join('')}
+  </div>`,
+);
+
+await compose(
+  'meals',
+  1600,
+  1000,
+  `<div class="canvas" style="width:1600px;height:1000px;gap:44px;align-items:flex-start;padding-top:80px">
+    ${[
+      ['calendar-dark', 'Le calendrier', 'Chaque jour : dans l’objectif, au-dessus, en dessous'],
+      ['stats-light', 'Les statistiques', 'Moyenne, bilan du mois, calories jour par jour'],
+      ['stats2-dark', 'Les conseils', 'Ce que tu manges le plus, par repas, Nutri-Score'],
+      ['recipes-light', 'Les recettes', 'Les tiennes, celles des amis, la communauté'],
     ]
       .map(([k, t, s]) => `<div style="width:320px"><div class="phone"><img src="${img(k)}"></div><div class="cap">${t}<small>${s}</small></div></div>`)
       .join('')}

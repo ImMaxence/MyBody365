@@ -1,5 +1,31 @@
 import { expect, test } from '@playwright/test';
 import { expectAccessible, expectNoHorizontalOverflow, openApp, signIn, tab, watchErrors } from './helpers';
+import { makePng } from './png';
+
+test('the profile: a picture of my own and a new username', async ({ page }) => {
+  const errors = watchErrors(page);
+  await signIn(page, 'new');
+  await page.goto('/app/account');
+  await page.getByRole('button', { name: 'Changer la photo de profil' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Photo de profil' });
+  await sheet.locator('input[type=file]').setInputFiles({ name: 'me.png', mimeType: 'image/png', buffer: makePng(600, 400) });
+  await expect(page.getByText('Photo de profil mise à jour')).toBeVisible();
+  await expect(page.locator('.avatar-btn img')).toHaveAttribute('src', /\/api\/users\/.+\/avatar\?v=1/);
+  const src = await page.locator('.avatar-btn img').getAttribute('src');
+  expect((await page.request.get(src!)).status()).toBe(200);
+
+  await page.getByRole('button', { name: 'Modifier le nom d’utilisateur' }).click();
+  const name = page.getByRole('dialog', { name: 'Nom d’utilisateur' });
+  await name.getByRole('textbox').fill('a');
+  await expect(name.getByRole('button', { name: 'Enregistrer' })).toBeDisabled();
+  const handle = 'e2e_' + (Date.now() % 1000000);
+  await name.getByRole('textbox').fill(handle);
+  await name.getByRole('button', { name: 'Enregistrer' }).click();
+  await expect(page.getByText('Nom d’utilisateur enregistré')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Modifier le nom d’utilisateur' })).toContainText(handle);
+  await expectAccessible(page);
+  expect(errors).toEqual([]);
+});
 
 test.describe('the app', () => {
   test('a browser tab that is not the installed app is sent to the install guide', async ({ page }) => {

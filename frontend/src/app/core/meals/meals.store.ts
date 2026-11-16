@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import type { MealDay, MealEntry, MealInput, Nutrients, RecentItem, Slot } from '../api/models';
+import type { DayTotal, MealDay, MealEntry, MealInput, Nutrients, RecentItem, Slot } from '../api/models';
 import { localDay } from '../tracking/tracking.store';
 import { MealsApi } from './meals-api';
 
@@ -20,6 +20,44 @@ export function shiftDay(day: string, delta: number): string {
   return localDay(d);
 }
 
+/** the 7 days (Monday first) of the week of a day */
+export function weekOf(day: string): string[] {
+  const dow = (new Date(day + 'T12:00:00').getDay() + 6) % 7;
+  const monday = shiftDay(day, -dow);
+  return Array.from({ length: 7 }, (_, i) => shiftDay(monday, i));
+}
+
+/** the days of a month view (YYYY-MM): whole weeks, Monday first, 5 or 6 rows */
+export function monthGrid(month: string): string[] {
+  const first = month + '-01';
+  const start = weekOf(first)[0];
+  const last = shiftDay(shiftDay(first, 32).slice(0, 7) + '-01', -1);
+  const out: string[] = [];
+  for (let d = start; d <= last || out.length % 7; d = shiftDay(d, 1)) out.push(d);
+  return out;
+}
+
+export function shiftMonth(month: string, delta: number): string {
+  const [y, m] = month.split('-').map(Number);
+  const d = new Date(y, m - 1 + delta, 1, 12);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/**
+ * How a day went against the target: within ±10 % (ok), above, below; a day not over yet is "ongoing"
+ * while still below; "logged" without a target; null when nothing was logged.
+ */
+export type DayStatus = 'ok' | 'over' | 'under' | 'ongoing' | 'logged' | null;
+
+export function dayStatus(kcal: number | undefined, target: number | null | undefined, day: string, today: string): DayStatus {
+  if (!kcal) return null;
+  if (!target) return 'logged';
+  const r = kcal / target;
+  if (r > 1.1) return 'over';
+  if (r >= 0.9) return 'ok';
+  return day >= today ? 'ongoing' : 'under';
+}
+
 /** what the add screen should open once back (a scanned product, a food just created) */
 export interface Pick {
   kind: 'FOOD' | 'RECIPE';
@@ -37,6 +75,10 @@ export class MealsStore {
   readonly pick = signal<Pick | null>(null);
   /** today's totals, whatever day is on screen (the Today tab shows them) */
   readonly today = signal<MealDay | null>(null);
+  /** the calendar: totals of the days already fetched (a day missing from a fetched range: nothing logged) */
+  readonly totals = signal<Record<string, DayTotal>>({});
+  readonly target = signal<number | null>(null);
+  private readonly ranges = new Set<string>();
 
   readonly bySlot = computed(() => {
     const out: Record<Slot, MealEntry[]> = { BREAKFAST: [], LUNCH: [], DINNER: [], SNACK: [] };
@@ -82,6 +124,25 @@ export class MealsStore {
     return d.entries.filter((e) => e.slot === slot).length > before;
   }
 
+  /** the totals of a range of days, once (the changes made in the app keep them up to date) */
+  async loadRange(from: string, to: string): Promise<void> {
+    const key = from + '_' + to;
+    if (this.ranges.has(key)) return;
+    this.ranges.add(key);
+    try {
+      const r = await this.api.days(from, to);
+      this.target.set(r.targetKcal ?? null);
+      this.totals.update((all) => {
+        const next = { ...all };
+        for (let d = from; d <= to; d = shiftDay(d, 1)) delete next[d];
+        for (const t of r.days) next[t.day] = t;
+        return next;
+      });
+    } catch {
+      this.ranges.delete(key);
+    }
+  }
+
   async loadRecent(): Promise<RecentItem[]> {
     const r = await this.api.recent();
     this.recent.set(r);
@@ -92,12 +153,32 @@ export class MealsStore {
     this.data.set(null);
     this.today.set(null);
     this.recent.set(null);
+    this.totals.set({});
+    this.target.set(null);
+    this.ranges.clear();
     this.day.set(localDay());
   }
 
   private apply(d: MealDay): void {
     if (d.day === this.day()) this.data.set(d);
     if (d.day === localDay()) this.today.set(d);
+    if (d.targetKcal != null) this.target.set(d.targetKcal);
+    this.totals.update((all) => {
+      const next = { ...all };
+      if (d.entries.length) {
+        next[d.day] = {
+          day: d.day,
+          kcal: d.totals.kcal,
+          proteinG: d.totals.proteinG ?? 0,
+          carbsG: d.totals.carbsG ?? 0,
+          fatG: d.totals.fatG ?? 0,
+          entries: d.entries.length,
+        };
+      } else {
+        delete next[d.day];
+      }
+      return next;
+    });
   }
 }
 

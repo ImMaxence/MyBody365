@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, model, viewChild } from '@angular/core';
 import { I18nService } from '../core/i18n/i18n.service';
 import { IconComponent } from './icon.component';
 
@@ -28,7 +28,9 @@ let uid = 0;
       </button>
       <label class="value" [for]="id">
         <input
+          #field
           [id]="id"
+          [style.width.ch]="width()"
           type="text"
           inputmode="decimal"
           autocomplete="off"
@@ -88,13 +90,13 @@ let uid = 0;
       gap: 6px;
       min-width: 0;
     }
+    /* as wide as its text: the number and its unit sit in the middle */
     input {
-      width: 100%;
-      min-width: 0;
-      max-width: 7ch;
+      min-width: 2ch;
+      max-width: 100%;
       border: 0;
       background: transparent;
-      text-align: right;
+      text-align: center;
       font-family: var(--font-display);
       font-stretch: 120%;
       font-weight: 800;
@@ -140,11 +142,33 @@ export class NumberStepperComponent {
   private readonly i18n = inject(I18nService);
   protected readonly id = `stepper-${++uid}`;
   protected readonly text = computed(() => this.i18n.number(this.value(), this.decimals()));
+  /** digits count one ch (tabular figures), separators about half */
+  protected readonly width = computed(() => {
+    const s = this.text();
+    const digits = s.replace(/\D/g, '').length;
+    return digits + (s.length - digits) * 0.45 + 0.3;
+  });
+  private readonly field = viewChild.required<ElementRef<HTMLInputElement>>('field');
   private timer: ReturnType<typeof setTimeout> | null = null;
 
   protected nudge(direction: number): void {
-    const next = Math.round((this.value() + direction * this.step()) / this.step()) * this.step();
-    this.value.set(this.clamp(next));
+    const next = this.clamp(Math.round((this.value() + direction * this.step()) / this.step()) * this.step());
+    if (next === this.value()) return;
+    this.value.set(next);
+    this.bump(direction);
+  }
+
+  /** the number slides in from the side it comes from: up for +, down for − */
+  private bump(direction: number): void {
+    const el = this.field().nativeElement;
+    if (typeof el.animate !== 'function' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    el.animate(
+      [
+        { transform: `translateY(${direction > 0 ? 10 : -10}px) scale(0.94)`, opacity: 0.4 },
+        { transform: 'none', opacity: 1 },
+      ],
+      { duration: 220, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1.2)' },
+    );
   }
 
   /** press and hold: one step at once, then faster and faster */

@@ -1,45 +1,72 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
 import type { MealEntry, Slot } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { MealsStore, SLOTS, macroTargets, shiftDay } from '../../core/meals/meals.store';
+import { DayStatus, MealsStore, SLOTS, dayStatus, macroTargets, monthGrid, shiftDay, shiftMonth, weekOf } from '../../core/meals/meals.store';
 import { localDay } from '../../core/tracking/tracking.store';
+import { closeSheet } from '../../core/ui/sheets';
 import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
 import { KcalRingComponent } from '../../shared/kcal-ring.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { NutriscoreComponent } from '../../shared/nutriscore.component';
+import { SegDirective } from '../../shared/seg.directive';
 
 const SLOT_ICON: Record<Slot, string> = { BREAKFAST: 'sun', LUNCH: 'utensils', DINNER: 'moon', SNACK: 'leaf' };
+const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'check', over: 'arrowUp', under: 'arrowDown', ongoing: null, logged: null };
 
 /** The Meals tab: a day's calories against the target, the macros, and the four meals. */
 @Component({
   selector: 'app-meals',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, KcalRingComponent, NutriscoreComponent, NumberStepperComponent],
+  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, NutriscoreComponent, NumberStepperComponent],
   template: `
     <main class="page">
       <header class="page-head">
         <h1 class="title">{{ 'meals.title' | t }}</h1>
         <span class="spacer"></span>
+        <a routerLink="/app/meals/stats" class="icon-btn" [attr.aria-label]="'meals.stats.title' | t"><app-icon name="bars" /></a>
         <a routerLink="/app/meals/recipes" class="btn btn-secondary btn-s"><app-icon name="book" [size]="18" /> {{ 'meals.recipes' | t }}</a>
       </header>
 
       <nav class="days" [attr.aria-label]="'meals.title' | t">
         <button type="button" class="icon-btn" [attr.aria-label]="'meals.previousDay' | t" (click)="go(-1)"><app-icon name="chevronLeft" /></button>
-        <span class="day-label">{{ dayLabel() }}</span>
+        <button type="button" class="day-label" aria-haspopup="dialog" (click)="openCalendar()">
+          <app-icon name="calendar" [size]="17" />
+          @for (k of [dayLabel()]; track k) {
+            <span class="day-text" [class.from-left]="dir() < 0" [class.from-right]="dir() > 0">{{ k }}</span>
+          }
+          <app-icon name="chevronDown" [size]="15" />
+        </button>
         <button type="button" class="icon-btn" [attr.aria-label]="'meals.nextDay' | t" [disabled]="isTomorrow()" (click)="go(1)">
           <app-icon name="chevronRight" />
         </button>
       </nav>
 
-      @if (store.data(); as d) {
-        <section class="card summary">
-          @for (k of [d.day]; track k) {
-            <app-kcal-ring [eaten]="d.totals.kcal" [target]="d.targetKcal" [size]="128" />
+      @for (w of [week()]; track w[0]) {
+        <div class="week" appSeg role="group" [attr.aria-label]="'meals.calendar.week' | t" [class.from-left]="dir() < 0" [class.from-right]="dir() > 0">
+          @for (day of w; track day) {
+            <button type="button" class="wday" [attr.aria-pressed]="day === store.day()" [class.today]="day === today()" [disabled]="day > maxDay()"
+              [attr.aria-label]="dayAria(day)" (click)="pick(day)">
+              <span class="wd">{{ weekday(day) }}</span>
+              <span class="dn num">{{ dayNumber(day) }}</span>
+              <span class="st" [attr.data-s]="status(day)">
+                @if (iconOf(day); as ico) {
+                  <app-icon [name]="ico" [size]="11" [stroke]="3" />
+                }
+              </span>
+            </button>
           }
+        </div>
+      }
+
+      @if (store.data(); as d) {
+        @for (k of [d.day]; track k) {
+          <div class="day-pane" [class.from-left]="dir() < 0" [class.from-right]="dir() > 0">
+        <section class="card summary">
+          <app-kcal-ring [eaten]="d.totals.kcal" [target]="d.targetKcal" [size]="128" />
           <div class="macros">
             <p class="small muted">{{ 'meals.kcalTarget' | t: { kcal: i18n.number(d.targetKcal ?? 0) } }}</p>
             @for (m of macros(); track m.key) {
@@ -87,10 +114,58 @@ const SLOT_ICON: Record<Slot, string> = { BREAKFAST: 'sun', LUNCH: 'utensils', D
           </section>
         }
         <p class="tiny muted hint">{{ 'meals.macroHint' | t }}</p>
+          </div>
+        }
       } @else {
         <div class="skeleton" style="height: 168px; border-radius: 24px"></div>
         <div class="skeleton" style="height: 110px; border-radius: 24px"></div>
       }
+
+      <dialog class="sheet" #calDialog [attr.aria-label]="'meals.calendar.title' | t">
+        <div class="sheet-grip"></div>
+        <div class="stack">
+          <div class="cal-head">
+            <button type="button" class="icon-btn" [attr.aria-label]="'meals.calendar.previous' | t" (click)="moveMonth(-1)"><app-icon name="chevronLeft" /></button>
+            <h2 class="h3 cal-title">{{ monthLabel() }}</h2>
+            <button type="button" class="icon-btn" [attr.aria-label]="'meals.calendar.next' | t" [disabled]="month() >= maxDay().slice(0, 7)" (click)="moveMonth(1)">
+              <app-icon name="chevronRight" />
+            </button>
+          </div>
+          <div class="cal-week tiny" aria-hidden="true">
+            @for (day of weekLetters(); track $index) {
+              <span>{{ day }}</span>
+            }
+          </div>
+          @for (m of [month()]; track m) {
+            <div class="cal-grid" [class.from-left]="monthDir() < 0" [class.from-right]="monthDir() > 0">
+              @for (day of grid(); track day; let i = $index) {
+                <button type="button" class="cal-day" [class.out]="day.slice(0, 7) !== m" [class.sel]="day === store.day()" [class.today]="day === today()"
+                  [attr.data-s]="status(day)" [disabled]="day > maxDay()" [style.--i]="i" [attr.aria-label]="dayAria(day)"
+                  [attr.aria-current]="day === store.day() ? 'date' : null" (click)="pickFromCalendar(day)">
+                  <span class="num">{{ dayNumber(day) }}</span>
+                  <span class="ci">
+                    @if (iconOf(day); as ico) {
+                      <app-icon [name]="ico" [size]="12" [stroke]="3" />
+                    } @else if (status(day)) {
+                      <i class="dot"></i>
+                    }
+                  </span>
+                </button>
+              }
+            </div>
+          }
+          @if (monthSummary(); as ms) {
+            <p class="small cal-sum">{{ (ms.target ? 'meals.calendar.summary' : 'meals.calendar.summaryNoTarget') | t: ms }}</p>
+          }
+          <div class="cal-legend tiny">
+            <span><i class="key" data-s="ok"><app-icon name="check" [size]="10" [stroke]="3" /></i>{{ 'meals.calendar.ok' | t }}</span>
+            <span><i class="key" data-s="over"><app-icon name="arrowUp" [size]="10" [stroke]="3" /></i>{{ 'meals.calendar.over' | t }}</span>
+            <span><i class="key" data-s="under"><app-icon name="arrowDown" [size]="10" [stroke]="3" /></i>{{ 'meals.calendar.under' | t }}</span>
+            <span><i class="key" data-s="ongoing"><i class="dot"></i></i>{{ 'meals.calendar.ongoing' | t }}</span>
+          </div>
+          <a routerLink="/app/meals/stats" class="btn btn-secondary btn-block"><app-icon name="bars" /> {{ 'meals.calendar.seeStats' | t }}</a>
+        </div>
+      </dialog>
 
       <dialog class="sheet" #entryDialog (close)="selected.set(null)">
         <div class="sheet-grip"></div>
@@ -133,9 +208,242 @@ const SLOT_ICON: Record<Slot, string> = { BREAKFAST: 'sun', LUNCH: 'utensils', D
       margin-top: calc(-1 * var(--space-2));
     }
     .day-label {
-      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      justify-self: center;
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: var(--radius-pill);
       font-weight: 700;
+      overflow: hidden;
+      transition: background-color var(--dur-2);
+    }
+    .day-label:hover {
+      background: var(--surface-3);
+    }
+    .day-label app-icon {
+      color: var(--fg-2);
+    }
+    .day-text {
+      display: inline-block;
       text-transform: capitalize;
+    }
+    /* the day slides in from the side it comes from */
+    .from-right {
+      animation: from-right 340ms var(--ease-out) both;
+    }
+    .from-left {
+      animation: from-left 340ms var(--ease-out) both;
+    }
+    @keyframes from-right {
+      from {
+        opacity: 0;
+        transform: translateX(28px);
+      }
+    }
+    @keyframes from-left {
+      from {
+        opacity: 0;
+        transform: translateX(-28px);
+      }
+    }
+    .day-pane {
+      display: grid;
+      gap: var(--space-5);
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .week {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 4px;
+      margin-top: calc(-1 * var(--space-2));
+      --seg-radius: 16px;
+    }
+    .wday {
+      display: grid;
+      justify-items: center;
+      gap: 3px;
+      padding: 7px 0 8px;
+      border-radius: 16px;
+      color: var(--fg-2);
+      transition: color var(--dur-2), transform var(--dur-1) var(--ease-out);
+    }
+    .wday:active {
+      transform: scale(0.94);
+    }
+    .wday:disabled {
+      opacity: 0.35;
+    }
+    .wday[aria-pressed='true'] {
+      color: var(--accent-text);
+    }
+    .wd {
+      font-size: 11px;
+      font-weight: 650;
+      text-transform: uppercase;
+    }
+    .dn {
+      font-weight: 750;
+      font-size: 1.05rem;
+      color: var(--fg);
+    }
+    .wday.today .dn {
+      color: var(--accent-text);
+    }
+    .st {
+      display: grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+    }
+    [data-s='ok'] {
+      --st-bg: var(--cal-done);
+      --st-ink: var(--cal-done-ink);
+    }
+    [data-s='over'] {
+      --st-bg: var(--cal-over);
+      --st-ink: var(--cal-over-ink);
+    }
+    [data-s='under'] {
+      --st-bg: var(--cal-under);
+      --st-ink: var(--cal-under-ink);
+    }
+    [data-s='ongoing'] {
+      --st-bg: var(--cal-today);
+      --st-ink: var(--cal-today-ink);
+    }
+    [data-s='logged'] {
+      --st-bg: var(--surface-3);
+      --st-ink: var(--fg-2);
+    }
+    .st[data-s] {
+      background: var(--st-bg);
+      color: var(--st-ink);
+      animation: pop 320ms var(--ease-out) both;
+    }
+    .st[data-s='ongoing']::after,
+    .st[data-s='logged']::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    @keyframes pop {
+      from {
+        transform: scale(0.4);
+        opacity: 0;
+      }
+    }
+    .cal-head {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+    }
+    .cal-title {
+      text-align: center;
+      text-transform: capitalize;
+    }
+    .cal-week,
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 5px;
+    }
+    .cal-week {
+      color: var(--fg-3);
+      font-weight: 700;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .cal-day {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 2px;
+      aspect-ratio: 1;
+      border-radius: 14px;
+      background: var(--st-bg, var(--surface-2));
+      color: var(--fg);
+      font-weight: 700;
+      animation: pop 300ms var(--ease-out) both;
+      animation-delay: calc(min(var(--i), 41) * 6ms);
+      transition: transform var(--dur-1) var(--ease-out);
+    }
+    .cal-day:active {
+      transform: scale(0.92);
+    }
+    .cal-day .num {
+      font-size: var(--fs-s);
+      line-height: 1;
+    }
+    .cal-day .ci {
+      display: grid;
+      place-items: center;
+      height: 12px;
+      color: var(--st-ink, var(--fg-3));
+    }
+    /* the days of the months around: quieter, still readable (contrast kept) */
+    .cal-day.out {
+      background: transparent;
+      box-shadow: inset 0 0 0 1px var(--line);
+      color: var(--fg-3);
+      font-weight: 600;
+    }
+    .cal-day:disabled {
+      opacity: 0.25;
+    }
+    .cal-day.today {
+      box-shadow: inset 0 0 0 2px var(--cal-today-ink);
+    }
+    .cal-day.sel {
+      box-shadow: inset 0 0 0 2px var(--accent);
+    }
+    .dot {
+      display: block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .cal-sum {
+      text-align: center;
+      color: var(--fg-2);
+      font-weight: 600;
+    }
+    .cal-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px 14px;
+      color: var(--fg-2);
+      font-weight: 600;
+    }
+    .cal-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cal-legend .key {
+      display: grid;
+      place-items: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 5px;
+      background: var(--st-bg);
+      color: var(--st-ink);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .from-right,
+      .from-left,
+      .cal-day,
+      .st[data-s] {
+        animation: none;
+      }
     }
     .summary {
       display: grid;
@@ -288,6 +596,31 @@ export class MealsPage {
   protected readonly i18n = inject(I18nService);
   private readonly toast = inject(ToastService);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('entryDialog');
+  private readonly calDialog = viewChild.required<ElementRef<HTMLDialogElement>>('calDialog');
+  protected readonly statusIcon = STATUS_ICON;
+  /** -1: going back in time, 1: forward (the side the new day slides in from) */
+  protected readonly dir = signal(0);
+  protected readonly monthDir = signal(0);
+  protected readonly today = signal(localDay());
+  protected readonly maxDay = computed(() => shiftDay(this.today(), 1));
+  protected readonly week = computed(() => weekOf(this.store.day()));
+  protected readonly month = signal(localDay().slice(0, 7));
+  protected readonly grid = computed(() => monthGrid(this.month()));
+  protected readonly monthLabel = computed(() => this.i18n.date(this.month() + '-01', { month: 'long', year: 'numeric' }));
+  protected readonly weekLetters = computed(() => weekOf(this.today()).map((d) => this.weekday(d)));
+  protected readonly monthSummary = computed(() => {
+    const m = this.month();
+    const target = this.store.target();
+    let logged = 0;
+    let ok = 0;
+    for (const d of this.grid()) {
+      if (d.slice(0, 7) !== m) continue;
+      const s = this.status(d);
+      if (s) logged++;
+      if (s === 'ok') ok++;
+    }
+    return logged ? { logged, ok, target: target ? 1 : 0 } : null;
+  });
 
   protected readonly slots = SLOTS;
   protected readonly slotIcon = SLOT_ICON;
@@ -309,9 +642,9 @@ export class MealsPage {
     const d = this.store.data();
     const t = macroTargets(d?.targetKcal ?? 2000);
     const rows = [
-      { key: 'p', label: 'meals.protein', value: d?.totals.proteinG ?? 0, target: t.proteinG, color: 'var(--cool)' },
-      { key: 'c', label: 'meals.carbs', value: d?.totals.carbsG ?? 0, target: t.carbsG, color: 'var(--flame-3)' },
-      { key: 'f', label: 'meals.fat', value: d?.totals.fatG ?? 0, target: t.fatG, color: 'var(--accent)' },
+      { key: 'p', label: 'meals.protein', value: d?.totals.proteinG ?? 0, target: t.proteinG, color: 'var(--macro-protein)' },
+      { key: 'c', label: 'meals.carbs', value: d?.totals.carbsG ?? 0, target: t.carbsG, color: 'var(--macro-carbs)' },
+      { key: 'f', label: 'meals.fat', value: d?.totals.fatG ?? 0, target: t.fatG, color: 'var(--macro-fat)' },
     ];
     return rows.map((r) => ({ ...r, pct: Math.min(100, (r.value / Math.max(1, r.target)) * 100) }));
   });
@@ -324,10 +657,71 @@ export class MealsPage {
 
   constructor() {
     void this.store.load().catch(() => undefined);
+    // the totals of the week on screen (icons of the strip)
+    effect(() => {
+      const w = this.week();
+      void this.store.loadRange(w[0], w[6]);
+    });
   }
 
   protected go(delta: number): void {
-    void this.store.load(shiftDay(this.store.day(), delta)).catch(() => undefined);
+    this.pick(shiftDay(this.store.day(), delta));
+  }
+
+  protected pick(day: string): void {
+    const current = this.store.day();
+    if (day === current || day > this.maxDay()) return;
+    this.dir.set(day > current ? 1 : -1);
+    void this.store.load(day).catch(() => undefined);
+  }
+
+  protected status(day: string): DayStatus {
+    return dayStatus(this.store.totals()[day]?.kcal, this.store.target(), day, this.today());
+  }
+
+  protected iconOf(day: string): string | null {
+    const s = this.status(day);
+    return s ? STATUS_ICON[s] : null;
+  }
+
+  protected weekday(day: string): string {
+    return this.i18n.date(day, { weekday: 'narrow' });
+  }
+
+  protected dayNumber(day: string): string {
+    return String(Number(day.slice(8, 10)));
+  }
+
+  protected dayAria(day: string): string {
+    const date = this.i18n.date(day, { weekday: 'long', day: 'numeric', month: 'long' });
+    const s = this.status(day);
+    if (!s) return date;
+    const kcal = this.i18n.number(Math.round(this.store.totals()[day]?.kcal ?? 0));
+    return date + ', ' + this.i18n.t('meals.calendar.aria.' + s, { kcal });
+  }
+
+  protected openCalendar(): void {
+    this.today.set(localDay());
+    this.monthDir.set(0);
+    this.month.set(this.store.day().slice(0, 7));
+    this.loadMonth();
+    this.calDialog().nativeElement.showModal();
+  }
+
+  protected moveMonth(delta: number): void {
+    this.monthDir.set(delta);
+    this.month.set(shiftMonth(this.month(), delta));
+    this.loadMonth();
+  }
+
+  private loadMonth(): void {
+    const g = this.grid();
+    void this.store.loadRange(g[0], g[g.length - 1]);
+  }
+
+  protected pickFromCalendar(day: string): void {
+    this.pick(day);
+    closeSheet(this.calDialog().nativeElement);
   }
 
   protected slotKcal(slot: Slot): number {

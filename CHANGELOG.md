@@ -2,6 +2,44 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [0.8.0] - 2026-11-16
+
+Tes repas en un coup d'œil, des recettes à importer, et des amis qu'on trouve par leur nom d'utilisateur
+
+### Ajouté
+- Repas : la semaine sous le pouce, chaque jour marqué d'une icône (dans l'objectif, au-dessus, en dessous, en cours), et un calendrier du mois en touchant la date
+- Le jour change en glissant, du côté où l'on va
+- Statistiques des repas sur 7 jours, 30 jours ou 3 mois : moyenne par jour, bilan de la période en kcal et en kilos, jours dans l'objectif, calories jour par jour (semaine par semaine sur 3 mois), d'où viennent tes calories, ce que tu manges le plus, par repas, Nutri-Score de tes calories, et des conseils tirés de tout ça
+- Chaque graphique a son tableau de chiffres, et se lit au doigt, à la souris ou au clavier
+- Importer une recette depuis un site de recettes : colle le lien (ou partage la page vers MyBody365 sur Android), le nom, les parts, les ingrédients et les étapes sont remplis, tu indiques les calories par part. Le lien vers le site reste sur la recette
+- Recettes avec les calories saisies à la main : ingrédients écrits ligne par ligne, calories et macros par part
+- Ajout rapide : un repas au restaurant ou en fast-food avec juste son nom et ses calories (et ses macros si tu les connais), proposé de nouveau dans tes récents
+- Raccourcis « Au restaurant, en fast-food » dans la recherche d'aliments : burger, kebab, pizza, tacos, frites, nuggets, sushi, sandwich, salade
+- Recettes de tes amis : chaque recette se règle sur Moi, Amis ou Communauté, et un onglet Amis les rassemble
+- Nom d'utilisateur unique, créé à la première connexion et modifiable dans ton profil
+- Ajouter un ami par son nom d'utilisateur : recherche exacte, demande d'ami, accepter ou refuser, notification à chaque étape. Le lien et le QR code restent là
+- Photo de profil à toi, visible par tes amis seulement, à la place de la photo Google
+- Progrès : des icônes sur les chiffres clés, l'objectif écrit sur sa ligne
+- Le site présente l'app avec de vraies captures, en clair et en sombre, avant d'installer
+- Drapeaux sur le choix de la langue
+
+### Modifié
+- Stockage : 2 Go par compte au lieu de 1 Go
+- Les choix à plusieurs options glissent comme la barre d'onglets, avec la même pastille orange
+- Filtres des recettes plus grands au doigt, sans barre de défilement, avec la même animation
+- Sélecteur de poids : le nombre est bien centré et bouge à chaque appui sur − ou +
+- Boutons principaux en texte blanc sur un dégradé plus profond, lisible partout (contraste AA)
+- Administration : changer d'onglet ne rejoue plus l'animation de la page
+
+### Corrigé
+- Les tiroirs se ferment aussi sur ordinateur : clic à côté, clic sur la poignée, Échap, ou glissé vers le bas au doigt
+- La prévision du graphique de progrès ne sort plus du cadre, même avec une seule pesée
+
+### Sécurité
+- Import de recettes : le serveur ne va que vers des sites publics (ni réseau interne ni adresse privée, vérifié à chaque redirection), lit 3 Mo au plus en 10 secondes, sans rien transmettre sur toi
+- La photo de profil passe par le même traitement que les autres photos : vérifiée, redessinée, recadrée, sans aucune métadonnée ; l'ancienne est effacée
+- La recherche par nom d'utilisateur ne donne qu'une correspondance exacte, sans liste ni suggestion, et son débit est limité
+
 ## [0.7.0] - 2026-11-16
 
 Tes données sont à toi : une sauvegarde complète en un tap, chaque nuit sur ton Google Drive si tu veux, et une restauration qui montre d'abord ce qui va changer

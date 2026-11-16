@@ -40,14 +40,16 @@ On ne transforme pas son corps en trois semaines. MyBody365 est pensé pour teni
 |---|---|
 | ⚖️ **Poids et prévision** | Ta courbe lissée, ta tendance réelle et la date estimée de ton objectif |
 | 📸 **Photo du jour** | Un comparateur avant / après, puis le time-lapse de ton année |
-| 🍽️ **Repas en trois taps** | Code-barres (Open Food Facts), aliments du quotidien (Ciqual), recettes perso, Nutri-Score |
+| 🍽️ **Repas en trois taps** | Code-barres (Open Food Facts), aliments du quotidien (Ciqual), fast-food en ajout rapide, Nutri-Score |
+| 📅 **Calendrier et statistiques** | Chaque jour marqué dans l'objectif, au-dessus ou en dessous, et un bilan clair du mois avec des conseils |
+| 📖 **Recettes** | Les tiennes, celles de tes amis, la communauté, et l'import depuis un site de recettes en collant le lien |
 | 🔥 **La flamme** | Chaque jour validé fait grandir ta série. Tous les 7 jours, un gel qui sauve un jour oublié |
 | 🔔 **Rappels** | Une notification à l'heure de ton choix, seulement s'il te manque ta pesée ou ta photo |
 | 🏋️ **Salle et séances** | Trois programmes prêts à suivre, séance guidée avec minuteur de repos, rappels les jours de salle |
-| 👥 **Entre potes** | La flamme de tes amis, des coups de pouce sur leur téléphone, une photo partagée quand tu le décides |
+| 👥 **Entre potes** | Retrouve-les par nom d'utilisateur, suivez vos flammes, des coups de pouce, une photo partagée quand tu le décides |
 | 💾 **Tes données à toi** | Sauvegarde complète en un tap, chaque nuit sur ton Google Drive, restauration avec aperçu |
 
-> Version **0.7.0** : toutes les fonctionnalités sont là, de la pesée du matin aux sauvegardes. Le détail version par version est dans le [changelog](CHANGELOG.md).
+> Version **0.8.0** : calendrier et statistiques des repas, import de recettes, ajout rapide pour le fast-food, amis par nom d'utilisateur, photo de profil. Le détail version par version est dans le [changelog](CHANGELOG.md).
 
 ## L'app
 
@@ -57,13 +59,24 @@ Pensée **uniquement pour le téléphone** : barre d'onglets flottante, écrans 
   <img src="docs/readme/app.png" alt="Écrans de l'app : aujourd'hui, repas, amis, progrès" width="100%">
 </p>
 
+### Tes repas, enfin lisibles
+
+Un coup d'œil à la semaine suffit : chaque jour porte une icône, coche verte dans l'objectif, flèche orange au-dessus, flèche bleue en dessous. Le calendrier du mois s'ouvre en touchant la date, et les statistiques répondent aux vraies questions : combien en moyenne, quel bilan ce mois-ci, qu'est-ce que je mange le plus, quel repas pèse le plus lourd. Puis quelques conseils concrets, tirés de tes propres repas.
+
+<p align="center">
+  <img src="docs/readme/meals.png" alt="Le calendrier des repas, les statistiques, les conseils et les recettes" width="100%">
+</p>
+
 - **Un plan dès la première minute** : quatre questions (toi, ta taille et ton poids, ton objectif, ton rythme), puis un objectif calorique calculé avec Mifflin-St Jeor, un plancher de sécurité et une date d'arrivée estimée
 - **Une pesée par jour** : boutons − / + à garder appuyés ou clavier numérique, mensurations facultatives, et la flamme qui grandit
 - **Une courbe honnête** : la tendance lissée gomme les variations d'eau, la prévision se recalcule sur tes quatre dernières semaines
 - **La photo du jour** : caméra plein écran avec le calque de ta dernière photo (même cadrage chaque jour) et un retardateur, comparateur avant / après à faire glisser, time-lapse de l'année exportable en vidéo
 - **Repas en trois taps** : une seule recherche pour tes aliments, la table Ciqual de l'Anses et Open Food Facts, scan du code-barres, quantité au gramme ou à la portion, Nutri-Score, « Comme hier »
-- **Recettes** : ingrédients pesés, calories par part calculées pour toi, photo, et une communauté qui partage, note et copie les meilleures
-- **Amis** : invitation par QR code ou lien, flammes des amis, coups de pouce, photo partagée une par une avec qui tu veux
+- **Fast-food et restaurant** : raccourcis burger, kebab, pizza, tacos… et un ajout rapide avec juste le nom et les calories, qui revient dans tes récents
+- **Calendrier et statistiques** : la semaine avec une icône par jour, le mois en un tap, et sur 7 jours, 30 jours ou 3 mois la moyenne, le bilan en kilos, d'où viennent tes calories, ce que tu manges le plus, le Nutri-Score de ton assiette et des conseils
+- **Recettes** : ingrédients pesés et calories calculées pour toi, ou importées depuis un site de recettes en collant le lien (ou en partageant la page vers l'app sur Android), photo, et trois niveaux de partage : toi, tes amis, la communauté qui note et copie les meilleures
+- **Amis** : un nom d'utilisateur unique pour te trouver, demandes d'ami, invitation par QR code ou lien, flammes des amis, coups de pouce, photo partagée une par une avec qui tu veux
+- **Ton profil** : photo de profil (vue par tes amis seulement), nom d'utilisateur, thème, langue
 - **Sauvegardes** : un fichier avec toutes tes données et photos, Google Drive chaque nuit, restauration qui montre d'abord ce qui change
 - **Connexion sans mot de passe** : Google ou passkey (Face ID, empreinte, code du téléphone)
 - **Sur invitation** : on demande un accès depuis l'écran de connexion, un administrateur valide et envoie un lien d'invitation valable 24 h
@@ -74,6 +87,8 @@ Pensée **uniquement pour le téléphone** : barre d'onglets flottante, écrans 
 
 Pas de « texte à gauche, capture à droite ». En haut de la page, le chiffre **365** et un exemple de série : les journées validées en vert, les jours gelés en glaçon, la flamme sur aujourd'hui. On comprend la promesse en une seconde, et le bouton dit simplement **Installer l'application**.
 
+Juste après, **l'aperçu** : de vraies captures de l'app, en clair ou en sombre selon ton thème, à faire glisser du doigt avant même d'installer quoi que ce soit.
+
 Le parcours suit ensuite les étapes clés, du jour 0 (l'installation) au jour 365, avec des vignettes qui se manipulent : un avant / après à faire glisser du doigt, l'année entière à lancer en lecture, un cadenas pour la vie privée. Les animations suivent le défilement, sans bibliothèque, et respectent le réglage « réduire les animations ».
 
 <p align="center">
@@ -83,7 +98,8 @@ Le parcours suit ensuite les étapes clés, du jour 0 (l'installation) au jour 3
 ## Privé par défaut
 
 - **Tes photos ne sont visibles que par toi.** Même les administrateurs ne les voient pas, sauf une photo partagée qui leur a été signalée, le temps de traiter le signalement. Tu choisis, photo par photo, ce que tu partages avec un ami
-- **Chaque photo est redessinée** par le serveur et enregistrée en WebP : aucune donnée cachée du fichier d'origine ne survit, pas même la position GPS
+- **Chaque photo est redessinée** par le serveur et enregistrée en WebP : aucune donnée cachée du fichier d'origine ne survit, pas même la position GPS. La photo de profil aussi, et l'ancienne est effacée quand tu la changes
+- **On ne te trouve que si on connaît ton nom d'utilisateur exact** : pas d'annuaire, pas de suggestion
 - **Tes amis voient ta flamme, pas ta balance** : prénom, nombre de jours, journée validée. Rien d'autre
 - **Aucune pub, aucun traceur, aucune revente.** Deux cookies, strictement nécessaires : la session et la protection CSRF
 - **Hébergé en France**, réservé aux personnes majeures, données de santé traitées avec un consentement explicite (RGPD art. 9)
@@ -95,9 +111,9 @@ Le parcours suit ensuite les étapes clés, du jour 0 (l'installation) au jour 3
 | | Résultat |
 |---|---|
 | Lighthouse, pages publiques (mobile, réseau bridé, processeur ralenti 4×) | Accessibilité **100** · Bonnes pratiques **100** · SEO **100** · Performance **72 à 85** selon les pages (LCP autour d'une seconde) |
-| Tests back (JUnit + Testcontainers, avec un vrai SeaweedFS) | 61 tests : accès et rôles, CSRF, en-têtes, limitation de débit, calculs, flamme et gels, photos (réencodage, quotas, confidentialité), Ciqual et Open Food Facts simulés, repas, recettes, communauté, chiffrement Web Push, rappels, amis, partages, signalements, sauvegardes et fichiers piégés |
-| Tests front (Vitest) | 18 tests : traductions complètes FR / EN, plateformes, passkeys, erreurs, navigation |
-| Tests de bout en bout (Playwright + axe-core) | 48 tests : site, installation, connexion, admin, parcours de bienvenue, pesée, photos, repas et recettes, flamme, rappels, séance guidée, amis, partage et modération, sauvegarde et restauration, accessibilité, débordements mobile |
+| Tests back (JUnit + Testcontainers, avec un vrai SeaweedFS) | 71 tests : accès et rôles, CSRF, en-têtes, limitation de débit, calculs, flamme et gels, photos (réencodage, quotas, confidentialité), Ciqual et Open Food Facts simulés, repas, ajout rapide, calendrier et statistiques, recettes et visibilité, import de recettes (sites simulés, adresses privées refusées), communauté, chiffrement Web Push, rappels, amis, noms d'utilisateur et demandes, photo de profil, partages, signalements, sauvegardes et fichiers piégés |
+| Tests front (Vitest) | 23 tests : traductions complètes FR / EN, plateformes, passkeys, erreurs, navigation, calendrier des repas, noms d'utilisateur |
+| Tests de bout en bout (Playwright + axe-core) | 51 tests : site, installation, connexion, admin, parcours de bienvenue, pesée, photos, repas, ajout rapide, calendrier et statistiques, recettes, flamme, rappels, séance guidée, amis par lien et par nom d'utilisateur, photo de profil, partage et modération, sauvegarde et restauration, accessibilité, débordements mobile |
 | Sécurité | CSP stricte (`script-src 'self'` + deux empreintes), CSRF, cookie de session HttpOnly / SameSite / Secure, limitation par IP, journal admin. Rapport complet : [docs/security-audit.md](docs/security-audit.md) |
 | Sessions | Gardées en base (Spring Session JDBC) : une nouvelle version déployée ne déconnecte personne, et un compte suspendu est coupé tout de suite |
 
@@ -110,7 +126,7 @@ Cloudflare ─► Traefik (Coolify, TLS) ─► nginx (app Angular + proxy /api)
 
 - **Front** : Angular 22 (signals, zoneless), service worker, pages publiques prérendues au build, nginx non root
 - **Back** : Spring Boot 4.1 / Java 25, Spring Security 7 (OAuth2 Google + WebAuthn), Spring Session JDBC, Flyway
-- **Base** : PostgreSQL 18 ; photos et images de recettes sur SeaweedFS (S3), en WebP grâce à cwebp
+- **Base** : PostgreSQL 18 ; photos, photos de profil et images de recettes sur SeaweedFS (S3), en WebP grâce à cwebp, 2 Go par compte par défaut
 - **Notifications** : Web Push standard (chiffrement RFC 8291, signature VAPID), sans service tiers ni SDK
 - **Données** : Open Food Facts (via le serveur, avec cache) et la table Ciqual de l'Anses (importée depuis data.gouv.fr)
 - **Design** : système maison (Archivo + Inter, accent « flamme »), icônes d'après Lucide, aucun framework CSS
@@ -131,7 +147,7 @@ Le dépôt se déploie tel quel sur [Coolify](https://coolify.io) (Docker Compos
    | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Client OAuth Google |
    | `ADMIN_EMAILS` | Adresses Google toujours administrateurs, séparées par `;` |
 
-   `SERVICE_USER_POSTGRES`, `SERVICE_PASSWORD_64_POSTGRES`, `SERVICE_USER_S3` et `SERVICE_PASSWORD_64_S3` sont générées par Coolify. Facultatives : `STORAGE_QUOTA_MB` (stockage par compte, 1024 par défaut) et `OFF_USER_AGENT`. Détails dans [.env.example](.env.example).
+   `SERVICE_USER_POSTGRES`, `SERVICE_PASSWORD_64_POSTGRES`, `SERVICE_USER_S3` et `SERVICE_PASSWORD_64_S3` sont générées par Coolify. Facultatives : `STORAGE_QUOTA_MB` (stockage par compte en Mo, 2048 soit 2 Go par défaut) et `OFF_USER_AGENT`. Détails dans [.env.example](.env.example).
 4. **Après le premier déploiement** : dans l'app, Profil › Administration › Aliments › **Mettre à jour Ciqual** (téléchargement d'environ 70 Mo, suivi en direct). Les clés des notifications (VAPID) se créent toutes seules au premier démarrage.
 
 ## Développer
@@ -161,9 +177,9 @@ docker run --rm -v "$PWD:/app" -v "$HOME/.m2:/root/.m2" -v /var/run/docker.sock:
   sh -c "apk add --no-cache libwebp-tools && ./mvnw -B test"
 ```
 
-Les tests du back lancent PostgreSQL et SeaweedFS ; Open Food Facts, l'entrepôt Ciqual et les services de notification sont simulés : aucun test ne sort de la machine.
+Les tests du back lancent PostgreSQL et SeaweedFS ; Open Food Facts, l'entrepôt Ciqual, les sites de recettes et les services de notification sont simulés : aucun test ne sort de la machine.
 
-Les images de ce README se régénèrent avec `frontend/scripts/screenshots.mjs` (le mode d'emploi est en tête du fichier).
+Les images de ce README et les captures de l'aperçu du site (`frontend/public/shots`) se régénèrent avec `frontend/scripts/screenshots.mjs` (le mode d'emploi est en tête du fichier).
 
 ## Feuille de route
 
@@ -176,6 +192,7 @@ Les images de ce README se régénèrent avec `frontend/scripts/screenshots.mjs`
 | 0.5 | Engagement : gels de flamme, notifications quotidiennes, rappels salle, programmes | ✅ |
 | 0.6 | Amis : ajout par lien ou QR code, partage photo par photo, coups de pouce, modération | ✅ |
 | 0.7 | Sauvegardes : Google Drive automatique, export, restauration avec aperçu des différences | ✅ |
+| 0.8 | Repas lisibles : calendrier, statistiques et conseils, ajout rapide fast-food, import de recettes, recettes entre amis, noms d'utilisateur, photo de profil | ✅ |
 
 Le détail de chaque version est dans le [changelog](CHANGELOG.md), aussi publié sur le site.
 

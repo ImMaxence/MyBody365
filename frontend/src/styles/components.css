@@ -32,9 +32,10 @@
   height: 20px;
   flex: none;
 }
+/* white on a deeper flame: every stop keeps white text at 4.6:1 or more (WCAG AA) */
 .btn-primary {
-  background: var(--flame);
-  color: var(--accent-ink);
+  background: linear-gradient(135deg, #d9301a 0%, #d4400a 52%, #c84b08 100%);
+  color: #fff;
   box-shadow:
     0 10px 28px -10px var(--accent-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
@@ -249,10 +250,104 @@
   height: 18px;
 }
 .seg button[aria-pressed='true'],
-.seg button[aria-selected='true'] {
+.seg button[aria-selected='true'],
+.seg button[aria-checked='true'] {
   background: var(--surface);
   color: var(--fg);
   box-shadow: var(--shadow-1);
+}
+
+/* the sliding indicator (shared/seg.directive.ts): the tab bar's soft orange pill, gliding to the choice */
+.seg-anim {
+  position: relative;
+  isolation: isolate;
+}
+.seg-anim::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  width: var(--seg-w, 0);
+  height: var(--seg-h, 0);
+  border-radius: var(--seg-radius, var(--radius-pill));
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+  transform: translate(var(--seg-x, 0), var(--seg-y, 0));
+  opacity: var(--seg-o, 0);
+  pointer-events: none;
+}
+.seg-ready::before {
+  transition:
+    transform 520ms cubic-bezier(0.34, 1.4, 0.5, 1),
+    width 520ms cubic-bezier(0.34, 1.4, 0.5, 1),
+    height 520ms cubic-bezier(0.34, 1.4, 0.5, 1),
+    opacity var(--dur-2);
+}
+.seg-anim > button[aria-pressed='true'],
+.seg-anim > button[aria-selected='true'],
+.seg-anim > button[aria-checked='true'],
+.seg-anim > a[aria-current='page'] {
+  background: transparent;
+  box-shadow: none;
+  color: var(--accent-text);
+}
+.seg-anim > button,
+.seg-anim > a {
+  transition: color 320ms var(--ease-out), transform var(--dur-1) var(--ease-out);
+}
+.seg-anim > button:active,
+.seg-anim > a:active {
+  transform: scale(0.96);
+}
+@media (prefers-reduced-motion: reduce) {
+  .seg-ready::before {
+    transition: none;
+  }
+}
+
+/* a row of filter chips, big enough for a thumb, scrolling sideways without a scrollbar */
+.slide-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px;
+  margin: -2px;
+  scrollbar-width: none;
+  scroll-padding-inline: 8px;
+  overscroll-behavior-x: contain;
+}
+.slide-chips::-webkit-scrollbar {
+  display: none;
+}
+.slide-chips > button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--fg-2);
+  font-size: var(--fs-s);
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+}
+/* without the directive (before the first paint): the chosen chip is already marked */
+.slide-chips:not(.seg-anim) > button[aria-pressed='true'] {
+  background: var(--accent-soft);
+}
+.slide-chips > button[aria-pressed='true'] {
+  box-shadow: none;
+  color: var(--accent-text);
+}
+@media (hover: hover) {
+  .slide-chips > button:not([aria-pressed='true']):hover {
+    background: var(--surface-3);
+  }
 }
 
 /* ── chips, badges ───────────────────────────────────────────────────────────── */
@@ -334,7 +429,7 @@ a.list-item:hover,
 button.list-item:hover {
   background: var(--surface-2);
 }
-.list-item .list-icon {
+:is(.list-item, .list-row) .list-icon {
   display: grid;
   place-items: center;
   width: 38px;
@@ -344,24 +439,24 @@ button.list-item:hover {
   background: var(--surface-3);
   color: var(--fg);
 }
-.list-item .list-icon svg {
+:is(.list-item, .list-row) .list-icon svg {
   width: 20px;
   height: 20px;
 }
-.list-item .list-body {
+:is(.list-item, .list-row) .list-body {
   flex: 1;
   min-width: 0;
   display: grid;
   gap: 1px;
 }
-.list-item .list-title {
+:is(.list-item, .list-row) .list-title {
   display: block;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.list-item .list-sub {
+:is(.list-item, .list-row) .list-sub {
   display: block;
   font-size: var(--fs-s);
   color: var(--fg-2);
@@ -369,11 +464,16 @@ button.list-item:hover {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.list-item > svg:last-child {
+:is(.list-item, .list-row) > svg:last-child {
   width: 18px;
   height: 18px;
   color: var(--fg-3);
   flex: none;
+}
+
+/* the same row as a card of its own (a shortcut outside a list): the text may wrap */
+.list-row .list-sub {
+  white-space: normal;
 }
 
 /* ── avatar ──────────────────────────────────────────────────────────────────── */
@@ -417,12 +517,39 @@ dialog.sheet::backdrop {
 dialog.sheet[open] {
   animation: sheet-in var(--dur-3) var(--ease-out);
 }
+/* closed by a click outside, the grip or a swipe down (core/ui/sheets.ts): it slides out */
+dialog.sheet.closing {
+  animation: sheet-out 220ms ease-in forwards;
+}
+dialog.sheet.closing::backdrop {
+  animation: backdrop-out 220ms ease-in forwards;
+}
+/* the grip is a handle: a wide, invisible area around the little bar */
 dialog.sheet .sheet-grip {
+  box-sizing: content-box;
   width: 40px;
   height: 5px;
-  margin: -8px auto var(--space-4);
-  border-radius: 3px;
+  padding: 12px 40px;
+  margin: -20px auto var(--space-2);
+  border-radius: 14px;
   background: var(--line-strong);
+  background-clip: content-box;
+  cursor: pointer;
+  touch-action: none;
+}
+dialog.sheet .sheet-grip:hover {
+  background-color: var(--fg-3);
+}
+@keyframes sheet-out {
+  to {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+}
+@keyframes backdrop-out {
+  to {
+    opacity: 0;
+  }
 }
 @keyframes sheet-in {
   from {
@@ -603,4 +730,39 @@ dialog.sheet .sheet-grip {
   font-size: var(--fs-s);
   font-weight: 650;
   color: var(--fg-2);
+}
+
+/* a picture for each theme (the screenshots of the home page) */
+.theme-dark-only {
+  display: none !important;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .theme-dark-only {
+    display: block !important;
+  }
+  :root:not([data-theme='light']) .theme-light-only {
+    display: none !important;
+  }
+}
+:root[data-theme='dark'] .theme-dark-only {
+  display: block !important;
+}
+:root[data-theme='dark'] .theme-light-only {
+  display: none !important;
+}
+
+/* admin tabs: the header stays still, only the content of the tab fades in */
+app-admin router-outlet + * {
+  animation: tab-content-in 300ms var(--ease-out) both;
+}
+@keyframes tab-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  app-admin router-outlet + * {
+    animation: none;
+  }
 }

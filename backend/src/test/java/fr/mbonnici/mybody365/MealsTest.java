@@ -170,6 +170,68 @@ class MealsTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void aQuickPortionWithOnlyItsCalories() throws Exception {
+        // a fast-food menu: its name and its calories, nothing else needed
+        json(post("/api/me/meals"), lea, "{\"day\":\"" + today + "\",\"slot\":\"LUNCH\",\"quick\":{\"name\":\" Menu burger frites \",\"kcal\":1080,\"proteinG\":40}}")
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.entries[0].name").value("Menu burger frites"))
+                .andExpect(jsonPath("$.entries[0].servings").value(1.0))
+                .andExpect(jsonPath("$.totals.kcal").value(1080.0));
+        String id = JsonPath.read(mvc.perform(get("/api/me/meals").param("day", today.toString()).with(as(lea))).andReturn().getResponse()
+                .getContentAsString(), "$.entries[0].id");
+        // two of them: the calories follow
+        json(patch("/api/me/meals/" + id), lea, "{\"servings\":2}").andExpect(jsonPath("$.totals.kcal").value(2160.0));
+        // offered again from the recents, as one portion
+        mvc.perform(get("/api/me/meals/recent").with(as(lea)))
+                .andExpect(jsonPath("$[0].kind").value("QUICK"))
+                .andExpect(jsonPath("$[0].name").value("Menu burger frites"))
+                .andExpect(jsonPath("$[0].kcal").value(1080.0))
+                .andExpect(jsonPath("$[0].quick.proteinG").value(40.0));
+        json(post("/api/me/meals"), lea, "{\"day\":\"" + today + "\",\"slot\":\"LUNCH\",\"quick\":{\"name\":\"Rien\",\"kcal\":0}}")
+                .andExpect(status().isBadRequest());
+        json(post("/api/me/meals"), lea, "{\"day\":\"" + today + "\",\"slot\":\"LUNCH\",\"quick\":{\"name\":\"\",\"kcal\":300}}")
+                .andExpect(status().isBadRequest());
+        String food = JsonPath.read(mvc.perform(get("/api/foods/barcode/3017620422003").with(as(lea))).andReturn().getResponse()
+                .getContentAsString(), "$.id");
+        json(post("/api/me/meals"), lea, "{\"day\":\"" + today + "\",\"slot\":\"LUNCH\",\"foodId\":\"" + food
+                + "\",\"quick\":{\"name\":\"Les deux\",\"kcal\":300}}").andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void calendarAndStats() throws Exception {
+        String food = JsonPath.read(mvc.perform(get("/api/foods/barcode/3017620422003").with(as(lea))).andReturn().getResponse()
+                .getContentAsString(), "$.id");
+        for (int d = 0; d < 3; d++) {
+            json(post("/api/me/meals"), lea, "{\"day\":\"" + today.minusDays(d) + "\",\"slot\":\"BREAKFAST\",\"foodId\":\"" + food + "\",\"grams\":20}");
+        }
+        json(post("/api/me/meals"), lea, "{\"day\":\"" + today + "\",\"slot\":\"DINNER\",\"foodId\":\"" + food + "\",\"grams\":50}");
+        // the calendar: one line per day with something logged
+        mvc.perform(get("/api/me/meals/days").param("from", today.minusDays(6).toString()).param("to", today.toString()).with(as(lea)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.targetKcal").isNumber())
+                .andExpect(jsonPath("$.days.length()").value(3))
+                .andExpect(jsonPath("$.days[2].entries").value(2))
+                .andExpect(jsonPath("$.days[2].kcal").value(closeTo(377.3, 0.5)));
+        mvc.perform(get("/api/me/meals/days").param("from", today.minusDays(200).toString()).param("to", today.toString()).with(as(lea)))
+                .andExpect(status().isBadRequest());
+        // the stats of the week: the spread eaten 4 times, mostly at breakfast
+        mvc.perform(get("/api/me/meals/stats").param("days", "7").with(as(lea)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.daily.length()").value(3))
+                .andExpect(jsonPath("$.topByCount[0].times").value(4))
+                .andExpect(jsonPath("$.topByCount[0].name").value("Pâte à tartiner noisettes"))
+                .andExpect(jsonPath("$.slots[0].slot").value("BREAKFAST"))
+                .andExpect(jsonPath("$.slots[0].days").value(3))
+                .andExpect(jsonPath("$.grades[0].grade").value("E"))
+                .andExpect(jsonPath("$.totals.kcal").value(closeTo(593.0, 1)));
+        mvc.perform(get("/api/me/meals/stats").param("days", "12").with(as(lea))).andExpect(status().isBadRequest());
+        // nothing logged: empty but valid
+        mvc.perform(get("/api/me/meals/stats").param("days", "30").with(as(hugo)))
+                .andExpect(jsonPath("$.daily.length()").value(0))
+                .andExpect(jsonPath("$.totals.kcal").value(0));
+    }
+
+    @Test
     void recipesAndTheCommunity() throws Exception {
         importCiqual();
         String apple = JsonPath.read(search(lea, "pomme", "local"), "$[0].id");

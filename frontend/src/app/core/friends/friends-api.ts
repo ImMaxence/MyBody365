@@ -6,6 +6,7 @@ import type { Pose, Recipe } from '../api/models';
 export interface Friend {
   id: string;
   name: string;
+  username: string;
   avatarUrl?: string;
   streak: number;
   todayDone: boolean;
@@ -22,6 +23,36 @@ export interface SharedPhoto {
   ownerName: string;
   url: string;
   thumbUrl: string;
+}
+
+/** where I stand with a member found by username */
+export type Relation = 'SELF' | 'FRIEND' | 'SENT' | 'RECEIVED' | 'NONE';
+
+export interface Member {
+  id: string;
+  name: string;
+  username: string;
+  avatarUrl?: string;
+  relation: Relation;
+}
+
+export interface FriendRequest {
+  id: string;
+  name: string;
+  username: string;
+  avatarUrl?: string;
+  sentAt: string;
+}
+
+export interface FriendRequests {
+  received: FriendRequest[];
+  sent: FriendRequest[];
+}
+
+/** what a username can be: "@Lea.Fit" → "lea.fit", null when it cannot be one */
+export function normalizeUsername(text: string): string | null {
+  const u = text.trim().toLowerCase().replace(/^@/, '');
+  return /^[a-z0-9._]{3,20}$/.test(u) ? u : null;
 }
 
 export interface FriendsView {
@@ -76,6 +107,29 @@ export class FriendsApi {
 
   accept(token: string): Promise<Friend> {
     return firstValueFrom(this.http.post<Friend>('/api/me/friends/accept', { token }));
+  }
+
+  /** an exact username only (404 otherwise) */
+  search(username: string): Promise<Member> {
+    return firstValueFrom(this.http.get<Member>('/api/me/friends/search', { params: { username } }));
+  }
+
+  requests(): Promise<FriendRequests> {
+    return firstValueFrom(this.http.get<FriendRequests>('/api/me/friends/requests'));
+  }
+
+  /** SENT, or FRIEND when they had asked me already */
+  request(username: string): Promise<{ relation: Relation }> {
+    return firstValueFrom(this.http.post<{ relation: Relation }>('/api/me/friends/requests', { username }));
+  }
+
+  acceptRequest(id: string): Promise<Friend> {
+    return firstValueFrom(this.http.post<Friend>(`/api/me/friends/requests/${id}/accept`, null));
+  }
+
+  /** declines a request received, or withdraws one sent */
+  dropRequest(id: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`/api/me/friends/requests/${id}`));
   }
 
   remove(id: string): Promise<void> {

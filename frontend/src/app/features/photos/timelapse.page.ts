@@ -7,6 +7,7 @@ import { POSES, PhotosStore } from '../../core/photos/photos.store';
 import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
+import { SegDirective } from '../../shared/seg.directive';
 
 type Speed = 'slow' | 'normal' | 'fast';
 const FPS: Record<Speed, number> = { slow: 3, normal: 6, fast: 12 };
@@ -15,7 +16,7 @@ const FPS: Record<Speed, number> = { slow: 3, normal: 6, fast: 12 };
 @Component({
   selector: 'app-timelapse',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, BackButtonComponent],
+  imports: [SegDirective, TranslatePipe, IconComponent, BackButtonComponent],
   template: `
     <main class="page">
       <header class="page-head">

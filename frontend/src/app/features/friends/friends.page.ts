@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { errorCode } from '../../core/api/api.service';
-import { Friend, FriendsApi, FriendsView, SharedPhoto, inviteToken } from '../../core/friends/friends-api';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Friend, FriendRequest, FriendRequests, FriendsApi, FriendsView, Member, SharedPhoto, inviteToken, normalizeUsername } from '../../core/friends/friends-api';
+import { SessionStore } from '../../core/auth/session.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/ui/toast.service';
@@ -9,7 +11,7 @@ import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 import { ReportSheetComponent } from '../../shared/report-sheet.component';
 
-/** Friends: invite (QR code or link), add (scan or paste), flames, nudges, photos shared with me. */
+/** Friends: add by username or invite (QR code or link), requests, flames, nudges, photos shared with me. */
 @Component({
   selector: 'app-friends',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,10 +23,110 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
         <h1 class="title small-title">{{ 'friends.title' | t }}</h1>
       </header>
 
+      <section class="card find">
+        <h2 class="find-title"><app-icon name="search" [size]="18" /> {{ 'friends.search.title' | t }}</h2>
+        <form class="find-form" (ngSubmit)="search()">
+          <label class="handle-input">
+            <span aria-hidden="true">@</span>
+            <input name="username" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="21" enterkeyhint="search"
+              [attr.aria-label]="'friends.search.label' | t" [placeholder]="'friends.search.placeholder' | t" [(ngModel)]="query" (ngModelChange)="found.set(null); searchError.set(null)" />
+          </label>
+          <button type="submit" class="btn btn-primary find-btn" [disabled]="busy() || !query.trim()" [attr.aria-label]="'friends.search.submit' | t">
+            <app-icon name="search" [size]="18" />
+          </button>
+        </form>
+        @if (searchError(); as err) {
+          <p class="small muted find-msg">{{ err }}</p>
+        }
+        @if (found(); as m) {
+          <div class="member">
+            <span class="ava" [style.--h]="hue(m.name)">
+              @if (m.avatarUrl && !broken().has(m.avatarUrl)) {
+                <img [src]="m.avatarUrl" (error)="markBroken(m.avatarUrl)" alt="" referrerpolicy="no-referrer" />
+              } @else {
+                {{ m.name.charAt(0).toUpperCase() }}
+              }
+            </span>
+            <span class="who-copy">
+              <span class="name">{{ m.name }}</span>
+              <span class="small muted">&#64;{{ m.username }}</span>
+            </span>
+            @switch (m.relation) {
+              @case ('NONE') {
+                <button type="button" class="btn btn-primary btn-s" [disabled]="busy()" (click)="request(m)"><app-icon name="userPlus" [size]="16" /> {{ 'friends.search.request' | t }}</button>
+              }
+              @case ('SENT') {
+                <button type="button" class="btn btn-ghost btn-s" [disabled]="busy()" (click)="cancel(m)">{{ 'friends.search.cancel' | t }}</button>
+              }
+              @case ('RECEIVED') {
+                <button type="button" class="btn btn-primary btn-s" [disabled]="busy()" (click)="acceptMember(m)"><app-icon name="check" [size]="16" /> {{ 'friends.search.accept' | t }}</button>
+              }
+              @case ('FRIEND') {
+                <span class="chip chip-success"><app-icon name="check" [size]="14" /> {{ 'friends.search.friend' | t }}</span>
+              }
+              @default {
+                <span class="chip">{{ 'friends.search.self' | t }}</span>
+              }
+            }
+          </div>
+        }
+        <div class="mine">
+          <span class="small muted">{{ 'friends.search.mine' | t }}</span>
+          <button type="button" class="handle" (click)="copyMine()" [attr.aria-label]="'friends.search.copy' | t">
+            <span>&#64;{{ session.account()?.username }}</span><app-icon name="copy" [size]="14" />
+          </button>
+        </div>
+      </section>
+
+      @if (requests(); as r) {
+        @if (r.received.length) {
+          <h2 class="section-title">{{ 'friends.requests.received' | t }}</h2>
+          <div class="friends">
+            @for (q of r.received; track q.id; let i = $index) {
+              <div class="card friend request" [style.--i]="i">
+                <span class="ava" [style.--h]="hue(q.name)">
+                  @if (q.avatarUrl && !broken().has(q.avatarUrl)) {
+                    <img [src]="q.avatarUrl" (error)="markBroken(q.avatarUrl)" alt="" referrerpolicy="no-referrer" />
+                  } @else {
+                    {{ q.name.charAt(0).toUpperCase() }}
+                  }
+                </span>
+                <span class="who-copy">
+                  <span class="name">{{ q.name }}</span>
+                  <span class="small muted">&#64;{{ q.username }}</span>
+                </span>
+                <button type="button" class="round no" [disabled]="busy()" [attr.aria-label]="'friends.search.decline' | t" (click)="decline(q)"><app-icon name="x" [size]="18" /></button>
+                <button type="button" class="round yes" [disabled]="busy()" [attr.aria-label]="'friends.search.accept' | t" (click)="acceptRequest(q)"><app-icon name="check" [size]="18" [stroke]="2.6" /></button>
+              </div>
+            }
+          </div>
+        }
+        @if (r.sent.length) {
+          <h2 class="section-title">{{ 'friends.requests.sent' | t }}</h2>
+          <div class="friends">
+            @for (q of r.sent; track q.id; let i = $index) {
+              <div class="card friend request" [style.--i]="i">
+                <span class="ava" [style.--h]="hue(q.name)">{{ q.name.charAt(0).toUpperCase() }}</span>
+                <span class="who-copy">
+                  <span class="name">{{ q.name }}</span>
+                  <span class="small muted">&#64;{{ q.username }} · {{ 'friends.search.sent' | t }}</span>
+                </span>
+                <button type="button" class="btn btn-ghost btn-s" [disabled]="busy()" (click)="withdraw(q)">{{ 'common.cancel' | t }}</button>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <h2 class="section-title">{{ 'friends.orLink' | t }}</h2>
       <div class="actions">
-        <button type="button" class="btn btn-primary" (click)="openInvite()"><app-icon name="qr" [size]="18" /> {{ 'friends.invite' | t }}</button>
-        <button type="button" class="btn btn-secondary" (click)="openAdd()"><app-icon name="userPlus" [size]="18" /> {{ 'friends.add' | t }}</button>
+        <button type="button" class="btn btn-secondary" (click)="openInvite()"><app-icon name="qr" [size]="18" /> {{ 'friends.invite' | t }}</button>
+        <button type="button" class="btn btn-secondary" (click)="openAdd()"><app-icon name="link" [size]="18" /> {{ 'friends.haveLink' | t }}</button>
       </div>
+
+      @if (view()?.friends?.length) {
+        <h2 class="section-title">{{ 'friends.title' | t }}</h2>
+      }
 
       @if (view(); as v) {
         @if (v.friends.length) {
@@ -32,7 +134,13 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
             @for (f of v.friends; track f.id; let i = $index) {
               <div class="card friend" [style.--i]="i">
                 <button type="button" class="who" (click)="openFriend(f)">
-                  <span class="ava" [style.--h]="hue(f.name)">{{ f.name.charAt(0).toUpperCase() }}</span>
+                  <span class="ava" [style.--h]="hue(f.name)">
+                    @if (f.avatarUrl && !broken().has(f.avatarUrl)) {
+                      <img [src]="f.avatarUrl" (error)="markBroken(f.avatarUrl)" alt="" referrerpolicy="no-referrer" loading="lazy" />
+                    } @else {
+                      {{ f.name.charAt(0).toUpperCase() }}
+                    }
+                  </span>
                   <span class="who-copy">
                     <span class="name">{{ f.name }}</span>
                     <span class="status small" [class.ok]="f.todayDone" [class.muted]="!f.todayDone">
@@ -126,9 +234,16 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
         @if (selected(); as f) {
           <div class="stack">
             <div class="who big">
-              <span class="ava" [style.--h]="hue(f.name)">{{ f.name.charAt(0).toUpperCase() }}</span>
+              <span class="ava" [style.--h]="hue(f.name)">
+                @if (f.avatarUrl && !broken().has(f.avatarUrl)) {
+                  <img [src]="f.avatarUrl" (error)="markBroken(f.avatarUrl)" alt="" referrerpolicy="no-referrer" />
+                } @else {
+                  {{ f.name.charAt(0).toUpperCase() }}
+                }
+              </span>
               <div>
                 <h2 class="h3">{{ f.name }}</h2>
+                <p class="small accent">&#64;{{ f.username }}</p>
                 <p class="small muted">{{ 'friends.since' | t: { date: i18n.date(f.since, { day: 'numeric', month: 'long', year: 'numeric' }) } }}</p>
               </div>
             </div>
@@ -158,6 +273,122 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: var(--space-3);
+    }
+    .find {
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-4);
+    }
+    .find-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.02rem;
+      font-weight: 750;
+    }
+    .find-title app-icon {
+      color: var(--accent-text);
+    }
+    .find-form {
+      display: flex;
+      gap: var(--space-2);
+    }
+    .handle-input {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+      min-height: 48px;
+      padding: 0 14px;
+      border-radius: var(--radius-m);
+      background: var(--surface-2);
+      border: 1px solid var(--line-strong);
+      font-weight: 700;
+      color: var(--fg-2);
+      transition: border-color var(--dur-2);
+    }
+    .handle-input:focus-within {
+      border-color: var(--accent);
+    }
+    .handle-input input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      font: inherit;
+      color: var(--fg);
+      outline: none;
+    }
+    .find-btn {
+      width: 48px;
+      min-height: 48px;
+      padding: 0;
+    }
+    .find-msg {
+      animation: rise 300ms var(--ease-out) both;
+    }
+    .member {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border-radius: var(--radius-m);
+      background: var(--surface-2);
+      animation: rise 320ms var(--ease-out) both;
+    }
+    .mine {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+      padding-top: var(--space-2);
+      border-top: 1px solid var(--line);
+    }
+    .handle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 0 10px;
+      border-radius: var(--radius-pill);
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      font-weight: 700;
+    }
+    .accent {
+      color: var(--accent-text);
+      font-weight: 650;
+    }
+    .round {
+      display: grid;
+      place-items: center;
+      flex: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      transition: transform var(--dur-1) var(--ease-out);
+    }
+    .round:active {
+      transform: scale(0.88);
+    }
+    .round.yes {
+      background: var(--cal-done);
+      color: var(--cal-done-ink);
+    }
+    .round.no {
+      background: var(--surface-3);
+      color: var(--fg-2);
+    }
+    .request .who-copy,
+    .member .who-copy {
+      flex: 1;
+    }
+    .ava img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
     }
     .friends {
       display: grid;
@@ -194,6 +425,7 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
       width: 42px;
       height: 42px;
       flex: none;
+      overflow: hidden;
       border-radius: 50%;
       background: hsl(var(--h) 70% 86%);
       color: hsl(var(--h) 60% 26%);
@@ -334,7 +566,14 @@ export class FriendsPage {
   private readonly video = viewChild<ElementRef<HTMLVideoElement>>('video');
   private readonly reportSheet = viewChild.required(ReportSheetComponent);
 
+  protected readonly session = inject(SessionStore);
   protected readonly view = signal<FriendsView | null>(null);
+  protected readonly requests = signal<FriendRequests | null>(null);
+  /** pictures that could not be loaded: the initial instead */
+  protected readonly broken = signal<Set<string>>(new Set());
+  protected readonly found = signal<Member | null>(null);
+  protected readonly searchError = signal<string | null>(null);
+  protected query = '';
   protected readonly invite = signal<{ url: string; expiresAt: string } | null>(null);
   protected readonly qr = signal<string | null>(null);
   protected readonly selected = signal<Friend | null>(null);
@@ -353,10 +592,101 @@ export class FriendsPage {
   }
 
   private async load(): Promise<void> {
+    const [view, requests] = await Promise.allSettled([this.api.list(), this.api.requests()]);
+    this.view.set(view.status === 'fulfilled' ? view.value : { friends: [], sharedWithMe: [] });
+    this.requests.set(requests.status === 'fulfilled' ? requests.value : { received: [], sent: [] });
+  }
+
+  protected markBroken(src: string): void {
+    this.broken.update((s) => new Set(s).add(src));
+  }
+
+  /** an exact username: no list of members, no suggestions */
+  protected async search(): Promise<void> {
+    const u = normalizeUsername(this.query);
+    this.found.set(null);
+    if (!u) {
+      this.searchError.set(this.i18n.t('friends.search.invalid'));
+      return;
+    }
+    this.busy.set(true);
     try {
-      this.view.set(await this.api.list());
+      this.found.set(await this.api.search(u));
+      this.searchError.set(null);
+    } catch (e) {
+      const notFound = e instanceof HttpErrorResponse && e.status === 404;
+      this.searchError.set(notFound ? this.i18n.t('friends.search.notFound') : this.i18n.error(errorCode(e)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  protected async request(m: Member): Promise<void> {
+    this.busy.set(true);
+    try {
+      const { relation } = await this.api.request(m.username);
+      this.found.set({ ...m, relation });
+      this.toast.show(this.i18n.t(relation === 'FRIEND' ? 'friends.search.matched' : 'friends.search.requested', { name: m.name }));
+      await this.load();
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  protected async cancel(m: Member): Promise<void> {
+    await this.drop(m.id, 'friends.search.cancelled');
+    this.found.set({ ...m, relation: 'NONE' });
+  }
+
+  protected async acceptMember(m: Member): Promise<void> {
+    await this.acceptRequest({ id: m.id, name: m.name, username: m.username, sentAt: '' });
+    this.found.set({ ...m, relation: 'FRIEND' });
+  }
+
+  protected async acceptRequest(q: FriendRequest): Promise<void> {
+    this.busy.set(true);
+    try {
+      await this.api.acceptRequest(q.id);
+      this.toast.show(this.i18n.t('friends.requests.accepted', { name: q.name }));
+      await this.load();
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  protected decline(q: FriendRequest): Promise<void> {
+    return this.drop(q.id, 'friends.search.declined');
+  }
+
+  protected withdraw(q: FriendRequest): Promise<void> {
+    return this.drop(q.id, 'friends.search.cancelled');
+  }
+
+  private async drop(id: string, done: string): Promise<void> {
+    this.busy.set(true);
+    try {
+      await this.api.dropRequest(id);
+      this.toast.show(this.i18n.t(done));
+      await this.load();
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  protected async copyMine(): Promise<void> {
+    const u = this.session.account()?.username;
+    if (!u) return;
+    try {
+      await navigator.clipboard.writeText('@' + u);
+      this.toast.show(this.i18n.t('friends.search.copied'));
     } catch {
-      this.view.set({ friends: [], sharedWithMe: [] });
+      /* no clipboard: the username stays on screen */
     }
   }
 

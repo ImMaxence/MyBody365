@@ -40,8 +40,8 @@ import { TYPE_EMOJI } from './recipes.page';
           @if (!r.mine && r.author) {
             <span class="small muted">{{ 'meals.recipe.by' | t: { name: r.author } }}</span>
           }
-          @if (r.mine && r.shared) {
-            <span class="chip chip-cool">{{ 'meals.recipe.shared' | t }}</span>
+          @if (r.mine && r.visibility !== 'PRIVATE') {
+            <span class="chip chip-cool"><app-icon [name]="r.visibility === 'FRIENDS' ? 'users' : 'globe'" [size]="13" /> {{ 'meals.recipe.visibility.' + r.visibility | t }}</span>
           }
           @if (r.hidden) {
             <span class="chip chip-warning">{{ 'meals.recipe.hidden' | t }}</span>
@@ -62,7 +62,13 @@ import { TYPE_EMOJI } from './recipes.page';
 
         <section class="card facts">
           <div class="facts-head">
-            <h2 class="section-title">{{ 'meals.recipe.nutrition' | t: { g: i18n.number(r.servingG ?? 0) } }}</h2>
+            <h2 class="section-title">
+              @if (r.manualNutrition) {
+                {{ 'meals.recipe.totals' | t }} · {{ 'meals.recipe.mode.byHand' | t }}
+              } @else {
+                {{ 'meals.recipe.nutrition' | t: { g: i18n.number(r.servingG ?? 0) } }}
+              }
+            </h2>
             @if (r.nutriscore) {
               <app-nutriscore [grade]="r.nutriscore" [estimated]="true" />
             }
@@ -83,7 +89,15 @@ import { TYPE_EMOJI } from './recipes.page';
           @for (ing of r.ingredients ?? []; track $index) {
             <li><span>{{ ing.name }}</span><span class="num muted">{{ i18n.number(ing.grams) }} g · {{ ing.kcal }} kcal</span></li>
           }
+          @for (line of r.ingredientLines ?? []; track $index) {
+            <li><span>{{ line }}</span></li>
+          }
         </ul>
+        @if (r.sourceUrl && r.sourceName) {
+          <a class="source-link small" [href]="r.sourceUrl" target="_blank" rel="noopener noreferrer nofollow">
+            <app-icon name="link" [size]="15" /> {{ 'meals.recipe.import.from' | t: { site: r.sourceName } }}
+          </a>
+        }
         @if (r.notes) {
           <h2 class="section-title">{{ 'meals.recipe.notes' | t }}</h2>
           <p class="notes card">{{ r.notes }}</p>
@@ -217,6 +231,14 @@ import { TYPE_EMOJI } from './recipes.page';
     dd {
       margin: 0;
       font-weight: 750;
+    }
+    .source-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      justify-self: start;
+      color: var(--accent-text);
+      font-weight: 650;
     }
     .ingredients {
       display: grid;

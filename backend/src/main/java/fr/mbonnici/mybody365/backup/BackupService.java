@@ -420,6 +420,20 @@ public class BackupService {
                 if (v.get("kcal") == null) {
                     v.put("kcal", 0d);
                 }
+                // a backup made before 0.8 has no visibility: the community when it was shared; anything else stays private
+                Object vis = v.get("visibility");
+                if (!"FRIENDS".equals(vis) && !"PUBLIC".equals(vis)) {
+                    vis = Boolean.TRUE.equals(v.get("shared")) && vis == null ? "PUBLIC" : "PRIVATE";
+                }
+                v.put("visibility", vis);
+                if (v.get("manual_nutrition") == null) {
+                    v.put("manual_nutrition", false);
+                }
+                Object src = v.get("source_url");
+                if (src != null && !(src.toString().startsWith("https://") || src.toString().startsWith("http://")) || (src != null && src.toString().length() > 500)) {
+                    v.put("source_url", null);
+                }
+                v.put("shared", "PUBLIC".equals(vis));
                 if (mode == Mode.MERGE) {
                     for (Map<String, Object> old : jdbc.queryForList(
                             "select id, image_format, image_version from recipe where owner_id = ? and lower(name) = lower(?)", userId, v.get("name"))) {

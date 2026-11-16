@@ -2,7 +2,12 @@ export interface Account {
   id: string;
   email: string;
   displayName: string;
+  /** unique, to be found by friends */
+  username: string;
+  /** the picture shown: one's own when uploaded, else the Google one */
   avatarUrl?: string;
+  /** a picture of one's own was uploaded */
+  ownAvatar: boolean;
   role: 'USER' | 'ADMIN';
   locale: 'fr' | 'en';
   onboarded: boolean;
@@ -284,6 +289,41 @@ export interface MealDay {
   entries: MealEntry[];
 }
 
+/** a day of the calendar: only days with something logged come back */
+export interface DayTotal {
+  day: string;
+  kcal: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  entries: number;
+}
+
+export interface MealDays {
+  targetKcal?: number;
+  days: DayTotal[];
+}
+
+export interface FoodStat {
+  name: string;
+  detail?: string;
+  times: number;
+  kcal: number;
+}
+
+export interface MealStats {
+  days: number;
+  from: string;
+  to: string;
+  targetKcal?: number;
+  daily: DayTotal[];
+  totals: Nutrients;
+  topByCount: FoodStat[];
+  topByKcal: FoodStat[];
+  slots: { slot: Slot; kcal: number; days: number }[];
+  grades: { grade: string | null; kcal: number }[];
+}
+
 export interface MealInput {
   day: string;
   slot: Slot;
@@ -291,10 +331,21 @@ export interface MealInput {
   recipeId?: string;
   grams?: number;
   servings?: number;
+  quick?: QuickPortion;
+}
+
+/** a portion with only its calories, the macros when known */
+export interface QuickPortion {
+  name: string;
+  kcal: number;
+  proteinG?: number | null;
+  carbsG?: number | null;
+  fatG?: number | null;
 }
 
 export interface RecentItem {
-  kind: 'FOOD' | 'RECIPE';
+  /** QUICK: a portion logged with its calories only (fast food, restaurant) */
+  kind: 'FOOD' | 'RECIPE' | 'QUICK';
   id: string;
   name: string;
   detail?: string;
@@ -302,6 +353,8 @@ export interface RecentItem {
   servings?: number;
   kcal: number;
   nutriscore?: Grade;
+  /** the portion's nutrients (QUICK) */
+  quick?: Nutrients;
 }
 
 export type RecipeType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'DESSERT' | 'DRINK';
@@ -313,8 +366,15 @@ export interface Recipe {
   servings: number;
   notes?: string;
   shared: boolean;
+  visibility: RecipeVisibility;
   hidden: boolean;
   mine: boolean;
+  /** the calories were entered by the owner (an imported recipe): no ingredient from the database */
+  manualNutrition?: boolean;
+  /** the ingredients as written, one per line */
+  ingredientLines?: string[];
+  sourceUrl?: string;
+  sourceName?: string;
   author?: string;
   perServing: Nutrients;
   servingG?: number;
@@ -327,13 +387,35 @@ export interface Recipe {
   createdAt: string;
 }
 
+/** who sees a recipe besides its owner: nobody, the friends, every member */
+export type RecipeVisibility = 'PRIVATE' | 'FRIENDS' | 'PUBLIC';
+
 export interface RecipeInput {
   name: string;
   type: RecipeType;
   servings: number;
   notes?: string | null;
-  shared: boolean;
+  visibility: RecipeVisibility;
   ingredients: { foodId: string; grams: number }[];
+  /** calories per serving entered by hand, instead of computed from the ingredients */
+  manual?: { kcal: number; proteinG?: number | null; carbsG?: number | null; fatG?: number | null } | null;
+  ingredientLines?: string[];
+  sourceUrl?: string | null;
+}
+
+/** a recipe read from a recipe site, nothing saved yet */
+export interface RecipeDraft {
+  name: string;
+  type: RecipeType;
+  servings?: number;
+  ingredients: string[];
+  instructions?: string;
+  kcal?: number;
+  proteinG?: number;
+  carbsG?: number;
+  fatG?: number;
+  sourceUrl: string;
+  sourceName: string;
 }
 
 export interface CiqualImport {

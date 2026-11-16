@@ -25,8 +25,9 @@ public class QuotaService {
     public long usedBytes(UUID userId) {
         Long used = jdbc.queryForObject("""
                 select coalesce((select sum(bytes + thumb_bytes) from photo where user_id = ?), 0)
-                     + coalesce((select sum(image_bytes) from recipe where owner_id = ? and image_bytes is not null), 0)""",
-                Long.class, userId, userId);
+                     + coalesce((select sum(image_bytes) from recipe where owner_id = ? and image_bytes is not null), 0)
+                     + coalesce((select avatar_bytes from app_user where id = ?), 0)""",
+                Long.class, userId, userId, userId);
         return used == null ? 0 : used;
     }
 
