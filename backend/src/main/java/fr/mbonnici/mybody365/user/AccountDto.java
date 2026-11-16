@@ -12,6 +12,10 @@ public record AccountDto(
         String avatarUrl,
         /** a picture of one's own was uploaded (it can be removed) */
         boolean ownAvatar,
+        /** shown in the username suggestions */
+        boolean discoverable,
+        /** glasses of water a day; null: the water tracker is off */
+        Integer waterGoal,
         String role,
         String locale,
         boolean onboarded,
@@ -20,12 +24,12 @@ public record AccountDto(
         boolean admin) {
 
     public AccountDto withUsername(String u) {
-        return new AccountDto(id, email, displayName, u, avatarUrl, ownAvatar, role, locale, onboarded, profileComplete, admin);
+        return new AccountDto(id, email, displayName, u, avatarUrl, ownAvatar, discoverable, waterGoal, role, locale, onboarded, profileComplete, admin);
     }
 
     public static AccountDto of(AppUser user, boolean admin, boolean profileComplete) {
         return new AccountDto(user.getId(), user.getEmail(), user.getDisplayName(), user.getUsername(), user.getPictureUrl(),
-                user.getAvatarVersion() != null,
+                user.getAvatarVersion() != null, user.isDiscoverable(), user.getWaterGoal(),
                 admin ? "ADMIN" : "USER", user.getLocale(), user.isOnboarded(), profileComplete, admin);
     }
 }

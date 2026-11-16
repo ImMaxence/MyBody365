@@ -135,7 +135,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         // each search may go out to Open Food Facts
         // and a username search must not become a way to list the members
         if ("GET".equals(method) && (path.equals("/api/foods/search") || path.startsWith("/api/foods/barcode/")
-                || path.equals("/api/me/friends/search"))) {
+                || path.equals("/api/me/friends/search") || path.equals("/api/me/friends/suggest"))) {
             return foodSearch;
         }
         // sign-in flows are tightly limited; the read-only session probes run on every app start

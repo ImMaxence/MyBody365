@@ -114,6 +114,11 @@ export class FriendsApi {
     return firstValueFrom(this.http.get<Member>('/api/me/friends/search', { params: { username } }));
   }
 
+  /** usernames starting with what was typed (3 characters at least) */
+  suggest(q: string): Promise<Member[]> {
+    return firstValueFrom(this.http.get<Member[]>('/api/me/friends/suggest', { params: { q } }));
+  }
+
   requests(): Promise<FriendRequests> {
     return firstValueFrom(this.http.get<FriendRequests>('/api/me/friends/requests'));
   }

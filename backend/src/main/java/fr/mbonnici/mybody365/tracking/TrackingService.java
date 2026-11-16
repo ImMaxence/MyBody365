@@ -32,8 +32,6 @@ public class TrackingService {
 
     /** the calendar day of the users (the app is French): "today" never flips at midnight UTC */
     public static final ZoneId ZONE = ZoneId.of("Europe/Paris");
-    private static final Set<BigDecimal> RATES = Set.of(new BigDecimal("0.25"), new BigDecimal("0.50"),
-            new BigDecimal("0.75"), new BigDecimal("1.00"));
 
     private final BodyProfileRepository profiles;
     private final BodyLogRepository logs;
@@ -63,8 +61,12 @@ public class TrackingService {
             throw ApiException.badRequest("too_young");
         }
         BigDecimal rate = in.weeklyRateKg().setScale(2, RoundingMode.HALF_UP);
-        if (!RATES.contains(rate)) {
+        // by steps of 0.05 kg (a date chosen by the member gives any of them), within the bounds of the input
+        if (rate.remainder(new BigDecimal("0.05")).signum() != 0) {
             throw ApiException.badRequest("invalid_rate");
+        }
+        if (rate.doubleValue() > BodyMath.maxWeeklyRate(in.currentWeightKg().doubleValue()) + 1e-9) {
+            throw ApiException.badRequest("pace_too_fast");
         }
         double height = in.heightCm().doubleValue();
         if (in.goalWeightKg().doubleValue() < BodyMath.minHealthyWeight(height) - 0.05) {
@@ -167,7 +169,7 @@ public class TrackingService {
         if (floor) {
             warnings.add("kcal_floor");
         }
-        if (rate >= 1.0) {
+        if (rate >= 0.75) {
             warnings.add("fast_pace");
         }
         Energy energy = new Energy((int) Math.round(bmr), (int) Math.round(tdee), target, floor);

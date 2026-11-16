@@ -8,16 +8,16 @@ import { TrackingStore } from '../../core/tracking/tracking.store';
 import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
+import { PacePickerComponent } from './pace-picker.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 
-const PACES = [0.25, 0.5, 0.75, 1] as const;
 const ACTIVITIES: Activity[] = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VERY_ACTIVE'];
 
 /** "My goal", pushed from the profile: target weight, pace, activity and height. */
 @Component({
   selector: 'app-goal',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, NumberStepperComponent, BackButtonComponent],
+  imports: [PacePickerComponent, TranslatePipe, IconComponent, NumberStepperComponent, BackButtonComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -29,18 +29,7 @@ const ACTIVITIES: Activity[] = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VER
         <app-number-stepper [(value)]="goal" [step]="0.5" [min]="s.profile.minGoalKg" [max]="300" [decimals]="1" unit="kg" [label]="'setup.goalWeight' | t" />
         <p class="hint">{{ 'setup.goalMin' | t: { kg: i18n.number(s.profile.minGoalKg, 1) } }}</p>
 
-        <span class="label">{{ 'setup.pace' | t }}</span>
-        <div class="choices two" role="radiogroup" [attr.aria-label]="'setup.pace' | t">
-          @for (p of paces; track p) {
-            <button type="button" role="radio" class="choice" [attr.aria-checked]="pace() === p" (click)="pace.set(p)">
-              <strong>{{ 'setup.paces.' + paceKey(p) + '.label' | t }}</strong>
-              <span class="small muted">{{ 'setup.paces.' + paceKey(p) + '.hint' | t }}</span>
-            </button>
-          }
-        </div>
-        @if (pace() === 1) {
-          <p class="notice notice-accent"><app-icon name="alert" /> {{ 'setup.paceFast' | t }}</p>
-        }
+        <app-pace-picker [weight]="s.current.weightKg ?? s.profile.startWeightKg" [goal]="goal()" [(pace)]="pace" />
 
         <span class="label">{{ 'setup.activity' | t }}</span>
         <div class="choices" role="radiogroup" [attr.aria-label]="'setup.activity' | t">
@@ -108,7 +97,6 @@ export class GoalPage {
   private readonly stack = inject(StackNavigation);
   protected readonly i18n = inject(I18nService);
 
-  protected readonly paces = PACES;
   protected readonly activities = ACTIVITIES;
   protected readonly summary = this.tracking.summary;
   protected readonly goal = signal(70);
@@ -131,9 +119,6 @@ export class GoalPage {
     });
   }
 
-  protected paceKey(p: number): string {
-    return 'p' + String(p).replace('.', '');
-  }
 
   protected async save(): Promise<void> {
     const s = this.summary();

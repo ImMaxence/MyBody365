@@ -2,7 +2,7 @@
 
 Date : 16 novembre 2026. Périmètre : le dépôt complet (back Spring Boot, front Angular, nginx, fichiers Docker Compose), dans sa version 0.8.0 : photos, repas, notifications, amis, sauvegardes, import de recettes, noms d'utilisateur et photos de profil compris.
 
-Méthode : relecture du code de chaque point d'entrée, vérification des règles d'accès ressource par ressource, tests d'intégration ciblés (`backend/src/test`, 71 tests) et de bout en bout (`frontend/e2e`), `npm audit` sur les dépendances livrées.
+Méthode : relecture du code de chaque point d'entrée, vérification des règles d'accès ressource par ressource, tests d'intégration ciblés (`backend/src/test`, 73 tests) et de bout en bout (`frontend/e2e`), `npm audit` sur les dépendances livrées.
 
 ## Résumé
 
@@ -12,7 +12,7 @@ Méthode : relecture du code de chaque point d'entrée, vérification des règle
 | Moyenne | Les abonnements aux notifications auraient permis de faire appeler n'importe quelle URL par le serveur (SSRF) | **Corrigé avant livraison** : seuls les services de push de Google, Mozilla, Apple et Microsoft sont acceptés, en HTTPS (test dédié) |
 | Moyenne | Import de recettes : le serveur va chercher une adresse saisie par un membre (SSRF) | **Traité à la conception** : http(s) sur les ports 80 et 443 seulement, sans identifiants dans l'URL ; le nom doit pointer uniquement vers des adresses publiques (boucle locale, réseaux privés, lien local, CGNAT, multicast, IPv6 locales et IPv4 déguisées refusés), contrôle refait à chaque redirection (4 au plus) ; 3 Mo lus au plus, 10 s, rien sur le membre n'est transmis ; seules les données « Recipe » de la page sont gardées (tests dédiés) |
 | Faible | Import de recettes : entre la vérification de l'adresse et la connexion, le nom pourrait être redirigé vers une adresse privée (DNS rebinding) | Accepté : la réponse n'est lue que comme une recette (rien d'autre n'est renvoyé), le stockage exige des requêtes signées et la base ne parle pas HTTP |
-| Faible | Un nom d'utilisateur permet de savoir qu'un compte existe | Voulu pour ajouter un ami ; correspondance exacte uniquement (pas de liste ni de préfixe), débit limité à 60 / min, et seuls le prénom et le nom d'utilisateur sont montrés (la photo une fois un lien établi) |
+| Faible | Les noms d'utilisateur peuvent être découverts (recherche exacte, suggestions en tapant) | Voulu pour ajouter un ami ; suggestions à partir de 3 caractères, 6 au plus, sans photo, le caractère _ échappé dans la recherche, débit limité à 60 / min, et un réglage pour ne pas apparaître dans les suggestions (la recherche exacte trouve toujours) |
 | Faible | La clé privée VAPID (signature des notifications) est stockée en clair en base | Accepté : elle ne permet que d'envoyer des notifications aux appareils abonnés ; à chiffrer si la base est un jour partagée |
 | Faible | Un lien d'ami reste utilisable 7 jours par toute personne qui le possède | Voulu (un même QR code pour plusieurs amis) ; générer un nouveau lien invalide l'ancien |
 | Faible | Le texte d'un rappel (« tes 12 jours de flamme ») peut s'afficher sur l'écran verrouillé | Accepté : aucune donnée de santé (ni poids, ni repas) dans les notifications |
@@ -69,7 +69,7 @@ Aucune vulnérabilité connue dans les dépendances livrées du front (`npm audi
 | Connexion | 20 / min |
 | Demandes d'accès | 5 / h |
 | Envois d'images (dont la photo de profil), sauvegardes (export, aperçu, Drive), import de recettes | 120 / h |
-| Recherche d'aliments et codes-barres (Open Food Facts), recherche d'un nom d'utilisateur | 60 / min |
+| Recherche d'aliments et codes-barres (Open Food Facts), recherche et suggestions de noms d'utilisateur | 60 / min |
 | Demandes d'ami en attente | 50 par compte |
 | Coups de pouce | 1 / jour et par ami |
 

@@ -42,6 +42,8 @@ final class BackupFormat {
             "activity_level", Type.TEXT, "start_weight_kg", Type.NUM, "start_date", Type.DATE, "goal_weight_kg", Type.NUM,
             "weekly_rate_kg", Type.NUM));
 
+    static final Table WATER = new Table("water_log", cols("day", Type.DATE, "glasses", Type.INT));
+
     static final Table LOGS = new Table("body_log", cols("day", Type.DATE, "weight_kg", Type.NUM, "body_fat_pct", Type.NUM, "waist_cm",
             Type.NUM, "hips_cm", Type.NUM, "chest_cm", Type.NUM, "arm_cm", Type.NUM, "thigh_cm", Type.NUM, "note", Type.TEXT));
 

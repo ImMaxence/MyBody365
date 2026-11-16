@@ -86,7 +86,17 @@ export class ApiService {
     return firstValueFrom(this.http.delete<Account>('/api/me/avatar'));
   }
 
-  updateMe(patch: { displayName?: string; locale?: 'fr' | 'en' }): Promise<Account> {
+  /** glasses of water of a day (and the goal) */
+  water(day: string): Promise<{ day: string; glasses: number; goal?: number }> {
+    return firstValueFrom(this.http.get<{ day: string; glasses: number; goal?: number }>(`/api/me/water/${day}`));
+  }
+
+  setWater(day: string, glasses: number): Promise<{ day: string; glasses: number; goal?: number }> {
+    return firstValueFrom(this.http.put<{ day: string; glasses: number; goal?: number }>(`/api/me/water/${day}`, { glasses }));
+  }
+
+  /** waterGoal 0 turns the water tracker off */
+  updateMe(patch: { displayName?: string; locale?: 'fr' | 'en'; discoverable?: boolean; waterGoal?: number }): Promise<Account> {
     return firstValueFrom(this.http.patch<Account>('/api/me', patch));
   }
 

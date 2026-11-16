@@ -88,6 +88,7 @@ export const en: Dictionary = {
     recipe_url_invalid: 'This link cannot be imported: paste the full address of a web page (https://…)',
     recipe_unreachable: 'The site does not answer or refuses to be read. Try again later, or enter the recipe by hand',
     recipe_not_found: 'No readable recipe on this page: enter it by hand, it is quick',
+    pace_too_fast: 'Too fast for your weight: at most 1% of your weight a week',
     self_request: 'This is your own username',
     too_many_requests: 'Too many requests waiting: wait for some answers first',
     username_taken: 'This username is already taken',
@@ -306,6 +307,7 @@ export const en: Dictionary = {
     passkey: 'Sign in with a passkey',
     devAdmin: 'Local sign-in (admin)',
     devUser: 'Local sign-in (user)',
+    devNew: 'Local sign-in (new account)',
     noAccess: 'No access yet?',
     requestAccess: 'Request access',
     lostAccess: 'Lost access to your account?',
@@ -442,6 +444,17 @@ export const en: Dictionary = {
       p1: { label: 'Intense', hint: '1 kg / week' },
     },
     paceFast: 'A fast pace: keep a close eye on it, ideally with a health professional',
+    paceLocked: 'Too fast for your weight',
+    paceRule: 'To stay healthy: at most 1% of your weight a week, that is {kg} kg for you',
+    paceCustom: 'Pace chosen: {kg} kg a week',
+    dateChoice: 'Or pick an arrival date',
+    dateChoiceHint: 'The app works out the pace, without going over the limit',
+    dateWish: 'Wished date',
+    dateResult: {
+      ok: 'It works: {kg} kg a week to get there on {date}',
+      sooner: 'Even at the gentlest pace ({kg} kg a week), you will get there by {date}',
+      tooFast: 'Too fast to stay healthy: {date} at the earliest, at {kg} kg a week',
+    },
     activity: 'Daily activity',
     activities: {
       SEDENTARY: { label: 'Sedentary', hint: 'Desk job, little walking' },
@@ -561,8 +574,24 @@ export const en: Dictionary = {
     usernameSaved: 'Username saved',
     usernameCopied: 'Username copied',
     copyUsername: 'Copy my username',
+    discoverable: 'Show up in suggestions',
+    discoverableHint: 'When someone types the start of your username. Otherwise, you are only found with your exact username',
   },
 
+  water: {
+    title: 'Water',
+    count: '{n} / {goal} glasses · {l} L',
+    less: 'Remove a glass',
+    more: 'Add a glass',
+    reached: 'Water goal reached, well done',
+    settings: 'Optional tracking',
+    toggle: 'Glasses of water',
+    toggleHint: 'A 25 cl glass to tick on the Today screen. Off by default',
+    goal: 'Daily goal',
+    goalValue: '{n} glasses, that is {l} L',
+    goalLess: 'One glass less a day',
+    goalMore: 'One glass more a day',
+  },
   security: {
     title: 'Sign-in and security',
     google: 'Google account',
@@ -686,7 +715,7 @@ export const en: Dictionary = {
 
   legal: {
     updated: 'Last updated: {date}',
-    back: 'Back to the home page',
+    back: 'Back',
     docs: { mentions: 'Legal notice', confidentialite: 'Privacy', cgu: 'Terms of use' },
     mentions: {
       title: 'Legal notice',
@@ -752,7 +781,7 @@ export const en: Dictionary = {
           h: 'Data processed',
           p: [
             'Account: email address, first name, username, profile picture (Google’s, or the one you upload, redrawn and without metadata, the old one being deleted when you change it), language, role, sign-in dates, sign-in methods (Google identifier, passkeys: public keys only).',
-            'Tracking: weight, measurements, goal, meals, foods you created, recipes, workouts, progress photos. These are health data under article 9 of the GDPR: they are only processed with your explicit consent, given when the account is created. Every photo is drawn again and re-saved by the server: no metadata of the original file is kept, not even the GPS position.',
+            'Tracking: weight, measurements, goal, meals, foods you created, recipes, workouts recorded before version 0.8, glasses of water (if you turn that tracking on), progress photos. These are health data under article 9 of the GDPR: they are only processed with your explicit consent, given when the account is created. Every photo is drawn again and re-saved by the server: no metadata of the original file is kept, not even the GPS position.',
             'Friends: your list of friends, the friend requests sent and received, the nudges, the photos and recipes you share and with whom, the reports you send. A member can only find you with your exact username.',
             'Notifications: the technical address your browser provides for each device where you turn them on (Web Push subscription) and your reminder settings.',
             'Google Drive backups (if you turn them on): a token that only gives access to the files created by MyBody365, kept encrypted.',
@@ -763,7 +792,7 @@ export const en: Dictionary = {
           h: 'Who sees what',
           p: [
             'Your progress photos are visible to you only. Nobody else, administrators included, can access them in the application, except the photos you choose to share with a friend, until you stop sharing them.',
-            'Your friends see your first name, your username, your profile picture, the number of days of your flame and whether you have done your day, and the recipes you show them. Nothing else: not your weight, not your meals, not your photos, except those you share. A member who looks up your username only sees your first name.',
+            'Your friends see your first name, your username, your profile picture, the number of days of your flame and whether you have done your day, and the recipes you show them. Nothing else: not your weight, not your meals, not your photos, except those you share. A member who looks up your username only sees your first name; typing at least 3 letters, they may see you in the suggestions (first name and username), unless you turn that off in your profile.',
             'Administrators see the list of accounts (address, first name, role, sign-in methods, last sign-ins, storage used), access requests and the recipes published in the community. A shared photo that has been reported becomes visible to the administrators, and to them only, while the report is handled.',
             'The publisher, who runs the server, technically has access to the storage; they undertake not to look at your content, except under a court order or after a report of manifestly unlawful content.',
           ],

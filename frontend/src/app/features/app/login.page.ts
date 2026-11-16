@@ -57,6 +57,7 @@ import { LogoComponent } from '../../shared/logo.component';
           <div class="dev">
             <a class="btn btn-ghost btn-s" href="/api/auth/dev-login?as=admin">{{ 'auth.devAdmin' | t }}</a>
             <a class="btn btn-ghost btn-s" href="/api/auth/dev-login?as=user">{{ 'auth.devUser' | t }}</a>
+            <a class="btn btn-ghost btn-s" href="/api/auth/dev-login?as=new">{{ 'auth.devNew' | t }}</a>
           </div>
         }
       </div>

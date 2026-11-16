@@ -18,24 +18,7 @@ export interface NotificationSettings {
   prefs: NotificationPrefs;
 }
 
-export interface ExerciseLog {
-  id: string;
-  sets: number;
-  weightKg?: number | null;
-}
-
-export interface WorkoutSession {
-  id: string;
-  day: string;
-  program: string;
-  workout: string;
-  durationMin?: number;
-  exercises: ExerciseLog[];
-  note?: string;
-  createdAt: string;
-}
-
-/** Notifications (devices and reminders) and workout sessions. */
+/** Notifications: devices and reminders. */
 @Injectable({ providedIn: 'root' })
 export class EngageApi {
   private readonly http = inject(HttpClient);
@@ -60,15 +43,4 @@ export class EngageApi {
     return firstValueFrom(this.http.post<{ sent: number }>('/api/me/push/test', null));
   }
 
-  workouts(): Promise<WorkoutSession[]> {
-    return firstValueFrom(this.http.get<WorkoutSession[]>('/api/me/workouts'));
-  }
-
-  saveWorkout(input: { day: string; program: string; workout: string; durationMin: number; exercises: ExerciseLog[] }): Promise<WorkoutSession[]> {
-    return firstValueFrom(this.http.post<WorkoutSession[]>('/api/me/workouts', input));
-  }
-
-  deleteWorkout(id: string): Promise<void> {
-    return firstValueFrom(this.http.delete<void>(`/api/me/workouts/${id}`));
-  }
 }

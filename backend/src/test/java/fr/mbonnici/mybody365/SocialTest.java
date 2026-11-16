@@ -116,6 +116,26 @@ class SocialTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void suggestionsWhileTypingAUsername() throws Exception {
+        AppUser leaM = userRepository.save(AppUser.create("lm@example.com", "Léa Martin", AppUser.Role.USER));
+        mvc.perform(get("/api/me/friends/suggest").param("q", "le").with(as(hugo))).andExpect(jsonPath("$.length()").value(0));
+        mvc.perform(get("/api/me/friends/suggest").param("q", "@LEA").with(as(hugo)))
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].username").value("lea"))
+                .andExpect(jsonPath("$[1].username").value("leamartin"))
+                .andExpect(jsonPath("$[0].avatarUrl").doesNotExist());
+        // "_" is a letter here, not a wildcard
+        mvc.perform(get("/api/me/friends/suggest").param("q", "l_a").with(as(hugo))).andExpect(jsonPath("$.length()").value(0));
+        // never oneself
+        mvc.perform(get("/api/me/friends/suggest").param("q", "hug").with(as(hugo))).andExpect(jsonPath("$.length()").value(0));
+        // out of the suggestions on request, still found with the exact username
+        json(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/me"), leaM, "{\"discoverable\":false}")
+                .andExpect(jsonPath("$.discoverable").value(false));
+        mvc.perform(get("/api/me/friends/suggest").param("q", "lea").with(as(hugo))).andExpect(jsonPath("$.length()").value(1));
+        mvc.perform(get("/api/me/friends/search").param("username", "leamartin").with(as(hugo))).andExpect(status().isOk());
+    }
+
+    @Test
     void aRecipeCanBeShownToFriendsOnly() throws Exception {
         String food = JsonPath.read(json(post("/api/me/foods"), lea, """
                 {"name":"Galette de mamie","kcal":320,"proteinG":7,"carbsG":40,"fatG":14}""").andExpect(status().isCreated())

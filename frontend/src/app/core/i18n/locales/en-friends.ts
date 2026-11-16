@@ -63,6 +63,8 @@ export const enFriends: Widen<typeof frFriends> = {
     invalid: 'This friend link is not valid or has expired. Ask for a new one',
   },
   search: {
+    suggestions: 'Suggestions',
+    relation: { FRIEND: 'Friend', SENT: 'Request sent', RECEIVED: 'Asked you', SELF: 'You' },
     title: 'Add by username',
     label: 'Your friend’s username',
     placeholder: 'leamartin',

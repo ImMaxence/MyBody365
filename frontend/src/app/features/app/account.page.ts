@@ -69,6 +69,24 @@ import { normalizeUsername } from '../../core/friends/friends-api';
         <button type="button" lang="en" [attr.aria-pressed]="i18n.lang() === 'en'" (click)="setLang('en')"><app-flag lang="en" /> English</button>
       </div>
 
+      <h2 class="section-title">{{ 'water.settings' | t }}</h2>
+      <div class="water-set">
+        <label class="check">
+          <input type="checkbox" name="water" [checked]="!!account()?.waterGoal" [disabled]="busy()" (change)="toggleWater($any($event.target).checked)" />
+          <span><b>{{ 'water.toggle' | t }}</b><span class="small muted">{{ 'water.toggleHint' | t }}</span></span>
+        </label>
+        @if (account()?.waterGoal; as g) {
+          <div class="water-goal card">
+            <span class="small"><b>{{ 'water.goal' | t }}</b><br /><span class="muted">{{ 'water.goalValue' | t: { n: g, l: i18n.number(g * 0.25, 2) } }}</span></span>
+            <div class="mini-stepper">
+              <button type="button" class="icon-btn" [disabled]="g <= 1 || busy()" [attr.aria-label]="'water.goalLess' | t" (click)="setWaterGoal(g - 1)"><app-icon name="minus" [size]="18" /></button>
+              <span class="num">{{ g }}</span>
+              <button type="button" class="icon-btn" [disabled]="g >= 30 || busy()" [attr.aria-label]="'water.goalMore' | t" (click)="setWaterGoal(g + 1)"><app-icon name="plus" [size]="18" /></button>
+            </div>
+          </div>
+        }
+      </div>
+
       <div class="list">
         <a routerLink="/app/account/goal" class="list-item">
           <span class="list-icon goal-ico"><app-icon name="target" /></span>
@@ -96,11 +114,11 @@ import { normalizeUsername } from '../../core/friends/friends-api';
           </span>
           <app-icon name="chevronRight" />
         </a>
-        <a routerLink="/app/workouts" class="list-item">
+        <a routerLink="/app/timer" class="list-item">
           <span class="list-icon"><app-icon name="dumbbell" /></span>
           <span class="list-body">
-            <span class="list-title">{{ 'engage.workouts.title' | t }}</span>
-            <span class="list-sub">{{ 'engage.workouts.sub' | t }}</span>
+            <span class="list-title">{{ 'engage.timer.title' | t }}</span>
+            <span class="list-sub">{{ 'engage.timer.sub' | t }}</span>
           </span>
           <app-icon name="chevronRight" />
         </a>
@@ -187,6 +205,10 @@ import { normalizeUsername } from '../../core/friends/friends-api';
             [(ngModel)]="usernameDraft" (ngModelChange)="usernameError.set(null)" />
         </label>
         <p class="tiny" [class.muted]="!usernameError()" [class.danger-text]="usernameError()">{{ usernameError() ?? ('account.usernameHint' | t) }}</p>
+        <label class="check">
+          <input type="checkbox" name="discoverable" [checked]="account()?.discoverable ?? true" (change)="setDiscoverable($any($event.target).checked)" />
+          <span><b>{{ 'account.discoverable' | t }}</b><span class="small muted">{{ 'account.discoverableHint' | t }}</span></span>
+        </label>
         <button type="submit" class="btn btn-primary btn-block" [disabled]="!draftValid() || busy()"><app-icon name="check" /> {{ 'common.save' | t }}</button>
       </form>
     </dialog>
@@ -376,6 +398,35 @@ import { normalizeUsername } from '../../core/friends/friends-api';
     .danger-text {
       color: var(--danger);
     }
+    .water-set {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .water-goal {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      animation: hint-in 300ms var(--ease-out) both;
+    }
+    .mini-stepper {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 1.2rem;
+      font-weight: 750;
+    }
+    .mini-stepper .num {
+      min-width: 2ch;
+      text-align: center;
+    }
+    @keyframes hint-in {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+    }
   `,
 })
 export class AccountPage {
@@ -482,6 +533,32 @@ export class AccountPage {
       this.toast.show(this.i18n.t('account.usernameSaved'));
     } catch (err) {
       this.usernameError.set(this.i18n.error(errorCode(err)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  /** on: a goal from the weight (about 33 ml per kg, 6 to 12 glasses); off: no goal */
+  protected async toggleWater(on: boolean): Promise<void> {
+    const kg = this.tracking.summary()?.current?.weightKg ?? 70;
+    const goal = on ? Math.min(12, Math.max(6, Math.round((kg * 0.033) / 0.25))) : 0;
+    await this.patch({ waterGoal: goal });
+  }
+
+  protected setWaterGoal(n: number): Promise<void> {
+    return this.patch({ waterGoal: n });
+  }
+
+  protected setDiscoverable(on: boolean): Promise<void> {
+    return this.patch({ discoverable: on });
+  }
+
+  private async patch(p: { waterGoal?: number; discoverable?: boolean }): Promise<void> {
+    this.busy.set(true);
+    try {
+      this.session.setAccount(await this.api.updateMe(p));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
     } finally {
       this.busy.set(false);
     }

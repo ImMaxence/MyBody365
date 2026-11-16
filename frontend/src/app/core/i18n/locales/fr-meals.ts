@@ -283,4 +283,5 @@ export const frMeals = {
   },
   nutriscore: 'Nutri-Score {grade}',
   nutriscoreEstimated: 'Nutri-Score {grade}, estimé à partir des nutriments',
+  nutriscoreEstimatedShort: 'Estimé par l’app',
 };

@@ -10,12 +10,13 @@ import { PhotosStore } from '../../core/photos/photos.store';
 import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
 import { IconComponent } from '../../shared/icon.component';
 import { WeighSheetComponent } from './weigh-sheet.component';
+import { WaterRowComponent } from './water-row.component';
 
 /** "Today": the streak, the day's to-do (the weigh-in validates the day) and the goal. */
 @Component({
   selector: 'app-today',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, WeighSheetComponent],
+  imports: [WaterRowComponent, RouterLink, TranslatePipe, IconComponent, WeighSheetComponent],
   template: `
     <main class="page">
       <header class="head">
@@ -133,6 +134,9 @@ import { WeighSheetComponent } from './weigh-sheet.component';
           </span>
           <app-icon [name]="weighedIn() ? 'pencil' : 'plus'" />
         </button>
+        @if (account()?.waterGoal; as goal) {
+          <app-water-row [goal]="goal" />
+        }
         <a class="list-item task" [class.done]="photos.todayDone()" routerLink="/app/photos/camera">
           <span class="list-icon"><app-icon [name]="photos.todayDone() ? 'check' : 'camera'" /></span>
           <span class="list-body">
@@ -149,11 +153,11 @@ import { WeighSheetComponent } from './weigh-sheet.component';
           </span>
           <app-icon name="chevronRight" />
         </a>
-        <a class="list-item task" routerLink="/app/workouts">
-          <span class="list-icon"><app-icon name="dumbbell" /></span>
+        <a class="list-item task" routerLink="/app/timer">
+          <span class="list-icon"><app-icon name="timer" /></span>
           <span class="list-body">
-            <span class="list-title">{{ 'engage.workouts.todayCta' | t }}</span>
-            <span class="list-sub">{{ 'engage.workouts.sub' | t }}</span>
+            <span class="list-title">{{ 'engage.timer.title' | t }}</span>
+            <span class="list-sub">{{ 'engage.timer.sub' | t }}</span>
           </span>
           <app-icon name="chevronRight" />
         </a>
@@ -178,7 +182,7 @@ import { WeighSheetComponent } from './weigh-sheet.component';
           <div class="goal-top">
             <span class="goal-ico"><app-icon name="target" /></span>
             <div class="grow">
-              <h2 class="h3">{{ 'today.goal' | t }} <span class="goal-kg num">{{ i18n.number(s.goal.goalKg, 1) }} kg</span></h2>
+              <h2 class="h3 goal-title"><span>{{ 'today.goal' | t }}</span> <span class="goal-kg num">{{ i18n.number(s.goal.goalKg, 1) }} kg</span></h2>
               <p class="small muted">
                 @if (s.goal.reached) {
                   {{ 'today.goalReached' | t }}
@@ -480,6 +484,12 @@ import { WeighSheetComponent } from './weigh-sheet.component';
       color: #fff;
     }
     /* the goal weight never splits from its unit */
+    .goal-title {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 2px 10px;
+    }
     .goal-kg {
       white-space: nowrap;
       color: var(--accent-text);

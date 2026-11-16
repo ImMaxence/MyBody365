@@ -22,6 +22,13 @@ Tes repas en un coup d'œil, des recettes à importer, et des amis qu'on trouve 
 - Progrès : des icônes sur les chiffres clés, l'objectif écrit sur sa ligne
 - Le site présente l'app avec de vraies captures, en clair et en sombre, avant d'installer
 - Drapeaux sur le choix de la langue
+- Minuteur : effort, repos et nombre de tours (ou un préréglage : Tabata, gainage, fractionné…), un « prêt » de 5 secondes, des bips sur les dernières secondes, une vibration à chaque changement, l'écran qui reste allumé
+- Verres d'eau, désactivés par défaut : à activer dans ton profil, un objectif calculé selon ton poids et réglable, un verre de 25 cl à cocher sur l'écran Aujourd'hui, compris dans les sauvegardes
+- Choisir une date d'arrivée pour son objectif : l'app calcule le rythme, et dit quand la date est trop proche pour rester en bonne santé
+- Suggestions en tapant le nom d'utilisateur d'un ami (à partir de 3 lettres), avec un réglage pour ne pas y apparaître
+- Nutri-Score bien en avant, comme sur les emballages : les 5 lettres sur une étiquette blanche, celle de l'aliment en grand, avec la mention « estimé » quand l'app le calcule elle-même
+- Connexion locale avec un nouveau compte, pour tester le parcours de bienvenue (développement uniquement)
+- Progrès : l'objectif toujours visible sur le graphique
 
 ### Modifié
 - Stockage : 2 Go par compte au lieu de 1 Go
@@ -30,15 +37,22 @@ Tes repas en un coup d'œil, des recettes à importer, et des amis qu'on trouve 
 - Sélecteur de poids : le nombre est bien centré et bouge à chaque appui sur − ou +
 - Boutons principaux en texte blanc sur un dégradé plus profond, lisible partout (contraste AA)
 - Administration : changer d'onglet ne rejoue plus l'animation de la page
+- Le minuteur remplace les programmes de séances et les rappels de salle : l'app reste centrée sur les repas et le poids, le sport en complément, sans ajouter de calories au budget du jour. Les séances déjà enregistrées restent dans les sauvegardes
+- Rythme limité à 1 % de ton poids par semaine (1 kg au plus), les rythmes plus rapides sont grisés
+- Pages légales : les onglets glissent comme ailleurs, sans animation de page, et les noms longs passent sur deux lignes
 
 ### Corrigé
 - Les tiroirs se ferment aussi sur ordinateur : clic à côté, clic sur la poignée, Échap, ou glissé vers le bas au doigt
 - La prévision du graphique de progrès ne sort plus du cadre, même avec une seule pesée
+- Retour depuis les pages légales et les nouveautés : on revient à l'écran d'avant (le profil dans l'app), plus à l'écran Aujourd'hui
+- Retour depuis Amis ou le minuteur après une réouverture de l'app : vers le profil
+- Aujourd'hui : plus d'espace entre « Ton objectif » et le poids visé
+- La carte « Créer un aliment » s'affichait mal (titre et texte collés)
 
 ### Sécurité
 - Import de recettes : le serveur ne va que vers des sites publics (ni réseau interne ni adresse privée, vérifié à chaque redirection), lit 3 Mo au plus en 10 secondes, sans rien transmettre sur toi
 - La photo de profil passe par le même traitement que les autres photos : vérifiée, redessinée, recadrée, sans aucune métadonnée ; l'ancienne est effacée
-- La recherche par nom d'utilisateur ne donne qu'une correspondance exacte, sans liste ni suggestion, et son débit est limité
+- La recherche par nom d'utilisateur donne une correspondance exacte ; les suggestions démarrent à 3 lettres, s'arrêtent à 6, montrent le prénom sans photo, respectent ceux qui ne veulent pas y figurer, et leur débit est limité
 
 ## [0.7.0] - 2026-11-16
 

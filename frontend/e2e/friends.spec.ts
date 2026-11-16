@@ -53,10 +53,10 @@ test.describe('friends', () => {
     const friend = await other.newPage();
     await signIn(friend, 'new');
     await friend.goto('/app/friends');
-    await friend.getByRole('textbox', { name: 'Nom d’utilisateur de ton ami' }).fill('nobody_' + Date.now() % 100000);
+    await friend.getByRole('combobox', { name: 'Nom d’utilisateur de ton ami' }).fill('nobody_' + Date.now() % 100000);
     await friend.getByRole('button', { name: 'Chercher' }).click();
     await expect(friend.getByText(/Personne n’a ce nom d’utilisateur/)).toBeVisible();
-    await friend.getByRole('textbox', { name: 'Nom d’utilisateur de ton ami' }).fill('@' + me.username);
+    await friend.getByRole('combobox', { name: 'Nom d’utilisateur de ton ami' }).fill('@' + me.username);
     await friend.getByRole('button', { name: 'Chercher' }).click();
     await friend.getByRole('button', { name: 'Demander en ami' }).click();
     await expect(friend.getByText(/Demande envoyée à/)).toBeVisible();

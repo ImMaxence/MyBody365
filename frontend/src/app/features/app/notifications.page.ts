@@ -10,7 +10,7 @@ import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 
-/** Notifications: this device on or off, the daily and gym reminders, friends' nudges. */
+/** Notifications: this device on or off, the daily reminder, friends' nudges. */
 @Component({
   selector: 'app-notifications',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,27 +60,6 @@ import { IconComponent } from '../../shared/icon.component';
               <div class="field">
                 <label class="label" for="n-daily">{{ 'engage.notifications.dailyTime' | t }}</label>
                 <input class="input" id="n-daily" name="dailyTime" type="time" step="300" [(ngModel)]="p.dailyTime" />
-              </div>
-            }
-          </section>
-
-          <section class="card block">
-            <label class="check">
-              <input type="checkbox" name="gym" [(ngModel)]="p.gymEnabled" />
-              <span><b>{{ 'engage.notifications.gym' | t }}</b><span class="small muted">{{ 'engage.notifications.gymHint' | t }}</span></span>
-            </label>
-            @if (p.gymEnabled) {
-              <span class="label">{{ 'engage.notifications.gymDays' | t }}</span>
-              <div class="days" role="group" [attr.aria-label]="'engage.notifications.gymDays' | t">
-                @for (d of weekdays(); track $index; let i = $index) {
-                  <button type="button" class="day" [class.on]="hasDay(p, i + 1)" [attr.aria-pressed]="hasDay(p, i + 1)" [attr.aria-label]="weekdayNames()[i]" (click)="toggleDay(p, i + 1)">
-                    {{ d }}
-                  </button>
-                }
-              </div>
-              <div class="field">
-                <label class="label" for="n-gym">{{ 'engage.notifications.gymTime' | t }}</label>
-                <input class="input" id="n-gym" name="gymTime" type="time" step="300" [(ngModel)]="p.gymTime" />
               </div>
             }
           </section>
@@ -182,8 +161,6 @@ export class NotificationsPage {
   protected readonly prefs = signal<NotificationPrefs | null>(null);
   protected readonly devices = signal(0);
   protected readonly busy = signal(false);
-  protected readonly weekdays = () => this.i18n.get<string[]>('engage.notifications.weekdays') ?? [];
-  protected readonly weekdayNames = () => this.i18n.get<string[]>('engage.notifications.weekdayNames') ?? [];
   private publicKey = '';
 
   constructor() {
@@ -195,17 +172,6 @@ export class NotificationsPage {
         this.prefs.set({ ...s.prefs });
       })
       .catch(() => undefined);
-  }
-
-  protected hasDay(p: NotificationPrefs, d: number): boolean {
-    return p.gymDays.split(',').includes(String(d));
-  }
-
-  protected toggleDay(p: NotificationPrefs, d: number): void {
-    const days = new Set(p.gymDays.split(',').filter(Boolean).map(Number));
-    if (days.has(d)) days.delete(d);
-    else days.add(d);
-    this.prefs.set({ ...p, gymDays: [...days].sort().join(',') });
   }
 
   protected async enable(): Promise<void> {

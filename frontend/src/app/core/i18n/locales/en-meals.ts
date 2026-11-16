@@ -286,4 +286,5 @@ export const enMeals: Widen<typeof frMeals> = {
   },
   nutriscore: 'Nutri-Score {grade}',
   nutriscoreEstimated: 'Nutri-Score {grade}, estimated from the nutrients',
+  nutriscoreEstimatedShort: 'Estimated by the app',
 };

@@ -43,7 +43,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/me")
 public class MeController {
 
-    public record UpdateProfile(@Size(min = 1, max = 40) String displayName, @Pattern(regexp = "fr|en") String locale) {}
+    public record UpdateProfile(@Size(min = 1, max = 40) String displayName, @Pattern(regexp = "fr|en") String locale, Boolean discoverable,
+            /** glasses of water a day, 0 to turn the tracker off */
+            @jakarta.validation.constraints.Min(0) @jakarta.validation.constraints.Max(30) Integer waterGoal) {}
 
     public record Consent(@AssertTrue boolean adult, @AssertTrue boolean health) {}
 
@@ -90,6 +92,12 @@ public class MeController {
         }
         if (body.locale() != null) {
             user.setLocale(body.locale());
+        }
+        if (body.discoverable() != null) {
+            user.setDiscoverable(body.discoverable());
+        }
+        if (body.waterGoal() != null) {
+            user.setWaterGoal(body.waterGoal() == 0 ? null : body.waterGoal());
         }
         return AccountDto.of(users.save(user), users.isAdmin(user), tracking.hasProfile(user.getId()));
     }

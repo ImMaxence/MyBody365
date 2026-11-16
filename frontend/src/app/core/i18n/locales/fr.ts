@@ -89,6 +89,7 @@ export const fr = {
     recipe_url_invalid: 'Ce lien ne peut pas être importé : colle l’adresse complète d’une page web (https://…)',
     recipe_unreachable: 'Le site ne répond pas ou refuse la lecture. Réessaie plus tard, ou saisis la recette à la main',
     recipe_not_found: 'Pas de recette lisible sur cette page : saisis-la à la main, c’est rapide',
+    pace_too_fast: 'Trop rapide pour ton poids : au plus 1 % de ton poids par semaine',
     self_request: 'C’est ton propre nom d’utilisateur',
     too_many_requests: 'Trop de demandes en attente : attends que certaines reçoivent une réponse',
     username_taken: 'Ce nom d’utilisateur est déjà pris',
@@ -307,6 +308,7 @@ export const fr = {
     passkey: 'Se connecter avec une passkey',
     devAdmin: 'Connexion locale (admin)',
     devUser: 'Connexion locale (utilisateur)',
+    devNew: 'Connexion locale (nouveau compte)',
     noAccess: 'Pas encore d’accès ?',
     requestAccess: 'Demander un accès',
     lostAccess: 'Tu as perdu l’accès à ton compte ?',
@@ -443,6 +445,17 @@ export const fr = {
       p1: { label: 'Intense', hint: '1 kg / semaine' },
     },
     paceFast: 'Rythme rapide : à suivre de près, idéalement avec un professionnel de santé',
+    paceLocked: 'Trop rapide pour ton poids',
+    paceRule: 'Pour rester en bonne santé : au plus 1 % de ton poids par semaine, soit {kg} kg pour toi',
+    paceCustom: 'Rythme choisi : {kg} kg par semaine',
+    dateChoice: 'Ou choisis une date d’arrivée',
+    dateChoiceHint: 'L’app calcule le rythme, sans dépasser la limite',
+    dateWish: 'Date souhaitée',
+    dateResult: {
+      ok: 'C’est possible : {kg} kg par semaine pour y être le {date}',
+      sooner: 'Même au rythme le plus doux ({kg} kg par semaine), tu y seras dès le {date}',
+      tooFast: 'Trop rapide pour rester en bonne santé : au plus tôt le {date}, à {kg} kg par semaine',
+    },
     activity: 'Activité au quotidien',
     activities: {
       SEDENTARY: { label: 'Sédentaire', hint: 'Bureau, peu de marche' },
@@ -562,8 +575,24 @@ export const fr = {
     usernameSaved: 'Nom d’utilisateur enregistré',
     usernameCopied: 'Nom d’utilisateur copié',
     copyUsername: 'Copier mon nom d’utilisateur',
+    discoverable: 'Apparaître dans les suggestions',
+    discoverableHint: 'Quand quelqu’un tape le début de ton nom d’utilisateur. Sinon, on ne te trouve qu’avec ton nom exact',
   },
 
+  water: {
+    title: 'Eau',
+    count: '{n} / {goal} verres · {l} L',
+    less: 'Retirer un verre',
+    more: 'Ajouter un verre',
+    reached: 'Objectif d’eau atteint, bien joué',
+    settings: 'Suivi facultatif',
+    toggle: 'Verres d’eau',
+    toggleHint: 'Un verre de 25 cl à cocher sur l’écran Aujourd’hui. Désactivé par défaut',
+    goal: 'Objectif par jour',
+    goalValue: '{n} verres, soit {l} L',
+    goalLess: 'Un verre de moins par jour',
+    goalMore: 'Un verre de plus par jour',
+  },
   security: {
     title: 'Connexion et sécurité',
     google: 'Compte Google',
@@ -687,7 +716,7 @@ export const fr = {
 
   legal: {
     updated: 'Dernière mise à jour : {date}',
-    back: 'Retour à l’accueil',
+    back: 'Retour',
     docs: { mentions: 'Mentions légales', confidentialite: 'Confidentialité', cgu: 'Conditions d’utilisation' },
     mentions: {
       title: 'Mentions légales',
@@ -753,7 +782,7 @@ export const fr = {
           h: 'Données traitées',
           p: [
             'Compte : adresse e-mail, prénom, nom d’utilisateur, photo de profil (celle de Google, ou celle que tu envoies, redessinée et sans métadonnées, l’ancienne étant effacée quand tu la changes), langue, rôle, dates de connexion, moyens de connexion (identifiant Google, passkeys : clés publiques uniquement).',
-            'Suivi : poids, mensurations, objectif, repas, aliments créés, recettes, séances, photos de progression. Ce sont des données de santé au sens de l’article 9 du RGPD : elles ne sont traitées qu’avec ton consentement explicite, donné à la création du compte. Chaque photo est redessinée et réenregistrée par le serveur : aucune métadonnée du fichier d’origine n’est conservée, pas même la position GPS.',
+            'Suivi : poids, mensurations, objectif, repas, aliments créés, recettes, séances enregistrées avant la version 0.8, verres d’eau (si tu actives ce suivi), photos de progression. Ce sont des données de santé au sens de l’article 9 du RGPD : elles ne sont traitées qu’avec ton consentement explicite, donné à la création du compte. Chaque photo est redessinée et réenregistrée par le serveur : aucune métadonnée du fichier d’origine n’est conservée, pas même la position GPS.',
             'Amis : la liste de tes amis, les demandes d’ami envoyées et reçues, les coups de pouce, les photos et recettes que tu partages et avec qui, les signalements que tu envoies. Un membre ne peut te trouver qu’avec ton nom d’utilisateur exact.',
             'Notifications : l’adresse technique fournie par ton navigateur pour chaque appareil où tu les actives (abonnement Web Push) et tes réglages de rappels.',
             'Sauvegardes Google Drive (si tu les actives) : un jeton qui ne donne accès qu’aux fichiers créés par MyBody365, conservé chiffré.',
@@ -764,7 +793,7 @@ export const fr = {
           h: 'Qui voit quoi',
           p: [
             'Tes photos de progression ne sont visibles que par toi. Personne d’autre, administrateurs compris, n’y a accès dans l’application, sauf les photos que tu choisis de partager avec un ami, jusqu’à ce que tu retires ce partage.',
-            'Tes amis voient ton prénom, ton nom d’utilisateur, ta photo de profil, le nombre de jours de ta flamme et si tu as validé ta journée, ainsi que les recettes que tu leur montres. Rien d’autre : ni ton poids, ni tes repas, ni tes photos, sauf celles que tu partages. Un membre qui cherche ton nom d’utilisateur voit seulement ton prénom.',
+            'Tes amis voient ton prénom, ton nom d’utilisateur, ta photo de profil, le nombre de jours de ta flamme et si tu as validé ta journée, ainsi que les recettes que tu leur montres. Rien d’autre : ni ton poids, ni tes repas, ni tes photos, sauf celles que tu partages. Un membre qui cherche ton nom d’utilisateur voit seulement ton prénom ; en tapant au moins 3 lettres, il peut te voir dans les suggestions (prénom et nom d’utilisateur), sauf si tu le désactives dans ton profil.',
             'Les administrateurs voient la liste des comptes (adresse, prénom, rôle, moyens de connexion, dernières connexions, espace de stockage utilisé), les demandes d’accès et les recettes publiées dans la communauté. Une photo partagée qui a été signalée devient visible des administrateurs, et d’eux seuls, le temps de traiter le signalement.',
             'L’éditeur, qui administre le serveur, a techniquement accès au stockage ; il s’engage à ne pas consulter tes contenus, sauf réquisition judiciaire ou signalement d’un contenu manifestement illicite.',
           ],

@@ -200,15 +200,12 @@ export class WeightChartComponent {
       }
     }
 
-    // the vertical range: the weigh-ins, the trend, the end of the forecast, and the goal when it is near
+    // the vertical range: the weigh-ins, the trend, the end of the forecast and the goal (always in sight)
     const values = shown.flatMap((l) => [l.weightKg!, l.trendKg ?? l.weightKg!]);
     if (forecastEnd) values.push(forecastEnd.kg);
+    if (goal != null) values.push(goal);
     let lo = Math.min(...values);
     let hi = Math.max(...values);
-    if (goal != null && goal > lo - 4 && goal < hi + 4) {
-      lo = Math.min(lo, goal);
-      hi = Math.max(hi, goal);
-    }
     const span = Math.max(hi - lo, 2);
     const mid = (lo + hi) / 2;
     lo = Math.min(lo, mid - span / 2) - span * 0.12;
@@ -224,7 +221,7 @@ export class WeightChartComponent {
     const forecast = forecastEnd ? `M${lx.toFixed(1)} ${ly.toFixed(1)} L${sx(forecastEnd.ms).toFixed(1)} ${sy(forecastEnd.kg).toFixed(1)}` : null;
 
     const visibleSpan = hi - lo;
-    const step = visibleSpan > 14 ? 5 : visibleSpan > 6 ? 2 : 1;
+    const step = visibleSpan > 40 ? 10 : visibleSpan > 14 ? 5 : visibleSpan > 6 ? 2 : 1;
     const grid = [];
     for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) {
       grid.push({ v, y: +sy(v).toFixed(1), label: this.i18n.number(v) });

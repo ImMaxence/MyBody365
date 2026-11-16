@@ -60,6 +60,8 @@ export const frFriends = {
     invalid: 'Ce lien d’ami n’est pas valide ou a expiré. Demande-en un nouveau',
   },
   search: {
+    suggestions: 'Suggestions',
+    relation: { FRIEND: 'Ami', SENT: 'Demande envoyée', RECEIVED: 'Te demande', SELF: 'Toi' },
     title: 'Ajouter par nom d’utilisateur',
     label: 'Nom d’utilisateur de ton ami',
     placeholder: 'leamartin',

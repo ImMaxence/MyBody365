@@ -37,6 +37,12 @@ test.describe('tracking', () => {
     // goal: proposed 5 kg lower, pace and activity
     await expect(page.getByRole('heading', { name: 'Ton objectif' })).toBeVisible();
     await expect(page.getByLabel('Poids visé')).toHaveValue('83,5');
+    // a wished date two weeks away: too fast to be safe, the app says from when it is possible
+    await page.getByRole('radio', { name: /Ou choisis une date d’arrivée/ }).click();
+    const soon = new Date();
+    soon.setDate(soon.getDate() + 14);
+    await page.getByLabel('Date souhaitée').fill(soon.toISOString().slice(0, 10));
+    await expect(page.getByText(/Trop rapide pour rester en bonne santé/)).toBeVisible();
     await page.getByRole('radio', { name: /Soutenu/ }).click();
     await page.getByRole('radio', { name: /Modérée/ }).click();
     await expect(page.getByText(/Arrivée estimée/)).toBeVisible();

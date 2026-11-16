@@ -8,6 +8,10 @@ export interface Account {
   avatarUrl?: string;
   /** a picture of one's own was uploaded */
   ownAvatar: boolean;
+  /** shown in the username suggestions of the friends search */
+  discoverable: boolean;
+  /** glasses of water a day; absent: the water tracker is off */
+  waterGoal?: number;
   role: 'USER' | 'ADMIN';
   locale: 'fr' | 'en';
   onboarded: boolean;

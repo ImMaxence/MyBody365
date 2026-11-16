@@ -70,7 +70,7 @@ import { TYPE_EMOJI } from './recipes.page';
               }
             </h2>
             @if (r.nutriscore) {
-              <app-nutriscore [grade]="r.nutriscore" [estimated]="true" />
+              <app-nutriscore [grade]="r.nutriscore" [estimated]="true" size="full" />
             }
           </div>
           <div class="kcal num">{{ i18n.number(r.perServing.kcal) }} <small>kcal</small></div>

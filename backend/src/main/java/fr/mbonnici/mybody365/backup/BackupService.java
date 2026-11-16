@@ -62,7 +62,7 @@ public class BackupService {
 
     public record Preview(String token, String exportedAt, String appVersion, boolean profile, Map<String, Change> changes) {}
 
-    public record Result(int logs, int photos, int meals, int foods, int recipes, int workouts) {}
+    public record Result(int logs, int photos, int meals, int foods, int recipes, int workouts, int water) {}
 
     /** what a backup file holds, read and checked */
     record Parsed(Map<String, Object> manifest, Map<String, Object> data, Set<String> files, long filesBytes) {}
@@ -101,6 +101,7 @@ public class BackupService {
         List<Map<String, Object>> photos = rows(BackupFormat.PHOTOS, "user_id = ? order by day", userId);
         data.put("photos", photos);
         data.put("workouts", rows(BackupFormat.WORKOUTS, "user_id = ? order by day", userId));
+        data.put("water", rows(BackupFormat.WATER, "user_id = ? order by day", userId));
         List<Map<String, Object>> prefs = rows(BackupFormat.PREFS, "user_id = ?", userId);
         data.put("notifications", prefs.isEmpty() ? null : prefs.getFirst());
 
@@ -241,6 +242,8 @@ public class BackupService {
                 keyed(list(data, "recipes"), r -> lower(r.get("name"))), r -> r.get("servings") + "/" + r.get("kcal")));
         out.put("workouts", compare(keyed(rows(BackupFormat.WORKOUTS, "user_id = ?", userId), BackupService::workoutKey),
                 keyed(list(data, "workouts"), BackupService::workoutKey), r -> ""));
+        out.put("water", compare(keyed(rows(BackupFormat.WATER, "user_id = ?", userId), r -> str(r.get("day"))),
+                keyed(list(data, "water"), r -> str(r.get("day"))), r -> String.valueOf(r.get("glasses"))));
         return out;
     }
 
@@ -385,6 +388,7 @@ public class BackupService {
             jdbc.update("delete from photo where user_id = ?", userId);
             jdbc.update("delete from workout_session where user_id = ?", userId);
             jdbc.update("delete from body_log where user_id = ?", userId);
+            jdbc.update("delete from water_log where user_id = ?", userId);
         }
         try (ZipFile zip = new ZipFile(zipPath.toFile())) {
             Map<String, UUID> foodIds = new HashMap<>();
@@ -559,6 +563,18 @@ public class BackupService {
                     workouts++;
                 }
             }
+            // glasses of water: a backup made before 0.8 has none
+            int water = 0;
+            for (Map<String, Object> w : list(p.data(), "water")) {
+                Map<String, Object> v = typed(BackupFormat.WATER, w);
+                Object g = v.get("glasses");
+                if (v.get("day") == null || !(g instanceof Number n) || n.intValue() < 1 || n.intValue() > 40) {
+                    continue;
+                }
+                jdbc.update("delete from water_log where user_id = ? and day = ?", userId, v.get("day"));
+                insert("water_log", v, Map.of("user_id", userId));
+                water++;
+            }
             Object profile = p.data().get("profile");
             if (profile instanceof Map<?, ?> pm) {
                 @SuppressWarnings("unchecked")
@@ -577,7 +593,7 @@ public class BackupService {
                     insert("notification_pref", v, Map.of("user_id", userId));
                 }
             }
-            return new Result(logs, photos, meals, foods, recipes, workouts);
+            return new Result(logs, photos, meals, foods, recipes, workouts, water);
         } catch (IOException e) {
             throw ApiException.badRequest("backup_invalid");
         }

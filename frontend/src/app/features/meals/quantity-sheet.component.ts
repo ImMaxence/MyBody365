@@ -38,7 +38,7 @@ export interface QuantityTarget {
               }
             </div>
             @if (t.nutriscore) {
-              <app-nutriscore [grade]="t.nutriscore" [estimated]="!!t.estimated" />
+              <app-nutriscore [grade]="t.nutriscore" [estimated]="!!t.estimated" size="full" />
             }
           </div>
           @if (t.unit === 'g') {

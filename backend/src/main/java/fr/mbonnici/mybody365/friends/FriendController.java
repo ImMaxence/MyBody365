@@ -48,6 +48,12 @@ public class FriendController {
         return friends.find(users.current(auth).getId(), username);
     }
 
+    /** usernames starting with what was typed (rate-limited, members who accept it only) */
+    @GetMapping("/api/me/friends/suggest")
+    public List<FriendService.MemberDto> suggest(@RequestParam String q, Authentication auth) {
+        return friends.suggest(users.current(auth).getId(), q);
+    }
+
     @GetMapping("/api/me/friends/requests")
     public FriendService.Requests requests(Authentication auth) {
         return friends.requests(users.current(auth).getId());

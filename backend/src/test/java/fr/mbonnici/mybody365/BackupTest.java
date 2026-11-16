@@ -58,6 +58,7 @@ class BackupTest extends AbstractIntegrationTest {
                 .param("pose", "SIDE").with(as(lea)).with(csrf())).andExpect(status().isCreated());
         json(post("/api/me/workouts"), lea, """
                 {"day":"%s","program":"home","workout":"circuit","durationMin":25,"exercises":[{"id":"plank","sets":4}]}""".formatted(today));
+        json(put("/api/me/water/" + today), lea, "{\"glasses\":6}");
     }
 
     private MvcResult json(org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder req, AppUser who, String body)
@@ -132,7 +133,8 @@ class BackupTest extends AbstractIntegrationTest {
         mvc.perform(post("/api/me/backup/restore").with(as(hugo)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
                         .content("{\"token\":\"" + token + "\",\"mode\":\"REPLACE\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.photos").value(1)).andExpect(jsonPath("$.recipes").value(1))
-                .andExpect(jsonPath("$.meals").value(2)).andExpect(jsonPath("$.workouts").value(1));
+                .andExpect(jsonPath("$.meals").value(2)).andExpect(jsonPath("$.workouts").value(1)).andExpect(jsonPath("$.water").value(1));
+        mvc.perform(get("/api/me/water/" + today).with(as(hugo))).andExpect(jsonPath("$.glasses").value(6));
         String photo = JsonPath.read(mvc.perform(get("/api/me/photos").with(as(hugo))).andReturn().getResponse().getContentAsString(), "$[0].url");
         mvc.perform(get(photo).with(as(hugo))).andExpect(status().isOk());
         String recipe = JsonPath.read(mvc.perform(get("/api/me/recipes").with(as(hugo))).andReturn().getResponse().getContentAsString(), "$[0].id");

@@ -85,15 +85,42 @@ class TrackingTest extends AbstractIntegrationTest {
                         .content(profile("50", "0.5")))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value("goal_too_low"));
         mvc.perform(put("/api/me/profile").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                        .content(profile("68", "0.6")))
+                        .content(profile("68", "0.62")))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value("invalid_rate"));
+        // 1 % of 78.4 kg a week at most: 0.75 kg
+        mvc.perform(put("/api/me/profile").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(profile("68", "0.8")))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value("pace_too_fast"));
+        mvc.perform(put("/api/me/profile").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content(profile("68", "0.6")))
+                .andExpect(status().isOk());
         mvc.perform(put("/api/me/profile").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
                         .content(profile("68", "1.0").replace("1996-04-12", today.minusYears(17).toString())))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value("too_young"));
-        // a fast pace is allowed but flagged
+        // the fastest pace allowed is flagged
         mvc.perform(put("/api/me/profile").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                        .content(profile("68", "1.0")))
+                        .content(profile("68", "0.75")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.warnings", hasItem("fast_pace")));
+    }
+
+    @Test
+    void glassesOfWaterOnceTheTrackerIsOn() throws Exception {
+        String day = today.toString();
+        mvc.perform(get("/api/me/water/" + day).with(as(lea))).andExpect(jsonPath("$.glasses").value(0))
+                .andExpect(jsonPath("$.goal").doesNotExist());
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/me").with(as(lea)).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"waterGoal\":8}")).andExpect(jsonPath("$.waterGoal").value(8));
+        mvc.perform(put("/api/me/water/" + day).with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"glasses\":3}"))
+                .andExpect(jsonPath("$.glasses").value(3)).andExpect(jsonPath("$.goal").value(8));
+        mvc.perform(put("/api/me/water/" + day).with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"glasses\":41}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(put("/api/me/water/" + today.plusDays(5)).with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"glasses\":2}")).andExpect(status().isBadRequest());
+        mvc.perform(put("/api/me/water/" + day).with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"glasses\":0}"))
+                .andExpect(jsonPath("$.glasses").value(0));
+        // off again
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/me").with(as(lea)).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"waterGoal\":0}")).andExpect(jsonPath("$.waterGoal").doesNotExist());
     }
 
     @Test

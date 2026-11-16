@@ -29,12 +29,36 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
           <label class="handle-input">
             <span aria-hidden="true">@</span>
             <input name="username" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="21" enterkeyhint="search"
-              [attr.aria-label]="'friends.search.label' | t" [placeholder]="'friends.search.placeholder' | t" [(ngModel)]="query" (ngModelChange)="found.set(null); searchError.set(null)" />
+              role="combobox" aria-autocomplete="list" aria-controls="friend-suggestions" [attr.aria-expanded]="suggestions().length > 0"
+              [attr.aria-activedescendant]="active() >= 0 ? 'suggestion-' + active() : null"
+              [attr.aria-label]="'friends.search.label' | t" [placeholder]="'friends.search.placeholder' | t" [(ngModel)]="query"
+              (ngModelChange)="typed($event)" (keydown)="keys($event)" (blur)="closeSuggestions()" />
           </label>
           <button type="submit" class="btn btn-primary find-btn" [disabled]="busy() || !query.trim()" [attr.aria-label]="'friends.search.submit' | t">
             <app-icon name="search" [size]="18" />
           </button>
         </form>
+        <ul id="friend-suggestions" class="suggestions" role="listbox" [attr.aria-label]="'friends.search.suggestions' | t" [hidden]="!suggestions().length">
+          @for (m of suggestions(); track m.id; let i = $index) {
+            <li [id]="'suggestion-' + i" role="option" [attr.aria-selected]="i === active()" [class.active]="i === active()" [style.--i]="i"
+              (mousedown)="$event.preventDefault()" (click)="pickSuggestion(m)">
+              <span class="ava small-ava" [style.--h]="hue(m.name)">
+                @if (m.avatarUrl && !broken().has(m.avatarUrl)) {
+                  <img [src]="m.avatarUrl" (error)="markBroken(m.avatarUrl)" alt="" referrerpolicy="no-referrer" />
+                } @else {
+                  {{ m.name.charAt(0).toUpperCase() }}
+                }
+              </span>
+              <span class="who-copy">
+                <span class="name">{{ m.name }}</span>
+                <span class="small muted">&#64;{{ m.username }}</span>
+              </span>
+              @if (m.relation !== 'NONE') {
+                <span class="chip tiny">{{ 'friends.search.relation.' + m.relation | t }}</span>
+              }
+            </li>
+          }
+        </ul>
         @if (searchError(); as err) {
           <p class="small muted find-msg">{{ err }}</p>
         }
@@ -290,7 +314,8 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
       color: var(--accent-text);
     }
     .find-form {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 48px;
       gap: var(--space-2);
     }
     .handle-input {
@@ -319,6 +344,43 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
       font: inherit;
       color: var(--fg);
       outline: none;
+    }
+    .suggestions {
+      display: grid;
+      margin: calc(-1 * var(--space-1)) 0 0;
+      padding: 4px;
+      list-style: none;
+      border-radius: var(--radius-m);
+      background: var(--surface);
+      border: 1px solid var(--line-strong);
+      box-shadow: var(--shadow-2);
+      animation: rise 200ms var(--ease-out) both;
+    }
+    .suggestions[hidden] {
+      display: none;
+    }
+    .suggestions li {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      min-height: 52px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      animation: rise 220ms var(--ease-out) both;
+      animation-delay: calc(var(--i) * 25ms);
+    }
+    .suggestions li.active,
+    .suggestions li:hover {
+      background: var(--accent-soft);
+    }
+    .suggestions .who-copy {
+      flex: 1;
+    }
+    .small-ava {
+      width: 34px;
+      height: 34px;
+      font-size: 14px;
     }
     .find-btn {
       width: 48px;
@@ -574,6 +636,9 @@ export class FriendsPage {
   protected readonly found = signal<Member | null>(null);
   protected readonly searchError = signal<string | null>(null);
   protected query = '';
+  protected readonly suggestions = signal<Member[]>([]);
+  protected readonly active = signal(-1);
+  private suggestTimer: ReturnType<typeof setTimeout> | null = null;
   protected readonly invite = signal<{ url: string; expiresAt: string } | null>(null);
   protected readonly qr = signal<string | null>(null);
   protected readonly selected = signal<Friend | null>(null);
@@ -601,8 +666,62 @@ export class FriendsPage {
     this.broken.update((s) => new Set(s).add(src));
   }
 
-  /** an exact username: no list of members, no suggestions */
+  /** suggestions from 3 characters, a moment after the last key (only members who accept to be suggested) */
+  protected typed(value: string): void {
+    this.found.set(null);
+    this.searchError.set(null);
+    if (this.suggestTimer) clearTimeout(this.suggestTimer);
+    const q = normalizeUsername(value);
+    if (!q) {
+      this.suggestions.set([]);
+      this.active.set(-1);
+      return;
+    }
+    this.suggestTimer = setTimeout(async () => {
+      try {
+        const list = await this.api.suggest(q);
+        // a newer key may have been typed meanwhile
+        if (normalizeUsername(this.query) === q) {
+          this.suggestions.set(list);
+          this.active.set(-1);
+        }
+      } catch {
+        this.suggestions.set([]);
+      }
+    }, 250);
+  }
+
+  /** ↓ ↑ to move in the suggestions, Enter to pick one, Escape to close them */
+  protected keys(e: KeyboardEvent): void {
+    const list = this.suggestions();
+    if (!list.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const d = e.key === 'ArrowDown' ? 1 : -1;
+      this.active.set((this.active() + d + list.length) % list.length);
+    } else if (e.key === 'Enter' && this.active() >= 0) {
+      e.preventDefault();
+      this.pickSuggestion(list[this.active()]);
+    } else if (e.key === 'Escape') {
+      this.closeSuggestions();
+    }
+  }
+
+  protected pickSuggestion(m: Member): void {
+    this.query = m.username;
+    this.closeSuggestions();
+    this.searchError.set(null);
+    this.found.set(m);
+  }
+
+  protected closeSuggestions(): void {
+    this.suggestions.set([]);
+    this.active.set(-1);
+  }
+
+  /** an exact username (also what Enter does without a suggestion picked) */
   protected async search(): Promise<void> {
+    this.closeSuggestions();
     const u = normalizeUsername(this.query);
     this.found.set(null);
     if (!u) {

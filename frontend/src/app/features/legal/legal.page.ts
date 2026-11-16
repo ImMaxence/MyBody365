@@ -6,6 +6,7 @@ import { SeoService } from '../../core/seo.service';
 import { LEGAL_DOCS, LegalDoc, SITE } from '../../core/site';
 import { SiteFooterComponent } from '../landing/site-footer.component';
 import { SubpageHeaderComponent } from '../landing/subpage-header.component';
+import { SegDirective } from '../../shared/seg.directive';
 
 interface Section {
   h: string;
@@ -16,26 +17,30 @@ interface Section {
 @Component({
   selector: 'app-legal',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, SiteFooterComponent, SubpageHeaderComponent],
+  imports: [SegDirective, RouterLink, TranslatePipe, SiteFooterComponent, SubpageHeaderComponent],
   template: `
     <app-subpage-header />
     <main id="main" class="container doc">
       <nav class="tabs seg" aria-label="Documents">
         @for (d of docs; track d) {
-          <a [routerLink]="prefix() + '/legal/' + d" [attr.aria-current]="d === key() ? 'page' : null" [class.on]="d === key()">
+          <a [routerLink]="prefix() + '/legal/' + d" [replaceUrl]="true" [attr.aria-current]="d === key() ? 'page' : null" [class.on]="d === key()">
             {{ 'legal.docs.' + d | t }}
           </a>
         }
       </nav>
-      <h1 class="h2">{{ 'legal.' + key() + '.title' | t }}</h1>
-      <p class="small faint">{{ 'legal.updated' | t: { date: updated() } }}</p>
-      @for (s of sections(); track s.h) {
-        <section>
-          <h2 class="h3">{{ s.h }}</h2>
-          @for (p of s.p; track $index) {
-            <p>{{ p }}</p>
+      @for (k of [key()]; track k) {
+        <div class="doc-body">
+          <h1 class="h2">{{ 'legal.' + k + '.title' | t }}</h1>
+          <p class="small faint">{{ 'legal.updated' | t: { date: updated() } }}</p>
+          @for (s of sections(); track s.h) {
+            <section>
+              <h2 class="h3">{{ s.h }}</h2>
+              @for (p of s.p; track $index) {
+                <p>{{ p }}</p>
+              }
+            </section>
           }
-        </section>
+        </div>
       }
     </main>
     <app-site-footer />
@@ -49,23 +54,39 @@ interface Section {
     }
     .tabs {
       margin-bottom: var(--space-6);
-      overflow-x: auto;
     }
+    /* three equal tabs: a long name goes on two lines instead of being cut */
     .tabs a {
       display: grid;
       place-items: center;
-      min-height: 40px;
-      padding: 0 12px;
+      min-height: 44px;
+      padding: 6px 8px;
       border-radius: var(--radius-pill);
       font-size: var(--fs-s);
       font-weight: 600;
+      line-height: 1.2;
+      text-align: center;
       color: var(--fg-2);
-      white-space: nowrap;
     }
     .tabs a.on {
-      background: var(--surface);
-      color: var(--fg);
-      box-shadow: var(--shadow-1);
+      color: var(--accent-text);
+    }
+    /* one document to the next: the tabs stay, the text fades in (no page animation) */
+    .doc-body {
+      display: grid;
+      gap: var(--space-4);
+      animation: doc-in 320ms var(--ease-out) both;
+    }
+    @keyframes doc-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .doc-body {
+        animation: none;
+      }
     }
     section {
       display: grid;

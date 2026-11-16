@@ -41,9 +41,11 @@ function pathOf(snapshot: ActivatedRouteSnapshot): string {
     .join('/');
 }
 
-/** the admin tabs switch in place: no page animation between them */
-function inAdmin(path: string): boolean {
-  return path === 'app/admin' || path.startsWith('app/admin/');
+/** tabs that switch in place (the admin area, the legal documents): no page animation between them */
+const TAB_GROUPS = ['app/admin', 'legal', 'en/legal'];
+
+function sameTabGroup(from: string, to: string): boolean {
+  return TAB_GROUPS.some((g) => (from === g || from.startsWith(g + '/')) && (to === g || to.startsWith(g + '/')));
 }
 
 function inApp(snapshot: ActivatedRouteSnapshot): boolean {
@@ -60,7 +62,7 @@ export function onViewTransitionCreated(info: ViewTransitionInfo): void {
   // between the public site and the app: a plain switch; an anchor of the same page (#parcours): only the scroll
   const from = pathOf(info.from);
   const to = pathOf(info.to);
-  if (reduced || fromApp !== toApp || from === to || (inAdmin(from) && inAdmin(to))) {
+  if (reduced || fromApp !== toApp || from === to || sameTabGroup(from, to)) {
     stack.endSwipe();
     info.transition.skipTransition();
     return;

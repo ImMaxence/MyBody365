@@ -141,6 +141,32 @@ public class FriendService implements PhotoAccessRule {
         return new MemberDto(id, firstName((String) row.get("display_name")), (String) row.get("username"), picture, rel);
     }
 
+    /**
+     * Suggestions while typing: usernames starting with what was typed (3 characters at least), 6 at most,
+     * only members who accept to be suggested; the first name and the username, the picture once linked.
+     */
+    public List<MemberDto> suggest(UUID viewerId, String typed) {
+        String u = normalize(typed);
+        if (u == null) {
+            return List.of();
+        }
+        // "_" is a wildcard for LIKE: escaped, like the escape character itself
+        String prefix = u.replace("\\", "\\\\").replace("_", "\\_") + "%";
+        List<Map<String, Object>> rows = jdbc.queryForList("""
+                select id, display_name, username, avatar_url, avatar_version from app_user
+                where username like ? escape '\\' and status = 'ACTIVE' and discoverable and id <> ?
+                order by username limit 6""", prefix, viewerId);
+        List<MemberDto> out = new ArrayList<>();
+        for (Map<String, Object> row : rows) {
+            UUID id = (UUID) row.get("id");
+            Relation rel = relation(viewerId, id);
+            String picture = rel == Relation.FRIEND || rel == Relation.RECEIVED
+                    ? AppUser.pictureUrl(id, (Integer) row.get("avatar_version"), (String) row.get("avatar_url")) : null;
+            out.add(new MemberDto(id, firstName((String) row.get("display_name")), (String) row.get("username"), picture, rel));
+        }
+        return out;
+    }
+
     private Relation relation(UUID me, UUID other) {
         if (me.equals(other)) {
             return Relation.SELF;

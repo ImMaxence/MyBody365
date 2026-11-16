@@ -14,6 +14,15 @@ public final class BodyMath {
 
     /** 1 kg of body fat ≈ 7 700 kcal */
     public static final double KCAL_PER_KG = 7700;
+
+    /**
+     * The fastest pace allowed: 1 % of the body weight a week (a common safety guide), 1 kg at most, 0.25 kg
+     * at least, by steps of 0.05 kg. 60 kg → 0.60, 100 kg and more → 1.00.
+     */
+    public static double maxWeeklyRate(double weightKg) {
+        double steps = Math.floor(weightKg * 0.01 / 0.05 + 1e-9);
+        return Math.round(Math.max(0.25, Math.min(1.0, steps * 0.05)) * 100) / 100.0;
+    }
     /** a healthy BMI never goes under this (goals below are refused) */
     public static final double MIN_BMI = 18.5;
     /** smoothing of the trend line (an exponential moving average, as in "The Hacker's Diet") */

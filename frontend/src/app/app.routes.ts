@@ -50,9 +50,11 @@ export const routes: Routes = [
           { path: 'account/security', loadComponent: () => import('./features/app/security.page').then((m) => m.SecurityPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/backup', loadComponent: () => import('./features/app/backup.page').then((m) => m.BackupPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/notifications', loadComponent: () => import('./features/app/notifications.page').then((m) => m.NotificationsPage), data: { depth: 1, back: '/app/account' } },
-          { path: 'friends', loadComponent: () => import('./features/friends/friends.page').then((m) => m.FriendsPage), data: { depth: 1, back: '/app' } },
-          { path: 'workouts', loadComponent: () => import('./features/workouts/workouts.page').then((m) => m.WorkoutsPage), data: { depth: 1, back: '/app' } },
-          { path: 'workouts/session', loadComponent: () => import('./features/workouts/workout-session.page').then((m) => m.WorkoutSessionPage), data: { depth: 2, back: '/app/workouts' } },
+          { path: 'friends', loadComponent: () => import('./features/friends/friends.page').then((m) => m.FriendsPage), data: { depth: 1, back: '/app/account' } },
+          { path: 'timer', loadComponent: () => import('./features/timer/timer.page').then((m) => m.TimerPage), data: { depth: 1, back: '/app' } },
+          // the workout programs (0.5 to 0.7) gave way to the timer
+          { path: 'workouts', redirectTo: 'timer' },
+          { path: 'workouts/session', redirectTo: 'timer' },
           {
             path: 'admin',
             canActivate: [adminGuard],

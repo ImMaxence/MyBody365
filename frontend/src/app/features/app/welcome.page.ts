@@ -8,12 +8,12 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
 import { IconComponent } from '../../shared/icon.component';
+import { PacePickerComponent } from './pace-picker.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { SegDirective } from '../../shared/seg.directive';
 
 type Step = 'consent' | 'about' | 'body' | 'goal' | 'plan';
 
-const PACES = [0.25, 0.5, 0.75, 1] as const;
 const ACTIVITIES: Activity[] = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VERY_ACTIVE'];
 
 /**
@@ -23,7 +23,7 @@ const ACTIVITIES: Activity[] = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VER
 @Component({
   selector: 'app-welcome',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, FormsModule, RouterLink, TranslatePipe, IconComponent, NumberStepperComponent],
+  imports: [PacePickerComponent, SegDirective, FormsModule, RouterLink, TranslatePipe, IconComponent, NumberStepperComponent],
   template: `
     <main class="page no-tabs">
       <header class="top">
@@ -108,18 +108,7 @@ const ACTIVITIES: Activity[] = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VER
             <app-number-stepper [(value)]="goal" (valueChange)="goalTouched = true" [step]="0.5" [min]="minGoal()" [max]="300" [decimals]="1" unit="kg" [label]="'setup.goalWeight' | t" />
             <p class="hint">{{ 'setup.goalMin' | t: { kg: i18n.number(minGoal(), 1) } }}</p>
 
-            <span class="label">{{ 'setup.pace' | t }}</span>
-            <div class="choices two" role="radiogroup" [attr.aria-label]="'setup.pace' | t">
-              @for (p of paces; track p) {
-                <button type="button" role="radio" class="choice" [attr.aria-checked]="pace() === p" (click)="pace.set(p)">
-                  <strong>{{ 'setup.paces.' + paceKey(p) + '.label' | t }}</strong>
-                  <span class="small muted">{{ 'setup.paces.' + paceKey(p) + '.hint' | t }}</span>
-                </button>
-              }
-            </div>
-            @if (pace() === 1) {
-              <p class="notice notice-accent"><app-icon name="alert" /> {{ 'setup.paceFast' | t }}</p>
-            }
+            <app-pace-picker [weight]="weight()" [goal]="goal()" [(pace)]="pace" />
             @if (eta(); as date) {
               <p class="eta"><app-icon name="target" [size]="18" /> {{ 'setup.eta' | t: { date: date } }}</p>
             }
@@ -347,7 +336,6 @@ export class WelcomePage {
   protected readonly Math = Math;
 
   protected readonly sexes: Sex[] = ['FEMALE', 'MALE', 'OTHER'];
-  protected readonly paces = PACES;
   protected readonly activities = ACTIVITIES;
   protected readonly maxBirth = localDay(new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate()));
 
@@ -387,10 +375,6 @@ export class WelcomePage {
     return this.i18n.date(localDay(d), { day: 'numeric', month: 'long', year: 'numeric' });
   });
 
-  /** translation key of a pace: 0.25 → p025 (no dot: dots separate the parts of a key) */
-  protected paceKey(p: number): string {
-    return 'p' + String(p).replace('.', '');
-  }
 
   protected next(): void {
     this.backwards.set(false);

@@ -49,6 +49,13 @@ public class AppUser {
 
     private Long avatarBytes;
 
+    /** shown in the username suggestions of the friends search (an exact username always finds the member) */
+    @Column(nullable = false)
+    private boolean discoverable = true;
+
+    /** glasses of water a day; null: the water tracker is off */
+    private Integer waterGoal;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.USER;
@@ -190,6 +197,22 @@ public class AppUser {
 
     public String getUsername() {
         return username;
+    }
+
+    public Integer getWaterGoal() {
+        return waterGoal;
+    }
+
+    public void setWaterGoal(Integer waterGoal) {
+        this.waterGoal = waterGoal;
+    }
+
+    public boolean isDiscoverable() {
+        return discoverable;
+    }
+
+    public void setDiscoverable(boolean discoverable) {
+        this.discoverable = discoverable;
     }
 
     public Integer getAvatarVersion() {
