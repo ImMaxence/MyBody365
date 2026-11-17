@@ -7,6 +7,42 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.7.1",
+    "date": "2026-11-17",
+    "summary": [
+      {
+        "t": "Un audit de sécurité de la 1.7 et ses quatre corrections"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Sécurité",
+        "items": [
+          [
+            {
+              "t": "Le compte « MyBody365 » qui publie les recettes de la communauté n'est plus administrateur, et aucun lien d'invitation ni de récupération ne peut être créé pour lui : une fausse demande d'accès à son nom, validée par erreur, ne donne plus rien"
+            }
+          ],
+          [
+            {
+              "t": "Une sauvegarde restaurée par un membre ne publie plus ses recettes dans la communauté : elles reviennent en « Amis »"
+            }
+          ],
+          [
+            {
+              "t": "Minuteur : les alertes écran verrouillé partent sans retenir les rappels des autres, dans l'ordre et quelques-unes par minute au plus"
+            }
+          ],
+          [
+            {
+              "t": "Import de recettes : la liste des ingrédients non reconnus est plafonnée, elle ne peut plus grossir sans fin"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.7.0",
     "date": "2026-11-17",
     "summary": [

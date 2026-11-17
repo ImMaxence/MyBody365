@@ -38,6 +38,10 @@ public class TimerAlerts {
     private static final Logger log = LoggerFactory.getLogger(TimerAlerts.class);
     /** a run is at most 30 rounds of an hour: further than that is not a timer */
     static final Duration HORIZON = Duration.ofHours(4);
+    /** a phase lasts a second at least: closer alerts are not a timer's */
+    static final Duration SPACING = Duration.ofSeconds(1);
+    /** more than this in a minute is not a timer either (a Tabata sends 6): the rest is dropped */
+    static final int PER_MINUTE = 12;
 
     public enum Phase { WORK, REST, DONE }
 
@@ -48,12 +52,16 @@ public class TimerAlerts {
     private final PushService push;
     private final UserService users;
     private final TaskScheduler scheduler;
+    private final org.springframework.core.task.TaskExecutor executor;
     private final Map<UUID, List<ScheduledFuture<?>>> pending = new ConcurrentHashMap<>();
+    private final Map<UUID, java.util.Deque<Instant>> sent = new ConcurrentHashMap<>();
 
-    public TimerAlerts(PushService push, UserService users, TaskScheduler scheduler) {
+    public TimerAlerts(PushService push, UserService users, TaskScheduler scheduler,
+            @org.springframework.beans.factory.annotation.Qualifier("applicationTaskExecutor") org.springframework.core.task.TaskExecutor executor) {
         this.push = push;
         this.users = users;
         this.scheduler = scheduler;
+        this.executor = executor;
     }
 
     /** the coming changes of phase, replacing the ones given before */
@@ -72,16 +80,22 @@ public class TimerAlerts {
 
     void schedule(UUID userId, List<Alert> alerts) {
         Instant now = Instant.now();
+        Instant previous = null;
         for (Alert a : alerts) {
-            if (a.at().isAfter(now.plus(HORIZON)) || a.round() > a.total()) {
+            // within the run's reach, in order and a few seconds apart, like the changes of a real timer
+            boolean far = a.at().isAfter(now.plus(HORIZON)) || a.at().isBefore(now.minusSeconds(60));
+            boolean close = previous != null && a.at().isBefore(previous.plus(SPACING));
+            if (far || close || a.round() > a.total()) {
                 throw ApiException.badRequest("timer_alert_invalid");
             }
+            previous = a.at();
         }
         List<ScheduledFuture<?>> futures = new ArrayList<>();
         for (Alert a : alerts) {
             // one already past (the request took a moment): sent at once, still useful
             Instant at = a.at().isBefore(now) ? now : a.at();
-            futures.add(scheduler.schedule(() -> send(userId, a), at));
+            // the scheduler only gives the signal: a slow push service must not hold its single thread (the reminders)
+            futures.add(scheduler.schedule(() -> executor.execute(() -> send(userId, a)), at));
         }
         List<ScheduledFuture<?>> before = pending.put(userId, futures);
         if (before != null) {
@@ -102,6 +116,17 @@ public class TimerAlerts {
     }
 
     private void send(UUID userId, Alert a) {
+        Instant now = Instant.now();
+        java.util.Deque<Instant> recent = sent.computeIfAbsent(userId, k -> new java.util.ArrayDeque<>());
+        synchronized (recent) {
+            while (!recent.isEmpty() && recent.peekFirst().isBefore(now.minusSeconds(60))) {
+                recent.pollFirst();
+            }
+            if (recent.size() >= PER_MINUTE) {
+                return;
+            }
+            recent.addLast(now);
+        }
         try {
             push.notify(userId, PushService.Kind.TIMER,
                     Map.of("phase", a.phase().name(), "round", String.valueOf(a.round()), "total", String.valueOf(a.total())));

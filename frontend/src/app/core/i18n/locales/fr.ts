@@ -42,6 +42,7 @@ export const fr = {
   },
 
   errors: {
+    team_account: 'C’est le compte de l’équipe MyBody365 : personne ne peut s’y connecter, refuse cette demande',
     community_admins_only: 'La communauté est publiée par l’équipe MyBody365. Partage-la plutôt avec tes amis',
     feedback_too_short: 'Ton message est un peu court',
     generic: 'Quelque chose s’est mal passé. Réessaie dans un instant',

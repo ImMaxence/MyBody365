@@ -31,8 +31,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * The community's first recipes (1.7): about 200 dishes among the most cooked and the best liked in France, written in
  * resources/community/*.txt, each ingredient a Ciqual food with its weight, so that the calories and the Nutri-Score
- * are computed like any recipe. They belong to the MyBody365 team account (an admin no one can sign in with: an
- * address of the reserved .invalid domain, no Google link, no passkey).
+ * are computed like any recipe. They belong to the MyBody365 team account, which no one can sign in with: an address
+ * of the reserved .invalid domain, no Google link, no passkey, and no invitation nor recovery link can be made for it
+ * (AccountLinkService). It is a plain member, its recipes kept in the community by CommunityGuard by name.
  *
  * <p>Each recipe is added once (community_seed keeps its key): one an admin deletes or hides never comes back. A recipe
  * whose foods are not in the Ciqual table yet waits for the next start or the next Ciqual import.
@@ -135,16 +136,23 @@ public class CommunityRecipes {
         return added;
     }
 
-    /** the team account, created the first time (an admin, so that its recipes stay in the community) */
+    /** the team account, created the first time: a plain member (an admin account would be worth stealing) */
     UUID team() {
         List<UUID> found = jdbc.queryForList("select id from app_user where email = ?", UUID.class, TEAM_EMAIL);
         if (!found.isEmpty()) {
             return found.getFirst();
         }
         UUID id = UUID.randomUUID();
-        jdbc.update("insert into app_user (id, email, display_name, role, discoverable) values (?, ?, ?, 'ADMIN', false)", id, TEAM_EMAIL,
+        jdbc.update("insert into app_user (id, email, display_name, role, discoverable) values (?, ?, ?, 'USER', false)", id, TEAM_EMAIL,
                 TEAM_NAME);
         return id;
+    }
+
+    /** an account made before 1.7.1 was an admin: a plain member now (its recipes stay, see CommunityGuard) */
+    @EventListener(ApplicationReadyEvent.class)
+    @org.springframework.core.annotation.Order(0)
+    public void demoteTeam() {
+        jdbc.update("update app_user set role = 'USER' where email = ? and role = 'ADMIN'", TEAM_EMAIL);
     }
 
     /**

@@ -41,6 +41,7 @@ export const en: Dictionary = {
   },
 
   errors: {
+    team_account: 'This is the MyBody365 team account: no one can sign in with it, decline this request',
     community_admins_only: 'The community is published by the MyBody365 team. Share it with your friends instead',
     feedback_too_short: 'Your message is a bit short',
     generic: 'Something went wrong. Try again in a moment',

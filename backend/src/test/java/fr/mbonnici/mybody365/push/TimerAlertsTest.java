@@ -66,6 +66,12 @@ class TimerAlertsTest extends AbstractIntegrationTest {
         }
         mvc.perform(put("/api/me/timer/alerts").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body(many)))
                 .andExpect(status().isBadRequest());
+        // out of order, or long past: not a timer's changes
+        Instant at = Instant.now().plusSeconds(120);
+        mvc.perform(put("/api/me/timer/alerts").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(body(at, at.minusSeconds(30)))).andExpect(status().isBadRequest());
+        mvc.perform(put("/api/me/timer/alerts").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(body(Instant.now().minusSeconds(600)))).andExpect(status().isBadRequest());
         // a round beyond the total
         mvc.perform(put("/api/me/timer/alerts").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"alerts\":[{\"at\":\"" + Instant.now().plusSeconds(60) + "\",\"phase\":\"WORK\",\"round\":4,\"total\":3}]}"))

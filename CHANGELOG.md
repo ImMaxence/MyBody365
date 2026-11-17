@@ -2,6 +2,16 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.7.1] - 2026-11-17
+
+Un audit de sécurité de la 1.7 et ses quatre corrections
+
+### Sécurité
+- Le compte « MyBody365 » qui publie les recettes de la communauté n'est plus administrateur, et aucun lien d'invitation ni de récupération ne peut être créé pour lui : une fausse demande d'accès à son nom, validée par erreur, ne donne plus rien
+- Une sauvegarde restaurée par un membre ne publie plus ses recettes dans la communauté : elles reviennent en « Amis »
+- Minuteur : les alertes écran verrouillé partent sans retenir les rappels des autres, dans l'ordre et quelques-unes par minute au plus
+- Import de recettes : la liste des ingrédients non reconnus est plafonnée, elle ne peut plus grossir sans fin
+
 ## [1.7.0] - 2026-11-17
 
 Ton sport compté au plus juste, des repères en grammes expliqués, les tendances de ta semaine, et un import par lien plus simple

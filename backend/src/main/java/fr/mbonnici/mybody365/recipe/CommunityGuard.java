@@ -43,7 +43,9 @@ public class CommunityGuard {
                 select distinct u.id, u.email, u.role from recipe r join app_user u on u.id = r.owner_id where r.visibility = 'PUBLIC'""");
         int moved = 0;
         for (Map<String, Object> o : owners) {
-            boolean admin = "ADMIN".equals(o.get("role")) || props.isAdminEmail((String) o.get("email"));
+            // the team's own recipes (CommunityRecipes) are the community's first ones
+            boolean admin = "ADMIN".equals(o.get("role")) || props.isAdminEmail((String) o.get("email"))
+                    || CommunityRecipes.TEAM_EMAIL.equals(o.get("email"));
             if (!admin) {
                 moved += jdbc.update("update recipe set visibility = 'FRIENDS', shared = false where owner_id = ? and visibility = 'PUBLIC'",
                         (UUID) o.get("id"));

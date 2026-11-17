@@ -1,4 +1,4 @@
-# Audit de sécurité — MyBody365 1.0.0
+# Audit de sécurité — MyBody365 (1.0.0, revu en 1.7.1)
 
 Date : 16 novembre 2026. Périmètre : le dépôt complet (back Spring Boot, front Angular, nginx, fichiers Docker Compose), dans sa version 1.0.0 : photos, repas, notifications, amis, sauvegardes, import de recettes, noms d'utilisateur et photos de profil compris.
 
@@ -8,13 +8,17 @@ Méthode : relecture du code de chaque point d'entrée, vérification des règle
 
 | Gravité | Constat | État |
 |---|---|---|
+| Moyenne | Compte « MyBody365 » (1.7.0) : administrateur sans moyen de connexion, mais une demande d'accès ou de récupération à son adresse, validée par erreur, aurait donné un lien vers ce compte administrateur | **Corrigé (1.7.1)** : simple membre, et aucun lien d'invitation ni de récupération ne peut être créé pour lui (refus central dans AccountLinkService) ; ses recettes restent dans la communauté par une exception explicite |
+| Faible | Restauration d'une sauvegarde (1.7.0) : un membre pouvait remettre une recette marquée « Communauté » (visible de ses amis, pas de la communauté, jusqu'au redémarrage suivant) | **Corrigé (1.7.1)** : pour un membre, une recette publique d'une sauvegarde revient en « Amis » |
+| Faible | Alertes du minuteur (1.7.0) : envoyées sur l'unique fil du planificateur, partagé avec les rappels, sans contrôle d'ordre ni de rythme | **Corrigé (1.7.1)** : le planificateur ne fait que donner le signal, l'envoi part sur l'exécuteur de l'app ; alertes dans l'ordre, espacées d'une seconde au moins, pas plus d'une minute dans le passé, 12 notifications par minute et par compte au plus |
+| Faible | Ingrédients non reconnus (1.7.0) : la table pouvait grossir sans fin avec des imports de pages fantaisistes | **Corrigé (1.7.1)** : 5 000 lignes au plus (les lignes connues continuent de compter) |
 | Moyenne | Restauration : la taille réellement décompressée d'une sauvegarde n'était pas plafonnée au total (bombe zip) | **Corrigé** : plafond cumulé de 4 Go, en plus des 40 Mo par fichier |
 | Moyenne | Les abonnements aux notifications auraient permis de faire appeler n'importe quelle URL par le serveur (SSRF) | **Corrigé avant livraison** : seuls les services de push de Google, Mozilla, Apple et Microsoft sont acceptés, en HTTPS (test dédié) |
 | Moyenne | Import de recettes : le serveur va chercher une adresse saisie par un membre (SSRF) | **Traité à la conception** : http(s) sur les ports 80 et 443 seulement, sans identifiants dans l'URL ; le nom doit pointer uniquement vers des adresses publiques (boucle locale, réseaux privés, lien local, CGNAT, multicast, IPv6 locales et IPv4 déguisées refusés), contrôle refait à chaque redirection (4 au plus) ; 3 Mo lus au plus, 10 s, rien sur le membre n'est transmis ; seules les données « Recipe » de la page sont gardées (tests dédiés) |
 | Faible | Photo Google : le serveur téléchargeait la photo de profil donnée par Google pour la garder lui-même | **Supprimé en 1.6** : plus aucune photo n'est demandée à Google, celles déjà copiées sont retirées de la base et effacées du stockage (`AvatarCleanup`) ; sans photo choisie, l'initiale s'affiche |
 | Faible | Import de recettes : entre la vérification de l'adresse et la connexion, le nom pourrait être redirigé vers une adresse privée (DNS rebinding) | Accepté : la réponse n'est lue que comme une recette (rien d'autre n'est renvoyé), le stockage exige des requêtes signées et la base ne parle pas HTTP |
 | Faible | Import de recettes (1.6) : la photo de la recette est téléchargée par le serveur et renvoyée au membre | **Traité à la conception** : uniquement pour le site du créateur de l'app (les-creations-de-yona.fr, liste fixe dans le code), en HTTPS, avec les mêmes contrôles qu'une page (adresses publiques, ports 80 et 443, redirections revérifiées, 10 s) ; 6 Mo au plus, types JPEG, PNG, WebP et AVIF seulement ; l'image est redessinée dans l'app puis réencodée par le serveur comme toute photo de recette (test dédié) |
-| Info | Compte « MyBody365 » qui publie les 200 recettes de départ (1.7) | Administrateur sans moyen de connexion : adresse du domaine réservé .invalid (aucun compte Google ne peut la porter), ni Google ni passkey, invisible dans les recherches d'amis. Chaque recette n'est ajoutée qu'une fois (table community_seed), même supprimée ensuite par un admin |
+| Info | Compte « MyBody365 » qui publie les 200 recettes de départ (1.7) | Simple membre (depuis 1.7.1) sans aucun moyen de connexion : adresse du domaine réservé .invalid (aucun compte Google ne peut la porter), ni Google ni passkey, aucun lien d'invitation ou de récupération possible, invisible dans les recherches d'amis. Chaque recette n'est ajoutée qu'une fois (table community_seed), même supprimée ensuite par un admin |
 | Info | Alertes du minuteur (1.7) : quand l'app quitte l'écran, les prochains changements de phase partent au serveur | Seulement l'heure, la phase et le numéro de série, liés au compte de la session ; 64 alertes et 4 heures au plus, en mémoire seulement (perdues au redémarrage du serveur), remplacées à chaque envoi et annulées au retour à l'écran ; la notification ne contient aucune donnée de santé |
 | Info | Recherche dans la communauté (1.7) | Mots normalisés (5 au plus) passés en paramètres, jokers % et _ échappés ; aucune valeur insérée dans le SQL |
 | Moyen | Recettes de la communauté (avant 1.7) : tout membre pouvait montrer à tous une photo ou un texte choquant ou illicite | **Corrigé (1.7)** : seuls les administrateurs publient dans la communauté (refus côté serveur, choix absent de l'app pour un membre) ; au démarrage, une recette publique d'un membre repasse en « Amis », sans rien supprimer. Le signalement et le masquage par les admins restent en place |
@@ -33,6 +37,20 @@ Méthode : relecture du code de chaque point d'entrée, vérification des règle
 | Info | Le trafic entre le back et SeaweedFS n'est pas chiffré | Réseau Docker interne, le service de stockage n'est jamais publié |
 
 Aucune vulnérabilité connue dans les dépendances livrées du front (`npm audit --omit=dev` : 0). Côté back, toutes les bibliothèques ajoutées sont dans leur dernière version publiée (AWS SDK 2.46.7, TwelveMonkeys 3.12.0).
+
+## Revue de la 1.7 (17 novembre 2026)
+
+Périmètre : le commit 1.7.0 (127 fichiers), relu point d'entrée par point d'entrée : communauté réservée aux admins et son nettoyage au démarrage, 200 recettes de départ et leur compte, recherche dans la communauté, Nutri-Score des recettes (migration Java V20), import par lien (premier lien d'un message), minuteur et ses alertes écran verrouillé, saisies hors ligne, bilan du dimanche, dépense réelle, tendances de la semaine (colonnes de statistiques), liste admin des ingrédients non reconnus, sauvegardes (nouvelles colonnes).
+
+Vérifié sans constat :
+- Toutes les requêtes nouvelles passent leurs valeurs en paramètres ; les seuls morceaux insérés dans le SQL sont des noms d'énumération (type de repas) ou des colonnes choisies dans une liste fixe (sucre, sel, graisses saturées)
+- Recherche de la communauté : mots normalisés, 5 au plus, jokers % et _ échappés
+- Chaque nouveau point d'API sous /api/me ne lit et n'écrit que les données du compte de la session ; /api/admin/foods/misses est réservé aux admins par la configuration de sécurité
+- La communauté ne s'atteint que par la création ou la modification d'une recette (refus serveur pour un membre) ; la copie d'une recette la rend privée ; la restauration est corrigée ci-dessus
+- Les recettes de départ viennent de fichiers du dépôt (aucune donnée extérieure à l'exécution), vérifiés par un test
+- Le logo d'Open Food Facts est un SVG relu (ni script ni ressource externe), servi par le site et affiché en image
+- Front : la course du minuteur et les saisies hors ligne restent dans le stockage local du téléphone (aucune donnée de santé dans le minuteur), effacés à la déconnexion
+- Dépendances : `npm audit --omit=dev` : 0 vulnérabilité ; aucune dépendance Maven ajoutée en 1.7
 
 ## Authentification et sessions
 

@@ -129,6 +129,8 @@ class BackupTest extends AbstractIntegrationTest {
 
     @Test
     void aBackupReplacesEverythingInAnotherAccount() throws Exception {
+        // a recipe of the community in the backup (published by an admin, say): a member restoring it does not publish it
+        jdbc.update("update recipe set visibility = 'PUBLIC', shared = true where owner_id = ?", lea.getId());
         byte[] zip = export(lea);
         String token = JsonPath.read(preview(hugo, zip), "$.token");
         mvc.perform(post("/api/me/backup/restore").with(as(hugo)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
@@ -141,6 +143,7 @@ class BackupTest extends AbstractIntegrationTest {
         mvc.perform(get(photo).with(as(hugo))).andExpect(status().isOk());
         String recipe = JsonPath.read(mvc.perform(get("/api/me/recipes").with(as(hugo))).andReturn().getResponse().getContentAsString(), "$[0].id");
         mvc.perform(get("/api/recipes/" + recipe).with(as(hugo))).andExpect(jsonPath("$.shared").value(false))
+                .andExpect(jsonPath("$.visibility").value("FRIENDS"))
                 .andExpect(jsonPath("$.ingredients.length()").value(1));
         mvc.perform(get("/api/recipes/" + recipe + "/image/full").with(as(hugo))).andExpect(status().isOk());
         // meals point to Hugo's own copies

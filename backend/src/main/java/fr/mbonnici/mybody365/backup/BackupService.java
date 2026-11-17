@@ -73,12 +73,22 @@ public class BackupService {
     private final QuotaService quota;
     private final TransactionTemplate tx;
 
-    public BackupService(JdbcTemplate jdbc, JsonMapper json, ObjectStorage storage, QuotaService quota, TransactionTemplate tx) {
+    private final fr.mbonnici.mybody365.config.AppProperties props;
+
+    public BackupService(JdbcTemplate jdbc, JsonMapper json, ObjectStorage storage, QuotaService quota, TransactionTemplate tx,
+            fr.mbonnici.mybody365.config.AppProperties props) {
+        this.props = props;
         this.jdbc = jdbc;
         this.json = json;
         this.storage = storage;
         this.quota = quota;
         this.tx = tx;
+    }
+
+    /** an admin by role or by ADMIN_EMAILS */
+    private boolean admin(UUID userId) {
+        return jdbc.queryForList("select role, email from app_user where id = ?", userId).stream()
+                .anyMatch(u -> "ADMIN".equals(u.get("role")) || props.isAdminEmail((String) u.get("email")));
     }
 
     // ── export ───────────────────────────────────────────────────────────────
@@ -438,6 +448,10 @@ public class BackupService {
                 Object vis = v.get("visibility");
                 if (!"FRIENDS".equals(vis) && !"PUBLIC".equals(vis)) {
                     vis = Boolean.TRUE.equals(v.get("shared")) && vis == null ? "PUBLIC" : "PRIVATE";
+                }
+                // the community is published by the admins (1.7): a member's recipe comes back to their friends
+                if ("PUBLIC".equals(vis) && !admin(userId)) {
+                    vis = "FRIENDS";
                 }
                 v.put("visibility", vis);
                 if (v.get("manual_nutrition") == null) {

@@ -41,6 +41,10 @@ public class AccountLinkService {
 
     @Transactional
     public Issued issue(AppUser user, AccountLink.Kind kind, UUID createdBy) {
+        // the account that publishes the community's first recipes: no one signs in with it, whatever the request says
+        if (fr.mbonnici.mybody365.recipe.CommunityRecipes.TEAM_EMAIL.equalsIgnoreCase(user.getEmail())) {
+            throw ApiException.conflict("team_account");
+        }
         Instant now = Instant.now();
         links.findByUserIdOrderByCreatedAtDesc(user.getId()).stream()
                 .filter(l -> l.state(now) == AccountLink.State.ACTIVE)

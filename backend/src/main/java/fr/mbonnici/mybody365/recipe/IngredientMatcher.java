@@ -227,7 +227,8 @@ public class IngredientMatcher {
         }
         try {
             jdbc.update("""
-                    insert into ingredient_miss (key, reason, example, count, last_at) values (?, ?, ?, 1, now())
+                    insert into ingredient_miss (key, reason, example, count, last_at)
+                    select ?, ?, ?, 1, now() where (select count(*) from ingredient_miss) < 5000
                     on conflict (key, reason) do update set count = ingredient_miss.count + 1, example = excluded.example, last_at = now()""",
                     k.length() > 120 ? k.substring(0, 120) : k, reason, line.length() > 300 ? line.substring(0, 300) : line);
         } catch (RuntimeException e) {
