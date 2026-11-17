@@ -44,4 +44,22 @@ class NutritionUnitTest {
         assertThat(SearchText.words("  la pomme crue x ")).containsExactly("la", "pomme", "crue");
         assertThat(SearchText.contains("50%_off")).isEqualTo("%50\\%\\_off%");
     }
+
+    @Test
+    void openFoodFactsLinesAreCleanedBeforeTheDatabase() {
+        // a NUL, a tab, half an emoji: what PostgreSQL refuses goes, the rest stays
+        assertThat(OffImporter.clean("Pain\u0000 de\tmie  ")).isEqualTo("Pain de mie");
+        assertThat(OffImporter.clean("Biscuit \uD83C")).isEqualTo("Biscuit");
+        assertThat(OffImporter.clean("Pomme 🍎")).isEqualTo("Pomme 🍎");
+        assertThat(OffImporter.clean(null)).isNull();
+        java.util.Map<String, Integer> col = java.util.Map.of("code", 0, "product_name", 1, "countries_tags", 2, "energy-kcal_100g", 3, "brands", 4);
+        OffImporter.Row row = OffImporter.parse(new String[] {"3560070000001", "Kebab\u0000 maison", "en:france", "250", "Snack\u0000"}, col, "en:france");
+        assertThat(row.name()).isEqualTo("Kebab maison");
+        assertThat(row.brand()).isEqualTo("Snack");
+        // a name made of control characters only: no product
+        assertThat(OffImporter.parse(new String[] {"3560070000002", "\u0000\u0001", "en:france", "250", ""}, col, "en:france")).isNull();
+        // an error says its reason, not the statement around it
+        assertThat(OffImporter.cause(new RuntimeException("PreparedStatementCallback; SQL [insert…]",
+                new IllegalStateException("ERROR: invalid byte sequence for encoding \"UTF8\": 0x00")))).startsWith("ERROR: invalid byte sequence");
+    }
 }

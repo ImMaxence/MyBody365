@@ -1,5 +1,14 @@
 /** Admin screens added after 0.3: the food data (Ciqual) and the moderation of what members share. */
 export const frAdminFoods = {
+  community: {
+    title: 'Recettes de départ de la communauté',
+    count: '{added} recettes publiées sur {total}',
+    waiting: '{n} attendent leurs aliments dans la table Ciqual : mets Ciqual à jour (ci-dessus), elles arrivent alors toutes seules',
+    missing: 'Codes Ciqual manquants : {codes}',
+    publish: 'Publier celles qui sont prêtes',
+    done: '{n} recettes ajoutées à la communauté',
+    allIn: 'Toutes sont dans la communauté. Une recette supprimée ou masquée ne revient pas',
+  },
   misses: {
     title: 'Ingrédients non reconnus à l’import',
     text: 'Les lignes des recettes importées restées sans aliment ou sans poids, les plus fréquentes d’abord : de quoi compléter les tables des aliments courants. Aucun nom de membre n’y est gardé',
@@ -21,7 +30,6 @@ export const frAdminFoods = {
   offTitle: 'Open Food Facts',
   offLocal: 'Copie locale, mise à jour le {date}',
   offLive: 'En direct : les recherches et les scans interrogent Open Food Facts, toujours à jour',
-  offCached: '{n} produits déjà choisis par les membres, gardés sur notre serveur',
   offText: 'Les produits du commerce (codes-barres). La mise à jour télécharge l’export complet d’Open Food Facts (environ 1 Go) et garde les produits vendus en France : les recherches et les scans restent ensuite sur notre serveur. Compte plusieurs minutes',
   offUpdate: 'Mettre à jour Open Food Facts',
   offStarted: 'Mise à jour lancée, ça prend quelques minutes',

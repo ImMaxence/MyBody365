@@ -3,6 +3,15 @@ import type { Widen } from './widen';
 
 /** Admin screens added after 0.3: the food data (Ciqual) and the moderation of what members share. */
 export const enAdminFoods: Widen<typeof frAdminFoods> = {
+  community: {
+    title: 'The community’s first recipes',
+    count: '{added} recipes published out of {total}',
+    waiting: '{n} wait for their foods in the Ciqual table: update Ciqual (above), they then come in by themselves',
+    missing: 'Missing Ciqual codes: {codes}',
+    publish: 'Publish the ones ready',
+    done: '{n} recipes added to the community',
+    allIn: 'All of them are in the community. A recipe deleted or hidden does not come back',
+  },
   misses: {
     title: 'Ingredients not recognised on import',
     text: 'The lines of imported recipes left without a food or a weight, the most frequent first: what to add to the tables of usual foods. No member’s name is kept with them',
@@ -24,7 +33,6 @@ export const enAdminFoods: Widen<typeof frAdminFoods> = {
   offTitle: 'Open Food Facts',
   offLocal: 'Local copy, updated on {date}',
   offLive: 'Live: searches and scans ask Open Food Facts, always up to date',
-  offCached: '{n} products already picked by members, kept on our server',
   offText: 'Packaged products (barcodes). The update downloads the full Open Food Facts export (about 1 GB) and keeps the products sold in France: searches and scans then stay on our server. It takes several minutes',
   offUpdate: 'Update Open Food Facts',
   offStarted: 'Update started, it takes a few minutes',

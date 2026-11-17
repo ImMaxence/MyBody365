@@ -114,6 +114,19 @@ test.describe('admin area', () => {
     await expectNoHorizontalOverflow(page);
   });
 
+  test('the food data: Ciqual, Open Food Facts and the first community recipes', async ({ page }) => {
+    await signIn(page, 'admin');
+    await page.goto('/app/admin/foods');
+    await expect(page.getByRole('heading', { name: 'Open Food Facts' })).toBeVisible();
+    await expect(page.locator('img[src="/brands/open-food-facts.svg"]')).toHaveJSProperty('complete', true);
+    await expect(page.getByText(/^Dernière mise à jour le /).or(page.getByText('Aucune table importée'))).toBeVisible();
+    // the first recipes: how many are in (the local stack has the real Ciqual table: all of them)
+    await expect(page.getByRole('heading', { name: 'Recettes de départ de la communauté' })).toBeVisible();
+    await expect(page.getByText(/^\d+ recettes publiées sur 200$/)).toBeVisible();
+    await expectAccessible(page);
+    await expectNoHorizontalOverflow(page);
+  });
+
   test('a regular account cannot reach the admin area', async ({ page }) => {
     await signIn(page, 'user');
     await page.goto('/app/admin');

@@ -3,7 +3,7 @@ import { errorCode } from '../../core/api/api.service';
 import type { CiqualImport, FoodsOverview, OffImport } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { IngredientMiss, MealsApi } from '../../core/meals/meals-api';
+import { IngredientMiss, MealsApi, type CommunitySeeds } from '../../core/meals/meals-api';
 import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
 
@@ -65,7 +65,7 @@ import { IconComponent } from '../../shared/icon.component';
       <p class="small">{{ 'adminFoods.offText' | t }}</p>
       @if (overview(); as o) {
         <ul class="counts small" role="list">
-          <li>{{ (o.offLocalAt ? 'adminFoods.off' : 'adminFoods.offCached') | t: { n: i18n.number(o.offProducts) } }}</li>
+          <li>{{ 'adminFoods.off' | t: { n: i18n.number(o.offProducts) } }}</li>
         </ul>
       }
       @if (offRunning(); as r) {
@@ -85,6 +85,28 @@ import { IconComponent } from '../../shared/icon.component';
       }
       <p class="tiny muted">{{ 'adminFoods.offSource' | t }}</p>
     </section>
+
+    <!-- the community's first recipes: they come once their Ciqual foods are there -->
+    @if (seeds(); as c) {
+      <section class="card ciqual">
+        <div class="head">
+          <span class="ico"><app-icon name="book" /></span>
+          <div>
+            <h2 class="h3">{{ 'adminFoods.community.title' | t }}</h2>
+            <p class="small muted">{{ 'adminFoods.community.count' | t: { added: i18n.number(c.added), total: i18n.number(c.total) } }}</p>
+          </div>
+        </div>
+        @if (c.waiting) {
+          <p class="small">{{ 'adminFoods.community.waiting' | t: { n: i18n.number(c.waiting) } }}</p>
+          @if (c.missing.length) {
+            <p class="tiny muted">{{ 'adminFoods.community.missing' | t: { codes: c.missing.join(', ') } }}</p>
+          }
+          <button type="button" class="btn btn-secondary btn-block" [disabled]="busy()" (click)="seed()"><app-icon name="refresh" /> {{ 'adminFoods.community.publish' | t }}</button>
+        } @else {
+          <p class="small muted">{{ 'adminFoods.community.allIn' | t }}</p>
+        }
+      </section>
+    }
 
     <h2 class="section-title">{{ 'adminFoods.history' | t }}</h2>
     @if (overview()?.imports?.length) {
@@ -215,6 +237,7 @@ export class AdminFoodsTab {
   protected readonly offRunning = signal<OffImport | null>(null);
   protected readonly busy = signal(false);
   protected readonly misses = signal<IngredientMiss[] | null>(null);
+  protected readonly seeds = signal<CommunitySeeds | null>(null);
   private timer: ReturnType<typeof setTimeout> | null = null;
   private offTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -224,10 +247,29 @@ export class AdminFoodsTab {
       .misses()
       .then((m) => this.misses.set(m))
       .catch(() => this.misses.set([]));
+    void this.api
+      .communitySeeds()
+      .then((c) => this.seeds.set(c))
+      .catch(() => undefined);
     inject(DestroyRef).onDestroy(() => {
       if (this.timer) clearTimeout(this.timer);
       if (this.offTimer) clearTimeout(this.offTimer);
     });
+  }
+
+  /** the first recipes whose Ciqual foods are now there go into the community */
+  protected async seed(): Promise<void> {
+    this.busy.set(true);
+    try {
+      const before = this.seeds()?.added ?? 0;
+      const c = await this.api.seedCommunity();
+      this.seeds.set(c);
+      this.toast.show(this.i18n.t('adminFoods.community.done', { n: this.i18n.number(c.added - before) }));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.busy.set(false);
+    }
   }
 
   /** a line taken care of (added to the tables), or all of them */
@@ -310,6 +352,8 @@ export class AdminFoodsTab {
         this.running.set(null);
         const v = next.version ? this.versionLabel(next.version) : '';
         if (next.status === 'DONE') this.toast.show(this.i18n.t('adminFoods.done', { version: v, n: this.i18n.number(next.foods ?? 0) }));
+        // a new table: the first recipes that waited for its foods have just come in
+        if (next.status === 'DONE') void this.api.communitySeeds().then((c) => this.seeds.set(c)).catch(() => undefined);
         else if (next.status === 'UP_TO_DATE') this.toast.show(this.i18n.t('adminFoods.upToDate', { version: v }));
         else this.toast.error(this.i18n.t('adminFoods.failed', { message: next.message ?? '' }));
         await this.refresh();

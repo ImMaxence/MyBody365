@@ -223,9 +223,9 @@ test.describe('meals', () => {
     const otherPage = await other.newPage();
     await signIn(otherPage, 'user');
     await otherPage.goto('/app/meals/recipes');
-    await otherPage.getByRole('button', { name: 'Communauté' }).click();
-    // found by its name, among the team's 200
-    await otherPage.getByRole('searchbox', { name: 'Chercher une recette de la communauté' }).fill(shared.replace('équipe', 'EQUIPE'));
+    // one search for every recipe: found by its name among the team's 200, under « Communauté »
+    await otherPage.getByRole('searchbox', { name: 'Chercher parmi toutes les recettes' }).fill(shared.replace('équipe', 'EQUIPE'));
+    await expect(otherPage.getByRole('heading', { name: /^Communauté/, level: 2 })).toBeVisible();
     await otherPage.getByRole('link', { name: new RegExp(shared) }).click();
     await otherPage.getByRole('button', { name: 'J’aime', exact: true }).click();
     await expect(otherPage.locator('.score')).toHaveText('1');

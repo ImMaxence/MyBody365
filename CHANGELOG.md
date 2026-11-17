@@ -4,7 +4,16 @@ Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le
 
 ## [1.7.1] - 2026-11-17
 
-Un audit de sécurité de la 1.7 et ses quatre corrections
+L'audit de sécurité de la 1.7 et ses corrections, une recherche dans toutes les recettes, une invitation qui marche du premier coup sur iPhone et la mise à jour d'Open Food Facts réparée
+
+### Ajouté
+- Recettes : une seule recherche en haut de la page, dans toutes les recettes à la fois (les tiennes, celles de tes amis et la communauté), les résultats rangés par provenance
+- Administration, Aliments : où en sont les recettes de départ de la communauté (publiées, en attente de leurs aliments Ciqual et lesquels), avec un bouton pour publier celles qui sont prêtes
+
+### Corrigé
+- Une invitation ou un lien de récupération ouvert sur iPhone échouait la première fois (« Lien inutilisable ») : il marche du premier coup
+- Administration, Open Food Facts : une ligne de l'export refusée par la base (un caractère invisible dans un nom) faisait échouer toute la mise à jour. Elle est nettoyée ou laissée de côté, et une erreur dit désormais sa vraie raison
+- Administration : les sept rubriques ne restent plus collées en haut de l'écran
 
 ### Sécurité
 - Le compte « MyBody365 » qui publie les recettes de la communauté n'est plus administrateur, et aucun lien d'invitation ni de récupération ne peut être créé pour lui : une fausse demande d'accès à son nom, validée par erreur, ne donne plus rien

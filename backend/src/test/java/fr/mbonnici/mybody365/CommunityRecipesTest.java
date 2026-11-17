@@ -3,7 +3,10 @@ package fr.mbonnici.mybody365;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import fr.mbonnici.mybody365.recipe.CommunityGuard;
@@ -112,6 +115,21 @@ class CommunityRecipesTest extends AbstractIntegrationTest {
     void withoutTheirCiqualFoodsNothingIsAdded() throws Exception {
         // without the Ciqual table, nothing is added and nothing fails
         assertThat(community.run()).isZero();
+    }
+
+    @Test
+    void theAdminsSeeWhereTheFirstRecipesStand() throws Exception {
+        AppUser admin = account("admin@example.com", AppUser.Role.ADMIN);
+        // the real files: all 200 wait for the foods of the real Ciqual table, the missing codes are named
+        String status = mvc.perform(get("/api/admin/foods/community").with(as(admin))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(200)).andReturn().getResponse().getContentAsString();
+        int waiting = com.jayway.jsonpath.JsonPath.read(status, "$.waiting");
+        int added = com.jayway.jsonpath.JsonPath.read(status, "$.added");
+        assertThat(waiting + added).isEqualTo(200);
+        assertThat((java.util.List<?>) com.jayway.jsonpath.JsonPath.read(status, "$.missing")).isNotEmpty().hasSizeLessThanOrEqualTo(20);
+        // publishing again is harmless; a member sees nothing of it
+        mvc.perform(post("/api/admin/foods/community").with(as(admin)).with(csrf())).andExpect(status().isOk()).andExpect(jsonPath("$.total").value(200));
+        mvc.perform(get("/api/admin/foods/community").with(as(lea))).andExpect(status().isForbidden());
     }
 
     private static java.util.List<CommunityRecipes.Seed> parse(String text) {

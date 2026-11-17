@@ -52,19 +52,15 @@ import { SITE } from '../../core/site';
     </main>
   `,
   styles: `
+    /* the sections at the top of the page, scrolling with it (stuck, they hid half the screen) */
     .tabs {
-      position: sticky;
-      top: calc(var(--safe-top) + 4px);
-      z-index: 10;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 4px;
       padding: 4px;
       border-radius: var(--radius-m);
-      background: var(--glass);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--glass-line);
+      background: var(--surface-2);
+      border: 1px solid var(--line);
       --seg-radius: 12px;
     }
     .tabs a {

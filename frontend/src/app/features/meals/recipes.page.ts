@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import type { Recipe, RecipeType } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -13,10 +14,22 @@ export const RECIPE_TYPES: RecipeType[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNAC
 export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH: '🥗', DINNER: '🍲', SNACK: '🍎', DESSERT: '🍰', DRINK: '🥤' };
 
 /** My recipes, my friends' recipes, and the community's (best first or newest, by type). */
+/** a name as compared by the search: lower case, no accents, words separated by single spaces (as the server) */
+function plain(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/\p{M}+/gu, '')
+    .toLowerCase()
+    .replace(/œ/g, 'o')
+    .replace(/æ/g, 'a')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
 @Component({
   selector: 'app-recipes',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, NutriscoreComponent],
+  imports: [SegDirective, NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, NutriscoreComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -36,6 +49,39 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
         <a routerLink="/app/meals/recipes/new" class="btn btn-secondary btn-block"><app-icon name="plus" [size]="18" /> {{ 'meals.recipe.new' | t }}</a>
       </div>
 
+      <!-- one search for every recipe (mine, my friends', the community), a moment after the last key -->
+      <label class="search">
+        <app-icon name="search" [size]="20" />
+        <input type="search" class="input" [value]="term()" (input)="search($any($event.target).value)" enterkeyhint="search"
+          autocomplete="off" autocorrect="off" spellcheck="false"
+          [placeholder]="'meals.recipe.searchPlaceholder' | t" [attr.aria-label]="'meals.recipe.search' | t" />
+      </label>
+
+      @if (query()) {
+        @if (results(); as res) {
+          @if (res.length) {
+            @for (g of res; track g.key) {
+              <h2 class="group-title">{{ 'meals.recipe.' + g.key | t }} <span class="muted num">{{ g.list.length }}</span></h2>
+              <div class="cards" [class.stale]="searching()">
+                @for (r of g.list; track r.id; let i = $index) {
+                  <ng-container *ngTemplateOutlet="card; context: { $implicit: r, origin: g.key, i: i }" />
+                }
+              </div>
+            }
+          } @else {
+            <div class="empty">
+              <span class="empty-icon"><app-icon name="search" /></span>
+              <p class="small">{{ 'meals.recipe.noMatch' | t: { q: query() } }}</p>
+            </div>
+          }
+        } @else {
+          <div class="cards" aria-busy="true">
+            @for (i of [0, 1]; track i) {
+              <div class="rcard skeleton" style="height: 210px"></div>
+            }
+          </div>
+        }
+      } @else {
       <div class="seg" role="group" [attr.aria-label]="'meals.recipe.listTitle' | t">
         <button type="button" [attr.aria-pressed]="tab() === 'mine'" (click)="tab.set('mine')">{{ 'meals.recipe.mine' | t }}</button>
         <button type="button" [attr.aria-pressed]="tab() === 'friends'" (click)="tab.set('friends')">{{ 'meals.recipe.friends' | t }}</button>
@@ -44,13 +90,6 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
 
       @if (tab() !== 'mine') {
         <div class="filters">
-          @if (tab() === 'community') {
-            <label class="search">
-              <app-icon name="search" [size]="18" />
-              <input type="search" class="input" [value]="term()" (input)="search($any($event.target).value)" enterkeyhint="search"
-                [placeholder]="'meals.recipe.searchPlaceholder' | t" [attr.aria-label]="'meals.recipe.search' | t" />
-            </label>
-          }
           <div class="slide-chips" role="group" [attr.aria-label]="'meals.recipe.type' | t">
             <button type="button" [attr.aria-pressed]="type() === null" (click)="type.set(null)">{{ 'meals.recipe.allTypes' | t }}</button>
             @for (t of types; track t) {
@@ -70,37 +109,7 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
         @if (recipes.length) {
           <div class="cards" [class.stale]="loading()" [attr.aria-busy]="loading()">
             @for (r of recipes; track r.id; let i = $index) {
-              <a class="rcard" [routerLink]="['/app/meals/recipes', r.id]" [queryParams]="mealParams()" [style.--i]="i">
-                <span class="pic">
-                  @if (r.thumbUrl) {
-                    <img [src]="r.thumbUrl" alt="" loading="lazy" />
-                  } @else {
-                    <span class="emoji" aria-hidden="true">{{ emoji[r.type] }}</span>
-                  }
-                  @if (r.nutriscore) {
-                    <app-nutriscore class="grade" [grade]="r.nutriscore" [estimated]="true" />
-                  }
-                </span>
-                <span class="rbody">
-                  <span class="rname">{{ r.name }}</span>
-                  <span class="small muted">{{ i18n.number(r.perServing.kcal) }} kcal {{ 'meals.perServing' | t }}</span>
-                  <span class="rmeta tiny">
-                    @if (tab() === 'community') {
-                      <span>{{ 'meals.recipe.by' | t: { name: r.author ?? '' } }}</span>
-                      <span class="score"><app-icon name="thumbUp" [size]="13" /> {{ r.score }}</span>
-                    } @else if (tab() === 'friends') {
-                      <span class="friend-by"><app-icon name="users" [size]="13" /> {{ r.author }}</span>
-                    } @else {
-                      <span class="types-line">{{ typesOf(r) }}</span>
-                      @if (r.visibility !== 'PRIVATE') {
-                        <span class="vis-ico" [attr.title]="'meals.recipe.visibility.' + r.visibility | t" [attr.aria-label]="'meals.recipe.visibility.' + r.visibility | t">
-                          <app-icon [name]="r.visibility === 'FRIENDS' ? 'users' : 'globe'" [size]="13" />
-                        </span>
-                      }
-                    }
-                  </span>
-                </span>
-              </a>
+              <ng-container *ngTemplateOutlet="card; context: { $implicit: r, origin: tab(), i: i }" />
             }
           </div>
           @if (tab() === 'community' && more()) {
@@ -109,7 +118,7 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
         } @else {
           <div class="empty">
             <span class="empty-icon"><app-icon name="book" /></span>
-            <p class="small">{{ tab() === 'community' && query() ? ('meals.recipe.noMatch' | t: { q: query() }) : ('meals.recipe.empty.' + tab() | t) }}</p>
+            <p class="small">{{ 'meals.recipe.empty.' + tab() | t }}</p>
           </div>
         }
       } @else if (slow()) {
@@ -120,6 +129,41 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
           }
         </div>
       }
+      }
+
+      <ng-template #card let-r let-origin="origin" let-i="i">
+        <a class="rcard" [routerLink]="['/app/meals/recipes', r.id]" [queryParams]="mealParams()" [style.--i]="i">
+          <span class="pic">
+            @if (r.thumbUrl) {
+              <img [src]="r.thumbUrl" alt="" loading="lazy" />
+            } @else {
+              <span class="emoji" aria-hidden="true">{{ emojiOf(r) }}</span>
+            }
+            @if (r.nutriscore) {
+              <app-nutriscore class="grade" [grade]="r.nutriscore" [estimated]="true" />
+            }
+          </span>
+          <span class="rbody">
+            <span class="rname">{{ r.name }}</span>
+            <span class="small muted">{{ i18n.number(r.perServing.kcal) }} kcal {{ 'meals.perServing' | t }}</span>
+            <span class="rmeta tiny">
+              @if (origin === 'community') {
+                <span>{{ 'meals.recipe.by' | t: { name: r.author ?? '' } }}</span>
+                <span class="score"><app-icon name="thumbUp" [size]="13" /> {{ r.score }}</span>
+              } @else if (origin === 'friends') {
+                <span class="friend-by"><app-icon name="users" [size]="13" /> {{ r.author }}</span>
+              } @else {
+                <span class="types-line">{{ typesOf(r) }}</span>
+                @if (r.visibility !== 'PRIVATE') {
+                  <span class="vis-ico" [attr.title]="'meals.recipe.visibility.' + r.visibility | t" [attr.aria-label]="'meals.recipe.visibility.' + r.visibility | t">
+                    <app-icon [name]="r.visibility === 'FRIENDS' ? 'users' : 'globe'" [size]="13" />
+                  </span>
+                }
+              }
+            </span>
+          </span>
+        </a>
+      </ng-template>
     </main>
   `,
   styles: `
@@ -172,20 +216,40 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
       display: grid;
       gap: var(--space-3);
     }
-    .search {
-      position: relative;
-      display: block;
+    .group-title {
+      margin: var(--space-2) 0 calc(var(--space-2) * -1);
+      font-size: var(--fs-s);
+      font-weight: 750;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--fg-2);
     }
-    .search app-icon {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
+    /* one pill: the magnifier and the field side by side (as in the food search) */
+    .search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 6px 4px 14px;
+      border-radius: var(--radius-pill);
+      background: var(--surface);
+      border: 1px solid var(--line-strong);
+      box-shadow: var(--shadow-1);
       color: var(--fg-3);
-      pointer-events: none;
+    }
+    .search:focus-within {
+      border-color: var(--accent);
     }
     .search .input {
-      padding-left: 42px;
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      background: none;
+      box-shadow: none;
+      padding-inline: 0;
+      color: var(--fg);
+    }
+    .search .input:focus {
+      outline: none;
     }
     .chip-emoji {
       font-size: 1.1rem;
@@ -298,6 +362,10 @@ export class RecipesPage {
   protected readonly mealParams = computed(() => (this.slotParam() ? { slot: this.slotParam(), day: this.dayParam() ?? null } : {}));
   private readonly api = inject(MealsApi);
 
+  protected emojiOf(r: Recipe): string {
+    return TYPE_EMOJI[r.type];
+  }
+
   /** « Petit-déj · Collation » */
   protected typesOf(r: Recipe): string {
     return (r.types?.length ? r.types : [r.type]).map((t) => this.i18n.t('meals.recipe.types.' + t)).join(' · ');
@@ -317,17 +385,49 @@ export class RecipesPage {
   protected readonly loadingMore = signal(false);
   private page = 0;
 
+  /** what was found, by source (only the sources with something) */
+  protected readonly results = signal<{ key: 'mine' | 'friends' | 'community'; list: Recipe[] }[] | null>(null);
+  protected readonly searching = signal(false);
+  private searchSeq = 0;
+
+  /** two letters at least: a single one would find everything */
   protected search(value: string): void {
     this.term.set(value);
     if (this.searchTimer) clearTimeout(this.searchTimer);
-    this.searchTimer = setTimeout(() => this.query.set(value.trim()), 300);
+    this.searchTimer = setTimeout(() => this.query.set(plain(value).length >= 2 ? value.trim() : ''), 300);
+  }
+
+  /** mine and my friends' looked through here, the community on the server (all of it, not a page) */
+  private find(q: string): void {
+    const n = ++this.searchSeq;
+    this.searching.set(true);
+    const words = plain(q).split(' ').filter((w) => w.length >= 2);
+    const match = (r: Recipe) => {
+      const name = plain(r.name);
+      return words.every((w) => name.includes(w));
+    };
+    Promise.all([
+      this.api.myRecipes().catch(() => [] as Recipe[]),
+      this.api.friendsRecipes(null).catch(() => [] as Recipe[]),
+      this.api.community(null, 'top', 0, q).catch(() => [] as Recipe[]),
+    ])
+      .then(([mine, friends, community]) => {
+        if (n !== this.searchSeq) return;
+        const groups = [
+          { key: 'mine' as const, list: mine.filter(match) },
+          { key: 'friends' as const, list: friends.filter(match) },
+          { key: 'community' as const, list: community },
+        ];
+        this.results.set(groups.filter((g) => g.list.length));
+      })
+      .finally(() => n === this.searchSeq && this.searching.set(false));
   }
 
   protected async loadMore(): Promise<void> {
     const n = this.seq;
     this.loadingMore.set(true);
     try {
-      const next = await this.api.community(this.type(), this.sort(), this.page + 1, this.query());
+      const next = await this.api.community(this.type(), this.sort(), this.page + 1);
       if (n !== this.seq) return;
       this.page++;
       this.list.update((l) => [...(l ?? []), ...next.filter((r) => !l?.some((x) => x.id === r.id))]);
@@ -345,12 +445,16 @@ export class RecipesPage {
   private seq = 0;
 
   constructor() {
+    // a search: every source at once; cleared: back to the tabs
+    effect(() => {
+      const q = this.query();
+      untracked(() => (q ? this.find(q) : this.results.set(null)));
+    });
     effect(() => {
       const tab = this.tab();
       const type = tab === 'mine' ? null : this.type();
       const sort = this.sort();
-      const query = tab === 'community' ? this.query() : '';
-      const key = [tab, type, tab === 'community' ? sort : '', query].join('|');
+      const key = [tab, type, tab === 'community' ? sort : ''].join('|');
       this.page = 0;
       const n = ++this.seq;
       const known = this.seen.get(key);
@@ -359,7 +463,7 @@ export class RecipesPage {
       this.loading.set(!known);
       // read without tracking: the list it sets must not start it again
       const slow = untracked(this.list) === null ? setTimeout(() => n === this.seq && this.slow.set(true), 450) : null;
-      const load = tab === 'mine' ? this.api.myRecipes() : tab === 'friends' ? this.api.friendsRecipes(type) : this.api.community(type, sort, 0, query);
+      const load = tab === 'mine' ? this.api.myRecipes() : tab === 'friends' ? this.api.friendsRecipes(type) : this.api.community(type, sort);
       load
         .then((r) => {
           this.seen.set(key, r);

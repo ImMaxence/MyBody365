@@ -4,6 +4,15 @@ import { firstValueFrom } from 'rxjs';
 import type { CiqualImport, OffImport, Food, FoodInput, FoodsOverview, MealDay, MealDays, MealInput, MealStats, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, Slot } from '../api/models';
 
 /** an ingredient of imported recipes the tables do not know (FOOD) or cannot weigh (WEIGHT) */
+/** the community's first recipes (written by the team, computed from Ciqual) */
+export interface CommunitySeeds {
+  total: number;
+  added: number;
+  waiting: number;
+  /** Ciqual codes the waiting ones need */
+  missing: string[];
+}
+
 export interface IngredientMiss {
   key: string;
   reason: 'FOOD' | 'WEIGHT';
@@ -150,6 +159,15 @@ export class MealsApi {
   forgetMiss(m?: IngredientMiss): Promise<void> {
     const params: Record<string, string> = m ? { key: m.key, reason: m.reason } : {};
     return firstValueFrom(this.http.delete<void>('/api/admin/foods/misses', { params }));
+  }
+
+  /** the community's first recipes: how many are in, how many wait for their Ciqual foods */
+  communitySeeds(): Promise<CommunitySeeds> {
+    return firstValueFrom(this.http.get<CommunitySeeds>('/api/admin/foods/community'));
+  }
+
+  seedCommunity(): Promise<CommunitySeeds> {
+    return firstValueFrom(this.http.post<CommunitySeeds>('/api/admin/foods/community', null));
   }
 
   startCiqual(): Promise<CiqualImport> {

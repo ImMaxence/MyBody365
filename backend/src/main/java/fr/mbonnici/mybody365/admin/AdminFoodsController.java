@@ -32,8 +32,11 @@ public class AdminFoodsController {
     private final UserService users;
     private final AuditService audit;
     private final JdbcTemplate jdbc;
+    private final fr.mbonnici.mybody365.recipe.CommunityRecipes community;
 
-    public AdminFoodsController(CiqualImporter ciqual, OffImporter off, UserService users, AuditService audit, JdbcTemplate jdbc) {
+    public AdminFoodsController(CiqualImporter ciqual, OffImporter off, UserService users, AuditService audit, JdbcTemplate jdbc,
+            fr.mbonnici.mybody365.recipe.CommunityRecipes community) {
+        this.community = community;
         this.ciqual = ciqual;
         this.off = off;
         this.users = users;
@@ -51,6 +54,19 @@ public class AdminFoodsController {
                 from food""");
         return new FoodsOverview(ciqual.currentVersion(), ((Number) c.get("ciqual")).longValue(), ((Number) c.get("superseded")).longValue(),
                 ((Number) c.get("off")).longValue(), ((Number) c.get("mine")).longValue(), ciqual.history(10), off.localAt(), off.history(5));
+    }
+
+    /** the community's first recipes: how many are in, how many wait for their Ciqual foods */
+    @GetMapping("/community")
+    public fr.mbonnici.mybody365.recipe.CommunityRecipes.Status community() throws java.io.IOException {
+        return community.status();
+    }
+
+    /** adds the ones whose foods are now known (also done at each start and after each Ciqual import) */
+    @org.springframework.web.bind.annotation.PostMapping("/community")
+    public fr.mbonnici.mybody365.recipe.CommunityRecipes.Status seedCommunity() throws java.io.IOException {
+        community.run();
+        return community.status();
     }
 
     /** an ingredient of imported recipes that found no food (FOOD) or no weight (WEIGHT), and how often */

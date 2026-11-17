@@ -130,8 +130,7 @@ public class OffImporter {
             log.info("Open Food Facts imported: {} products", saved);
         } catch (Exception e) {
             log.warn("Open Food Facts import failed", e);
-            String msg = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
-            finish(id, "FAILED", null, msg.length() > 480 ? msg.substring(0, 480) : msg);
+            finish(id, "FAILED", null, cause(e));
         } finally {
             if (file != null) {
                 try {
@@ -246,7 +245,9 @@ public class OffImporter {
         if (name == null) {
             name = get(v, col, "generic_name");
         }
-        if (name == null) {
+        // the export holds characters the database refuses (a NUL, half an emoji…): taken out
+        name = clean(name);
+        if (name == null || name.isEmpty()) {
             return null;
         }
         Double kcal = num(get(v, col, "energy-kcal_100g"), 1000);
@@ -260,7 +261,7 @@ public class OffImporter {
         Nutrients n = new Nutrients(round(kcal, 2), num(get(v, col, "proteins_100g"), 100), num(get(v, col, "carbohydrates_100g"), 100),
                 num(get(v, col, "sugars_100g"), 100), num(get(v, col, "fat_100g"), 100), num(get(v, col, "saturated-fat_100g"), 100),
                 num(get(v, col, "fiber_100g"), 100), num(get(v, col, "salt_100g"), 100));
-        String brands = get(v, col, "brands");
+        String brands = clean(get(v, col, "brands"));
         String brand = brands == null ? null : cut(brands.split(",")[0].strip(), 160);
         String grade = get(v, col, "nutriscore_grade");
         grade = grade != null && grade.matches("[a-eA-E]") ? grade.toLowerCase() : null;
@@ -281,16 +282,58 @@ public class OffImporter {
             args.add(new Object[] {UUID.randomUUID(), r.code(), r.name(), r.brand(), FoodStore.searchName(r.name(), null, r.brand()), n.kcal(),
                     n.proteinG(), n.carbsG(), n.sugarsG(), n.fatG(), n.satFatG(), n.fiberG(), n.saltG(), grade, estimated, r.servingG()});
         }
-        jdbc.batchUpdate("""
-                insert into food (id, source, source_code, name, brand, search_name, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g,
-                  fiber_g, salt_g, nutriscore, nutriscore_estimated, serving_g)
-                values (?, 'OFF', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                on conflict (source_code) where source = 'OFF' do update set name = excluded.name, brand = excluded.brand,
-                  search_name = excluded.search_name, kcal = excluded.kcal, protein_g = excluded.protein_g, carbs_g = excluded.carbs_g,
-                  sugars_g = excluded.sugars_g, fat_g = excluded.fat_g, sat_fat_g = excluded.sat_fat_g, fiber_g = excluded.fiber_g,
-                  salt_g = excluded.salt_g, nutriscore = excluded.nutriscore, nutriscore_estimated = excluded.nutriscore_estimated,
-                  serving_g = excluded.serving_g, updated_at = now()""", args);
-        return args.size();
+        try {
+            jdbc.batchUpdate(UPSERT, args);
+            return args.size();
+        } catch (org.springframework.dao.DataAccessException e) {
+            // one line the database refuses must not stop a million: the batch again, line by line, the bad ones left out
+            int ok = 0;
+            for (Object[] a : args) {
+                try {
+                    jdbc.update(UPSERT, a);
+                    ok++;
+                } catch (org.springframework.dao.DataAccessException one) {
+                    log.info("Open Food Facts product {} left out: {}", a[1], cause(one));
+                }
+            }
+            return ok;
+        }
+    }
+
+    private static final String UPSERT = """
+            insert into food (id, source, source_code, name, brand, search_name, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g,
+              fiber_g, salt_g, nutriscore, nutriscore_estimated, serving_g)
+            values (?, 'OFF', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            on conflict (source_code) where source = 'OFF' do update set name = excluded.name, brand = excluded.brand,
+              search_name = excluded.search_name, kcal = excluded.kcal, protein_g = excluded.protein_g, carbs_g = excluded.carbs_g,
+              sugars_g = excluded.sugars_g, fat_g = excluded.fat_g, sat_fat_g = excluded.sat_fat_g, fiber_g = excluded.fiber_g,
+              salt_g = excluded.salt_g, nutriscore = excluded.nutriscore, nutriscore_estimated = excluded.nutriscore_estimated,
+              serving_g = excluded.serving_g, updated_at = now()""";
+
+    /** the reason itself (« invalid byte sequence… »), not the statement around it */
+    static String cause(Throwable e) {
+        Throwable c = org.springframework.core.NestedExceptionUtils.getMostSpecificCause(e);
+        String m = c.getMessage() == null ? c.getClass().getSimpleName() : c.getMessage();
+        return m.length() > 480 ? m.substring(0, 480) : m;
+    }
+
+    /** without control characters (NUL included) nor half surrogate pairs, spaces collapsed */
+    static String clean(String s) {
+        if (s == null) {
+            return null;
+        }
+        StringBuilder b = new StringBuilder(s.length());
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isHighSurrogate(c) && i + 1 < s.length() && Character.isLowSurrogate(s.charAt(i + 1))) {
+                b.append(c).append(s.charAt(++i));
+            } else if (Character.isSurrogate(c) || c < 0x20 || c == 0x7f) {
+                b.append(' ');
+            } else {
+                b.append(c);
+            }
+        }
+        return b.toString().replaceAll("\\s+", " ").strip();
     }
 
     private static String get(String[] v, Map<String, Integer> col, String name) {

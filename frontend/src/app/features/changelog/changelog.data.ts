@@ -11,10 +11,45 @@ export const RELEASES: Release[] = [
     "date": "2026-11-17",
     "summary": [
       {
-        "t": "Un audit de sécurité de la 1.7 et ses quatre corrections"
+        "t": "L'audit de sécurité de la 1.7 et ses corrections, une recherche dans toutes les recettes, une invitation qui marche du premier coup sur iPhone et la mise à jour d'Open Food Facts réparée"
       }
     ],
     "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "Recettes : une seule recherche en haut de la page, dans toutes les recettes à la fois (les tiennes, celles de tes amis et la communauté), les résultats rangés par provenance"
+            }
+          ],
+          [
+            {
+              "t": "Administration, Aliments : où en sont les recettes de départ de la communauté (publiées, en attente de leurs aliments Ciqual et lesquels), avec un bouton pour publier celles qui sont prêtes"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Une invitation ou un lien de récupération ouvert sur iPhone échouait la première fois (« Lien inutilisable ») : il marche du premier coup"
+            }
+          ],
+          [
+            {
+              "t": "Administration, Open Food Facts : une ligne de l'export refusée par la base (un caractère invisible dans un nom) faisait échouer toute la mise à jour. Elle est nettoyée ou laissée de côté, et une erreur dit désormais sa vraie raison"
+            }
+          ],
+          [
+            {
+              "t": "Administration : les sept rubriques ne restent plus collées en haut de l'écran"
+            }
+          ]
+        ]
+      },
       {
         "title": "Sécurité",
         "items": [

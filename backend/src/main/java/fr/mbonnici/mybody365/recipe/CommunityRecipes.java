@@ -87,13 +87,32 @@ public class CommunityRecipes {
 
     /** the recipes of the files not added yet; how many were added */
     public int run() throws IOException {
+        return seed(all());
+    }
+
+    /** where the first recipes stand, for the admins: how many are in, how many wait, and for which Ciqual foods */
+    public record Status(int total, int added, int waiting, List<String> missing) {}
+
+    public Status status() throws IOException {
+        List<Seed> all = all();
+        Set<String> done = new java.util.HashSet<>(jdbc.queryForList("select key from community_seed", String.class));
+        Set<String> known = new java.util.HashSet<>(
+                jdbc.queryForList("select source_code from food where source = 'CIQUAL' and not superseded", String.class));
+        List<Seed> waiting = all.stream().filter(s -> !done.contains(s.key())).toList();
+        List<String> missing = waiting.stream().flatMap(s -> s.lines().stream()).map(Line::code).filter(c -> !known.contains(c)).distinct()
+                .sorted().limit(20).toList();
+        return new Status(all.size(), all.size() - waiting.size(), waiting.size(), missing);
+    }
+
+    /** every recipe of the files, in their order */
+    private List<Seed> all() throws IOException {
         Resource[] files = new PathMatchingResourcePatternResolver().getResources("classpath:community/*.txt");
         Arrays.sort(files, Comparator.comparing(Resource::getFilename));
         List<Seed> all = new ArrayList<>();
         for (Resource f : files) {
             all.addAll(parse(f.getContentAsString(StandardCharsets.UTF_8)));
         }
-        return seed(all);
+        return all;
     }
 
     /** adds the seeds not added yet whose foods are all known; how many were added */
