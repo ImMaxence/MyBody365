@@ -36,7 +36,7 @@ public class PushService {
     private static final List<String> PUSH_HOSTS = List.of("fcm.googleapis.com", "googleapis.com", "push.services.mozilla.com",
             "push.apple.com", "notify.windows.com");
 
-    public enum Kind { TEST, DAILY_WEIGH, DAILY_PHOTO, GYM, NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED, WATER, UPDATE }
+    public enum Kind { TEST, DAILY_WEIGH, DAILY_PHOTO, GYM, NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED, WATER, UPDATE, FEEDBACK }
 
     public record Subscription(String endpoint, String p256dh, String auth) {}
 
@@ -192,6 +192,7 @@ public class PushService {
             case GYM -> "/app/workouts";
             case NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED -> "/app/friends";
             case UPDATE -> "/changelog";
+            case FEEDBACK -> "/app/admin/feedback";
             default -> "/app";
         };
         return Map.of("notification", Map.of(
@@ -231,6 +232,15 @@ public class PushService {
                 yield en ? new String[] {"A glass of water? 💧", "You are at " + glasses + " out of " + goal + " glasses today"}
                         : new String[] {"Un verre d’eau ? 💧", "Tu en es à " + glasses + (one ? " verre" : " verres") + " sur " + goal
                                 + " aujourd’hui"};
+            }
+            case FEEDBACK -> {
+                String about = args.getOrDefault("kind", "OTHER");
+                String what = switch (about) {
+                    case "IDEA" -> en ? "an idea 💡" : "une idée 💡";
+                    case "BUG" -> en ? "a bug 🐞" : "un bug 🐞";
+                    default -> en ? "a message ✉️" : "un message ✉️";
+                };
+                yield new String[] {(en ? name + " sent " : name + " a envoyé ") + what, args.getOrDefault("text", "")};
             }
             case UPDATE -> en ? new String[] {"MyBody365 " + args.getOrDefault("version", "") + " is here ✨",
                     "Open the app to discover what’s new"}

@@ -1,6 +1,17 @@
 package fr.mbonnici.mybody365.common;
 
+import fr.mbonnici.mybody365.support.ErrorLogService;
+import fr.mbonnici.mybody365.user.AppUser;
+import fr.mbonnici.mybody365.user.AppUserRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.UUID;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.info.BuildProperties;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import jakarta.validation.ConstraintViolationException;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -25,6 +36,17 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    private final ErrorLogService errors;
+    private final AppUserRepository users;
+    private final String version;
+
+    public GlobalExceptionHandler(ErrorLogService errors, AppUserRepository users, ObjectProvider<BuildProperties> build) {
+        this.errors = errors;
+        this.users = users;
+        BuildProperties b = build.getIfAvailable();
+        this.version = b == null ? null : b.getVersion();
+    }
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiError> handleApi(ApiException ex, HttpServletRequest req) {
@@ -77,7 +99,27 @@ public class GlobalExceptionHandler {
                     .body(body(status, status.getReasonPhrase().toLowerCase().replace(' ', '_'), null, req));
         }
         log.error("Unhandled error on {} {}", req.getMethod(), req.getRequestURI(), ex);
+        record(ex, req);
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "unexpected_error", null, req);
+    }
+
+    /** for the admins' error journal: the exception, its first frames, the request, who */
+    private void record(Exception ex, HttpServletRequest req) {
+        try {
+            StringWriter trace = new StringWriter();
+            ex.printStackTrace(new PrintWriter(trace));
+            String detail = String.join("\n", trace.toString().lines().limit(40).toList());
+            UUID user = null;
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
+                user = users.findByEmail(auth.getName()).map(AppUser::getId).orElse(null);
+            }
+            String message = ex.getClass().getSimpleName() + (ex.getMessage() == null ? "" : ": " + ex.getMessage());
+            errors.record(ErrorLogService.Source.SERVER, message, detail, req.getMethod() + " " + req.getRequestURI(), version,
+                    req.getHeader("User-Agent"), user);
+        } catch (RuntimeException e) {
+            log.warn("Could not record the error: {}", e.getMessage());
+        }
     }
 
     private static ResponseEntity<ApiError> build(HttpStatus status, String code, Map<String, String> fields,

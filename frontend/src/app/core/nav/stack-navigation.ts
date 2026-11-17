@@ -1,5 +1,5 @@
 import { DOCUMENT, Injectable, inject } from '@angular/core';
-import { ActivatedRouteSnapshot, Router, ViewTransitionInfo } from '@angular/router';
+import { ActivatedRouteSnapshot, NavigationCancel, NavigationEnd, NavigationError, Router, ViewTransitionInfo } from '@angular/router';
 
 /**
  * Native-app navigation: every screen of the app has a depth in route data (`depth`: 0 for the tab
@@ -62,28 +62,38 @@ export function onViewTransitionCreated(info: ViewTransitionInfo): void {
   // between the public site and the app: a plain switch; an anchor of the same page (#parcours): only the scroll
   const from = pathOf(info.from);
   const to = pathOf(info.to);
-  if (reduced || fromApp !== toApp || from === to || sameTabGroup(from, to)) {
-    stack.endSwipe();
+  // the edge swipe animates by itself, and so does the browser's own back gesture: never twice
+  const silent = stack.takeSilent();
+  if (silent || reduced || fromApp !== toApp || from === to || sameTabGroup(from, to)) {
     info.transition.skipTransition();
     return;
   }
   const root = doc.documentElement;
   // the public site: page to page; the app: like a phone app
   root.dataset['nav'] = toApp ? navKind(depthOf(info.from), depthOf(info.to)) : 'page';
-  // a back swipe: the screen leaves from where the finger dropped it
-  stack.endSwipe();
   info.transition.finished.finally(() => {
     delete root.dataset['nav'];
-    root.style.removeProperty('--swipe-from');
   });
 }
 
-/** "Back" like a phone app, and the edge swipe that does it. */
+/** "Back" like a phone app, and what the edge swipe needs for it. */
 @Injectable({ providedIn: 'root' })
 export class StackNavigation {
   private readonly router = inject(Router);
   private readonly doc = inject(DOCUMENT);
-  private swiped: HTMLElement | null = null;
+  /** the next navigation shows no screen transition */
+  private silent = false;
+
+  constructor() {
+    // the browser animated this step back itself (its own swipe): no second animation on top
+    this.doc.defaultView?.addEventListener('popstate', (e) => {
+      if ((e as PopStateEvent & { hasUAVisualTransition?: boolean }).hasUAVisualTransition) this.silent = true;
+    });
+    // a navigation that never happened does not keep the flag for the next one
+    this.router.events.subscribe((e) => {
+      if (e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError) this.silent = false;
+    });
+  }
 
   /** depth of the current screen (0: a tab) */
   depth(): number {
@@ -96,28 +106,33 @@ export class StackNavigation {
     return (state?.navigationId ?? 1) > 1;
   }
 
-  /** pops the stack when there is one, otherwise opens the parent screen (route data `back`) */
-  back(fallback?: string): void {
+  /**
+   * Pops the stack when there is one, otherwise opens the parent screen (route data `back`). Says which,
+   * so that a cancelled swipe can come back: `history` (forward again) or `opened` (back again).
+   */
+  back(fallback?: string, silent = false): 'history' | 'opened' {
     const parent = fallback ?? dataOf<string>(this.router.routerState.snapshot.root, 'back') ?? '/app';
-    if (this.canPop()) this.doc.defaultView?.history.back();
-    else void this.router.navigateByUrl(parent);
-  }
-
-  /** The finger let go of a screen dragged by `dx` px: it leaves from there (see onViewTransitionCreated). */
-  releaseSwipe(el: HTMLElement, dx: number): void {
-    this.swiped = el;
-    this.doc.documentElement.style.setProperty('--swipe-from', `${Math.round(dx)}px`);
-    this.back();
-    // no view transition in this browser: just put the screen back in place
-    if (!('startViewTransition' in this.doc)) this.endSwipe();
-  }
-
-  endSwipe(): void {
-    if (this.swiped) {
-      this.swiped.style.transform = '';
-      this.swiped.style.transition = '';
-      this.swiped.style.boxShadow = '';
-      this.swiped = null;
+    this.silent = silent;
+    if (this.canPop()) {
+      this.doc.defaultView?.history.back();
+      return 'history';
     }
+    void this.router.navigateByUrl(parent);
+    return 'opened';
+  }
+
+  /** undoes `back` without any animation (a swipe let go too early) */
+  undoBack(how: 'history' | 'opened'): void {
+    this.silent = true;
+    const history = this.doc.defaultView?.history;
+    if (how === 'history') history?.forward();
+    else history?.back();
+  }
+
+  /** read once by the router hook */
+  takeSilent(): boolean {
+    const s = this.silent;
+    this.silent = false;
+    return s;
   }
 }

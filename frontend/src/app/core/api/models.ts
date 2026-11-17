@@ -100,6 +100,8 @@ export interface AdminSummary {
   admins: number;
   pendingRequests: number;
   activeLinks: number;
+  openFeedback: number;
+  openErrors: number;
 }
 
 export interface AdminRequest {

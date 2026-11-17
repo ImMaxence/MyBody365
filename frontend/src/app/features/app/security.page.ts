@@ -6,6 +6,7 @@ import { SessionStore } from '../../core/auth/session.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/ui/toast.service';
+import { TodoStore } from '../../core/support/support-api';
 import { GoogleGComponent, IconComponent } from '../../shared/icon.component';
 import { BackButtonComponent } from '../../shared/back-button.component';
 
@@ -99,6 +100,7 @@ export class SecurityPage {
   private readonly api = inject(ApiService);
   private readonly passkeys = inject(PasskeyService);
   private readonly toast = inject(ToastService);
+  private readonly todo = inject(TodoStore);
 
   protected readonly info = signal<SecurityInfo | null>(null);
   protected readonly busy = signal(false);
@@ -112,6 +114,8 @@ export class SecurityPage {
   private async load(): Promise<void> {
     try {
       this.info.set(await this.api.security());
+      // the red dot of the profile follows (a passkey added or removed)
+      void this.todo.refresh();
     } catch (e) {
       this.toast.error(this.i18n.error(errorCode(e)));
     }

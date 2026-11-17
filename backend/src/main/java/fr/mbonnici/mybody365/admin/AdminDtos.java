@@ -14,7 +14,7 @@ public final class AdminDtos {
 
     private AdminDtos() {}
 
-    public record Summary(long users, long admins, long pendingRequests, long activeLinks) {}
+    public record Summary(long users, long admins, long pendingRequests, long activeLinks, int openFeedback, int openErrors) {}
 
     public record LinkDto(
             UUID id,

@@ -30,8 +30,8 @@ import { SITE } from '../../core/site';
           <a [routerLink]="tab.path" [replaceUrl]="true" routerLinkActive="on" #rla="routerLinkActive" [attr.aria-current]="rla.isActive ? 'page' : null">
             <app-icon [name]="tab.icon" [size]="18" />
             <span>{{ 'admin.tabs.' + tab.path | t }}</span>
-            @if (tab.path === 'requests' && (store.summary()?.pendingRequests ?? 0) > 0) {
-              <span class="count-badge">{{ store.summary()?.pendingRequests }}</span>
+            @if (count(tab.path); as n) {
+              <span class="count-badge">{{ n }}</span>
             }
           </a>
         }
@@ -130,8 +130,17 @@ export class AdminPage {
     { path: 'links', icon: 'link' },
     { path: 'foods', icon: 'leaf' },
     { path: 'moderation', icon: 'flag' },
+    { path: 'feedback', icon: 'mail' },
+    { path: 'errors', icon: 'alert' },
     { path: 'journal', icon: 'list' },
   ];
+
+  /** what waits on a tab: requests to decide, feedback to read, errors to look at */
+  protected count(path: string): number {
+    const s = this.store.summary();
+    if (!s) return 0;
+    return path === 'requests' ? s.pendingRequests : path === 'feedback' ? s.openFeedback : path === 'errors' ? s.openErrors : 0;
+  }
 
   constructor() {
     void this.store.refreshSummary();

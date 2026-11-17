@@ -65,8 +65,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       }
 
       @if (store.data(); as d) {
-          <div class="day-pane" [class.calm]="shown() > 0" [class.swap-a]="shown() > 0 && shown() % 2 === 1" [class.swap-b]="shown() > 0 && shown() % 2 === 0"
-            [style.--dx]="(dir() < 0 ? -10 : 10) + 'px'">
+          <div class="day-pane" [class.calm]="shown() > 0" [class.swap-a]="shown() > 0 && shown() % 2 === 1" [class.swap-b]="shown() > 0 && shown() % 2 === 0">
         <section class="card summary">
           <app-kcal-ring [eaten]="d.totals.kcal" [target]="d.targetKcal" [size]="128" />
           <div class="macros">
@@ -241,49 +240,56 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       display: inline-block;
       text-transform: capitalize;
     }
-    /* the date and the week come in from the side of the move, briefly */
+    /* another week (or month) slides in from the side of the move, like turning a page */
     .from-right {
-      animation: from-right 260ms var(--ease-out) both;
+      animation: from-right 280ms var(--ease-out) both;
     }
     .from-left {
-      animation: from-left 260ms var(--ease-out) both;
+      animation: from-left 280ms var(--ease-out) both;
     }
     @keyframes from-right {
       from {
         opacity: 0;
-        transform: translateX(10px);
+        transform: translateX(24px);
       }
     }
     @keyframes from-left {
       from {
         opacity: 0;
-        transform: translateX(-10px);
+        transform: translateX(-24px);
+      }
+    }
+    /* the date itself only fades: it changes in place */
+    .day-text.from-left,
+    .day-text.from-right {
+      animation: day-text 200ms ease both;
+    }
+    @keyframes day-text {
+      from {
+        opacity: 0;
       }
     }
     /*
-     * the day's content stays in place: once the new day is there, it fades in with a small shift
-     * (two identical animations, alternated, so each change plays it again); the cards do not replay
-     * their own entrance and the ring glides to its new value
+     * the day's content stays in place: once the new day is there, it brightens up, nothing moves
+     * (two identical animations, alternated, so each change plays it again); the ring and the bars
+     * glide to their new values
      */
     .day-pane.swap-a {
-      animation: day-a 300ms var(--ease-out);
+      animation: day-a 220ms ease;
     }
     .day-pane.swap-b {
-      animation: day-b 300ms var(--ease-out);
+      animation: day-b 220ms ease;
     }
     @keyframes day-a {
       from {
-        opacity: 0.25;
-        transform: translateX(var(--dx));
+        opacity: 0.35;
       }
     }
     @keyframes day-b {
       from {
-        opacity: 0.25;
-        transform: translateX(var(--dx));
+        opacity: 0.35;
       }
     }
-    .day-pane.calm .slot,
     .day-pane.calm .bar i {
       animation: none;
     }
@@ -554,14 +560,6 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       display: grid;
       gap: var(--space-2);
       padding: var(--space-4);
-      animation: slot-in 420ms var(--ease-out) both;
-      animation-delay: calc(var(--i) * 60ms);
-    }
-    @keyframes slot-in {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
     }
     .slot-head {
       display: flex;

@@ -16,6 +16,8 @@ import fr.mbonnici.mybody365.auth.AccountLinkRepository;
 import fr.mbonnici.mybody365.auth.AccountLinkService;
 import fr.mbonnici.mybody365.common.ApiException;
 import fr.mbonnici.mybody365.common.Emails;
+import fr.mbonnici.mybody365.support.ErrorLogService;
+import fr.mbonnici.mybody365.support.FeedbackService;
 import fr.mbonnici.mybody365.user.AppUser;
 import fr.mbonnici.mybody365.user.AppUserRepository;
 import fr.mbonnici.mybody365.user.UserService;
@@ -49,9 +51,12 @@ public class AdminUsersController {
     private final AccessRequestRepository requests;
     private final AuditService audit;
     private final AdminViews views;
+    private final FeedbackService feedback;
+    private final ErrorLogService errors;
 
     public AdminUsersController(AppUserRepository userRepository, UserService users, AccountLinkService linkService,
-            AccountLinkRepository links, AccessRequestRepository requests, AuditService audit, AdminViews views) {
+            AccountLinkRepository links, AccessRequestRepository requests, AuditService audit, AdminViews views, FeedbackService feedback,
+            ErrorLogService errors) {
         this.userRepository = userRepository;
         this.users = users;
         this.linkService = linkService;
@@ -59,6 +64,8 @@ public class AdminUsersController {
         this.requests = requests;
         this.audit = audit;
         this.views = views;
+        this.feedback = feedback;
+        this.errors = errors;
     }
 
     @GetMapping("/summary")
@@ -67,7 +74,7 @@ public class AdminUsersController {
         List<AppUser> all = userRepository.findAll();
         long admins = all.stream().filter(users::isAdmin).count();
         return new Summary(all.size(), admins, requests.countByStatus(AccessRequest.Status.PENDING),
-                links.findActive(Instant.now()).size());
+                links.findActive(Instant.now()).size(), feedback.open(), errors.open());
     }
 
     @GetMapping("/users")

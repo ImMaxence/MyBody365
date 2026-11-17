@@ -163,19 +163,6 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
       border-radius: var(--radius-l);
       background: var(--surface);
       border: 1px solid var(--line);
-      animation: rise 420ms var(--ease-out) both;
-    }
-    .stat:nth-child(2) {
-      animation-delay: 50ms;
-    }
-    .stat:nth-child(3) {
-      animation-delay: 100ms;
-    }
-    .stat:nth-child(4) {
-      animation-delay: 150ms;
-    }
-    .stat:nth-child(5) {
-      animation-delay: 200ms;
     }
     .stat.wide {
       grid-column: 1 / -1;
@@ -276,16 +263,7 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
     .w {
       font-weight: 700;
     }
-    .list .list-item {
-      animation: rise 380ms var(--ease-out) both;
-      animation-delay: calc(min(var(--i), 12) * 30ms);
-    }
-    /* a fade only: tiles rising into place, each at its own time, looked like a bounce */
-    @keyframes rise {
-      from {
-        opacity: 0;
-      }
-    }
+
   `,
 })
 export class ProgressPage {

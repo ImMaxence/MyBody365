@@ -1,5 +1,6 @@
 import { provideHttpClient, withFetch, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
-import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ReportingErrorHandler } from './core/support/error-reporter';
 import { provideClientHydration, withNoIncrementalHydration } from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling, withViewTransitions } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
@@ -10,6 +11,8 @@ import { onViewTransitionCreated } from './core/nav/stack-navigation';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    // unhandled errors also go to the admins' error journal
+    { provide: ErrorHandler, useClass: ReportingErrorHandler },
     provideRouter(
       routes,
       withComponentInputBinding(),

@@ -28,11 +28,12 @@ html[data-nav='pop']::view-transition-new(root) {
   animation: var(--nav-dur) var(--nav-ease) both nav-back-in;
 }
 
+/* the same length and curve both ways: the two pictures always add up to a full one (no dip) */
 html[data-nav='fade']::view-transition-old(root) {
-  animation: 160ms ease-out both nav-fade-out;
+  animation: 180ms ease both nav-fade-out;
 }
 html[data-nav='fade']::view-transition-new(root) {
-  animation: 220ms ease-out both nav-fade-in;
+  animation: 180ms ease both nav-fade-in;
 }
 
 html[data-nav='page']::view-transition-old(root) {
@@ -72,10 +73,6 @@ html.theming::view-transition-new(root) {
   }
 }
 @keyframes nav-to-right {
-  /* after an edge swipe, from where the finger left the screen */
-  from {
-    transform: translateX(var(--swipe-from, 0px));
-  }
   to {
     transform: translateX(100%);
   }
@@ -105,38 +102,15 @@ html.theming::view-transition-new(root) {
 }
 
 /*
- * The content of a screen arrives in a short cascade of fades. Nothing slides: blocks that rose into
- * place, each at its own time, made the screen bounce when switching tabs quickly (and again when the
- * data arrived after the skeleton).
+ * No entrance animation on the content of a screen: the screen transition (fade, push, pop) is the
+ * animation. A fade of the content on top of it left the screen empty for a moment (an old screen gone,
+ * a new one still transparent), and blocks rising into place looked like a bounce.
  */
-.page > * {
-  animation: content-in 320ms ease-out both;
-}
-.page > :nth-child(2) {
-  animation-delay: 30ms;
-}
-.page > :nth-child(3) {
-  animation-delay: 60ms;
-}
-.page > :nth-child(4) {
-  animation-delay: 90ms;
-}
-.page > :nth-child(n + 5) {
-  animation-delay: 120ms;
-}
-@keyframes content-in {
-  from {
-    opacity: 0;
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none !important;
-  }
-  .page > * {
-    animation: none;
   }
 }

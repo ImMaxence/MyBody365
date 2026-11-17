@@ -7,6 +7,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/ui/toast.service';
 import { UserDataService } from '../../core/user-data.service';
+import { TodoStore } from '../../core/support/support-api';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 
@@ -270,6 +271,7 @@ export class BackupPage {
   private readonly http = inject(HttpClient);
   private readonly toast = inject(ToastService);
   private readonly userData = inject(UserDataService);
+  private readonly todo = inject(TodoStore);
   protected readonly i18n = inject(I18nService);
   private readonly previewDialog = viewChild.required<ElementRef<HTMLDialogElement>>('previewDialog');
 
@@ -299,6 +301,8 @@ export class BackupPage {
       const o = await firstValueFrom(this.http.get<{ driveConfigured: boolean; drive: DriveStatus }>('/api/me/backup'));
       this.driveConfigured.set(o.driveConfigured);
       this.drive.set(o.drive);
+      // the red dot of the profile follows
+      void this.todo.refresh();
       if (o.drive.connected) {
         this.files.set(await firstValueFrom(this.http.get<DriveFile[]>('/api/me/drive/backups')).catch(() => []));
       }
@@ -385,6 +389,7 @@ export class BackupPage {
       const o = await firstValueFrom(this.http.delete<{ drive: DriveStatus }>('/api/me/drive'));
       this.drive.set(o.drive);
       this.files.set([]);
+      void this.todo.refresh();
       this.toast.show(this.i18n.t('backup.driveDisconnected'));
     } catch (e) {
       this.toast.error(this.i18n.error(errorCode(e)));

@@ -7,6 +7,77 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.2.0",
+    "date": "2026-11-17",
+    "summary": [
+      {
+        "t": "Écrire au créateur depuis l'app, des pastilles pour ce qui reste à faire, un retour au doigt comme sur iPhone, et des écrans qui ne clignotent plus"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "« Une idée, un bug ? » dans le Profil : un message au créateur (idée, bug ou autre), lu dans l'administration, et une notification aux admins à chaque message"
+            }
+          ],
+          [
+            {
+              "t": "Pastilles rouges : sur l'onglet Profil, sur « Connexion et sécurité » tant qu'aucune passkey n'est enregistrée, et sur « Sauvegardes » tant que la sauvegarde sur Google Drive n'est pas activée"
+            }
+          ],
+          [
+            {
+              "t": "Administration : un onglet Retours et un journal des erreurs, sur les téléphones comme sur le serveur. Chaque erreur est comptée une seule fois, avec son nombre, sa trace et l'appareil, et s'archive une fois traitée"
+            }
+          ],
+          [
+            {
+              "t": "Le nombre de choses à traiter s'affiche à côté d'« Administration » dans le Profil, et sur chaque onglet de l'administration"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "Retour au doigt depuis le bord gauche : l'écran précédent est déjà là, dessous, comme sur iPhone. Le geste de retour du téléphone, qui montrait un écran gris puis rejouait l'animation, laisse la place à celui de l'app"
+            }
+          ],
+          [
+            {
+              "t": "Repas : changer de jour est un simple fondu, changer de semaine fait glisser la semaine, et les repas ne s'affichent plus l'un après l'autre"
+            }
+          ],
+          [
+            {
+              "t": "Les écrans s'affichent d'un bloc, seul le fondu entre les onglets reste"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Progrès et les autres onglets : l'écran ne disparaît plus une fraction de seconde juste après s'être affiché"
+            }
+          ],
+          [
+            {
+              "t": "Ouvrir un tiroir avec un champ (supprimer mon compte, ajouter un compte…) n'ouvre plus le clavier tout seul, et le tiroir reste au-dessus du clavier quand on touche le champ"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.1.0",
     "date": "2026-11-17",
     "summary": [

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { MealsStore } from './meals/meals.store';
 import { PhotosStore } from './photos/photos.store';
+import { TodoStore } from './support/support-api';
 import { TrackingStore } from './tracking/tracking.store';
 
 /** Forgets everything loaded for the signed-in account (sign-out, account deleted). */
@@ -9,10 +10,12 @@ export class UserDataService {
   private readonly tracking = inject(TrackingStore);
   private readonly photos = inject(PhotosStore);
   private readonly meals = inject(MealsStore);
+  private readonly todo = inject(TodoStore);
 
   clear(): void {
     this.tracking.clear();
     this.photos.clear();
     this.meals.clear();
+    this.todo.clear();
   }
 }

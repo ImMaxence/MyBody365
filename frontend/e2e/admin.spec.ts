@@ -69,6 +69,51 @@ test.describe('admin area', () => {
     await expect(page.locator('.timeline')).toContainText('a validé la demande de');
   });
 
+  test('a member writes to the creator, an error is logged: the admin reads both and archives them', async ({ page, browser }) => {
+    const text = `Le graphique clignote ${Date.now()}`;
+    // a member, from the profile
+    const member = await browser.newContext({ locale: 'fr-FR', viewport: { width: 393, height: 852 }, hasTouch: true, isMobile: true });
+    const mp = await member.newPage();
+    await signIn(mp, 'user');
+    await tab(mp, 'Profil').click();
+    await mp.getByRole('button', { name: /Une idée, un bug/ }).click();
+    const sheet = mp.getByRole('dialog', { name: 'Écrire au créateur' });
+    await expect(sheet).toBeVisible();
+    // opening the sheet does not put the focus (and the phone keyboard) in the text field
+    expect(await mp.evaluate(() => document.activeElement?.tagName)).not.toBe('TEXTAREA');
+    await sheet.getByRole('radio', { name: 'Bug' }).click();
+    await sheet.getByLabel('Ton message').fill(text);
+    await expectAccessible(mp);
+    await sheet.getByRole('button', { name: 'Envoyer' }).click();
+    await expect(mp.getByText('Merci, c’est bien arrivé')).toBeVisible();
+    // an error seen on a phone
+    const token = (await member.cookies()).find((c) => c.name === 'XSRF-TOKEN')?.value ?? '';
+    const logged = await mp.request.post('/api/errors', {
+      data: { message: `TypeError: e2e ${Date.now()}`, detail: 'at test (e2e.js:1)', path: '/app/progress', version: '1.2.0' },
+      headers: { 'X-XSRF-TOKEN': token },
+    });
+    expect(logged.status()).toBe(204);
+    await member.close();
+
+    await signIn(page, 'admin');
+    await page.goto('/app/admin/feedback');
+    const card = page.locator('article', { hasText: text });
+    await expect(card).toContainText('Bug');
+    await expectAccessible(page);
+    await card.getByRole('button', { name: 'Archiver' }).click();
+    await expect(card).toHaveCount(0);
+
+    await page.getByRole('link', { name: /Erreurs/ }).click();
+    const row = page.getByRole('button', { name: /TypeError: e2e/ }).first();
+    await row.click();
+    const detail = page.getByRole('dialog', { name: 'Erreur' });
+    await expect(detail).toContainText('at test (e2e.js:1)');
+    await expect(detail).toContainText('/app/progress');
+    await expectAccessible(page);
+    await detail.getByRole('button', { name: 'Archiver' }).click();
+    await expectNoHorizontalOverflow(page);
+  });
+
   test('a regular account cannot reach the admin area', async ({ page }) => {
     await signIn(page, 'user');
     await page.goto('/app/admin');

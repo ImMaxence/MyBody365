@@ -27,8 +27,11 @@ public class RetentionJob {
         int reports = jdbc.update("delete from report where status <> 'OPEN' and handled_at < now() - interval '12 months'");
         int audit = jdbc.update("delete from admin_audit where created_at < now() - interval '1 year'");
         int nudges = jdbc.update("delete from friend_nudge where day < current_date - 30");
-        if (requests + reports + audit + nudges > 0) {
-            log.info("Retention: {} access request(s), {} report(s), {} log line(s), {} nudge(s) deleted", requests, reports, audit, nudges);
+        int errors = jdbc.update("delete from error_log where archived_at < now() - interval '90 days'");
+        int feedback = jdbc.update("delete from feedback where archived_at < now() - interval '12 months'");
+        if (requests + reports + audit + nudges + errors + feedback > 0) {
+            log.info("Retention: {} access request(s), {} report(s), {} log line(s), {} nudge(s), {} error(s), {} feedback deleted", requests,
+                    reports, audit, nudges, errors, feedback);
         }
     }
 }

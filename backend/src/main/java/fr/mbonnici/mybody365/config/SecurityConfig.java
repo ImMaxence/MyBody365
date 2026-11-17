@@ -100,7 +100,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/actuator/health", "/api/actuator/health/**").permitAll()
                         .requestMatchers("/api/actuator/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/auth/**", "/api/access-requests").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/access-requests", "/api/errors").permitAll()
                         .requestMatchers("/webauthn/authenticate/options", "/login/webauthn").permitAll()
                         .requestMatchers("/webauthn/register/**", "/webauthn/register").hasRole("USER")
                         .requestMatchers("/api/**").hasRole("USER")

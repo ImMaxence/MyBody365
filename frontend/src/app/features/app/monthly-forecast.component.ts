@@ -105,17 +105,9 @@ export function monthlyForecast(fromKg: number, goalKg: number, kgPerWeek: numbe
       gap: var(--space-3);
       min-height: 40px;
       border-bottom: 1px solid var(--line);
-      animation: rise 360ms var(--ease-out) both;
-      animation-delay: calc(min(var(--i), 12) * 45ms);
     }
     .months li:last-child {
       border-bottom: 0;
-    }
-    @keyframes rise {
-      from {
-        opacity: 0;
-        transform: translateX(-6px);
-      }
     }
     .m-name {
       font-weight: 650;

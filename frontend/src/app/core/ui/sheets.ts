@@ -26,10 +26,64 @@ export function closeSheet(dialog: HTMLDialogElement): void {
   view.setTimeout(done, 400);
 }
 
+/**
+ * Opening a sheet never opens the phone keyboard by itself: the focus goes to its grip (a "dismiss" button
+ * for screen readers) instead of its first field, unless a field asks for it with `autofocus`. A tap on the
+ * field opens the keyboard as usual.
+ */
+function noKeyboardOnOpen(doc: Document, view: Window & typeof globalThis): void {
+  const proto = view.HTMLDialogElement.prototype;
+  const original = proto.showModal;
+  const isField = (el: Element | null) => !!el?.matches('input:not([type=checkbox]):not([type=radio]), textarea, select');
+  proto.showModal = function (this: HTMLDialogElement) {
+    const grip = this.classList.contains('sheet') ? this.querySelector<HTMLElement>(':scope > .sheet-grip') : null;
+    const wanted = this.querySelector('[autofocus]');
+    if (grip && (!wanted || wanted === grip)) {
+      grip.tabIndex = -1;
+      grip.setAttribute('autofocus', '');
+      grip.setAttribute('role', 'button');
+      grip.setAttribute('aria-label', doc.documentElement.lang === 'en' ? 'Dismiss the panel' : 'Masquer le panneau');
+    }
+    original.call(this);
+    // older engines focus the first field anyway
+    if (grip && isField(doc.activeElement) && !doc.activeElement?.hasAttribute('autofocus')) grip.focus({ preventScroll: true });
+  };
+}
+
+/**
+ * The phone keyboard covers the bottom of the screen without resizing the page (iOS): the space it takes
+ * is kept in --kb, and an open sheet sits right above it.
+ */
+function followKeyboard(doc: Document, view: Window): void {
+  const vv = view.visualViewport;
+  if (!vv) return;
+  const root = doc.documentElement;
+  const update = () => {
+    const kb = Math.max(0, Math.round(view.innerHeight - vv.height - vv.offsetTop));
+    root.style.setProperty('--kb', `${kb}px`);
+    root.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
+  };
+  vv.addEventListener('resize', update);
+  vv.addEventListener('scroll', update);
+  update();
+}
+
 export function installSheets(doc: Document): void {
   const view = doc.defaultView;
   if (!view) return;
   const close = closeSheet;
+  noKeyboardOnOpen(doc, view);
+  followKeyboard(doc, view);
+
+  // the grip is a button for the keyboard too
+  doc.addEventListener('keydown', (e) => {
+    const t = e.target as HTMLElement | null;
+    if ((e.key === 'Enter' || e.key === ' ') && t?.classList.contains('sheet-grip')) {
+      e.preventDefault();
+      const d = t.closest('dialog.sheet') as HTMLDialogElement | null;
+      if (d) close(d);
+    }
+  });
 
   doc.addEventListener('click', (e) => {
     const t = e.target as HTMLElement | null;

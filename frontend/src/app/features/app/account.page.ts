@@ -17,6 +17,8 @@ import { SegDirective } from '../../shared/seg.directive';
 import { FlagComponent } from '../../shared/flag.component';
 import { normalizeUsername } from '../../core/friends/friends-api';
 import { PushPromptComponent } from '../../shared/push-prompt.component';
+import { FeedbackKind, SupportApi, TodoStore } from '../../core/support/support-api';
+import { SITE } from '../../core/site';
 import { AvatarImgComponent } from '../../shared/avatar-img.component';
 import { defaultWaterGoal } from './water-row.component';
 
@@ -111,16 +113,22 @@ import { defaultWaterGoal } from './water-row.component';
           <span class="list-icon"><app-icon name="archive" /></span>
           <span class="list-body">
             <span class="list-title">{{ 'backup.title' | t }}</span>
-            <span class="list-sub">{{ 'backup.sub' | t }}</span>
+            <span class="list-sub">{{ (todo.todo()?.drive ? 'todo.drive' : 'backup.sub') | t }}</span>
           </span>
+          @if (todo.todo()?.drive) {
+            <span class="row-dot" aria-hidden="true"></span>
+          }
           <app-icon name="chevronRight" />
         </a>
         <a routerLink="/app/account/security" class="list-item">
           <span class="list-icon"><app-icon name="key" /></span>
           <span class="list-body">
             <span class="list-title">{{ 'account.security' | t }}</span>
-            <span class="list-sub">{{ 'account.securitySub' | t }}</span>
+            <span class="list-sub">{{ (todo.todo()?.passkey ? 'todo.passkey' : 'account.securitySub') | t }}</span>
           </span>
+          @if (todo.todo()?.passkey) {
+            <span class="row-dot" aria-hidden="true"></span>
+          }
           <app-icon name="chevronRight" />
         </a>
         @if (session.isAdmin()) {
@@ -130,9 +138,20 @@ import { defaultWaterGoal } from './water-row.component';
               <span class="list-title">{{ 'account.admin' | t }}</span>
               <span class="list-sub">{{ 'account.adminSub' | t }}</span>
             </span>
+            @if (todo.admin() > 0) {
+              <span class="count-badge" [attr.aria-label]="'todo.adminCount' | t: { n: todo.admin() }">{{ todo.admin() }}</span>
+            }
             <app-icon name="chevronRight" />
           </a>
         }
+        <button type="button" class="list-item" (click)="openFeedback()">
+          <span class="list-icon contact-ico"><app-icon name="mail" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'feedback.title' | t }}</span>
+            <span class="list-sub">{{ 'feedback.sub' | t }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </button>
         <a routerLink="/changelog" class="list-item">
           <span class="list-icon"><app-icon name="sparkles" /></span>
           <span class="list-body">
@@ -191,6 +210,29 @@ import { defaultWaterGoal } from './water-row.component';
           <span><b>{{ 'account.discoverable' | t }}</b><span class="small muted">{{ 'account.discoverableHint' | t }}</span></span>
         </label>
         <button type="submit" class="btn btn-primary btn-block" [disabled]="!draftValid() || busy()"><app-icon name="check" /> {{ 'common.save' | t }}</button>
+      </form>
+    </dialog>
+
+    <dialog class="sheet" #feedbackDialog [attr.aria-label]="'feedback.sheetTitle' | t">
+      <div class="sheet-grip"></div>
+      <form class="stack" (ngSubmit)="sendFeedback()">
+        <div>
+          <h2 class="h3">{{ 'feedback.sheetTitle' | t }}</h2>
+          <p class="small muted">{{ 'feedback.sheetText' | t }}</p>
+        </div>
+        <div class="seg" appSeg role="radiogroup" [attr.aria-label]="'feedback.kindLabel' | t">
+          @for (k of feedbackKinds; track k.kind) {
+            <button type="button" role="radio" [attr.aria-checked]="feedbackKind() === k.kind" (click)="feedbackKind.set(k.kind)">
+              <app-icon [name]="k.icon" /> {{ 'feedback.kinds.' + k.kind | t }}
+            </button>
+          }
+        </div>
+        <label class="sr-only" for="fb-text">{{ 'feedback.messageLabel' | t }}</label>
+        <textarea id="fb-text" class="textarea" name="message" maxlength="2000" rows="5" [placeholder]="'feedback.placeholders.' + feedbackKind() | t"
+          [(ngModel)]="feedbackText"></textarea>
+        <p class="tiny muted">{{ 'feedback.joined' | t: { v: version } }}</p>
+        <button type="submit" class="btn btn-primary btn-block" [disabled]="feedbackText.trim().length < 3 || busy()"><app-icon name="send" /> {{ 'feedback.send' | t }}</button>
+        <a class="btn btn-ghost btn-block" [href]="'mailto:' + site.email + '?subject=MyBody365'"><app-icon name="mail" [size]="18" /> {{ 'feedback.byEmail' | t }}</a>
       </form>
     </dialog>
 
@@ -359,6 +401,24 @@ import { defaultWaterGoal } from './water-row.component';
       background: var(--accent-soft) !important;
       color: var(--accent-text) !important;
     }
+    .list-icon.contact-ico {
+      background: var(--accent-soft);
+      color: var(--accent-text);
+    }
+    /* something to do there (a passkey, the Drive backup) */
+    .row-dot {
+      width: 10px;
+      height: 10px;
+      flex: none;
+      border-radius: 50%;
+      background: #e5341c;
+      animation: dot-in 420ms cubic-bezier(0.34, 1.6, 0.5, 1) both;
+    }
+    @keyframes dot-in {
+      from {
+        transform: scale(0);
+      }
+    }
     .list-icon.admin {
       background: var(--cool-soft);
       color: var(--cool);
@@ -409,6 +469,17 @@ export class AccountPage {
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('deleteDialog');
   private readonly photoSheet = viewChild.required<ElementRef<HTMLDialogElement>>('photoDialog');
   private readonly usernameSheet = viewChild.required<ElementRef<HTMLDialogElement>>('usernameDialog');
+  private readonly feedbackSheet = viewChild.required<ElementRef<HTMLDialogElement>>('feedbackDialog');
+  protected readonly todo = inject(TodoStore);
+  private readonly support = inject(SupportApi);
+  protected readonly site = SITE;
+  protected readonly feedbackKinds: { kind: FeedbackKind; icon: string }[] = [
+    { kind: 'IDEA', icon: 'bulb' },
+    { kind: 'BUG', icon: 'alert' },
+    { kind: 'OTHER', icon: 'mail' },
+  ];
+  protected readonly feedbackKind = signal<FeedbackKind>('IDEA');
+  protected feedbackText = '';
   protected readonly photoBusy = signal(false);
   protected usernameDraft = '';
   protected readonly usernameError = signal<string | null>(null);
@@ -424,6 +495,27 @@ export class AccountPage {
 
   constructor() {
     if (!this.tracking.summary()) void this.tracking.load();
+    void this.todo.refresh();
+  }
+
+  protected openFeedback(): void {
+    this.feedbackSheet().nativeElement.showModal();
+  }
+
+  protected async sendFeedback(): Promise<void> {
+    const text = this.feedbackText.trim();
+    if (text.length < 3) return;
+    this.busy.set(true);
+    try {
+      await this.support.sendFeedback(this.feedbackKind(), text, this.version);
+      this.feedbackText = '';
+      closeSheet(this.feedbackSheet().nativeElement);
+      this.toast.show(this.i18n.t('feedback.sent'));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.busy.set(false);
+    }
   }
   protected name = this.account()?.displayName ?? '';
   protected confirmEmail = '';

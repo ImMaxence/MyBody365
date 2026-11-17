@@ -588,8 +588,10 @@ button.list-item:hover {
 dialog.sheet {
   width: min(100%, var(--app-max));
   max-width: 100%;
-  max-height: 92dvh;
-  margin: auto auto 0;
+  /* above the phone keyboard when it is open (--kb, --vvh: core/ui/sheets.ts) */
+  max-height: min(92dvh, calc(var(--vvh, 100dvh) - 12px));
+  margin: auto auto var(--kb, 0px);
+  transition: margin-bottom 220ms var(--ease-out);
   padding: var(--space-6) var(--space-5) calc(var(--space-6) + var(--safe-bottom));
   border: 0;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
@@ -627,6 +629,10 @@ dialog.sheet .sheet-grip {
 }
 dialog.sheet .sheet-grip:hover {
   background-color: var(--fg-3);
+}
+/* it takes the focus when the sheet opens (no keyboard popping up): a ring only for the keyboard */
+dialog.sheet .sheet-grip:focus:not(:focus-visible) {
+  outline: none;
 }
 @keyframes sheet-out {
   to {

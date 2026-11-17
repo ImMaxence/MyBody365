@@ -80,6 +80,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final Policy accessRequest;
     private final Policy upload;
     private final Policy foodSearch;
+    private final Policy feedback;
+    private final Policy errors;
 
     public RateLimitFilter(AppProperties props) {
         this.props = props;
@@ -89,6 +91,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
         this.accessRequest = new Policy("access-request", rl.accessRequestPerHour(), rl.accessRequestPerHour() / 3600d);
         this.upload = new Policy("upload", rl.uploadPerHour(), rl.uploadPerHour() / 3600d);
         this.foodSearch = new Policy("food-search", rl.foodSearchPerMinute(), rl.foodSearchPerMinute() / 60d);
+        // a few words to the creator, like an access request; errors come in bursts, then stop
+        this.feedback = new Policy("feedback", rl.accessRequestPerHour(), rl.accessRequestPerHour() / 3600d);
+        this.errors = new Policy("errors", Math.max(10, rl.apiPerMinute() / 20), Math.max(10, rl.apiPerMinute() / 20) / 60d);
     }
 
     @Override
@@ -126,6 +131,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         if (path.equals("/api/access-requests") && "POST".equals(method)) {
             return accessRequest;
+        }
+        if (path.equals("/api/me/feedback") && "POST".equals(method)) {
+            return feedback;
+        }
+        if (path.equals("/api/errors")) {
+            return errors;
         }
         // pictures are decoded and re-encoded, backups unpacked: the costly requests
         if (("POST".equals(method) && (path.equals("/api/me/photos") || path.equals("/api/me/avatar") || path.equals("/api/me/recipes/import") || path.matches("/api/me/recipes/[^/]+/image")))
