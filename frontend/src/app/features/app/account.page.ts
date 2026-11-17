@@ -331,8 +331,10 @@ import { defaultWaterGoal } from './water-row.component';
       font-weight: 700;
       transition: background-color var(--dur-2);
     }
-    .handle:hover {
-      background: var(--accent-soft);
+    @media (hover: hover) and (pointer: fine) {
+      .handle:hover {
+        background: var(--accent-soft);
+      }
     }
     .icon-btn.mini {
       width: 32px;

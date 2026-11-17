@@ -230,8 +230,10 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       overflow: hidden;
       transition: background-color var(--dur-2);
     }
-    .day-label:hover {
-      background: var(--surface-3);
+    @media (hover: hover) and (pointer: fine) {
+      .day-label:hover {
+        background: var(--surface-3);
+      }
     }
     .day-label app-icon {
       color: var(--fg-2);

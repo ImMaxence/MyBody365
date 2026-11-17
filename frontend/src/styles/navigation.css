@@ -6,9 +6,13 @@
    page = the public site, from page to page.
    The tab bar is captured on its own during push / pop / fade, so it never moves.
    ───────────────────────────────────────────────────────────────────────────── */
+/* the timing of UIKit's push and pop: fast off the mark, a long soft landing */
 :root {
-  --nav-dur: 420ms;
-  --nav-ease: cubic-bezier(0.2, 0.85, 0.25, 1);
+  --nav-dur: 500ms;
+  --nav-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --nav-under: -30%;
+  --nav-dim: 0.86;
+  --nav-shadow: -6px 0 24px rgba(0, 0, 0, 0.16);
 }
 
 html[data-nav='push']::view-transition-old(root) {
@@ -16,13 +20,13 @@ html[data-nav='push']::view-transition-old(root) {
 }
 html[data-nav='push']::view-transition-new(root) {
   animation: var(--nav-dur) var(--nav-ease) both nav-from-right;
-  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--nav-shadow);
 }
 
 html[data-nav='pop']::view-transition-old(root) {
   z-index: 1;
   animation: var(--nav-dur) var(--nav-ease) both nav-to-right;
-  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--nav-shadow);
 }
 html[data-nav='pop']::view-transition-new(root) {
   animation: var(--nav-dur) var(--nav-ease) both nav-back-in;
@@ -68,8 +72,8 @@ html.theming::view-transition-new(root) {
 }
 @keyframes nav-back-off {
   to {
-    transform: translateX(-28%);
-    filter: brightness(0.82);
+    transform: translateX(var(--nav-under));
+    filter: brightness(var(--nav-dim));
   }
 }
 @keyframes nav-to-right {
@@ -79,8 +83,8 @@ html.theming::view-transition-new(root) {
 }
 @keyframes nav-back-in {
   from {
-    transform: translateX(-28%);
-    filter: brightness(0.82);
+    transform: translateX(var(--nav-under));
+    filter: brightness(var(--nav-dim));
   }
 }
 @keyframes nav-fade-out {

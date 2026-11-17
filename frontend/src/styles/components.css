@@ -40,10 +40,12 @@
     0 10px 28px -10px var(--accent-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
-.btn-primary:hover:not(:disabled) {
-  box-shadow:
-    0 14px 34px -10px var(--accent-glow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover:not(:disabled) {
+    box-shadow:
+      0 14px 34px -10px var(--accent-glow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
 }
 .btn-dark {
   background: var(--fg);
@@ -54,15 +56,19 @@
   color: var(--fg);
   border: 1px solid var(--line-strong);
 }
-.btn-secondary:hover:not(:disabled) {
-  background: var(--surface-2);
+@media (hover: hover) and (pointer: fine) {
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--surface-2);
+  }
 }
 .btn-ghost {
   color: var(--fg);
   background: transparent;
 }
-.btn-ghost:hover:not(:disabled) {
-  background: var(--surface-3);
+@media (hover: hover) and (pointer: fine) {
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--surface-3);
+  }
 }
 .btn-danger {
   background: var(--danger-soft);
@@ -89,8 +95,10 @@
   color: var(--fg);
   transition: background-color var(--dur-2), transform var(--dur-1) var(--ease-out);
 }
-.icon-btn:hover {
-  background: var(--surface-3);
+@media (hover: hover) and (pointer: fine) {
+  .icon-btn:hover {
+    background: var(--surface-3);
+  }
 }
 .icon-btn:active {
   transform: scale(0.94);
@@ -505,9 +513,11 @@
 .list-item + .list-item {
   border-top: 1px solid var(--line);
 }
-a.list-item:hover,
-button.list-item:hover {
-  background: var(--surface-2);
+@media (hover: hover) and (pointer: fine) {
+  a.list-item:hover,
+  button.list-item:hover {
+    background: var(--surface-2);
+  }
 }
 :is(.list-item, .list-row) .list-icon {
   display: grid;
@@ -627,12 +637,18 @@ dialog.sheet .sheet-grip {
   cursor: pointer;
   touch-action: none;
 }
-dialog.sheet .sheet-grip:hover {
-  background-color: var(--fg-3);
+@media (hover: hover) and (pointer: fine) {
+  dialog.sheet .sheet-grip:hover {
+    background-color: var(--fg-3);
+  }
 }
-/* it takes the focus when the sheet opens (no keyboard popping up): a ring only for the keyboard */
-dialog.sheet .sheet-grip:focus:not(:focus-visible) {
+/* it takes the focus when the sheet opens (so that no keyboard pops up): no ring around it, ever (iOS
+   showed an orange frame); with a keyboard, the bar itself darkens */
+dialog.sheet .sheet-grip:focus {
   outline: none;
+}
+dialog.sheet .sheet-grip:focus-visible {
+  background-color: var(--fg-3);
 }
 @keyframes sheet-out {
   to {
@@ -818,6 +834,14 @@ dialog.sheet .sheet-grip:focus:not(:focus-visible) {
 }
 .page-head .back {
   margin-left: -10px;
+}
+/* a pushed screen, the iOS way: "‹ previous screen" on its own line, the large title under it */
+.page-head:has(.back-link) {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 0;
+  margin-top: calc(-1 * var(--space-2));
 }
 .section-title {
   margin: var(--space-2) 0 calc(-1 * var(--space-2));

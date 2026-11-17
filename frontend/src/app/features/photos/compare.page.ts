@@ -97,7 +97,6 @@ import { SegDirective } from '../../shared/seg.directive';
       overflow: hidden;
       background: #0a0a0c;
       touch-action: pan-y;
-      animation: rise 380ms var(--ease-out);
     }
     .frames img {
       position: absolute;
@@ -170,7 +169,6 @@ import { SegDirective } from '../../shared/seg.directive';
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: var(--space-2);
-      animation: rise 380ms var(--ease-out);
     }
     .side figure {
       margin: 0;

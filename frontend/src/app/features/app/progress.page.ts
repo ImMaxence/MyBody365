@@ -9,7 +9,7 @@ import { WeightChartComponent } from './weight-chart.component';
 import { SegDirective } from '../../shared/seg.directive';
 import { MonthlyForecastComponent } from './monthly-forecast.component';
 import { BmiSheetComponent } from './bmi-sheet.component';
-import { bmiBand } from '../../core/tracking/bmi';
+import { bmiBand, waistClass } from '../../core/tracking/bmi';
 
 type Range = 'm1' | 'm3' | 'all';
 const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
@@ -61,6 +61,15 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
                 <span class="v num">{{ i18n.number(s.current.bmi, 1) }}</span>
                 <span class="band small"><i [attr.data-c]="bmiCls()"></i>{{ 'bmi.classes.' + bmiCls() | t }}</span>
               </button>
+              <button type="button" class="stat wide bmi" [attr.aria-label]="'progress.waistOpen' | t" (click)="bmiSheet.open()">
+                <span class="label"><span class="s-ico"><app-icon name="ruler" [size]="15" /></span>{{ 'progress.waist' | t }}<app-icon name="info" [size]="16" /></span>
+                @if (waist(); as w) {
+                  <span class="v num">{{ i18n.number(w.cm, 1) }}<small> cm · {{ 'progress.waistRatio' | t: { ratio: i18n.number(w.ratio, 2) } }}</small></span>
+                  <span class="band small"><i [attr.data-w]="w.cls"></i>{{ 'bmi.waistClasses.' + w.cls | t }}</span>
+                } @else {
+                  <span class="small muted">{{ 'progress.waistNone' | t }}</span>
+                }
+              </button>
               <div class="stat wide">
                 <span class="label"><span class="s-ico cool"><app-icon name="activity" [size]="15" /></span>{{ 'progress.trendPace' | t }}</span>
                 @if (s.goal.trendKgPerWeek != null) {
@@ -111,7 +120,8 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
       }
     </main>
     <app-weigh-sheet />
-    <app-bmi-sheet #bmiSheet [weightKg]="bmiWeight()" [heightCm]="summary()?.profile?.heightCm ?? 170" [goalKg]="summary()?.goal?.goalKg ?? null" />
+    <app-bmi-sheet #bmiSheet [weightKg]="bmiWeight()" [heightCm]="summary()?.profile?.heightCm ?? 170" [goalKg]="summary()?.goal?.goalKg ?? null"
+      [sex]="summary()?.profile?.sex ?? null" [age]="summary()?.profile?.age ?? null" [waistCm]="waist()?.cm ?? null" [bodyFatPct]="bodyFat()" />
   `,
   styles: `
     .chart-card {
@@ -218,6 +228,18 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
     .band i[data-c='obese3'] {
       background: #d61f1f;
     }
+    .band i[data-w='thin'] {
+      background: var(--cal-freeze-ink);
+    }
+    .band i[data-w='healthy'] {
+      background: var(--cal-done-ink);
+    }
+    .band i[data-w='raised'] {
+      background: #e0a500;
+    }
+    .band i[data-w='high'] {
+      background: #d61f1f;
+    }
     .stat .label {
       display: inline-flex;
       align-items: center;
@@ -296,6 +318,13 @@ export class ProgressPage {
     return s?.current.weightKg ?? s?.current.trendKg ?? s?.profile.startWeightKg ?? 70;
   });
   protected readonly bmiCls = computed(() => bmiBand(this.summary()?.current.bmi ?? 0).cls);
+  /** the last waist measured, against the height (a better landmark than the BMI for a muscular body) */
+  protected readonly waist = computed(() => {
+    const h = this.summary()?.profile.heightCm;
+    const cm = [...(this.logs() ?? [])].reverse().find((l) => l.waistCm != null)?.waistCm;
+    return h && cm ? { cm, ratio: Math.floor((cm / h) * 100) / 100, cls: waistClass(cm, h) } : null;
+  });
+  protected readonly bodyFat = computed(() => [...(this.logs() ?? [])].reverse().find((l) => l.bodyFatPct != null)?.bodyFatPct ?? null);
 
   constructor() {
     void this.tracking.load();

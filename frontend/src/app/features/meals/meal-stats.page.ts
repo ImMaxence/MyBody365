@@ -324,7 +324,6 @@ function niceStep(max: number): number {
       display: grid;
       gap: var(--space-3);
       padding: var(--space-4);
-      animation: rise 420ms var(--ease-out) both;
     }
     .c-title {
       display: flex;
@@ -349,7 +348,6 @@ function niceStep(max: number): number {
       border-radius: var(--radius-l);
       background: var(--surface);
       border: 1px solid var(--line);
-      animation: rise 420ms var(--ease-out) both;
     }
     .kpi:nth-child(2) {
       animation-delay: 50ms;
@@ -600,8 +598,6 @@ function niceStep(max: number): number {
       display: flex;
       align-items: center;
       gap: var(--space-3);
-      animation: rise 380ms var(--ease-out) both;
-      animation-delay: calc(var(--i) * 40ms);
     }
     .r-rank {
       width: 1.4em;
@@ -678,8 +674,6 @@ function niceStep(max: number): number {
       background: var(--surface-2);
       font-size: var(--fs-s);
       line-height: 1.45;
-      animation: rise 420ms var(--ease-out) both;
-      animation-delay: calc(var(--i) * 60ms);
     }
     .t-ico {
       display: grid;
@@ -722,7 +716,6 @@ function niceStep(max: number): number {
       .ranked li,
       .meter i,
       .tips li {
-        animation: none;
       }
     }
   `,

@@ -124,8 +124,6 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
       overflow: hidden;
       color: inherit;
       text-decoration: none;
-      animation: card-in 420ms var(--ease-out) both;
-      animation-delay: calc(min(var(--i, 0), 10) * 40ms);
       transition: transform var(--dur-2) var(--ease-out);
     }
     .rcard:active {

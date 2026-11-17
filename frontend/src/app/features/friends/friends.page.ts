@@ -370,9 +370,11 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
       animation: rise 220ms var(--ease-out) both;
       animation-delay: calc(var(--i) * 25ms);
     }
-    .suggestions li.active,
-    .suggestions li:hover {
-      background: var(--accent-soft);
+    @media (hover: hover) and (pointer: fine) {
+      .suggestions li.active,
+      .suggestions li:hover {
+        background: var(--accent-soft);
+      }
     }
     .suggestions .who-copy {
       flex: 1;
@@ -461,8 +463,6 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
       align-items: center;
       gap: var(--space-3);
       padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
-      animation: rise 380ms var(--ease-out) both;
-      animation-delay: calc(var(--i) * 50ms);
     }
     @keyframes rise {
       from {

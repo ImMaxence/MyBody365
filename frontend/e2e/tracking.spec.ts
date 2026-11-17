@@ -103,6 +103,9 @@ test.describe('tracking', () => {
     const bmiSheet = page.getByRole('dialog', { name: 'Ton IMC' });
     await expect(bmiSheet).toContainText('la corpulence normale va de 53,5 à');
     await expect(bmiSheet).toContainText('Prochain palier : sous 25 (Corpulence normale)');
+    // beyond the BMI: the waist measured at the weigh-in (84.5 cm at 1.70 m) is healthy, so it is muscle
+    await expect(bmiSheet).toContainText('Tour de taille 84,5 cm, soit 0,49 de ta taille');
+    await expect(bmiSheet).toContainText('c’est sûrement du muscle');
     await expectNoHorizontalOverflow(page);
     await expectAccessible(page);
     await bmiSheet.getByRole('button', { name: 'Fermer' }).click();

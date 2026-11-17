@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, viewChild } from '@angular/core';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { BMI_BANDS, bmiBand, bmiOf, nextBmiStep, weightForBmi } from '../../core/tracking/bmi';
+import type { Sex } from '../../core/api/models';
+import { BMI_BANDS, ageBmiRange, bmiBand, bmiOf, bodyFatClass, idealWeight, nextBmiStep, waistClass, weightForBmi } from '../../core/tracking/bmi';
 import { closeSheet } from '../../core/ui/sheets';
 import { IconComponent } from '../../shared/icon.component';
 
@@ -36,6 +37,9 @@ const pos = (v: number) => (Math.min(HIGH, Math.max(LOW, v)) - LOW) / (HIGH - LO
               <i [attr.data-c]="b.cls" [class.mine]="b.cls === band().cls" [style.flex-grow]="b.width" [style.--i]="i"></i>
             }
           </div>
+          @if (ideal(); as id) {
+            <span class="ideal-tick" [style.left.%]="pos(id.bmi)" aria-hidden="true"></span>
+          }
           <span class="marker" [style.left.%]="marker()"><span class="num">{{ i18n.number(bmi(), 1) }}</span></span>
           <div class="ticks tiny num" aria-hidden="true">
             @for (t of ticks; track t) {
@@ -45,6 +49,54 @@ const pos = (v: number) => (Math.min(HIGH, Math.max(LOW, v)) - LOW) / (HIGH - LO
         </div>
 
         <p class="small">{{ 'bmi.what' | t: { kg: i18n.number(weightKg(), 1), m: i18n.number(heightCm() / 100, 2), bmi: i18n.number(bmi(), 1) } }}</p>
+
+        <section class="beyond" [attr.aria-label]="'bmi.beyondTitle' | t">
+          <h3 class="b-title">{{ 'bmi.beyondTitle' | t }}</h3>
+          <p class="small muted">{{ 'bmi.beyondText' | t }}</p>
+          @if (muscle()) {
+            <p class="notice notice-success"><app-icon name="dumbbell" [size]="18" /> {{ 'bmi.muscle' | t }}</p>
+          }
+          <ul class="facts" role="list">
+            @if (waist(); as w) {
+              <li>
+                <span class="f-ico" [attr.data-w]="w.cls"><app-icon name="ruler" [size]="15" /></span>
+                <span class="small">
+                  {{ 'bmi.waist' | t: { cm: i18n.number(w.cm, 1), ratio: i18n.number(w.ratio, 2), band: ('bmi.waistClasses.' + w.cls | t) } }}
+                  <span class="muted">· {{ 'bmi.waistRule' | t }}</span>
+                </span>
+              </li>
+            } @else {
+              <li>
+                <span class="f-ico"><app-icon name="ruler" [size]="15" /></span>
+                <span class="small">{{ 'bmi.waistNone' | t }}</span>
+              </li>
+            }
+            @if (fat(); as f) {
+              <li>
+                <span class="f-ico" [attr.data-f]="f.cls"><app-icon name="pie" [size]="15" /></span>
+                <span class="small">{{ ('bmi.fat.' + (sex() ?? 'OTHER')) | t: { pct: i18n.number(f.pct, 1), band: ('bmi.fatClasses.' + f.cls | t) } }}</span>
+              </li>
+            }
+          </ul>
+        </section>
+
+        @if (ideal(); as id) {
+          <section class="ideal" [attr.aria-label]="'bmi.idealTitle' | t">
+            <div class="ideal-nums">
+              <div>
+                <span class="tiny muted">{{ 'bmi.idealTitle' | t }}</span>
+                <b class="num">≈ {{ i18n.number(id.bmi, 1) }}</b>
+              </div>
+              <div>
+                <span class="tiny muted">{{ 'bmi.idealWeight' | t }}</span>
+                <b class="num">≈ {{ i18n.number(id.kg, 1) }} kg</b>
+              </div>
+            </div>
+            <p class="small">{{ ('bmi.idealFor.' + id.sex) | t: { age: id.age, m: i18n.number(heightCm() / 100, 2) } }}</p>
+            <p class="small">{{ 'bmi.ageRange' | t: { from: id.range.from, to: id.range.to, kgFrom: i18n.number(id.kgFrom, 1), kgTo: i18n.number(id.kgTo, 1) } }}</p>
+            <p class="tiny muted">{{ 'bmi.idealHow' | t }}</p>
+          </section>
+        }
 
         <ul class="facts" role="list">
           <li>
@@ -191,6 +243,72 @@ const pos = (v: number) => (Math.min(HIGH, Math.max(LOW, v)) - LOW) / (HIGH - LO
         transform: translateY(-8px);
       }
     }
+    /* the ideal of the person, a small green triangle under the bands */
+    .ideal-tick {
+      position: absolute;
+      top: 47px;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 8px solid var(--cal-done-ink);
+      transform: translateX(-50%);
+    }
+    .beyond {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-4);
+      border-radius: var(--radius-m);
+      border: 1px solid var(--line);
+    }
+    .b-title {
+      font-size: var(--fs-m);
+      font-weight: 700;
+    }
+    [data-w='healthy'],
+    [data-f='athletic'],
+    [data-f='fit'] {
+      background: var(--cal-done) !important;
+      color: var(--cal-done-ink) !important;
+    }
+    [data-w='raised'],
+    [data-f='average'] {
+      background: var(--warning-soft) !important;
+      color: var(--warning) !important;
+    }
+    [data-w='high'],
+    [data-f='high'] {
+      background: var(--danger-soft) !important;
+      color: var(--danger) !important;
+    }
+    [data-w='thin'],
+    [data-f='low'] {
+      background: var(--cool-soft) !important;
+      color: var(--cool) !important;
+    }
+    .ideal {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-4);
+      border-radius: var(--radius-m);
+      background: color-mix(in srgb, var(--cal-done) 70%, var(--surface));
+    }
+    .ideal-nums {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+    }
+    .ideal-nums div {
+      display: grid;
+    }
+    .ideal-nums b {
+      font-family: var(--font-display);
+      font-stretch: 115%;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--cal-done-ink);
+    }
     .ticks {
       position: relative;
       height: 16px;
@@ -242,6 +360,11 @@ export class BmiSheetComponent {
   readonly weightKg = input.required<number>();
   readonly heightCm = input.required<number>();
   readonly goalKg = input<number | null>(null);
+  readonly sex = input<Sex | null>(null);
+  readonly age = input<number | null>(null);
+  /** the last waist measured (cm), and the last body fat (%), from the weigh-ins */
+  readonly waistCm = input<number | null>(null);
+  readonly bodyFatPct = input<number | null>(null);
   protected readonly i18n = inject(I18nService);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
   protected readonly Math = Math;
@@ -255,6 +378,33 @@ export class BmiSheetComponent {
   protected readonly marker = computed(() => Math.min(95, Math.max(5, pos(this.bmi()))));
   protected readonly healthy = computed(() => ({ from: weightForBmi(18.5, this.heightCm()), to: weightForBmi(25, this.heightCm()) - 0.1 }));
   protected readonly step = computed(() => nextBmiStep(this.bmi(), this.heightCm()));
+  /** an ideal for this height, sex and age, and the band advised for the age */
+  protected readonly ideal = computed(() => {
+    const sex = this.sex();
+    const age = this.age();
+    if (!sex || age == null) return null;
+    const h = this.heightCm();
+    const kg = idealWeight(sex, age, h);
+    const range = ageBmiRange(age);
+    return { sex, age, kg, bmi: bmiOf(kg, h), range, kgFrom: weightForBmi(range.from, h), kgTo: weightForBmi(range.to, h) };
+  });
+  protected readonly pos = pos;
+  protected readonly waist = computed(() => {
+    const cm = this.waistCm();
+    // cut, not rounded: 0.497 shows 0.49, on the right side of the 0.5 line it is judged by
+    return cm ? { cm, ratio: Math.floor((cm / this.heightCm()) * 100) / 100, cls: waistClass(cm, this.heightCm()) } : null;
+  });
+  protected readonly fat = computed(() => {
+    const pct = this.bodyFatPct();
+    return pct ? { pct, cls: bodyFatClass(this.sex() ?? 'OTHER', pct) } : null;
+  });
+  /** a high BMI with a healthy waist (or little fat): most likely muscle */
+  protected readonly muscle = computed(() => {
+    if (this.bmi() < 25) return false;
+    const w = this.waist();
+    const f = this.fat();
+    return w?.cls === 'healthy' || f?.cls === 'athletic' || f?.cls === 'fit';
+  });
   protected readonly goalBmi = computed(() => {
     const g = this.goalKg();
     return g ? bmiOf(g, this.heightCm()) : null;

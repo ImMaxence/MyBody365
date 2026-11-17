@@ -189,8 +189,6 @@ interface Month {
       border-radius: 14px;
       overflow: hidden;
       background: var(--surface-3);
-      animation: tile-in 420ms var(--ease-out) both;
-      animation-delay: calc(min(var(--i, 0), 12) * 30ms);
     }
     .tile img {
       width: 100%;

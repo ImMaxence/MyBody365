@@ -37,6 +37,49 @@ export function weightForBmi(bmi: number, heightCm: number): number {
 }
 
 /**
+ * An ideal weight for a height, a sex and an age: the mean of Lorentz (height and sex) and Creff (height
+ * and age, normal build). For "other", Lorentz is the mean of both sexes. Estimates, not targets.
+ */
+export function idealWeight(sex: 'MALE' | 'FEMALE' | 'OTHER', age: number, heightCm: number): number {
+  const male = heightCm - 100 - (heightCm - 150) / 4;
+  const female = heightCm - 100 - (heightCm - 150) / 2.5;
+  const lorentz = sex === 'MALE' ? male : sex === 'FEMALE' ? female : (male + female) / 2;
+  const creff = (heightCm - 100 + age / 10) * 0.9;
+  return (lorentz + creff) / 2;
+}
+
+/** the BMI band advised for an age (US National Research Council, 1989): a little higher with the years */
+export function ageBmiRange(age: number): { from: number; to: number } {
+  if (age < 25) return { from: 19, to: 24 };
+  if (age < 35) return { from: 20, to: 25 };
+  if (age < 45) return { from: 21, to: 26 };
+  if (age < 55) return { from: 22, to: 27 };
+  if (age < 65) return { from: 23, to: 28 };
+  return { from: 24, to: 29 };
+}
+
+/**
+ * Beyond the BMI, which does not tell muscle from fat: the waist-to-height ratio (NICE 2022, Ashwell),
+ * the same for everyone whatever the sex or the build. Under 0.5: healthy.
+ */
+export type WaistClass = 'thin' | 'healthy' | 'raised' | 'high';
+
+export function waistClass(waistCm: number, heightCm: number): WaistClass {
+  const r = waistCm / heightCm;
+  return r < 0.4 ? 'thin' : r < 0.5 ? 'healthy' : r < 0.6 ? 'raised' : 'high';
+}
+
+/** body fat percentage, by sex (American Council on Exercise bands); "other": between both */
+export type FatClass = 'low' | 'athletic' | 'fit' | 'average' | 'high';
+
+export function bodyFatClass(sex: 'MALE' | 'FEMALE' | 'OTHER', pct: number): FatClass {
+  const men = [6, 14, 18, 25];
+  const women = [14, 21, 25, 32];
+  const t = sex === 'MALE' ? men : sex === 'FEMALE' ? women : men.map((m, i) => (m + women[i]) / 2);
+  return pct < t[0] ? 'low' : pct < t[1] ? 'athletic' : pct < t[2] ? 'fit' : pct < t[3] ? 'average' : 'high';
+}
+
+/**
  * The next band towards the healthy one: its threshold, the weight that reaches it and the band beyond.
  * Null when already in the healthy band.
  */

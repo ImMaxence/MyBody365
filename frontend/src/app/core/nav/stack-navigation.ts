@@ -100,6 +100,11 @@ export class StackNavigation {
     return depthOf(this.router.routerState.snapshot.root);
   }
 
+  /** the screen "back" leads to when there is nothing to pop (route data `back`) */
+  parentUrl(): string {
+    return dataOf<string>(this.router.routerState.snapshot.root, 'back') ?? '/app';
+  }
+
   /** true when an earlier screen of this app session is in the history */
   canPop(): boolean {
     const state = this.doc.defaultView?.history.state as { navigationId?: number } | null;

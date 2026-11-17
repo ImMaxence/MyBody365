@@ -11,18 +11,15 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { StackNavigation } from '../../core/nav/stack-navigation';
 import { IconComponent } from '../../shared/icon.component';
 
-/** where a back swipe has to start: the left edge of the screen, like iOS */
-const EDGE = 28;
-/** the phone's own back swipe starts within this strip: it is kept for the app's */
-const NATIVE_EDGE = 20;
-/** how far (share of the width) or how fast (px/ms) the screen must travel to go back */
-const DISTANCE = 0.33;
-const SPEED = 0.5;
-/** the previous screen underneath: a little to the left and darker, as on iOS */
-const UNDER_SHIFT = 0.28;
-const UNDER_DIM = 0.82;
-const SETTLE_MS = 280;
-const SETTLE = `transform ${SETTLE_MS}ms cubic-bezier(0.2, 0.85, 0.25, 1), filter ${SETTLE_MS}ms cubic-bezier(0.2, 0.85, 0.25, 1)`;
+/** how far (share of the width) or how fast (px/ms, the last moves) the screen must travel to go back */
+const DISTANCE = 0.4;
+const SPEED = 0.45;
+/** the previous screen underneath: a little to the left and darker, as on iOS (navigation.css too) */
+const UNDER_SHIFT = 0.3;
+const UNDER_DIM = 0.86;
+const SETTLE_MS = 340;
+const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`;
 
 /**
  * The installed app: screens above, the tab bar below (hidden on sign-in and onboarding). Screens
@@ -33,13 +30,13 @@ const SETTLE = `transform ${SETTLE_MS}ms cubic-bezier(0.2, 0.85, 0.25, 1), filte
   selector: 'app-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterOutlet, RouterLink, TranslatePipe, IconComponent],
-  host: {
-    '(touchstart)': 'swipeStart($event)',
-  },
   template: `
     <div id="main" class="screen" #screen>
       <router-outlet />
     </div>
+    <!-- the left edge: the back swipe (see edgeStart) -->
+    <div class="edge" aria-hidden="true" (touchstart)="edgeStart($event)" (touchmove)="edgeMove($event)" (touchend)="edgeEnd($event)"
+      (touchcancel)="edgeCancel()"></div>
     @if (showTabs()) {
       <nav class="tabbar" [attr.aria-label]="'nav.main' | t" [style.--i]="activeIndex()">
         <span class="indicator" [class.hidden]="activeIndex() < 0" aria-hidden="true"></span>
@@ -67,13 +64,23 @@ const SETTLE = `transform ${SETTLE_MS}ms cubic-bezier(0.2, 0.85, 0.25, 1), filte
       min-height: 100dvh;
       background: var(--bg);
     }
+    /* the left edge of the screen: where a back swipe starts (above the screens, under the tab bar) */
+    .edge {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 99;
+      width: 20px;
+      touch-action: none;
+    }
     /* the screen being left during a back swipe (a still copy, see lift()) */
     .swipe-ghost {
       position: fixed;
       left: 0;
       right: 0;
       z-index: 95;
-      box-shadow: -12px 0 40px rgba(0, 0, 0, 0.28);
+      box-shadow: -6px 0 24px rgba(0, 0, 0, 0.16);
       pointer-events: none;
       will-change: transform;
     }
@@ -215,7 +222,21 @@ export class ShellComponent {
   });
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  private swipe: { x: number; y: number; t: number; dx: number; locked: boolean } | null = null;
+  private swipe: {
+    x: number;
+    y: number;
+    t: number;
+    lastX: number;
+    lastT: number;
+    /** px/ms, smoothed over the last moves */
+    speed: number;
+    dx: number;
+    moved: boolean;
+    locked: boolean;
+    /** a back swipe may start (a pushed screen, nothing settling) */
+    armed: boolean;
+  } | null = null;
+  private readonly doc = inject(DOCUMENT);
   /** during a swipe: the still copy of the screen being left, and how the app went back */
   private leaving: { ghost: HTMLElement; how: 'history' | 'opened' } | null = null;
 
@@ -230,7 +251,6 @@ export class ShellComponent {
       const destroy = inject(DestroyRef);
       const doc = inject(DOCUMENT);
       this.lockZoom(doc, destroy);
-      this.blockNativeBack(doc, destroy);
       inject(AppBadge).watch(destroy);
       // the red dots: once signed in, then each time the app comes back (at most once a minute)
       let last = 0;
@@ -269,114 +289,88 @@ export class ShellComponent {
     });
   }
 
-  /**
-   * The phone's own back swipe (iOS) starts at the very edge: it moved the whole page, tab bar included,
-   * over an empty grey screen, then this app animated the step back once more. It is turned off in the
-   * app: a touch that starts there is kept for the app's swipe. A plain tap there still works.
-   */
-  private blockNativeBack(doc: Document, destroy: DestroyRef): void {
-    let tap: { x: number; y: number; target: EventTarget | null } | null = null;
-    const start = (e: TouchEvent) => {
-      const t = e.touches[0];
-      if (e.touches.length !== 1 || t.clientX > NATIVE_EDGE) {
-        tap = null;
-        return;
-      }
-      if (e.cancelable) e.preventDefault();
-      tap = { x: t.clientX, y: t.clientY, target: e.target };
-    };
-    const move = (e: TouchEvent) => {
-      const t = e.touches[0];
-      if (tap && t && Math.hypot(t.clientX - tap.x, t.clientY - tap.y) > 10) tap = null;
-    };
-    // a cancelled touch start brings no click: the tap is passed on by hand
-    const end = () => {
-      const target = tap?.target as HTMLElement | null;
-      tap = null;
-      if (!(target instanceof HTMLElement)) return;
-      const el = target.closest<HTMLElement>('a, button, input, select, textarea, label, summary, [role=button], [tabindex]') ?? target;
-      if (el.matches('input:not([type=checkbox]):not([type=radio]), select, textarea')) el.focus();
-      else el.click();
-    };
-    const active: AddEventListenerOptions = { passive: false };
-    doc.addEventListener('touchstart', start, active);
-    doc.addEventListener('touchmove', move, { passive: true });
-    doc.addEventListener('touchend', end);
-    destroy.onDestroy(() => {
-      doc.removeEventListener('touchstart', start, active);
-      doc.removeEventListener('touchmove', move);
-      doc.removeEventListener('touchend', end);
-    });
-  }
-
   // ── back swipe ─────────────────────────────────────────────────────────────
   //
-  // Like iOS: the screen follows the finger and the previous one is already there underneath, a little
-  // to the left and darker. As soon as the drag starts, a still copy of the screen takes its place on top
-  // and the app goes back for real underneath; let go far (or fast) enough and the copy leaves to the
-  // right, otherwise it comes back and the app returns to the screen, without any animation.
+  // Like iOS: a touch that starts on the left edge (the invisible strip .edge) drags the screen to the right,
+  // with the previous screen already there underneath, a little to the left and darker. The strip keeps the
+  // whole gesture: it never leaves the page, even when the screen under the finger does (as soon as the drag
+  // starts, a still copy of the screen takes its place on top and the app goes back for real underneath).
+  // Let go far or fast enough and the copy leaves to the right; otherwise it comes back and the app returns
+  // to the screen, without any animation. The strip also keeps the phone's own back swipe away (it showed
+  // an empty grey screen, then this app animated once more), and passes a plain tap on to what is below.
 
-  protected swipeStart(e: TouchEvent): void {
+  protected edgeStart(e: TouchEvent): void {
     const touch = e.touches[0];
-    if (this.leaving || e.touches.length !== 1 || touch.clientX > EDGE || this.stack.depth() === 0) return;
-    this.swipe = { x: touch.clientX, y: touch.clientY, t: e.timeStamp, dx: 0, locked: false };
-    // the rest of the gesture is heard on the element touched: it still gets it once the screen it belonged
-    // to has gone (the previous screen takes its place underneath as soon as the drag starts)
-    const target = e.target;
-    if (!target) return;
-    const move = (ev: Event) => this.swipeMove(ev as TouchEvent);
-    const end = (ev: Event) => {
-      stop();
-      this.swipeEnd(ev as TouchEvent);
+    if (e.cancelable) e.preventDefault();
+    this.swipe = {
+      x: touch.clientX,
+      y: touch.clientY,
+      t: e.timeStamp,
+      lastX: touch.clientX,
+      lastT: e.timeStamp,
+      speed: 0,
+      dx: 0,
+      moved: false,
+      locked: false,
+      armed: e.touches.length === 1 && !this.leaving && this.stack.depth() > 0,
     };
-    const cancel = () => {
-      stop();
-      this.swipeCancel();
-    };
-    const stop = () => {
-      target.removeEventListener('touchmove', move);
-      target.removeEventListener('touchend', end);
-      target.removeEventListener('touchcancel', cancel);
-    };
-    target.addEventListener('touchmove', move, { passive: false });
-    target.addEventListener('touchend', end);
-    target.addEventListener('touchcancel', cancel);
   }
 
-  private swipeMove(e: TouchEvent): void {
-    if (!this.swipe) return;
+  protected edgeMove(e: TouchEvent): void {
+    const s = this.swipe;
+    if (!s) return;
+    if (e.cancelable) e.preventDefault();
     const touch = e.touches[0];
-    const dx = Math.max(0, touch.clientX - this.swipe.x);
-    const dy = Math.abs(touch.clientY - this.swipe.y);
-    if (!this.swipe.locked) {
-      // a vertical scroll that happens to start at the edge is left alone
-      if (dy > 10 && dy > dx) {
-        this.swipe = null;
+    const dx = Math.max(0, touch.clientX - s.x);
+    const dy = Math.abs(touch.clientY - s.y);
+    if (Math.hypot(touch.clientX - s.x, touch.clientY - s.y) > 8) s.moved = true;
+    // the speed of the last moves (a flick goes back even when short)
+    const dt = Math.max(1, e.timeStamp - s.lastT);
+    s.speed = 0.6 * s.speed + 0.4 * ((touch.clientX - s.lastX) / dt);
+    s.lastX = touch.clientX;
+    s.lastT = e.timeStamp;
+    if (!s.armed) return;
+    if (!s.locked) {
+      // a vertical move that happens to start at the edge is not a back swipe
+      if (dy > 12 && dy > dx) {
+        s.armed = false;
         return;
       }
-      if (dx < 12) return;
-      this.swipe.locked = true;
+      if (dx < 10) return;
+      s.locked = true;
       this.lift();
     }
-    if (e.cancelable) e.preventDefault();
-    this.swipe.dx = dx;
+    s.dx = dx;
     this.follow(dx);
   }
 
-  private swipeEnd(e: TouchEvent): void {
-    if (!this.swipe) return;
-    const { dx, t, locked } = this.swipe;
+  protected edgeEnd(e: TouchEvent): void {
+    const s = this.swipe;
     this.swipe = null;
-    if (!locked || !this.leaving) return;
-    const speed = dx / Math.max(1, e.timeStamp - t);
-    this.settle(dx > window.innerWidth * DISTANCE || speed > SPEED);
+    if (!s) return;
+    if (s.locked && this.leaving) {
+      // a flick: still moving fast when the finger lifts (held still first, it is not one)
+      const flick = e.timeStamp - s.lastT < 90 && s.speed > SPEED;
+      this.settle(s.dx > window.innerWidth * DISTANCE || flick);
+      return;
+    }
+    // a plain tap on the edge: to what is under it
+    if (!s.moved) this.tapThrough(s.x, s.y, e.target as HTMLElement);
   }
 
   /** the system took the touch: whatever was started is undone */
-  private swipeCancel(): void {
-    const locked = this.swipe?.locked;
+  protected edgeCancel(): void {
+    const s = this.swipe;
     this.swipe = null;
-    if (locked && this.leaving) this.settle(false);
+    if (s?.locked && this.leaving) this.settle(false);
+  }
+
+  private tapThrough(x: number, y: number, strip: HTMLElement): void {
+    const below = this.doc.elementsFromPoint(x, y).find((el) => el !== strip && !strip.contains(el)) as HTMLElement | undefined;
+    if (!below) return;
+    const el = below.closest<HTMLElement>('a, button, input, select, textarea, label, summary, [role=button], [tabindex]') ?? below;
+    if (el.matches('input:not([type=checkbox]):not([type=radio]), select, textarea')) el.focus();
+    else el.click();
   }
 
   /** the copy on top, the previous screen underneath */

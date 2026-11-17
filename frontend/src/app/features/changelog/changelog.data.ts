@@ -7,6 +7,82 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.3.0",
+    "date": "2026-11-17",
+    "summary": [
+      {
+        "t": "Un retour en arrière à la façon de l'iPhone, des écrans qui arrivent d'un bloc, l'IMC idéal pour ton âge, un repère plus juste que l'IMC pour les sportifs, et l'app qui se met à jour toute seule"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "IMC idéal pour ton âge, ta taille et ton sexe, avec le poids qui va avec et la zone conseillée à ton âge, marqué sur l'échelle de couleurs"
+            }
+          ],
+          [
+            {
+              "t": "L'IMC ne voit pas les muscles : ton tour de taille rapporté à ta taille (sain sous 0,5, pour tout le monde) et ta masse grasse, quand tu les notes dans ta pesée, complètent la fiche. Si ton IMC est élevé mais ton tour de taille sain, l'app te dit que c'est sûrement du muscle"
+            }
+          ],
+          [
+            {
+              "t": "Progrès : une tuile Tour de taille, avec sa zone"
+            }
+          ],
+          [
+            {
+              "t": "Le bouton retour affiche l'écran précédent (« ‹ Profil »), au-dessus du grand titre, comme sur iPhone"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "L'app se met à jour toute seule, quand tu la quittes : plus de bouton pour recharger. Elle vérifie s'il y a une nouvelle version chaque fois que tu y reviens"
+            }
+          ],
+          [
+            {
+              "t": "Pousser et revenir d'un écran prennent le rythme de l'iPhone : un départ vif, une arrivée douce, l'écran de dessous un peu en retrait et assombri"
+            }
+          ],
+          [
+            {
+              "t": "Statistiques, recettes, photos, amis, comparateur : le contenu ne glisse plus en place à l'arrivée, seule la transition de l'écran bouge"
+            }
+          ],
+          [
+            {
+              "t": "Aucun effet de survol sur téléphone : les lignes ne grisent plus quand on fait défiler"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Retour au doigt : l'écran qui suit le doigt gardait parfois ses couleurs et ses mises en page en route (« tout le CSS part »), et un geste relâché pouvait rester bloqué à mi-chemin"
+            }
+          ],
+          [
+            {
+              "t": "Le cadre orange autour de la poignée des tiroirs (supprimer mon compte, etc.) a disparu"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.2.0",
     "date": "2026-11-17",
     "summary": [

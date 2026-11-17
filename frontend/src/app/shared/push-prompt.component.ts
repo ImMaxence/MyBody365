@@ -50,7 +50,6 @@ const LATER = 'mb-push-later';
       color: var(--accent-ink);
       box-shadow: 0 22px 44px -22px var(--accent-glow);
       overflow: hidden;
-      animation: push-in 520ms var(--ease-out) both;
     }
     .push.blocked {
       background: var(--surface);

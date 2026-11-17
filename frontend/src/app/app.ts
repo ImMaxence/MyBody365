@@ -41,19 +41,36 @@ export class App {
   constructor() {
     // every bottom sheet closes by a click outside, a tap on its grip or a swipe down
     if (isPlatformBrowser(inject(PLATFORM_ID))) installSheets(this.document);
-    // a new version of the app is downloaded in the background: offer to switch to it now (the session stays)
+    // a new version is downloaded in the background, then switched to without a word: the next time the app
+    // goes to the background (the reload is not seen, the session stays). Nothing to tap. The app looks for a
+    // new version each time it comes back to the front.
     const updates = inject(SwUpdate);
     if (!updates.isEnabled) return;
+    let ready = false;
     updates.versionUpdates
       .pipe(
         filter((e): e is VersionReadyEvent => e.type === 'VERSION_READY'),
         takeUntilDestroyed(),
       )
-      .subscribe(() =>
-        this.toasts.show(this.i18n.t('common.updateReady'), 'info', 0, {
-          label: this.i18n.t('common.updateNow'),
-          run: () => void updates.activateUpdate().then(() => this.document.location.reload()),
-        }),
-      );
+      .subscribe(() => {
+        ready = true;
+        if (this.document.visibilityState === 'hidden') this.switchVersion(updates);
+      });
+    // a broken cache (files of an old version gone): start again from the network
+    updates.unrecoverable.pipe(takeUntilDestroyed()).subscribe(() => this.document.location.reload());
+    this.document.addEventListener('visibilitychange', () => {
+      if (this.document.visibilityState === 'hidden') {
+        if (ready) this.switchVersion(updates);
+      } else {
+        void updates.checkForUpdate().catch(() => false);
+      }
+    });
+  }
+
+  private switchVersion(updates: SwUpdate): void {
+    void updates
+      .activateUpdate()
+      .then(() => this.document.location.reload())
+      .catch(() => undefined);
   }
 }

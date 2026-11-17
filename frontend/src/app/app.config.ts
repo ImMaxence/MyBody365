@@ -1,7 +1,7 @@
 import { provideHttpClient, withFetch, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
 import { ApplicationConfig, ErrorHandler, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { ReportingErrorHandler } from './core/support/error-reporter';
-import { provideClientHydration, withNoIncrementalHydration } from '@angular/platform-browser';
+import { REMOVE_STYLES_ON_COMPONENT_DESTROY, provideClientHydration, withNoIncrementalHydration } from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling, withViewTransitions } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
@@ -13,6 +13,8 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     // unhandled errors also go to the admins' error journal
     { provide: ErrorHandler, useClass: ReportingErrorHandler },
+    // a screen's styles stay once it is gone: the back swipe moves a copy of it over the previous screen
+    { provide: REMOVE_STYLES_ON_COMPONENT_DESTROY, useValue: false },
     provideRouter(
       routes,
       withComponentInputBinding(),
