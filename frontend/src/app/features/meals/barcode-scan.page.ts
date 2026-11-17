@@ -190,7 +190,11 @@ export class BarcodeScanPage {
       return;
     }
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: 'environment', width: { ideal: 1280 } } });
+      // asked in landscape, as the sensor is: iOS then gives upright frames (asked otherwise, a cropped picture, like a zoom)
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+      });
       const v = this.video().nativeElement;
       v.srcObject = this.stream;
       await v.play().catch(() => undefined);

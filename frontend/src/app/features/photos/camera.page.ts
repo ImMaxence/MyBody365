@@ -23,17 +23,21 @@ const TIMERS = [0, 3, 10] as const;
   imports: [TranslatePipe, IconComponent],
   template: `
     <main class="cam" [class.live]="state() === 'live'">
-      <video #video playsinline muted autoplay [class.mirror]="facing() === 'user'" [hidden]="state() === 'preview' || state() === 'saving'"></video>
+      <!-- the photo's own frame (3:4, upright), like the camera of the phone: what is seen is what is kept -->
+      <div class="stage">
+        <video #video playsinline muted autoplay [class.mirror]="facing() === 'user'" [hidden]="state() === 'preview' || state() === 'saving'"
+          (loadedmetadata)="fitStream()"></video>
 
-      @if (ghostOn() && ghostUrl() && state() === 'live') {
-        <img class="ghost" [src]="ghostUrl()" alt="" [class.mirror]="facing() === 'user'" />
-      }
-      @if (state() === 'live') {
-        <div class="guides" aria-hidden="true"><i></i><i></i></div>
-      }
-      @if (previewUrl() && (state() === 'preview' || state() === 'saving')) {
-        <img class="preview" [src]="previewUrl()" alt="" />
-      }
+        @if (ghostOn() && ghostUrl() && state() === 'live') {
+          <img class="ghost" [src]="ghostUrl()" alt="" [class.mirror]="facing() === 'user'" />
+        }
+        @if (state() === 'live') {
+          <div class="guides" aria-hidden="true"><i></i><i></i></div>
+        }
+        @if (previewUrl() && (state() === 'preview' || state() === 'saving')) {
+          <img class="preview" [src]="previewUrl()" alt="" />
+        }
+      </div>
       @if (countdown() > 0) {
         @for (n of [countdown()]; track n) {
           <span class="countdown num" aria-live="assertive">{{ n }}</span>
@@ -120,6 +124,16 @@ const TIMERS = [0, 3, 10] as const;
       color: #fff;
       overflow: hidden;
     }
+    /* the frame of the photo: 3:4 upright, as wide as the screen, centred between the top and the controls */
+    .stage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: min(100%, calc(100dvh * 3 / 4));
+      aspect-ratio: 3 / 4;
+      overflow: hidden;
+      transform: translate(-50%, -50%);
+    }
     video,
     .ghost,
     .preview {
@@ -130,7 +144,6 @@ const TIMERS = [0, 3, 10] as const;
       object-fit: cover;
     }
     .preview {
-      object-fit: contain;
       animation: develop 420ms var(--ease-out);
     }
     @keyframes develop {
@@ -398,8 +411,11 @@ export class CameraPage {
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
-        video: { facingMode: this.facing(), width: { ideal: 1440 }, height: { ideal: 1920 } },
+        // asked in landscape, as the sensor is: iOS then hands upright frames to a phone held upright (asked upright, it
+        // gave landscape frames, cropped on screen like a strong zoom, and photos saved in landscape)
+        video: { facingMode: this.facing(), width: { ideal: 1920 }, height: { ideal: 1440 } },
       });
+      await this.zoomOne();
       const v = this.video().nativeElement;
       v.srcObject = this.stream;
       await v.play().catch(() => undefined);
@@ -418,6 +434,7 @@ export class CameraPage {
   }
 
   protected flip(): void {
+    this.swapped = false;
     this.facing.set(this.facing() === 'user' ? 'environment' : 'user');
     void this.start();
   }
@@ -446,14 +463,43 @@ export class CameraPage {
     }, 1000);
   }
 
-  /** the whole camera frame, as the sensor sees it (the live preview is only mirrored for the front camera) */
+  /** no zoom of its own: some phones start their camera zoomed in */
+  private async zoomOne(): Promise<void> {
+    const track = this.stream?.getVideoTracks()[0];
+    const caps = track?.getCapabilities?.() as (MediaTrackCapabilities & { zoom?: { min: number; max: number } }) | undefined;
+    const zoom = (track?.getSettings() as MediaTrackSettings & { zoom?: number } | undefined)?.zoom;
+    if (!track || !caps?.zoom || zoom === undefined || zoom === 1 || caps.zoom.min > 1 || caps.zoom.max < 1) return;
+    await track.applyConstraints({ advanced: [{ zoom: 1 } as MediaTrackConstraintSet] }).catch(() => undefined);
+  }
+
+  /** still landscape frames on a phone held upright: asked once the other way round */
+  private swapped = false;
+  protected fitStream(): void {
+    const v = this.video().nativeElement;
+    const track = this.stream?.getVideoTracks()[0];
+    if (this.swapped || !track || window.innerWidth > window.innerHeight || v.videoWidth <= v.videoHeight) return;
+    this.swapped = true;
+    void track.applyConstraints({ width: { ideal: v.videoHeight }, height: { ideal: v.videoWidth } }).catch(() => undefined);
+  }
+
+  /**
+   * What the frame on screen shows, upright 3:4, as the sensor sees it (the live preview is only mirrored for
+   * the front camera): the middle of the camera picture when its proportions differ
+   */
   private async snap(): Promise<void> {
     const v = this.video().nativeElement;
     if (!v.videoWidth) return;
+    const ratio = 3 / 4;
+    let sw = v.videoWidth;
+    let sh = v.videoHeight;
+    if (sw / sh > ratio) sw = Math.round(sh * ratio);
+    else sh = Math.round(sw / ratio);
+    const sx = Math.round((v.videoWidth - sw) / 2);
+    const sy = Math.round((v.videoHeight - sh) / 2);
     const canvas = document.createElement('canvas');
-    canvas.width = v.videoWidth;
-    canvas.height = v.videoHeight;
-    canvas.getContext('2d')!.drawImage(v, 0, 0);
+    canvas.width = sw;
+    canvas.height = sh;
+    canvas.getContext('2d')!.drawImage(v, sx, sy, sw, sh, 0, 0, sw, sh);
     this.flash.set(true);
     setTimeout(() => this.flash.set(false), 400);
     navigator.vibrate?.(20);

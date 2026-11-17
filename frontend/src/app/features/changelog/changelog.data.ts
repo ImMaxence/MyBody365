@@ -7,6 +7,52 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.5.0",
+    "date": "2026-11-17",
+    "summary": [
+      {
+        "t": "Le Nutri-Score des repas au snack, une caméra au bon cadrage, des tiroirs qu'on baisse au doigt, et plus de flou sous l'heure"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "Repas au snack : un Nutri-Score estimé pour chaque format, les frites, les extras et chaque boisson (sur le barème des boissons), et celui du repas entier. Il est enregistré avec chaque ligne, il compte donc dans la note d'équilibre et les statistiques"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "Les tiroirs se baissent au doigt depuis n'importe où quand leur contenu est tout en haut, comme sur iPhone, et se ferment au-delà d'un certain point ou d'un geste vif. Si tu remontes dans un long tiroir puis continues vers le bas, il suit"
+            }
+          ],
+          [
+            {
+              "t": "Une bande de la couleur de la page sous l'heure et la batterie : iOS n'y floute plus ce qui défile"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Caméra (photo du jour et scan) : plus d'effet de zoom, et les photos sont bien enregistrées en portrait. L'aperçu montre exactement le cadre de la photo, au format 3:4"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.4.0",
     "date": "2026-11-17",
     "summary": [

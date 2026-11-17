@@ -347,6 +347,12 @@ export interface QuickPortion {
   proteinG?: number | null;
   carbsG?: number | null;
   fatG?: number | null;
+  /** known by an estimate (fast food): the rest of the portion, and its estimated Nutri-Score */
+  sugarsG?: number | null;
+  satFatG?: number | null;
+  saltG?: number | null;
+  fiberG?: number | null;
+  nutriscore?: Grade | null;
 }
 
 export interface RecentItem {

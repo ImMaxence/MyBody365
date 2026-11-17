@@ -187,6 +187,14 @@ class MealsTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$[0].name").value("Menu burger frites"))
                 .andExpect(jsonPath("$[0].kcal").value(1080.0))
                 .andExpect(jsonPath("$[0].quick.proteinG").value(40.0));
+        // an estimate that knows more (fast food): its sugars, salt… and its estimated Nutri-Score are kept
+        json(post("/api/me/meals"), lea, "{\"day\":\"" + today + "\",\"slot\":\"DINNER\",\"quick\":{\"name\":\"Kebab (Sandwich)\",\"kcal\":700,"
+                + "\"proteinG\":35,\"carbsG\":68,\"fatG\":32,\"sugarsG\":6,\"satFatG\":11,\"saltG\":3.5,\"fiberG\":4,\"nutriscore\":\"c\"}}")
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.entries[?(@.name == 'Kebab (Sandwich)')].nutriscore").value("c"))
+                .andExpect(jsonPath("$.entries[?(@.name == 'Kebab (Sandwich)')].nutrients.saltG").value(3.5));
+        json(post("/api/me/meals"), lea, "{\"day\":\"" + today + "\",\"slot\":\"DINNER\",\"quick\":{\"name\":\"X\",\"kcal\":100,\"nutriscore\":\"z\"}}")
+                .andExpect(status().isBadRequest());
         json(post("/api/me/meals"), lea, "{\"day\":\"" + today + "\",\"slot\":\"LUNCH\",\"quick\":{\"name\":\"Rien\",\"kcal\":0}}")
                 .andExpect(status().isBadRequest());
         json(post("/api/me/meals"), lea, "{\"day\":\"" + today + "\",\"slot\":\"LUNCH\",\"quick\":{\"name\":\"\",\"kcal\":300}}")

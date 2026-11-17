@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
-import { DRINKS, Dish, FRIES, Portion, dish, estimate } from '../../core/meals/fast-food';
+import { DRINKS, Dish, FRIES, Portion, dish, estimate, gradeOf } from '../../core/meals/fast-food';
+import type { Grade } from '../../core/meals/nutriscore';
+import { NutriscoreComponent } from '../../shared/nutriscore.component';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { closeSheet } from '../../core/ui/sheets';
@@ -12,6 +14,11 @@ export interface EstimatedItem {
   proteinG: number;
   carbsG: number;
   fatG: number;
+  sugarsG?: number;
+  satFatG?: number;
+  saltG?: number;
+  fiberG?: number;
+  nutriscore?: Grade;
 }
 
 /**
@@ -21,7 +28,7 @@ export interface EstimatedItem {
 @Component({
   selector: 'app-fast-food-sheet',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent],
+  imports: [NutriscoreComponent, TranslatePipe, IconComponent],
   template: `
     <dialog class="sheet" #dialog [attr.aria-label]="d() ? ('meals.quick.dishes.' + d()!.key | t) : ''">
       <div class="sheet-grip"></div>
@@ -37,7 +44,12 @@ export interface EstimatedItem {
             @for (f of dish.formats; track f.key) {
               <button type="button" class="opt" role="radio" [attr.aria-checked]="format() === f.key" (click)="format.set(f.key)">
                 <span class="opt-name">{{ 'meals.estimate.formats.' + dish.key + '.' + f.key | t }}</span>
-                <span class="opt-kcal num">≈ {{ i18n.number(f.kcal) }} kcal</span>
+                <span class="opt-foot">
+                  <span class="opt-kcal num">≈ {{ i18n.number(f.kcal) }} kcal</span>
+                  @if (grade(f); as g) {
+                    <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
+                  }
+                </span>
               </button>
             }
           </div>
@@ -51,6 +63,9 @@ export interface EstimatedItem {
                   @if (f.kcal) {
                     <small class="num">{{ i18n.number(f.kcal) }}</small>
                   }
+                  @if (grade(f); as g) {
+                    <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
+                  }
                 </button>
               }
             </div>
@@ -62,6 +77,9 @@ export interface EstimatedItem {
               @for (x of dish.extras; track x.key) {
                 <button type="button" class="chip-opt" [attr.aria-pressed]="extras().includes(x.key)" (click)="toggle(x.key)">
                   {{ 'meals.estimate.extraNames.' + x.key | t }} <small class="num">+{{ i18n.number(x.kcal) }}</small>
+                  @if (grade(x); as g) {
+                    <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
+                  }
                 </button>
               }
             </div>
@@ -74,6 +92,9 @@ export interface EstimatedItem {
                 {{ 'meals.estimate.drinks.' + x.key | t }}
                 @if (x.kcal > 1) {
                   <small class="num">{{ i18n.number(x.kcal) }}</small>
+                }
+                @if (grade(x); as g) {
+                  <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
                 }
               </button>
             }
@@ -88,6 +109,12 @@ export interface EstimatedItem {
             <p class="tiny muted num">
               {{ 'meals.estimate.macros' | t: { p: i18n.number(result().total.proteinG), c: i18n.number(result().total.carbsG), f: i18n.number(result().total.fatG) } }}
             </p>
+            @if (result().grade; as g) {
+              <div class="total-ns">
+                <span class="small">{{ 'meals.estimate.mealGrade' | t }}</span>
+                <app-nutriscore [grade]="g" [estimated]="true" />
+              </div>
+            }
           </section>
 
           <button type="button" class="btn btn-primary btn-block" [disabled]="busy()" (click)="add()">
@@ -126,9 +153,55 @@ export interface EstimatedItem {
       font-weight: 650;
       line-height: 1.25;
     }
+    .opt-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
     .opt-kcal {
       font-size: var(--fs-s);
       color: var(--fg-2);
+    }
+    /* a portion's estimated Nutri-Score: its letter in the colour of the scale */
+    .ns {
+      display: inline-grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      flex: none;
+      align-self: center;
+      border-radius: 6px;
+      font-style: normal;
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .ns[data-g='a'] {
+      background: #038141;
+    }
+    .ns[data-g='b'] {
+      background: #4f7a1d;
+    }
+    .ns[data-g='c'] {
+      background: #fecb02;
+      color: #16130f;
+    }
+    .ns[data-g='d'] {
+      background: #ee8100;
+      color: #16130f;
+    }
+    .ns[data-g='e'] {
+      background: #c8330b;
+    }
+    .total-ns {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+      margin-top: var(--space-2);
+      padding-top: var(--space-2);
+      border-top: 1px solid var(--line);
     }
     .opt[aria-checked='true'] .opt-kcal {
       color: var(--accent-text);
@@ -213,7 +286,9 @@ export class FastFoodSheetComponent {
 
   protected readonly result = computed(() => {
     const d = this.d();
-    return d ? estimate(d, this.format(), this.fries(), this.extras(), this.drink()) : { lines: [], total: { key: 'total', kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 } };
+    return d
+      ? estimate(d, this.format(), this.fries(), this.extras(), this.drink())
+      : { lines: [], total: { key: 'total', kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 }, grade: null };
   });
 
   open(key: string): void {
@@ -230,6 +305,10 @@ export class FastFoodSheetComponent {
 
   close(): void {
     closeSheet(this.dialog().nativeElement);
+  }
+
+  protected grade(x: Portion): Grade | null {
+    return gradeOf(x);
   }
 
   protected toggle(key: string): void {
@@ -252,7 +331,18 @@ export class FastFoodSheetComponent {
       }
     };
     this.confirm.emit(
-      this.result().lines.map((l) => ({ name: name(l.kind, l.portion), kcal: l.portion.kcal, proteinG: l.portion.proteinG, carbsG: l.portion.carbsG, fatG: l.portion.fatG })),
+      this.result().lines.map((l) => ({
+        name: name(l.kind, l.portion),
+        kcal: l.portion.kcal,
+        proteinG: l.portion.proteinG,
+        carbsG: l.portion.carbsG,
+        fatG: l.portion.fatG,
+        sugarsG: l.portion.sugarsG,
+        satFatG: l.portion.satFatG,
+        saltG: l.portion.saltG,
+        fiberG: l.portion.fiberG,
+        nutriscore: l.grade ?? undefined,
+      })),
     );
   }
 }

@@ -50,7 +50,7 @@ On ne transforme pas son corps en trois semaines. MyBody365 est pensé pour teni
 | 👥 **Entre potes** | Retrouve-les par nom d'utilisateur, suivez vos flammes, des coups de pouce, une photo partagée quand tu le décides |
 | 💾 **Tes données à toi** | Sauvegarde complète en un tap, chaque nuit sur ton Google Drive, restauration avec aperçu |
 
-> Version **1.4.0** : repas au snack estimés en deux touches, Open Food Facts gardé sur notre serveur. La 1.3 : navigation et retour au doigt à la façon de l'iPhone, IMC idéal pour ton âge, tour de taille et masse grasse pour ne pas confondre muscle et graisse, mises à jour silencieuses. La 1.2 : écrire au créateur depuis l'app, pastilles pour ce qui reste à faire, journal des erreurs pour les admins. La 1.1 : pastille sur l'icône, notification à chaque nouvelle version, rappels pour boire, IMC et objectif de calories expliqués. Le détail version par version est dans le [changelog](CHANGELOG.md).
+> Version **1.5.0** : Nutri-Score des repas au snack, caméra au bon cadrage, tiroirs au doigt. La 1.4 : repas au snack estimés en deux touches, Open Food Facts gardé sur notre serveur. La 1.3 : navigation et retour au doigt à la façon de l'iPhone, IMC idéal pour ton âge, tour de taille et masse grasse pour ne pas confondre muscle et graisse, mises à jour silencieuses. La 1.2 : écrire au créateur depuis l'app, pastilles pour ce qui reste à faire, journal des erreurs pour les admins. La 1.1 : pastille sur l'icône, notification à chaque nouvelle version, rappels pour boire, IMC et objectif de calories expliqués. Le détail version par version est dans le [changelog](CHANGELOG.md).
 
 ## L'app
 
@@ -113,7 +113,7 @@ Le parcours suit ensuite les étapes clés, du jour 0 (l'installation) au jour 3
 |---|---|
 | Lighthouse, pages publiques (mobile, réseau bridé, processeur ralenti 4×) | Accessibilité **100** · Bonnes pratiques **100** · SEO **100** · Performance **72 à 85** selon les pages (LCP autour d'une seconde) |
 | Tests back (JUnit + Testcontainers, avec un vrai SeaweedFS) | 81 tests : accès et rôles, CSRF, en-têtes, limitation de débit, calculs, flamme et gels, photos (réencodage, quotas, confidentialité), Ciqual et Open Food Facts simulés, copie locale d'Open Food Facts (export simulé), repas, ajout rapide, calendrier et statistiques, recettes et visibilité, import de recettes (sites simulés, adresses privées refusées), communauté, chiffrement Web Push, rappels du jour et de l'eau, annonce des nouvelles versions, messages au créateur, journal des erreurs, pastilles, amis, noms d'utilisateur, suggestions et demandes, photo de profil (et photo Google : seules les adresses Google sont appelées), verres d'eau, chronos enregistrés, rythme limité, partages, signalements, sauvegardes et fichiers piégés |
-| Tests front (Vitest) | 35 tests : traductions complètes FR / EN, plateformes, passkeys, erreurs, navigation, calendrier des repas, note d'équilibre, prévision mois par mois, noms d'utilisateur, tranches d'IMC, IMC idéal, tour de taille et masse grasse, estimations fast-food |
+| Tests front (Vitest) | 36 tests : traductions complètes FR / EN, plateformes, passkeys, erreurs, navigation, calendrier des repas, note d'équilibre, prévision mois par mois, noms d'utilisateur, tranches d'IMC, IMC idéal, tour de taille et masse grasse, estimations fast-food et leur Nutri-Score |
 | Tests de bout en bout (Playwright + axe-core) | 55 tests : site, installation, connexion, admin, parcours de bienvenue, pesée, IMC expliqué, photos, repas, ajout rapide, calendrier et statistiques, recettes, flamme, réglages des notifications, minuteur, verres d'eau, retours et erreurs côté admin, amis par lien et par nom d'utilisateur, photo de profil, partage et modération, sauvegarde et restauration, accessibilité, débordements mobile |
 | Sécurité | CSP stricte (`script-src 'self'` + deux empreintes), CSRF, cookie de session HttpOnly / SameSite / Secure, limitation par IP, journal admin. Rapport complet : [docs/security-audit.md](docs/security-audit.md) |
 | Sessions | Gardées en base (Spring Session JDBC) : une nouvelle version déployée ne déconnecte personne, et un compte suspendu est coupé tout de suite |
@@ -198,6 +198,7 @@ Les images de ce README et les captures de l'aperçu du site (`frontend/public/s
 | 1.2 | Écrire au créateur, pastilles, journal des erreurs, retour au doigt comme sur iPhone | ✅ |
 | 1.3 | Navigation façon iPhone, IMC idéal, mises à jour silencieuses | ✅ |
 | 1.4 | Repas au snack estimés, Open Food Facts en local | ✅ |
+| 1.5 | Nutri-Score des repas au snack, caméra et tiroirs corrigés | ✅ |
 
 Le détail de chaque version est dans le [changelog](CHANGELOG.md), aussi publié sur le site.
 

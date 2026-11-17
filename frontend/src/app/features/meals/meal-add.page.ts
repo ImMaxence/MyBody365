@@ -214,7 +214,7 @@ export class MealAddPage {
     sheet.busy.set(true);
     try {
       for (const i of lines) {
-        await this.store.add({ day: this.day(), slot: this.slot(), quick: { name: i.name, kcal: i.kcal, proteinG: i.proteinG, carbsG: i.carbsG, fatG: i.fatG } });
+        await this.store.add({ day: this.day(), slot: this.slot(), quick: { ...i } });
       }
       sheet.close();
       this.toast.show(this.i18n.t('meals.estimate.added', { kcal: this.i18n.number(lines.reduce((t, i) => t + i.kcal, 0)) }));

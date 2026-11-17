@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -50,7 +51,14 @@ public class MealService {
             @NotNull @DecimalMin("1") @DecimalMax("5000") Double kcal,
             @DecimalMin("0") @DecimalMax("500") Double proteinG,
             @DecimalMin("0") @DecimalMax("500") Double carbsG,
-            @DecimalMin("0") @DecimalMax("500") Double fatG) {}
+            @DecimalMin("0") @DecimalMax("500") Double fatG,
+            /** optional, for an estimate that knows them (fast food): the portion's sugars, saturated fat, salt, fibre */
+            @DecimalMin("0") @DecimalMax("500") Double sugarsG,
+            @DecimalMin("0") @DecimalMax("500") Double satFatG,
+            @DecimalMin("0") @DecimalMax("100") Double saltG,
+            @DecimalMin("0") @DecimalMax("200") Double fiberG,
+            /** an estimated Nutri-Score, a to e */
+            @Pattern(regexp = "[a-e]") String nutriscore) {}
 
     public record MealUpdate(Slot slot, @DecimalMin("1") @DecimalMax("5000") Double grams,
             @DecimalMin("0.25") @DecimalMax("20") Double servings) {}
@@ -188,7 +196,7 @@ public class MealService {
         if (in.quick() != null) {
             QuickInput q = in.quick();
             insert(userId, in.day(), in.slot(), null, null, q.name().strip(), null, null, 1.0,
-                    new Nutrients(q.kcal(), q.proteinG(), q.carbsG(), null, q.fatG(), null, null, null), null);
+                    new Nutrients(q.kcal(), q.proteinG(), q.carbsG(), q.sugarsG(), q.fatG(), q.satFatG(), q.fiberG(), q.saltG()), q.nutriscore());
         } else if (in.foodId() != null) {
             Food f = foods.usable(in.foodId(), userId);
             double grams = in.grams() != null ? in.grams() : f.servingG() != null ? f.servingG() : 100;

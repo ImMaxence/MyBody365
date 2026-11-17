@@ -101,50 +101,72 @@ export function installSheets(doc: Document): void {
     }
   });
 
-  // swipe down to close: from the grip, or anywhere while the sheet is scrolled to its very top. Scrolling a
-  // long sheet back up never closes it (it did when the finger started near its top)
-  let drag: { dialog: HTMLDialogElement; y: number; dy: number; id: number } | null = null;
+  // Pull down to close, like a sheet on iOS: from anywhere, once its content is at its very top (scrolling a long
+  // sheet back up first, then going on down, carries the sheet along). Touch events, not pointer events: the
+  // browser cancels a pointer as soon as it scrolls (the sheet then never moved); a touch can be kept, the scroll
+  // stopped and the sheet follows the finger. Let go far enough, or with a flick, and it closes.
+  let drag: { dialog: HTMLDialogElement; from: number; at: number | null; lastY: number; lastT: number; speed: number; dy: number } | null = null;
   const release = (dialog: HTMLDialogElement) => {
     dialog.style.transition = 'transform 260ms cubic-bezier(0.34, 1.4, 0.5, 1)';
     dialog.style.transform = '';
     view.setTimeout(() => dialog.style.removeProperty('transition'), 280);
   };
-  doc.addEventListener('pointerdown', (e) => {
-    const t = e.target as HTMLElement | null;
-    const dialog = t?.closest('dialog.sheet') as HTMLDialogElement | null;
-    if (!dialog || !dialog.open || e.pointerType === 'mouse') return;
-    if (t?.closest('input, textarea, select, button, a, [role=slider], video, .no-swipe')) return;
-    const onGrip = !!t?.classList.contains('sheet-grip');
-    if (!onGrip && dialog.scrollTop > 0) return;
-    drag = { dialog, y: e.clientY, dy: 0, id: e.pointerId };
-  });
   doc.addEventListener(
-    'pointermove',
+    'touchstart',
     (e) => {
-      if (!drag || e.pointerId !== drag.id) return;
-      const dy = e.clientY - drag.y;
-      // moving up, or the content scrolled meanwhile: this is a scroll, not a close
-      if (dy < -4 || drag.dialog.scrollTop > 0) {
-        const d = drag.dialog;
-        drag = null;
-        if (d.style.transform) release(d);
-        return;
-      }
-      drag.dy = Math.max(0, dy);
-      if (drag.dy > 4) drag.dialog.style.transform = `translateY(${drag.dy}px)`;
+      drag = null;
+      const t = e.target as HTMLElement | null;
+      const dialog = t?.closest('dialog.sheet') as HTMLDialogElement | null;
+      if (e.touches.length !== 1 || !dialog || !dialog.open) return;
+      if (t?.closest('input, textarea, select, [role=slider], video, .no-swipe')) return;
+      const y = e.touches[0].clientY;
+      drag = { dialog, from: y, at: null, lastY: y, lastT: e.timeStamp, speed: 0, dy: 0 };
     },
     { passive: true },
   );
-  const end = (e: PointerEvent) => {
-    if (!drag || e.pointerId !== drag.id) return;
-    const { dialog, dy } = drag;
+  doc.addEventListener(
+    'touchmove',
+    (e) => {
+      if (!drag) return;
+      const y = e.touches[0].clientY;
+      drag.speed = 0.6 * drag.speed + 0.4 * ((y - drag.lastY) / Math.max(1, e.timeStamp - drag.lastT));
+      drag.lastY = y;
+      drag.lastT = e.timeStamp;
+      const atTop = drag.dialog.scrollTop <= 0;
+      if (drag.at === null) {
+        // the content scrolls; the sheet joins in once the content is at its top and the finger goes down
+        if (!atTop || y <= drag.from + 2) {
+          drag.from = Math.min(drag.from, y);
+          if (!atTop) drag.from = y;
+          return;
+        }
+        // from where the finger was at the top, not from here (the move so far counts)
+        drag.at = drag.from;
+      }
+      const dy = y - drag.at;
+      if (dy <= 0) {
+        // back up past where it started: the content scrolls again
+        drag.dialog.style.transform = '';
+        drag.at = null;
+        drag.from = y;
+        drag.dy = 0;
+        return;
+      }
+      if (e.cancelable) e.preventDefault();
+      drag.dy = dy;
+      drag.dialog.style.transform = `translateY(${dy}px)`;
+    },
+    { passive: false },
+  );
+  const end = (e: TouchEvent) => {
+    if (!drag) return;
+    const { dialog, dy, speed, lastT } = drag;
     drag = null;
-    if (dy > 90) {
-      close(dialog);
-    } else {
-      release(dialog);
-    }
+    if (dy <= 0) return;
+    const flick = speed > 0.5 && e.timeStamp - lastT < 90 && dy > 30;
+    if (dy > 110 || flick) close(dialog);
+    else release(dialog);
   };
-  doc.addEventListener('pointerup', end);
-  doc.addEventListener('pointercancel', end);
+  doc.addEventListener('touchend', end);
+  doc.addEventListener('touchcancel', end);
 }

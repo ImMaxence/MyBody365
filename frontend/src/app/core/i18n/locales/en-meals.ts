@@ -333,6 +333,8 @@ export const enMeals: Widen<typeof frMeals> = {
     add: 'Add {slot}',
     note: 'Averages: depending on the place, a portion can vary by about 20 %',
     added: 'Meal added, about {kcal} kcal',
+    gradeOf: 'Estimated Nutri-Score {g}',
+    mealGrade: 'Estimated Nutri-Score of the meal',
   },
   score: {
     title: 'Balance of the day',

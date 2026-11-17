@@ -34,6 +34,11 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
     <div id="main" class="screen" #screen>
       <router-outlet />
     </div>
+    @if (shield()) {
+      <!-- under the status bar: a solid band of the page colour, so that nothing scrolls under the time and the
+           battery (iOS 26 blurs what passes there, with no setting to turn it off) -->
+      <div class="status-shield" aria-hidden="true"></div>
+    }
     <!-- the left edge: the back swipe (see edgeStart) -->
     <div class="edge" aria-hidden="true" (touchstart)="edgeStart($event)" (touchmove)="edgeMove($event)" (touchend)="edgeEnd($event)"
       (touchcancel)="edgeCancel()"></div>
@@ -73,6 +78,16 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
         opacity: 0;
         transform: translateY(8px);
       }
+    }
+    .status-shield {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 97;
+      height: var(--safe-top);
+      background: var(--bg);
+      pointer-events: none;
     }
     /* the left edge of the screen: where a back swipe starts (above the screens, under the tab bar) */
     .edge {
@@ -220,6 +235,9 @@ export class ShellComponent {
     const account = this.session.account();
     return account?.onboarded === true && account.profileComplete && !/^\/app\/(login|request|welcome|photos\/camera|meals\/scan)/.test(url);
   });
+
+  /** the band under the status bar: everywhere but the full-screen camera */
+  protected readonly shield = computed(() => !/^\/app\/(photos\/camera|meals\/scan)/.test(this.url()));
 
   /** the tab of the current screen (pushed screens belong to the tab they were opened from) */
   protected readonly activeIndex = computed(() => {

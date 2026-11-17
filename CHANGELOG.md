@@ -2,6 +2,20 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.5.0] - 2026-11-17
+
+Le Nutri-Score des repas au snack, une caméra au bon cadrage, des tiroirs qu'on baisse au doigt, et plus de flou sous l'heure
+
+### Ajouté
+- Repas au snack : un Nutri-Score estimé pour chaque format, les frites, les extras et chaque boisson (sur le barème des boissons), et celui du repas entier. Il est enregistré avec chaque ligne, il compte donc dans la note d'équilibre et les statistiques
+
+### Modifié
+- Les tiroirs se baissent au doigt depuis n'importe où quand leur contenu est tout en haut, comme sur iPhone, et se ferment au-delà d'un certain point ou d'un geste vif. Si tu remontes dans un long tiroir puis continues vers le bas, il suit
+- Une bande de la couleur de la page sous l'heure et la batterie : iOS n'y floute plus ce qui défile
+
+### Corrigé
+- Caméra (photo du jour et scan) : plus d'effet de zoom, et les photos sont bien enregistrées en portrait. L'aperçu montre exactement le cadre de la photo, au format 3:4
+
 ## [1.4.0] - 2026-11-17
 
 Le repas au snack estimé en deux touches, Open Food Facts gardé sur notre serveur, et des écrans qui arrivent en douceur

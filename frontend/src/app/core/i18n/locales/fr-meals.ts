@@ -330,6 +330,8 @@ export const frMeals = {
     add: 'Ajouter {slot}',
     note: 'Des moyennes : selon l’endroit, une portion peut varier d’environ 20 %',
     added: 'Repas ajouté, environ {kcal} kcal',
+    gradeOf: 'Nutri-Score estimé {g}',
+    mealGrade: 'Nutri-Score estimé du repas',
   },
   score: {
     title: 'Équilibre de la journée',
