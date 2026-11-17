@@ -96,6 +96,22 @@ test.describe('tracking', () => {
     await expect(page.getByRole('img', { name: 'Courbe de poids' })).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
+    // the BMI (74.8 kg at 1.70 m): its band on the tile, and a sheet that explains it
+    const bmi = page.getByRole('button', { name: /IMC 25,9, Surpoids/ });
+    await expect(bmi).toContainText('Surpoids');
+    await bmi.click();
+    const bmiSheet = page.getByRole('dialog', { name: 'Ton IMC' });
+    await expect(bmiSheet).toContainText('la corpulence normale va de 53,5 à');
+    await expect(bmiSheet).toContainText('Prochain palier : sous 25 (Corpulence normale)');
+    await expectNoHorizontalOverflow(page);
+    await expectAccessible(page);
+    await bmiSheet.getByRole('button', { name: 'Fermer' }).click();
+
+    // the calorie target, in plain words
+    await tab(page, 'Repas').click();
+    await expect(page.getByText(/kcal par jour pour perdre .* kg par semaine/)).toBeVisible();
+    await expect(page.getByText(/baisse d’environ \d+ kcal par kilo perdu/)).toBeVisible();
+
     // my goal, from the profile
     await tab(page, 'Profil').click();
     await page.getByRole('link', { name: /Mon objectif/ }).click();

@@ -16,6 +16,12 @@ export const frMeals = {
   left: 'restantes',
   over: 'en trop',
   kcalTarget: 'Objectif {kcal} kcal',
+  targetWhy: {
+    lose: '{target} kcal par jour pour perdre {rate} kg par semaine : ta dépense (environ {tdee} kcal, ton maintien) moins {diff} kcal. Recalculé à chaque pesée, cet objectif baisse d’environ {perKg} kcal par kilo perdu',
+    gain: '{target} kcal par jour pour prendre {rate} kg par semaine : ta dépense (environ {tdee} kcal, ton maintien) plus {diff} kcal. Recalculé à chaque pesée, cet objectif monte d’environ {perKg} kcal par kilo pris',
+    keep: '{target} kcal par jour : ta dépense, pour garder ton poids. Recalculé à chaque pesée',
+    floor: '{target} kcal par jour, le minimum conseillé pour ta santé : ta dépense est d’environ {tdee} kcal, et l’app ne descend jamais plus bas. Recalculé à chaque pesée',
+  },
   kcal: 'kcal',
   ringLabel: '{eaten} kcal consommées sur {target}',
   protein: 'Protéines',

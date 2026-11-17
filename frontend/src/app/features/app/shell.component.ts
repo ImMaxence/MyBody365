@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, ElementRef, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AppBadge } from '../../core/pwa/app-badge';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { SessionStore } from '../../core/auth/session.store';
@@ -60,15 +62,17 @@ const SPEED = 0.5;
       view-transition-name: tabbar;
       position: fixed;
       left: 50%;
-      bottom: calc(var(--safe-bottom) + 10px);
+      bottom: var(--tabbar-bottom);
       z-index: 100;
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       width: min(calc(100% - 20px), 460px);
-      padding: 6px;
-      border-radius: 30px;
+      height: var(--tabbar-h);
+      padding: 5px;
+      border-radius: 28px;
       transform: translateX(-50%);
-      background: var(--glass);
+      /* more covering than the other glass surfaces: the labels stay readable over any colour scrolling below */
+      background: color-mix(in srgb, var(--surface) 88%, transparent);
       backdrop-filter: saturate(1.8) blur(22px);
       -webkit-backdrop-filter: saturate(1.8) blur(22px);
       border: 1px solid var(--glass-line);
@@ -78,11 +82,11 @@ const SPEED = 0.5;
     }
     .indicator {
       position: absolute;
-      top: 6px;
-      bottom: 6px;
-      left: 6px;
-      width: calc((100% - 12px) / 5);
-      border-radius: 24px;
+      top: 5px;
+      bottom: 5px;
+      left: 5px;
+      width: calc((100% - 10px) / 5);
+      border-radius: 23px;
       background: var(--accent-soft);
       transform: translateX(calc(var(--i, 0) * 100%));
       transition:
@@ -98,9 +102,9 @@ const SPEED = 0.5;
       display: grid;
       justify-items: center;
       align-content: center;
-      gap: 1px;
-      height: 56px;
-      color: var(--fg-3);
+      gap: 0;
+      height: 100%;
+      color: var(--fg-2);
       font-size: 10.5px;
       font-weight: 650;
       -webkit-tap-highlight-color: transparent;
@@ -109,7 +113,7 @@ const SPEED = 0.5;
     .ico {
       display: grid;
       place-items: center;
-      height: 28px;
+      height: 26px;
       transition: transform var(--dur-1) var(--ease-out);
     }
     a:active .ico {
@@ -177,6 +181,32 @@ export class ShellComponent {
         takeUntilDestroyed(),
       )
       .subscribe((e) => this.url.set(e.urlAfterRedirects));
+    if (isPlatformBrowser(inject(PLATFORM_ID))) {
+      const destroy = inject(DestroyRef);
+      this.lockZoom(inject(DOCUMENT), destroy);
+      inject(AppBadge).watch(destroy);
+    }
+  }
+
+  /**
+   * Like a phone app: no pinch, no double-tap zoom (the public site stays zoomable). The viewport says so,
+   * the page refuses double taps (touch-action, base.css), and Safari's own pinch events are cancelled:
+   * iOS ignores user-scalable=no on its own.
+   */
+  private lockZoom(doc: Document, destroy: DestroyRef): void {
+    const root = doc.documentElement;
+    root.classList.add('app-mode');
+    const meta = doc.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+    const before = meta?.content;
+    meta?.setAttribute('content', 'width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+    const cancel = (e: Event) => e.preventDefault();
+    const options: AddEventListenerOptions = { passive: false };
+    for (const type of ['gesturestart', 'gesturechange']) doc.addEventListener(type, cancel, options);
+    destroy.onDestroy(() => {
+      root.classList.remove('app-mode');
+      if (meta && before) meta.content = before;
+      for (const type of ['gesturestart', 'gesturechange']) doc.removeEventListener(type, cancel, options);
+    });
   }
 
   // ── back swipe ─────────────────────────────────────────────────────────────

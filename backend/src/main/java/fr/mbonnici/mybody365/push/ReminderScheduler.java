@@ -2,6 +2,7 @@ package fr.mbonnici.mybody365.push;
 
 import fr.mbonnici.mybody365.push.PushService.Kind;
 import fr.mbonnici.mybody365.tracking.TrackingService;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
@@ -17,7 +18,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * Every minute (Paris time): the daily reminder of whoever set it for now and has not weighed in (or
- * taken the photo) yet. Each one goes at most once a day. (The gym reminders went with the workout programs in 1.0.)
+ * taken the photo) yet, each one at most once a day; and at 10:00, 13:00, 16:00 and 19:00, "drink some
+ * water" for whoever turned it on and is behind on their glasses. (The gym reminders went with the
+ * workout programs in 1.0.)
  */
 @Component
 public class ReminderScheduler {
@@ -44,6 +47,46 @@ public class ReminderScheduler {
             daily(today, minute);
         } catch (RuntimeException e) {
             log.warn("Reminders failed: {}", e.getMessage());
+        }
+        try {
+            water(today, minute);
+        } catch (RuntimeException e) {
+            log.warn("Water reminders failed: {}", e.getMessage());
+        }
+    }
+
+    /** when "drink some water" may go out (Paris time) */
+    static final List<LocalTime> WATER_SLOTS = List.of(LocalTime.of(10, 0), LocalTime.of(13, 0), LocalTime.of(16, 0), LocalTime.of(19, 0));
+
+    /** the glasses expected by this time: the day's goal spread evenly from 8:00 to 21:00 */
+    public static int expectedGlasses(int goal, LocalTime at) {
+        double share = Math.clamp((at.toSecondOfDay() - 8 * 3600) / (13.0 * 3600), 0, 1);
+        return (int) Math.ceil(goal * share - 1e-9);
+    }
+
+    /** at each slot, whoever asked for it and is behind on their glasses; at most once per slot */
+    private void water(LocalDate today, LocalTime minute) {
+        if (!WATER_SLOTS.contains(minute)) {
+            return;
+        }
+        Timestamp slot = Timestamp.from(today.atTime(minute).atZone(TrackingService.ZONE).toInstant());
+        List<Map<String, Object>> due = jdbc.queryForList("""
+                select p.user_id, u.water_goal, coalesce(w.glasses, 0) as glasses
+                from notification_pref p
+                join app_user u on u.id = p.user_id
+                left join water_log w on w.user_id = p.user_id and w.day = ?
+                where p.water_enabled and u.water_goal is not null and (p.last_water is null or p.last_water < ?)
+                  and exists (select 1 from push_subscription s where s.user_id = p.user_id)""", today, slot);
+        for (Map<String, Object> row : due) {
+            UUID user = (UUID) row.get("user_id");
+            int goal = ((Number) row.get("water_goal")).intValue();
+            int glasses = ((Number) row.get("glasses")).intValue();
+            // claimed first: two instances never send it twice
+            int claimed = jdbc.update("update notification_pref set last_water = ? where user_id = ? and (last_water is null or last_water < ?)",
+                    slot, user, slot);
+            if (claimed == 1 && glasses < expectedGlasses(goal, minute)) {
+                push.notify(user, Kind.WATER, Map.of("glasses", Integer.toString(glasses), "goal", Integer.toString(goal)));
+            }
         }
     }
 

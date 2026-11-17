@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ApiService } from '../../core/api/api.service';
+import { ApiService, errorCode } from '../../core/api/api.service';
+import { ToastService } from '../../core/ui/toast.service';
+import { AvatarImgComponent } from '../../shared/avatar-img.component';
+import { defaultWaterGoal } from './water-row.component';
 import { SessionStore } from '../../core/auth/session.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -13,11 +16,30 @@ import { WeighSheetComponent } from './weigh-sheet.component';
 import { WaterRowComponent } from './water-row.component';
 import { PushPromptComponent } from '../../shared/push-prompt.component';
 
+/** the water invitation, once hidden on this device */
+const WATER_INVITE_KEY = 'mb.waterInviteHidden';
+
+function readFlag(key: string): boolean {
+  try {
+    return localStorage.getItem(key) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeFlag(key: string): void {
+  try {
+    localStorage.setItem(key, '1');
+  } catch {
+    /* storage blocked: hidden for this visit only */
+  }
+}
+
 /** "Today": the streak, the day's to-do (the weigh-in validates the day) and the goal. */
 @Component({
   selector: 'app-today',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PushPromptComponent, WaterRowComponent, RouterLink, TranslatePipe, IconComponent, WeighSheetComponent],
+  imports: [AvatarImgComponent, PushPromptComponent, WaterRowComponent, RouterLink, TranslatePipe, IconComponent, WeighSheetComponent],
   template: `
     <main class="page">
       <header class="head">
@@ -26,11 +48,7 @@ import { PushPromptComponent } from '../../shared/push-prompt.component';
           <h1 class="display hello">{{ greeting() }}</h1>
         </div>
         <a routerLink="/app/account" class="avatar" [attr.aria-label]="'nav.profile' | t">
-          @if (account()?.avatarUrl; as src) {
-            <img [src]="src" alt="" referrerpolicy="no-referrer" width="40" height="40" />
-          } @else {
-            {{ initial() }}
-          }
+          <app-avatar-img [src]="account()?.avatarUrl" [name]="account()?.displayName" />
         </a>
       </header>
 
@@ -139,15 +157,19 @@ import { PushPromptComponent } from '../../shared/push-prompt.component';
         </button>
         @if (account()?.waterGoal; as goal) {
           <app-water-row [goal]="goal" />
+        } @else if (!waterInviteHidden()) {
+          <div class="list-item water-invite">
+            <span class="list-icon water-ico"><app-icon name="droplet" /></span>
+            <span class="list-body">
+              <span class="list-title">{{ 'water.title' | t }}</span>
+              <span class="list-sub wrap">{{ 'water.invite' | t }}</span>
+            </span>
+            <button type="button" class="btn btn-s invite-on" [disabled]="waterBusy()" (click)="enableWater()">{{ 'water.enable' | t }}</button>
+            <button type="button" class="icon-btn mini" [attr.aria-label]="'water.inviteHide' | t" (click)="hideWaterInvite()">
+              <app-icon name="x" [size]="16" />
+            </button>
+          </div>
         }
-        <a class="list-item task" [class.done]="photos.todayDone()" routerLink="/app/photos/camera">
-          <span class="list-icon"><app-icon [name]="photos.todayDone() ? 'check' : 'camera'" /></span>
-          <span class="list-body">
-            <span class="list-title">{{ 'today.photo' | t }}</span>
-            <span class="list-sub">{{ (photos.todayDone() ? 'photos.todayDone' : 'today.photoHint') | t }}</span>
-          </span>
-          <app-icon [name]="photos.todayDone() ? 'repeat' : 'plus'" />
-        </a>
         <a class="list-item task" routerLink="/app/friends">
           <span class="list-icon"><app-icon name="users" /></span>
           <span class="list-body">
@@ -161,20 +183,6 @@ import { PushPromptComponent } from '../../shared/push-prompt.component';
           <span class="list-body">
             <span class="list-title">{{ 'engage.timer.title' | t }}</span>
             <span class="list-sub">{{ 'engage.timer.sub' | t }}</span>
-          </span>
-          <app-icon name="chevronRight" />
-        </a>
-        <a class="list-item task" routerLink="/app/meals">
-          <span class="list-icon"><app-icon name="utensils" /></span>
-          <span class="list-body">
-            <span class="list-title">{{ 'today.meals' | t }}</span>
-            <span class="list-sub">
-              @if (meals.today()?.entries?.length) {
-                {{ 'today.mealsKcal' | t: { eaten: i18n.number(meals.today()!.totals.kcal), target: i18n.number(meals.today()!.targetKcal ?? 0) } }}
-              } @else {
-                {{ 'today.mealsHint' | t }}
-              }
-            </span>
           </span>
           <app-icon name="chevronRight" />
         </a>
@@ -486,6 +494,30 @@ import { PushPromptComponent } from '../../shared/push-prompt.component';
       background: #16a34a;
       color: #fff;
     }
+    .water-ico {
+      background: var(--cool-soft) !important;
+      color: var(--cool) !important;
+    }
+    .water-invite {
+      gap: 10px;
+      padding-right: 8px;
+    }
+    .list-sub.wrap {
+      white-space: normal;
+    }
+    .invite-on {
+      --btn-h: 36px;
+      flex: none;
+      padding: 0 14px;
+      background: var(--cool-soft);
+      color: var(--cool);
+    }
+    .icon-btn.mini {
+      flex: none;
+      width: 32px;
+      height: 32px;
+      color: var(--fg-3);
+    }
     /* the goal weight never splits from its unit */
     .goal-title {
       display: flex;
@@ -561,15 +593,24 @@ export class TodayPage {
   protected readonly i18n = inject(I18nService);
   private readonly api = inject(ApiService);
   private readonly tracking = inject(TrackingStore);
-  protected readonly photos = inject(PhotosStore);
-  protected readonly meals = inject(MealsStore);
+  // loaded here so that the Photos and Meals tabs open on their content, not on a skeleton
+  private readonly photos = inject(PhotosStore);
+  private readonly meals = inject(MealsStore);
   private readonly friendsApi = inject(FriendsApi);
   protected readonly friends = signal<Friend[] | null>(null);
   protected readonly friendsLine = computed(() => {
     const f = this.friends();
     if (!f || !f.length) return this.i18n.t('friends.sub');
-    return this.i18n.t('today.friendsLine', { n: f.length, done: f.filter((x) => x.todayDone).length });
+    const done = f.filter((x) => x.todayDone).length;
+    return (
+      this.i18n.t(f.length === 1 ? 'today.friendsOne' : 'today.friendsMany', { n: f.length }) +
+      ' · ' +
+      this.i18n.t(done === 0 ? 'today.friendsDoneNone' : done === 1 ? 'today.friendsDoneOne' : 'today.friendsDoneMany', { n: done })
+    );
   });
+  private readonly toast = inject(ToastService);
+  protected readonly waterBusy = signal(false);
+  protected readonly waterInviteHidden = signal(readFlag(WATER_INVITE_KEY));
   private readonly sheet = viewChild.required(WeighSheetComponent);
   protected readonly Math = Math;
 
@@ -582,7 +623,6 @@ export class TodayPage {
   protected readonly streakMessage = computed(() =>
     this.weighedIn() ? 'today.streakSafe' : this.streakDays() > 0 ? 'today.streakKeep' : 'today.streakStart',
   );
-  protected readonly initial = computed(() => (this.account()?.displayName ?? '?').charAt(0).toUpperCase());
   protected readonly todayLabel = computed(() =>
     this.i18n.date(new Date().toISOString(), { weekday: 'long', day: 'numeric', month: 'long' }),
   );
@@ -640,6 +680,27 @@ export class TodayPage {
         .then((s) => this.pending.set(s.pendingRequests))
         .catch(() => undefined);
     }
+  }
+
+  /** the glasses of water, turned on from here: a goal from the weight, changeable in the profile */
+  protected async enableWater(): Promise<void> {
+    this.waterBusy.set(true);
+    try {
+      const goal = defaultWaterGoal(this.summary()?.current?.weightKg ?? this.summary()?.profile.startWeightKg ?? null);
+      this.session.setAccount(await this.api.updateMe({ waterGoal: goal }));
+      this.toast.show(this.i18n.t('water.enabled', { n: goal }));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.waterBusy.set(false);
+    }
+  }
+
+  /** not interested: the invitation goes (on this device), the switch stays in the profile */
+  protected hideWaterInvite(): void {
+    this.waterInviteHidden.set(true);
+    writeFlag(WATER_INVITE_KEY);
+    this.toast.show(this.i18n.t('water.inviteHidden'));
   }
 
   /** today's weigh-in: a new one, or the existing one with its measurements (a save replaces the day) */

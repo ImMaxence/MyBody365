@@ -8,6 +8,8 @@ import { WeighSheetComponent } from './weigh-sheet.component';
 import { WeightChartComponent } from './weight-chart.component';
 import { SegDirective } from '../../shared/seg.directive';
 import { MonthlyForecastComponent } from './monthly-forecast.component';
+import { BmiSheetComponent } from './bmi-sheet.component';
+import { bmiBand } from '../../core/tracking/bmi';
 
 type Range = 'm1' | 'm3' | 'all';
 const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
@@ -16,7 +18,7 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
 @Component({
   selector: 'app-progress',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MonthlyForecastComponent, SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
+  imports: [BmiSheetComponent, MonthlyForecastComponent, SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
   template: `
     <main class="page">
       <header class="page-head"><h1 class="title">{{ 'progress.title' | t }}</h1></header>
@@ -54,7 +56,11 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
                 <span class="label"><span class="s-ico" [class.good]="isGood(s.current.changeKg ?? 0)"><app-icon [name]="(s.current.changeKg ?? 0) > 0 ? 'trendUp' : 'trendDown'" [size]="15" /></span>{{ 'progress.change' | t }}</span>
                 <span class="v num" [class.good]="isGood(s.current.changeKg ?? 0)">{{ signed(s.current.changeKg ?? 0) }}<small> kg</small></span>
               </div>
-              <div class="stat"><span class="label"><span class="s-ico"><app-icon name="gauge" [size]="15" /></span>{{ 'progress.bmi' | t }}</span><span class="v num">{{ i18n.number(s.current.bmi, 1) }}</span></div>
+              <button type="button" class="stat bmi" [attr.aria-label]="'bmi.open' | t: { bmi: i18n.number(s.current.bmi, 1), band: ('bmi.classes.' + bmiCls() | t) }" (click)="bmiSheet.open()">
+                <span class="label"><span class="s-ico"><app-icon name="gauge" [size]="15" /></span>{{ 'progress.bmi' | t }}<app-icon name="info" [size]="16" /></span>
+                <span class="v num">{{ i18n.number(s.current.bmi, 1) }}</span>
+                <span class="band small"><i [attr.data-c]="bmiCls()"></i>{{ 'bmi.classes.' + bmiCls() | t }}</span>
+              </button>
               <div class="stat wide">
                 <span class="label"><span class="s-ico cool"><app-icon name="activity" [size]="15" /></span>{{ 'progress.trendPace' | t }}</span>
                 @if (s.goal.trendKgPerWeek != null) {
@@ -105,6 +111,7 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
       }
     </main>
     <app-weigh-sheet />
+    <app-bmi-sheet #bmiSheet [weightKg]="bmiWeight()" [heightCm]="summary()?.profile?.heightCm ?? 170" [goalKg]="summary()?.goal?.goalKg ?? null" />
   `,
   styles: `
     .chart-card {
@@ -173,6 +180,57 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
     .stat.wide {
       grid-column: 1 / -1;
     }
+    /* the BMI tile opens its explanation */
+    .stat.bmi {
+      align-content: start;
+      width: 100%;
+      font: inherit;
+      color: inherit;
+      text-align: left;
+      transition: transform var(--dur-1) var(--ease-out), background-color var(--dur-2);
+    }
+    .stat.bmi:active {
+      transform: scale(0.97);
+    }
+    .stat.bmi .label > svg:last-child {
+      margin-left: auto;
+      color: var(--fg-3);
+    }
+    .stat.bmi .label {
+      width: 100%;
+    }
+    .band {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--fg-2);
+      font-weight: 600;
+      line-height: 1.25;
+    }
+    .band i {
+      width: 10px;
+      height: 10px;
+      flex: none;
+      border-radius: 3px;
+    }
+    .band i[data-c='under'] {
+      background: var(--cal-freeze-ink);
+    }
+    .band i[data-c='normal'] {
+      background: var(--cal-done-ink);
+    }
+    .band i[data-c='over'] {
+      background: #e0a500;
+    }
+    .band i[data-c='obese1'] {
+      background: #ff7a1a;
+    }
+    .band i[data-c='obese2'] {
+      background: #ea4a17;
+    }
+    .band i[data-c='obese3'] {
+      background: #d61f1f;
+    }
     .stat .label {
       display: inline-flex;
       align-items: center;
@@ -222,10 +280,10 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
       animation: rise 380ms var(--ease-out) both;
       animation-delay: calc(min(var(--i), 12) * 30ms);
     }
+    /* a fade only: tiles rising into place, each at its own time, looked like a bounce */
     @keyframes rise {
       from {
         opacity: 0;
-        transform: translateY(10px);
       }
     }
   `,
@@ -254,6 +312,12 @@ export class ProgressPage {
     return { from, goal, pace: goodTrend ? Math.abs(trend!) : s.profile.weeklyRateKg, basis: (goodTrend ? 'trend' : 'plan') as 'trend' | 'plan' };
   });
   protected readonly goalDate = computed(() => this.summary()?.goal.trendDate ?? this.summary()?.goal.planDate ?? null);
+  /** the BMI of the last weigh-in (as the server computes it) */
+  protected readonly bmiWeight = computed(() => {
+    const s = this.summary();
+    return s?.current.weightKg ?? s?.current.trendKg ?? s?.profile.startWeightKg ?? 70;
+  });
+  protected readonly bmiCls = computed(() => bmiBand(this.summary()?.current.bmi ?? 0).cls);
 
   constructor() {
     void this.tracking.load();

@@ -12,28 +12,26 @@ import { prepareImage } from '../../core/photos/image-tools';
 import { closeSheet } from '../../core/ui/sheets';
 import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
-import { CURRENT_VERSION } from '../changelog/changelog.data';
+import { CURRENT_VERSION } from '../changelog/changelog.version';
 import { SegDirective } from '../../shared/seg.directive';
 import { FlagComponent } from '../../shared/flag.component';
 import { normalizeUsername } from '../../core/friends/friends-api';
 import { PushPromptComponent } from '../../shared/push-prompt.component';
+import { AvatarImgComponent } from '../../shared/avatar-img.component';
+import { defaultWaterGoal } from './water-row.component';
 
 @Component({
   selector: 'app-account',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PushPromptComponent, SegDirective, FlagComponent, FormsModule, RouterLink, TranslatePipe, IconComponent],
+  imports: [AvatarImgComponent, PushPromptComponent, SegDirective, FlagComponent, FormsModule, RouterLink, TranslatePipe, IconComponent],
   template: `
     <main class="page">
       <header class="page-head"><h1 class="title">{{ 'account.title' | t }}</h1></header>
 
       <section class="who card">
         <button type="button" class="avatar big avatar-btn" [class.busy]="photoBusy()" [attr.aria-label]="'account.photoChange' | t" (click)="photoDialog.showModal()">
-          @if (account()?.avatarUrl; as src) {
-            @for (s of [src]; track s) {
-              <img [src]="s" alt="" referrerpolicy="no-referrer" width="64" height="64" />
-            }
-          } @else {
-            {{ initial() }}
+          @for (s of [account()?.avatarUrl]; track s) {
+            <app-avatar-img [src]="s" [name]="account()?.displayName" [size]="64" />
           }
           <span class="cam" aria-hidden="true"><app-icon name="camera" [size]="13" [stroke]="2.4" /></span>
         </button>
@@ -109,22 +107,6 @@ import { PushPromptComponent } from '../../shared/push-prompt.component';
           </span>
           <app-icon name="chevronRight" />
         </a>
-        <a routerLink="/app/friends" class="list-item">
-          <span class="list-icon"><app-icon name="users" /></span>
-          <span class="list-body">
-            <span class="list-title">{{ 'friends.title' | t }}</span>
-            <span class="list-sub">{{ 'friends.sub' | t }}</span>
-          </span>
-          <app-icon name="chevronRight" />
-        </a>
-        <a routerLink="/app/timer" class="list-item">
-          <span class="list-icon"><app-icon name="dumbbell" /></span>
-          <span class="list-body">
-            <span class="list-title">{{ 'engage.timer.title' | t }}</span>
-            <span class="list-sub">{{ 'engage.timer.sub' | t }}</span>
-          </span>
-          <app-icon name="chevronRight" />
-        </a>
         <a routerLink="/app/account/backup" class="list-item">
           <span class="list-icon"><app-icon name="archive" /></span>
           <span class="list-body">
@@ -177,11 +159,7 @@ import { PushPromptComponent } from '../../shared/push-prompt.component';
       <div class="stack">
         <div class="photo-head">
           <span class="avatar huge">
-            @if (account()?.avatarUrl; as src) {
-              <img [src]="src" alt="" referrerpolicy="no-referrer" width="96" height="96" />
-            } @else {
-              {{ initial() }}
-            }
+            <app-avatar-img [src]="account()?.avatarUrl" [name]="account()?.displayName" [size]="96" />
           </span>
           <h2 class="h3">{{ 'account.photo' | t }}</h2>
         </div>
@@ -249,18 +227,8 @@ import { PushPromptComponent } from '../../shared/push-prompt.component';
     .avatar-btn:active {
       transform: scale(0.94);
     }
-    .avatar-btn img {
-      border-radius: 50%;
-      animation: photo-in 420ms var(--ease-out) both;
-    }
-    .avatar-btn.busy img {
-      opacity: 0.5;
-    }
-    @keyframes photo-in {
-      from {
-        opacity: 0;
-        transform: scale(0.8);
-      }
+    .avatar-btn.busy {
+      opacity: 0.6;
     }
     .cam {
       position: absolute;
@@ -279,9 +247,6 @@ import { PushPromptComponent } from '../../shared/push-prompt.component';
       width: 96px;
       height: 96px;
       font-size: 36px;
-    }
-    .avatar.huge img {
-      border-radius: 50%;
     }
     .photo-head {
       display: grid;
@@ -449,7 +414,6 @@ export class AccountPage {
   protected readonly usernameError = signal<string | null>(null);
 
   protected readonly account = this.session.account;
-  protected readonly initial = computed(() => (this.account()?.displayName ?? '?').charAt(0).toUpperCase());
   protected readonly prefix = computed(() => (this.i18n.lang() === 'en' ? '/en' : ''));
   protected readonly modes: { mode: ThemeMode; icon: string }[] = [
     { mode: 'system', icon: 'contrast' },
@@ -543,9 +507,8 @@ export class AccountPage {
 
   /** on: a goal from the weight (about 33 ml per kg, 6 to 12 glasses); off: no goal */
   protected async toggleWater(on: boolean): Promise<void> {
-    const kg = this.tracking.summary()?.current?.weightKg ?? 70;
-    const goal = on ? Math.min(12, Math.max(6, Math.round((kg * 0.033) / 0.25))) : 0;
-    await this.patch({ waterGoal: goal });
+    const s = this.tracking.summary();
+    await this.patch({ waterGoal: on ? defaultWaterGoal(s?.current?.weightKg ?? s?.profile.startWeightKg) : 0 });
   }
 
   protected setWaterGoal(n: number): Promise<void> {

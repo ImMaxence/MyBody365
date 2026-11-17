@@ -25,7 +25,8 @@ export const appConfig: ApplicationConfig = {
     ),
     // no incremental hydration: it brings event replay, whose inline scripts a strict CSP (script-src 'self') blocks
     provideClientHydration(withNoIncrementalHydration()),
-    provideServiceWorker('ngsw-worker.js', {
+    // public/sw.js: Angular's worker (ngsw-worker.js) plus the badge on the app icon
+    provideServiceWorker('sw.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),

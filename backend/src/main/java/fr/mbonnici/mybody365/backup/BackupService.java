@@ -614,6 +614,11 @@ public class BackupService {
             if (prefs instanceof Map<?, ?> nm) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> v = typed(BackupFormat.PREFS, (Map<String, Object>) nm);
+                for (String later : BackupFormat.PREFS_SINCE_1_1) {
+                    if (v.get(later) == null) {
+                        v.remove(later);
+                    }
+                }
                 if (!v.containsValue(null)) {
                     jdbc.update("delete from notification_pref where user_id = ?", userId);
                     insert("notification_pref", v, Map.of("user_id", userId));

@@ -70,7 +70,10 @@ export function paceForDate(kgToGo: number, wish: string, weightKg: number, toda
     @if (mode() === 'date') {
       <div class="field date-field">
         <label class="label" [for]="id">{{ 'setup.dateWish' | t }}</label>
-        <input class="input" [id]="id" type="date" [min]="minDate" [value]="wish()" (change)="setWish($any($event.target).value)" />
+        <span class="input-icon">
+          <input class="input" [id]="id" type="date" [min]="minDate" [value]="wish()" (change)="setWish($any($event.target).value)" />
+          <span class="end"><app-icon name="calendar" [size]="19" /></span>
+        </span>
       </div>
       @if (wished(); as w) {
         <p class="notice" [class.notice-accent]="w.kind === 'tooFast'">

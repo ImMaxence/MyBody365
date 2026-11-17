@@ -16,17 +16,24 @@ test.describe('engagement', () => {
     expect(errors).toEqual([]);
   });
 
-  test('reminder settings are saved', async ({ page }) => {
+  test('reminder settings are saved at once', async ({ page }) => {
     await signIn(page, 'new');
     await tab(page, 'Profil').click();
     await page.getByRole('link', { name: /Notifications/ }).click();
     await expect(page.getByRole('heading', { name: 'Notifications', level: 1 })).toBeVisible();
     await expect(page.getByLabel('Heure du rappel', { exact: true })).toHaveValue('08:00');
     await page.getByLabel('Heure du rappel', { exact: true }).fill('07:30');
-    await page.getByRole('button', { name: 'Enregistrer' }).click();
     await expect(page.getByText('Réglages enregistrés')).toBeVisible();
+    // the new versions: on by default, a switch turns them off
+    const updates = page.getByRole('switch', { name: /Nouveautés de l’app/ });
+    await expect(updates).toBeChecked();
+    await updates.uncheck();
+    // water reminders wait for the glasses of water
+    await expect(page.getByRole('switch', { name: /Pense à boire/ })).toBeDisabled();
+    await expectNoHorizontalOverflow(page);
     await page.reload();
     await expect(page.getByLabel('Heure du rappel', { exact: true })).toHaveValue('07:30');
+    await expect(page.getByRole('switch', { name: /Nouveautés de l’app/ })).not.toBeChecked();
     await expectAccessible(page);
   });
 
@@ -66,6 +73,15 @@ test.describe('engagement', () => {
     await page.getByRole('button', { name: 'Supprimer « Gainage du soir »' }).click();
     await expect(page.getByRole('button', { name: 'Gainage du soir', exact: true })).toHaveCount(0);
     expect(errors).toEqual([]);
+  });
+
+  test('glasses of water: turned on from Today', async ({ page }) => {
+    await signIn(page, 'new');
+    await expect(page.locator('app-water-row')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Activer', exact: true }).click();
+    await expect(page.locator('app-water-row')).toContainText(/0 \/ \d+ verres/);
+    await tab(page, 'Profil').click();
+    await expect(page.getByRole('checkbox', { name: /Verres d’eau/ })).toBeChecked();
   });
 
   test('glasses of water: off until turned on in the profile', async ({ page }) => {

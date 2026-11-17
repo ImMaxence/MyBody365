@@ -6,6 +6,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { formatBytes } from '../../core/photos/image-tools';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/ui/toast.service';
+import { AvatarImgComponent } from '../../shared/avatar-img.component';
 import { IconComponent } from '../../shared/icon.component';
 import { AdminStore } from './admin.store';
 import { LinkSheetComponent } from './link-sheet.component';
@@ -14,7 +15,7 @@ import { LinkSheetComponent } from './link-sheet.component';
 @Component({
   selector: 'app-admin-users',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, LinkSheetComponent],
+  imports: [AvatarImgComponent, FormsModule, TranslatePipe, IconComponent, LinkSheetComponent],
   template: `
     <div class="row tools">
       <label class="search">
@@ -31,13 +32,7 @@ import { LinkSheetComponent } from './link-sheet.component';
       <div class="list">
         @for (u of filtered(); track u.id) {
           <button type="button" class="list-item" (click)="open(u)">
-            <span class="avatar">
-              @if (u.avatarUrl) {
-                <img [src]="u.avatarUrl" alt="" referrerpolicy="no-referrer" width="40" height="40" />
-              } @else {
-                {{ u.displayName.charAt(0).toUpperCase() }}
-              }
-            </span>
+            <span class="avatar"><app-avatar-img [src]="u.avatarUrl" [name]="u.displayName" /></span>
             <span class="list-body">
               <span class="list-title">
                 {{ u.displayName }}

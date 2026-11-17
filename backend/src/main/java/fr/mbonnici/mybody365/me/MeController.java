@@ -133,7 +133,7 @@ public class MeController {
         return AccountDto.of(user, users.isAdmin(user), tracking.hasProfile(user.getId()));
     }
 
-    /** back to the Google picture (or the initials) */
+    /** back to the initial */
     @DeleteMapping("/avatar")
     @Transactional
     public AccountDto removeAvatar(Authentication auth) {

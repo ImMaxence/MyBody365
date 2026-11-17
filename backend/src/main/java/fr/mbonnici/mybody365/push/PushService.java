@@ -36,7 +36,7 @@ public class PushService {
     private static final List<String> PUSH_HOSTS = List.of("fcm.googleapis.com", "googleapis.com", "push.services.mozilla.com",
             "push.apple.com", "notify.windows.com");
 
-    public enum Kind { TEST, DAILY_WEIGH, DAILY_PHOTO, GYM, NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED }
+    public enum Kind { TEST, DAILY_WEIGH, DAILY_PHOTO, GYM, NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED, WATER, UPDATE }
 
     public record Subscription(String endpoint, String p256dh, String auth) {}
 
@@ -191,6 +191,7 @@ public class PushService {
             case DAILY_PHOTO -> "/app/photos/camera";
             case GYM -> "/app/workouts";
             case NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED -> "/app/friends";
+            case UPDATE -> "/changelog";
             default -> "/app";
         };
         return Map.of("notification", Map.of(
@@ -223,6 +224,18 @@ public class PushService {
                     : new String[] {name + " veut devenir ton ami 👋", "Ouvre MyBody365 pour accepter ou refuser"};
             case FRIEND_ACCEPTED -> en ? new String[] {name + " accepted your request 🎉", "You can now cheer each other on"}
                     : new String[] {name + " a accepté ta demande 🎉", "Vous pouvez maintenant vous encourager"};
+            case WATER -> {
+                String glasses = args.getOrDefault("glasses", "0");
+                String goal = args.getOrDefault("goal", "8");
+                boolean one = "0".equals(glasses) || "1".equals(glasses);
+                yield en ? new String[] {"A glass of water? 💧", "You are at " + glasses + " out of " + goal + " glasses today"}
+                        : new String[] {"Un verre d’eau ? 💧", "Tu en es à " + glasses + (one ? " verre" : " verres") + " sur " + goal
+                                + " aujourd’hui"};
+            }
+            case UPDATE -> en ? new String[] {"MyBody365 " + args.getOrDefault("version", "") + " is here ✨",
+                    "Open the app to discover what’s new"}
+                    : new String[] {"MyBody365 " + args.getOrDefault("version", "") + " est arrivée ✨",
+                            "Ouvre l’app pour découvrir les nouveautés"};
         };
     }
 }

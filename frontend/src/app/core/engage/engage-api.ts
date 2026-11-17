@@ -10,6 +10,10 @@ export interface NotificationPrefs {
   gymDays: string;
   gymTime: string;
   friendsEnabled: boolean;
+  /** a glass of water when the day is behind (needs the glasses of water on) */
+  waterEnabled: boolean;
+  /** a word when a new version of the app comes out */
+  updatesEnabled: boolean;
 }
 
 export interface NotificationSettings {

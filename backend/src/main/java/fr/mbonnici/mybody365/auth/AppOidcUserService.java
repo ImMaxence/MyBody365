@@ -85,6 +85,8 @@ public class AppOidcUserService extends OidcUserService {
             throw reject("not_allowed", email);
         }
 
+        // the first sign-in with this Google account (its picture is taken once, see GooglePictureImporter)
+        boolean firstTime = users.findByGoogleSub(sub).isEmpty();
         HttpSession session = currentSession();
         String linkFor = session == null ? null : (String) session.getAttribute(LINK_FOR);
         AppUser user;
@@ -100,7 +102,9 @@ public class AppOidcUserService extends OidcUserService {
         if (user.getStatus() != AppUser.Status.ACTIVE) {
             throw reject("suspended", email);
         }
-        if (!StringUtils.hasText(user.getAvatarUrl()) && StringUtils.hasText(google.getPicture())) {
+        if (firstTime && user.getAvatarVersion() == null && !StringUtils.hasText(user.getAvatarUrl())
+                && StringUtils.hasText(google.getPicture())) {
+            // shown from Google for a minute, then copied into the app by GooglePictureImporter
             user.setAvatarUrl(google.getPicture());
         }
         if (user.getDisplayName().equals(user.getEmail().substring(0, user.getEmail().indexOf('@')))

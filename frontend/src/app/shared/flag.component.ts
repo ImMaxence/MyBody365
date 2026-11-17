@@ -42,7 +42,9 @@ let uid = 0;
       box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
       vertical-align: middle;
     }
-    svg {
+    /* ":host >" outweighs the icon sizes of buttons (".seg button svg" made the flag 18 px wide in its 22 px
+       frame, pushed to the left) */
+    :host > svg {
       display: block;
       width: 100%;
       height: 100%;

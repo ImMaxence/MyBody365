@@ -5,7 +5,7 @@ import type { MealEntry, Slot } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { DayStatus, MealsStore, SLOTS, dayStatus, macroTargets, monthGrid, shiftDay, shiftMonth, weekOf } from '../../core/meals/meals.store';
-import { localDay } from '../../core/tracking/tracking.store';
+import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
 import { closeSheet } from '../../core/ui/sheets';
 import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
@@ -78,6 +78,9 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
               </div>
             }
           </div>
+          @if (targetWhy(); as why) {
+            <p class="why small"><span class="why-ico"><app-icon name="info" [size]="15" /></span><span>{{ why }}</span></p>
+          }
         </section>
         <app-day-score [day]="d" />
 
@@ -493,6 +496,28 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       display: grid;
       gap: var(--space-3);
     }
+    /* where the target comes from, in a sentence, under the ring */
+    .why {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: calc(-1 * var(--space-1));
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--line);
+      color: var(--fg-2);
+      line-height: 1.45;
+    }
+    .why-ico {
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      flex: none;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      color: var(--accent-text);
+    }
     .macro {
       display: grid;
       gap: 5px;
@@ -630,6 +655,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
 })
 export class MealsPage {
   protected readonly store = inject(MealsStore);
+  private readonly tracking = inject(TrackingStore);
   protected readonly i18n = inject(I18nService);
   private readonly toast = inject(ToastService);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('entryDialog');
@@ -695,8 +721,28 @@ export class MealsPage {
     return Math.round((e.nutrients.kcal * this.qty()) / base);
   });
 
+  /**
+   * The target in plain words: for losing (or gaining) how much a week, from what maintenance, and that it
+   * follows the weight: recomputed at each weigh-in, about 10 kcal × the activity factor per kilo.
+   */
+  protected readonly targetWhy = computed(() => {
+    const s = this.tracking.summary();
+    if (!s) return null;
+    const { targetKcal: target, tdee, bmr, floorApplied } = s.energy;
+    const params = {
+      target: this.i18n.number(target),
+      tdee: this.i18n.number(tdee),
+      diff: this.i18n.number(Math.abs(tdee - target)),
+      rate: this.i18n.number(s.profile.weeklyRateKg, 2),
+      perKg: this.i18n.number(Math.round((10 * tdee) / Math.max(1, bmr))),
+    };
+    const key = floorApplied ? 'floor' : target < tdee ? 'lose' : target > tdee ? 'gain' : 'keep';
+    return this.i18n.t('meals.targetWhy.' + key, params);
+  });
+
   constructor() {
     void this.store.load().catch(() => undefined);
+    if (!this.tracking.summary()) void this.tracking.load();
     // a new day on screen (once its data is there): its content fades in
     effect(() => {
       const day = this.store.data()?.day ?? null;

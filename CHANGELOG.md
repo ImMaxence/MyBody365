@@ -2,6 +2,37 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.1.0] - 2026-11-17
+
+Les retours des premiers jours sur iPhone : une barre d'onglets plus basse, plus de zoom, la pastille rouge sur l'icône, des réglages de notifications refaits, l'IMC et l'objectif de calories expliqués
+
+### Ajouté
+- Pastille rouge sur l'icône de l'app avec le nombre de notifications reçues, effacée dès que tu ouvres l'app
+- Une notification à chaque nouvelle version de l'app, désactivable dans les réglages des notifications
+- Rappels « Pense à boire » à 10 h, 13 h, 16 h et 19 h, seulement s'il te manque des verres d'eau à cette heure-là
+- Les verres d'eau s'activent directement depuis l'écran Aujourd'hui
+- Progrès : ta tranche d'IMC sous le chiffre et, en touchant la tuile, une fiche qui l'explique : l'échelle en couleurs, la corpulence normale pour ta taille, le prochain palier et l'IMC à ton objectif
+- Repas : une phrase sous l'anneau explique ton objectif de calories (pour perdre combien par semaine, à partir de quelle dépense) et dit qu'il baisse un peu à chaque kilo perdu
+- Une icône calendrier dans les champs de date, une horloge sur l'heure du rappel
+
+### Modifié
+- Barre d'onglets plus basse et plus fine, au plus près du bas de l'écran, et lisible quel que soit le contenu qui passe dessous
+- Plus de zoom à deux doigts ni au double tap dans l'app (le site reste zoomable)
+- Changer d'onglet est un simple fondu et le contenu apparaît sans glisser : plus d'effet de rebond quand on navigue vite
+- Réglages des notifications refaits : un interrupteur par rappel, enregistré aussitôt, l'heure du rappel juste en dessous
+- Aujourd'hui : « Photo du jour » et « Repas » quittent la liste, ils ont leur onglet. Profil : « Amis » et « Minuteur » s'en vont, ils sont sur Aujourd'hui
+- Photos : le bandeau « Prendre la photo du jour » passe en texte blanc sur un orange plus profond
+- Ta photo Google est copiée dans l'app au lieu d'être chargée chez Google à chaque affichage
+- « 1 ami · 1 a validé sa journée » au lieu de « 1 ami(s) · 1 ont validé »
+
+### Corrigé
+- La photo de profil Google s'affichait comme un « ? » sur iPhone : c'est maintenant ta photo, ou ton initiale si elle ne se charge pas
+- La page Notifications dépassait de l'écran (bouton « Désactiver » coupé, champ d'heure trop large)
+- Le champ « Date de naissance » du parcours de bienvenue dépassait du bord sur iPhone
+- Les drapeaux FR et EN n'étaient pas centrés dans leur cadre
+- Les coins des cases à cocher paraissaient coupés
+- Photos : la mention « Tes photos ne sont visibles que par toi » est bien centrée
+
 ## [1.0.0] - 2026-11-16
 
 La version 1.0 : tes repas en un coup d'œil avec une note d'équilibre, une prévision mois par mois, des recettes à importer, des amis qu'on trouve par leur nom d'utilisateur, un minuteur et des verres d'eau

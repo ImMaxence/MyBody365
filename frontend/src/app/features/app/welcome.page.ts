@@ -78,7 +78,13 @@ const ACTIVITIES: Activity[] = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VER
             </div>
             <div class="field">
               <label for="birth">{{ 'setup.birthDate' | t }}</label>
-              <input id="birth" class="input" type="date" [max]="maxBirth" min="1920-01-01" [ngModel]="birthDate()" (ngModelChange)="birthDate.set($event)" />
+              <span class="input-icon">
+                <input id="birth" class="input" type="date" [class.no-value]="!birthDate()" [max]="maxBirth" min="1920-01-01" [ngModel]="birthDate()" (ngModelChange)="birthDate.set($event)" />
+                @if (!birthDate()) {
+                  <span class="placeholder" aria-hidden="true">{{ 'setup.birthPlaceholder' | t }}</span>
+                }
+                <span class="end"><app-icon name="calendar" [size]="19" /></span>
+              </span>
             </div>
             <button type="button" class="btn btn-primary btn-block" [disabled]="!sex() || !birthOk()" (click)="next()">
               {{ 'setup.next' | t }} <app-icon name="arrowRight" />

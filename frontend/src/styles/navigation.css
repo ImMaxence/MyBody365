@@ -29,10 +29,10 @@ html[data-nav='pop']::view-transition-new(root) {
 }
 
 html[data-nav='fade']::view-transition-old(root) {
-  animation: 200ms ease-out both nav-fade-out;
+  animation: 160ms ease-out both nav-fade-out;
 }
 html[data-nav='fade']::view-transition-new(root) {
-  animation: 320ms var(--nav-ease) 40ms both nav-fade-in;
+  animation: 220ms ease-out both nav-fade-in;
 }
 
 html[data-nav='page']::view-transition-old(root) {
@@ -91,10 +91,10 @@ html.theming::view-transition-new(root) {
     opacity: 0;
   }
 }
+/* tabs: a plain cross-fade, nothing moves (a slide on top of the content's own entrance looked like a bounce) */
 @keyframes nav-fade-in {
   from {
     opacity: 0;
-    transform: scale(0.985) translateY(6px);
   }
 }
 @keyframes nav-rise-in {
@@ -104,29 +104,29 @@ html.theming::view-transition-new(root) {
   }
 }
 
-/* the content of a screen arrives in a short cascade */
+/*
+ * The content of a screen arrives in a short cascade of fades. Nothing slides: blocks that rose into
+ * place, each at its own time, made the screen bounce when switching tabs quickly (and again when the
+ * data arrived after the skeleton).
+ */
 .page > * {
-  animation: content-in 460ms var(--nav-ease) both;
+  animation: content-in 320ms ease-out both;
 }
 .page > :nth-child(2) {
-  animation-delay: 40ms;
+  animation-delay: 30ms;
 }
 .page > :nth-child(3) {
-  animation-delay: 80ms;
+  animation-delay: 60ms;
 }
 .page > :nth-child(4) {
+  animation-delay: 90ms;
+}
+.page > :nth-child(n + 5) {
   animation-delay: 120ms;
-}
-.page > :nth-child(5) {
-  animation-delay: 160ms;
-}
-.page > :nth-child(n + 6) {
-  animation-delay: 200ms;
 }
 @keyframes content-in {
   from {
     opacity: 0;
-    transform: translateY(12px);
   }
 }
 

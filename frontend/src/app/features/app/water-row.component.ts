@@ -9,6 +9,11 @@ import { IconComponent } from '../../shared/icon.component';
 /** a glass is 25 cl */
 const GLASS_L = 0.25;
 
+/** a first goal from the weight: about 33 ml per kg, 6 to 12 glasses (8 without a weight) */
+export function defaultWaterGoal(kg: number | null | undefined): number {
+  return kg ? Math.min(12, Math.max(6, Math.round((kg * 0.033) / GLASS_L))) : 8;
+}
+
 /** The glasses of water of the day, on the Today list (only when the tracker is on). */
 @Component({
   selector: 'app-water-row',

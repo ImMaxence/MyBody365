@@ -19,6 +19,12 @@ export const enMeals: Widen<typeof frMeals> = {
   left: 'left',
   over: 'over',
   kcalTarget: 'Target {kcal} kcal',
+  targetWhy: {
+    lose: '{target} kcal a day to lose {rate} kg a week: what you burn (about {tdee} kcal, your maintenance) minus {diff} kcal. Recomputed at each weigh-in, this target goes down by about {perKg} kcal per kilo lost',
+    gain: '{target} kcal a day to gain {rate} kg a week: what you burn (about {tdee} kcal, your maintenance) plus {diff} kcal. Recomputed at each weigh-in, this target goes up by about {perKg} kcal per kilo gained',
+    keep: '{target} kcal a day: what you burn, to keep your weight. Recomputed at each weigh-in',
+    floor: '{target} kcal a day, the minimum advised for your health: you burn about {tdee} kcal, and the app never goes lower. Recomputed at each weigh-in',
+  },
   kcal: 'kcal',
   ringLabel: '{eaten} kcal eaten out of {target}',
   protein: 'Protein',

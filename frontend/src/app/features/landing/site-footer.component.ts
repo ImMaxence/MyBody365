@@ -4,7 +4,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SITE } from '../../core/site';
 import { LogoComponent } from '../../shared/logo.component';
-import { CURRENT_VERSION } from '../changelog/changelog.data';
+import { CURRENT_VERSION } from '../changelog/changelog.version';
 
 @Component({
   selector: 'app-site-footer',

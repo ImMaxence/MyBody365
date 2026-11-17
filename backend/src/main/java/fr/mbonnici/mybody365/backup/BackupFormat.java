@@ -76,7 +76,11 @@ final class BackupFormat {
             Type.TEXT, "duration_min", Type.INT, "exercises", Type.TEXT, "note", Type.TEXT, "created_at", Type.TIMESTAMP));
 
     static final Table PREFS = new Table("notification_pref", cols("daily_enabled", Type.BOOL, "daily_time", Type.TIME, "gym_enabled",
-            Type.BOOL, "gym_days", Type.TEXT, "gym_time", Type.TIME, "friends_enabled", Type.BOOL));
+            Type.BOOL, "gym_days", Type.TEXT, "gym_time", Type.TIME, "friends_enabled", Type.BOOL, "water_enabled", Type.BOOL,
+            "updates_enabled", Type.BOOL));
+
+    /** columns added after the first backups: absent from an older file, they keep their default */
+    static final List<String> PREFS_SINCE_1_1 = List.of("water_enabled", "updates_enabled");
 
     private BackupFormat() {}
 

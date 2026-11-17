@@ -28,10 +28,6 @@ test.describe('photos', () => {
     await expect(page.getByText(/Stockage : .* sur 2 Go/)).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
-    // Today knows it too
-    await tab(page, 'Aujourd’hui').click();
-    await expect(page.getByRole('link', { name: /Photo du jour/ })).toContainText('Photo du jour prise');
-
     // the viewer, then the deletion
     await tab(page, 'Photos').click();
     await tile.click();

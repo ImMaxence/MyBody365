@@ -23,6 +23,8 @@
   --flame-2: #ff7a1a;
   --flame-3: #ffc23d;
   --flame: linear-gradient(135deg, var(--flame-1) 0%, var(--flame-2) 48%, var(--flame-3) 100%);
+  /* the same flame, deeper: white text stays at 4.6:1 or more on every stop (buttons, banners, switches) */
+  --flame-deep: linear-gradient(135deg, #d9301a 0%, #d4400a 52%, #c84b08 100%);
   --accent: #ff5a1f;
   --accent-ink: #1c0b03;
   /* ≥ 4.5:1 on --bg and on --accent-soft (WCAG AA) */
@@ -105,7 +107,10 @@
 
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --tabbar-h: 84px;
+  /* the floating tab bar: its height, and its gap to the bottom edge. On an iPhone it sits low, just above
+     the home bar (the safe area is ~34px, the bar itself only needs the bottom ~14px of it) */
+  --tabbar-h: 62px;
+  --tabbar-bottom: max(10px, calc(var(--safe-bottom) - 14px));
   --app-max: 520px;
 }
 

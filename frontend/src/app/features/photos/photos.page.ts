@@ -89,7 +89,7 @@ interface Month {
         </div>
       }
 
-      <p class="private small muted"><app-icon name="lock" [size]="16" /> {{ 'photos.privateNote' | t }}</p>
+      <p class="private small muted"><span class="lock"><app-icon name="lock" [size]="15" /></span>{{ 'photos.privateNote' | t }}</p>
       @if (store.storage(); as s) {
         <div class="storage">
           <div class="bar" role="progressbar" [attr.aria-label]="storageLabel()" [attr.aria-valuenow]="storagePct()" aria-valuemin="0" aria-valuemax="100">
@@ -116,11 +116,19 @@ interface Month {
     .today:active {
       transform: scale(0.98);
     }
+    /* white on the deep flame (contrast AA everywhere), a warm glow in the corner */
     .today.cta {
-      background: var(--flame);
-      color: var(--accent-ink);
+      background:
+        radial-gradient(120% 140% at 100% 0%, rgba(255, 194, 61, 0.35), transparent 55%),
+        var(--flame-deep);
+      color: #fff;
       border: 0;
-      box-shadow: 0 18px 40px -18px var(--accent-glow);
+      box-shadow:
+        0 18px 40px -18px var(--accent-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+    .today.cta .small {
+      color: rgba(255, 255, 255, 0.88);
     }
     .cam-ico {
       display: grid;
@@ -128,7 +136,8 @@ interface Month {
       width: 56px;
       height: 56px;
       border-radius: 18px;
-      background: rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
       flex: none;
     }
     .today img {
@@ -220,11 +229,17 @@ interface Month {
         transform: scale(0.92);
       }
     }
+    /* centred on the screen, the lock in front of the first line (a flex row kept the text to the left) */
     .private {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      justify-content: center;
+      max-width: 34ch;
+      margin-inline: auto;
+      text-align: center;
+      text-wrap: balance;
+    }
+    .private .lock {
+      display: inline-block;
+      margin-right: 6px;
+      vertical-align: -2px;
     }
     .storage {
       display: grid;

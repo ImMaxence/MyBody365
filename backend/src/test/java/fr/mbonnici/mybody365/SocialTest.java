@@ -221,4 +221,19 @@ class SocialTest extends AbstractIntegrationTest {
         mvc.perform(get(second).with(as(lea))).andExpect(status().isNotFound());
         mvc.perform(get("/api/me/storage").with(as(lea))).andExpect(jsonPath("$.usedBytes").value(0));
     }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    fr.mbonnici.mybody365.user.GooglePictureImporter googlePictures;
+
+    @Test
+    void onlyGooglePicturesAreFetched() throws Exception {
+        // anything but https://*.googleusercontent.com is never requested: the address is dropped, the initial shows
+        for (String url : new String[] {"http://lh3.googleusercontent.com/a/x", "https://evil.example.com/me.png",
+                "https://googleusercontent.com.evil.io/a", "https://169.254.169.254/latest"}) {
+            jdbc.update("update app_user set avatar_url = ?, avatar_version = null where id = ?", url, lea.getId());
+            assertThat(googlePictures.importPending(5)).isZero();
+            assertThat(jdbc.queryForObject("select avatar_url from app_user where id = ?", String.class, lea.getId())).isNull();
+        }
+        mvc.perform(get("/api/auth/me").with(as(lea))).andExpect(jsonPath("$.account.avatarUrl").doesNotExist());
+    }
 }

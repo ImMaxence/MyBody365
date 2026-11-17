@@ -67,7 +67,7 @@ public class AvatarService {
         return user;
     }
 
-    /** back to the Google picture (or the initials) */
+    /** back to the initial (the Google picture, once imported, is not shown again) */
     public AppUser remove(AppUser user) {
         Integer old = user.getAvatarVersion();
         if (old == null) {
