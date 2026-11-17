@@ -32,12 +32,15 @@ html[data-nav='pop']::view-transition-new(root) {
   animation: var(--nav-dur) var(--nav-ease) both nav-back-in;
 }
 
-/* the same length and curve both ways: the two pictures always add up to a full one (no dip) */
+/* tabs: the old screen fades away, the new one fades in while settling 8 px: one gentle move for the whole
+   screen (never block by block, which flickered) */
 html[data-nav='fade']::view-transition-old(root) {
-  animation: 180ms ease both nav-fade-out;
+  animation: 200ms ease both nav-fade-out;
 }
 html[data-nav='fade']::view-transition-new(root) {
-  animation: 180ms ease both nav-fade-in;
+  animation:
+    260ms ease both nav-fade-in,
+    380ms var(--nav-ease) both nav-settle;
 }
 
 html[data-nav='page']::view-transition-old(root) {
@@ -92,10 +95,14 @@ html.theming::view-transition-new(root) {
     opacity: 0;
   }
 }
-/* tabs: a plain cross-fade, nothing moves (a slide on top of the content's own entrance looked like a bounce) */
 @keyframes nav-fade-in {
   from {
     opacity: 0;
+  }
+}
+@keyframes nav-settle {
+  from {
+    transform: translateY(8px);
   }
 }
 @keyframes nav-rise-in {

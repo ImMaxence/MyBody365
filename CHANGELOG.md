@@ -2,6 +2,24 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.4.0] - 2026-11-17
+
+Le repas au snack estimé en deux touches, Open Food Facts gardé sur notre serveur, et des écrans qui arrivent en douceur
+
+### Ajouté
+- Burger, kebab, pizza, tacos, frites, nuggets, sushi, sandwich, salade : un tiroir d'estimation. Tu choisis le format, les frites, la sauce et la boisson (Coca, Coca zéro, Ice Tea, jus, bière…), le total se calcule au fur et à mesure, et chaque élément s'ajoute au repas sur sa propre ligne
+- Open Food Facts en local : depuis l'administration, la mise à jour télécharge l'export complet et garde les produits vendus en France. Les recherches et les scans restent ensuite sur notre serveur, Open Food Facts n'est plus appelé qu'en secours pour un code-barres tout neuf
+
+### Modifié
+- Les écrans arrivent en douceur : un fondu avec une légère remontée, d'un seul tenant, au changement d'onglet comme à l'ouverture de l'app
+- Repas : le jour choisi s'allume sur place, la pastille ne glisse plus d'un jour à l'autre, et changer de semaine est un simple fondu
+- Les interrupteurs ne grossissent plus quand le doigt passe dessus en faisant défiler
+- Plus d'espace entre le titre et le texte des tiroirs (ajout rapide, etc.)
+
+### Corrigé
+- Notifications : l'heure du rappel n'est plus collée au rappel du jour
+- Les longs tiroirs (comme l'IMC) ne remontent plus en laissant un vide en dessous, et remonter dans leur texte ne les ferme plus : on les ferme par la poignée, d'un glissé quand ils sont tout en haut, ou par leur bouton
+
 ## [1.3.0] - 2026-11-17
 
 Un retour en arrière à la façon de l'iPhone, des écrans qui arrivent d'un bloc, l'IMC idéal pour ton âge, un repère plus juste que l'IMC pour les sportifs, et l'app qui se met à jour toute seule

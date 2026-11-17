@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type { CiqualImport, Food, FoodInput, FoodsOverview, MealDay, MealDays, MealInput, MealStats, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, Slot } from '../api/models';
+import type { CiqualImport, OffImport, Food, FoodInput, FoodsOverview, MealDay, MealDays, MealInput, MealStats, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, Slot } from '../api/models';
 
 /** Foods, meals and recipes (the server asks Open Food Facts itself: the app never calls a third party). */
 @Injectable({ providedIn: 'root' })
@@ -133,6 +133,14 @@ export class MealsApi {
 
   startCiqual(): Promise<CiqualImport> {
     return firstValueFrom(this.http.post<CiqualImport>('/api/admin/foods/ciqual/import', null));
+  }
+
+  startOff(): Promise<OffImport> {
+    return firstValueFrom(this.http.post<OffImport>('/api/admin/foods/off/import', null));
+  }
+
+  offImport(id: string): Promise<OffImport> {
+    return firstValueFrom(this.http.get<OffImport>(`/api/admin/foods/off/imports/${id}`));
   }
 
   ciqualImport(id: string): Promise<CiqualImport> {

@@ -64,6 +64,7 @@ class TestcontainersConfiguration {
             registry.add("app.nutrition.off-url", () -> fake);
             registry.add("app.nutrition.off-search-url", () -> fake);
             registry.add("app.nutrition.ciqual-dataset-url", () -> fake + "/ciqual/dataset");
+            registry.add("app.nutrition.off-dump-url", () -> fake + "/off/export.csv.gz");
         };
     }
 }

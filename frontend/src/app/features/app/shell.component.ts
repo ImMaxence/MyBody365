@@ -64,6 +64,16 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
       min-height: 100dvh;
       background: var(--bg);
     }
+    /* the app opening: the first screen fades in (later screens have their transitions) */
+    #main {
+      animation: app-in 420ms ease-out backwards;
+    }
+    @keyframes app-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+    }
     /* the left edge of the screen: where a back swipe starts (above the screens, under the tab bar) */
     .edge {
       position: fixed;

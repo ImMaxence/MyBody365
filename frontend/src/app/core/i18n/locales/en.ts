@@ -826,6 +826,8 @@ export const en: Dictionary = {
         ACCESS_REJECTED: 'rejected the request of',
         LINK_CREATED: 'generated a link for',
         LINK_REVOKED: 'revoked a link of',
+        CIQUAL_IMPORT_STARTED: 'started the update of',
+        OFF_IMPORT_STARTED: 'started the update of',
       },
     },
   },

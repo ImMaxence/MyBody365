@@ -177,7 +177,8 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
       padding: 12px 16px;
       cursor: pointer;
     }
-    .pref + .pref {
+    /* the time of the reminder belongs to the reminder above it: no line between them */
+    .pref + .pref:not(.time-row) {
       border-top: 1px solid var(--line);
     }
     .pref.off {
@@ -213,9 +214,9 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
     /* the time of the reminder, right under its switch */
     .pref.time-row {
       min-height: 0;
-      padding-top: 0;
+      padding-top: 2px;
+      padding-bottom: 16px;
       padding-left: 68px;
-      border-top: 0;
       cursor: default;
       animation: open 280ms var(--ease-out) both;
     }
@@ -274,12 +275,6 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
     }
     .switch:checked::after {
       transform: translateX(20px);
-    }
-    .switch:active::after {
-      width: 31px;
-    }
-    .switch:checked:active::after {
-      transform: translateX(16px);
     }
     .switch:disabled {
       opacity: 0.45;

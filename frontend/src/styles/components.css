@@ -609,6 +609,13 @@ dialog.sheet {
   color: var(--fg);
   box-shadow: var(--shadow-3);
   overflow: auto;
+  /* its own scroll, without the rubber band that lifted the whole sheet and left a gap under it */
+  overscroll-behavior: none;
+}
+/* while a sheet is open, the screen behind it stays still */
+html:has(dialog.sheet[open]) {
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 dialog.sheet::backdrop {
   background: rgba(5, 5, 8, 0.55);
@@ -616,6 +623,10 @@ dialog.sheet::backdrop {
 }
 dialog.sheet[open] {
   animation: sheet-in var(--dur-3) var(--ease-out);
+}
+/* a sheet's title and the sentence under it: some air between them */
+dialog.sheet :is(h2, h3) + p {
+  margin-top: var(--space-2);
 }
 /* closed by a click outside, the grip or a swipe down (core/ui/sheets.ts): it slides out */
 dialog.sheet.closing {

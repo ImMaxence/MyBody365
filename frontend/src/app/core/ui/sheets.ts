@@ -101,22 +101,36 @@ export function installSheets(doc: Document): void {
     }
   });
 
-  // swipe down from the top of a sheet (or anywhere when it is scrolled to the top)
+  // swipe down to close: from the grip, or anywhere while the sheet is scrolled to its very top. Scrolling a
+  // long sheet back up never closes it (it did when the finger started near its top)
   let drag: { dialog: HTMLDialogElement; y: number; dy: number; id: number } | null = null;
+  const release = (dialog: HTMLDialogElement) => {
+    dialog.style.transition = 'transform 260ms cubic-bezier(0.34, 1.4, 0.5, 1)';
+    dialog.style.transform = '';
+    view.setTimeout(() => dialog.style.removeProperty('transition'), 280);
+  };
   doc.addEventListener('pointerdown', (e) => {
     const t = e.target as HTMLElement | null;
     const dialog = t?.closest('dialog.sheet') as HTMLDialogElement | null;
     if (!dialog || !dialog.open || e.pointerType === 'mouse') return;
     if (t?.closest('input, textarea, select, button, a, [role=slider], video, .no-swipe')) return;
-    const fromTop = e.clientY - dialog.getBoundingClientRect().top;
-    if (dialog.scrollTop > 0 && fromTop > 56) return;
+    const onGrip = !!t?.classList.contains('sheet-grip');
+    if (!onGrip && dialog.scrollTop > 0) return;
     drag = { dialog, y: e.clientY, dy: 0, id: e.pointerId };
   });
   doc.addEventListener(
     'pointermove',
     (e) => {
       if (!drag || e.pointerId !== drag.id) return;
-      drag.dy = Math.max(0, e.clientY - drag.y);
+      const dy = e.clientY - drag.y;
+      // moving up, or the content scrolled meanwhile: this is a scroll, not a close
+      if (dy < -4 || drag.dialog.scrollTop > 0) {
+        const d = drag.dialog;
+        drag = null;
+        if (d.style.transform) release(d);
+        return;
+      }
+      drag.dy = Math.max(0, dy);
       if (drag.dy > 4) drag.dialog.style.transform = `translateY(${drag.dy}px)`;
     },
     { passive: true },
@@ -128,9 +142,7 @@ export function installSheets(doc: Document): void {
     if (dy > 90) {
       close(dialog);
     } else {
-      dialog.style.transition = 'transform 260ms cubic-bezier(0.34, 1.4, 0.5, 1)';
-      dialog.style.transform = '';
-      view.setTimeout(() => dialog.style.removeProperty('transition'), 280);
+      release(dialog);
     }
   };
   doc.addEventListener('pointerup', end);

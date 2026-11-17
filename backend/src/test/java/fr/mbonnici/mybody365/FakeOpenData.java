@@ -53,6 +53,13 @@ public final class FakeOpenData {
                         "saturated-fat_100g":0.1,"salt_100g":0.1}},
                       {"code":"123","product_name":"No energy","nutriments":{}}
                     ]}""" : "{\"hits\":[]}");
+        } else if (path.equals("/off/export.csv.gz")) {
+            byte[] gz = offExport();
+            ex.getResponseHeaders().add("Content-Type", "application/gzip");
+            ex.sendResponseHeaders(200, gz.length);
+            try (OutputStream out = ex.getResponseBody()) {
+                out.write(gz);
+            }
         } else if (path.equals("/ciqual/dataset")) {
             String v = ciqualVersion;
             send(ex, 200, "application/json", """
@@ -109,6 +116,38 @@ public final class FakeOpenData {
     private static void compo(StringBuilder b, String alim, String constituent, String value) {
         b.append("<COMPO><alim_code> ").append(alim).append(" </alim_code><const_code> ").append(constituent)
                 .append(" </const_code><teneur> ").append(value).append(" </teneur><min missing=\" \" /></COMPO>\n");
+    }
+
+
+    /**
+     * A tiny Open Food Facts export (tab-separated, gzipped, columns in any order): two products sold in
+     * France, one sold elsewhere, one without energy, one with a typo (1e6 g of sugar), one twice.
+     */
+    static byte[] offExport() throws IOException {
+        String header = String.join("\t", "code", "url", "product_name", "generic_name", "brands", "countries_tags", "nutriscore_grade",
+                "serving_quantity", "energy_100g", "energy-kcal_100g", "fat_100g", "saturated-fat_100g", "carbohydrates_100g", "sugars_100g",
+                "fiber_100g", "proteins_100g", "salt_100g");
+        String[] lines = {
+            row("3560070000001", "Kebab poulet sauce blanche", "", "Snack Maison,Autre", "en:france,en:belgium", "c", "250", "", "185", "8", "2.5",
+                    "15", "2", "1.2", "12", "1.4"),
+            row("3560070000002", "", "Pain à kebab", "Boulangerie", "en:france", "", "", "1100", "", "1.5", "0.3", "52", "3", "2.4", "9", "1.1"),
+            row("4000000000003", "Bratwurst", "", "Wurst", "en:germany", "d", "", "", "290", "25", "9", "1", "0.5", "", "14", "2"),
+            row("3560070000004", "Sans énergie", "", "", "en:france", "", "", "", "", "", "", "", "", "", "", ""),
+            row("3560070000005", "Erreur de saisie", "", "", "en:france", "", "", "", "120", "1", "1", "20", "1000000", "1", "3", "0.1"),
+            row("3560070000001", "Kebab poulet sauce blanche", "", "Snack Maison", "en:france", "c", "250", "", "185", "8", "2.5", "15", "2",
+                    "1.2", "12", "1.4"),
+        };
+        java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+        try (java.util.zip.GZIPOutputStream gz = new java.util.zip.GZIPOutputStream(bytes)) {
+            gz.write((header + "\n" + String.join("\n", lines) + "\n").getBytes(StandardCharsets.UTF_8));
+        }
+        return bytes.toByteArray();
+    }
+
+    private static String row(String code, String name, String generic, String brands, String countries, String grade, String serving,
+            String kj, String kcal, String fat, String satFat, String carbs, String sugars, String fiber, String proteins, String salt) {
+        return String.join("\t", code, "https://world.openfoodfacts.org/product/" + code, name, generic, brands, countries, grade, serving, kj,
+                kcal, fat, satFat, carbs, sugars, fiber, proteins, salt);
     }
 
     private static void send(HttpExchange ex, int status, String type, String body) throws IOException {

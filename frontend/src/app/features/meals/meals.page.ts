@@ -12,7 +12,6 @@ import { IconComponent } from '../../shared/icon.component';
 import { KcalRingComponent } from '../../shared/kcal-ring.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { NutriscoreComponent } from '../../shared/nutriscore.component';
-import { SegDirective } from '../../shared/seg.directive';
 import { DayScoreComponent } from './day-score.component';
 
 const SLOT_ICON: Record<Slot, string> = { BREAKFAST: 'sun', LUNCH: 'utensils', DINNER: 'moon', SNACK: 'leaf' };
@@ -22,7 +21,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
 @Component({
   selector: 'app-meals',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DayScoreComponent, SegDirective, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, NutriscoreComponent, NumberStepperComponent],
+  imports: [DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, NutriscoreComponent, NumberStepperComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -48,7 +47,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       </nav>
 
       @for (w of [week()]; track w[0]) {
-        <div class="week" appSeg role="group" [attr.aria-label]="'meals.calendar.week' | t" [class.from-left]="dir() < 0" [class.from-right]="dir() > 0">
+        <div class="week" role="group" [attr.aria-label]="'meals.calendar.week' | t" [class.from-left]="dir() < 0" [class.from-right]="dir() > 0">
           @for (day of w; track day) {
             <button type="button" class="wday" [attr.aria-pressed]="day === store.day()" [class.today]="day === today()" [disabled]="day > maxDay()"
               [attr.aria-label]="dayAria(day)" (click)="pick(day)">
@@ -242,23 +241,14 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       display: inline-block;
       text-transform: capitalize;
     }
-    /* another week (or month) slides in from the side of the move, like turning a page */
-    .from-right {
-      animation: from-right 280ms var(--ease-out) both;
-    }
+    /* another week (or month), another date: a quick fade in place, nothing slides */
+    .from-right,
     .from-left {
-      animation: from-left 280ms var(--ease-out) both;
+      animation: swap-in 200ms ease both;
     }
-    @keyframes from-right {
+    @keyframes swap-in {
       from {
         opacity: 0;
-        transform: translateX(24px);
-      }
-    }
-    @keyframes from-left {
-      from {
-        opacity: 0;
-        transform: translateX(-24px);
       }
     }
     /* the date itself only fades: it changes in place */
@@ -322,8 +312,18 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
     .wday:disabled {
       opacity: 0.35;
     }
+    /* the chosen day: its highlight appears where it is, with a light press (nothing travels across the week) */
     .wday[aria-pressed='true'] {
       color: var(--accent-text);
+      background: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+      animation: day-on 260ms var(--ease-out);
+    }
+    @keyframes day-on {
+      from {
+        transform: scale(0.9);
+        background-color: transparent;
+      }
     }
     .wd {
       font-size: 11px;

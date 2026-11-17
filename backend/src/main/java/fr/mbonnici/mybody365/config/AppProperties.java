@@ -108,5 +108,11 @@ public record AppProperties(
              * the Ciqual table (ANSES) on the French research data repository (Dataverse API): the import picks the
              * newest alim / compo XML files of the dataset; an admin starts it from the app
              */
-            @DefaultValue("https://entrepot.recherche.data.gouv.fr/api/datasets/:persistentId/?persistentId=doi:10.57745/RDMHWY") String ciqualDatasetUrl) {}
+            @DefaultValue("https://entrepot.recherche.data.gouv.fr/api/datasets/:persistentId/?persistentId=doi:10.57745/RDMHWY") String ciqualDatasetUrl,
+            /** the full Open Food Facts export (gzipped CSV, about 1 GB), for the local copy an admin imports */
+            @DefaultValue("https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz") String offDumpUrl,
+            /** the products kept from it: those sold in this country */
+            @DefaultValue("en:france") String offCountry,
+            /** with the local copy: a barcode it does not know yet is still asked live (false: never) */
+            @DefaultValue("true") boolean offLive) {}
 }

@@ -3,9 +3,11 @@ package fr.mbonnici.mybody365.admin;
 import fr.mbonnici.mybody365.admin.AuditService.Action;
 import fr.mbonnici.mybody365.admin.AuditService.Target;
 import fr.mbonnici.mybody365.nutrition.CiqualImporter;
+import fr.mbonnici.mybody365.nutrition.OffImporter;
 import fr.mbonnici.mybody365.nutrition.CiqualImporter.ImportDto;
 import fr.mbonnici.mybody365.user.AppUser;
 import fr.mbonnici.mybody365.user.UserService;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -23,15 +25,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminFoodsController {
 
     public record FoodsOverview(String ciqualVersion, long ciqualFoods, long supersededFoods, long offProducts, long userFoods,
-            List<ImportDto> imports) {}
+            List<ImportDto> imports, Instant offLocalAt, List<OffImporter.ImportDto> offImports) {}
 
     private final CiqualImporter ciqual;
+    private final OffImporter off;
     private final UserService users;
     private final AuditService audit;
     private final JdbcTemplate jdbc;
 
-    public AdminFoodsController(CiqualImporter ciqual, UserService users, AuditService audit, JdbcTemplate jdbc) {
+    public AdminFoodsController(CiqualImporter ciqual, OffImporter off, UserService users, AuditService audit, JdbcTemplate jdbc) {
         this.ciqual = ciqual;
+        this.off = off;
         this.users = users;
         this.audit = audit;
         this.jdbc = jdbc;
@@ -46,7 +50,7 @@ public class AdminFoodsController {
                        count(*) filter (where source = 'USER') as mine
                 from food""");
         return new FoodsOverview(ciqual.currentVersion(), ((Number) c.get("ciqual")).longValue(), ((Number) c.get("superseded")).longValue(),
-                ((Number) c.get("off")).longValue(), ((Number) c.get("mine")).longValue(), ciqual.history(10));
+                ((Number) c.get("off")).longValue(), ((Number) c.get("mine")).longValue(), ciqual.history(10), off.localAt(), off.history(5));
     }
 
     @PostMapping("/ciqual/import")
@@ -60,5 +64,19 @@ public class AdminFoodsController {
     @GetMapping("/ciqual/imports/{id}")
     public ImportDto status(@PathVariable UUID id) {
         return ciqual.find(id);
+    }
+
+    /** the local copy of Open Food Facts: the whole export, read on our side (several minutes) */
+    @PostMapping("/off/import")
+    public OffImporter.ImportDto startOff(Authentication auth) {
+        AppUser me = users.current(auth);
+        OffImporter.ImportDto started = off.start(me.getId());
+        audit.record(me, Action.OFF_IMPORT_STARTED, new Target("OFF", started.id().toString(), "Open Food Facts"), null);
+        return started;
+    }
+
+    @GetMapping("/off/imports/{id}")
+    public OffImporter.ImportDto offStatus(@PathVariable UUID id) {
+        return off.find(id);
     }
 }

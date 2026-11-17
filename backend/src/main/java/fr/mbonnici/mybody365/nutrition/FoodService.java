@@ -1,5 +1,6 @@
 package fr.mbonnici.mybody365.nutrition;
 
+import fr.mbonnici.mybody365.config.AppProperties;
 import fr.mbonnici.mybody365.common.ApiException;
 import fr.mbonnici.mybody365.nutrition.FoodStore.Food;
 import fr.mbonnici.mybody365.nutrition.FoodStore.Source;
@@ -50,12 +51,16 @@ public class FoodService {
 
     private final FoodStore foods;
     private final OpenFoodFacts off;
+    private final OffImporter offLocal;
+    private final AppProperties props;
     /** the same searches come back often (and Open Food Facts asks to keep them few) */
     private final Map<String, Cached> searchCache = new ConcurrentHashMap<>();
 
-    public FoodService(FoodStore foods, OpenFoodFacts off) {
+    public FoodService(FoodStore foods, OpenFoodFacts off, OffImporter offLocal, AppProperties props) {
         this.foods = foods;
         this.off = off;
+        this.offLocal = offLocal;
+        this.props = props;
     }
 
     public FoodDto dto(Food f, UUID viewer) {
@@ -74,14 +79,26 @@ public class FoodService {
 
     /** the account's foods, Ciqual and the products already known, instantly */
     public List<FoodDto> searchLocal(UUID userId, String query) {
-        return foods.search(userId, SearchText.words(query), true, 30).stream().map(f -> dto(f, userId)).toList();
+        // with the local copy, the products have their own list (below): "foods" stay the account's and Ciqual's
+        return foods.search(userId, SearchText.words(query), !offLocal.local(), 30).stream().map(f -> dto(f, userId)).toList();
     }
 
-    /** Open Food Facts, live: every product found is kept, so it can be logged right away */
+    /**
+     * The products of Open Food Facts: in the local copy once an admin imported it (nothing leaves the
+     * server), live otherwise (every product found is kept, so it can be logged right away).
+     */
     public List<FoodDto> searchOff(UUID userId, String query) {
         String key = SearchText.normalize(query);
         if (key.length() < 2) {
             return List.of();
+        }
+        if (offLocal.local()) {
+            List<String> words = SearchText.words(query);
+            // a word of 3 letters at least: what the trigram index needs to stay fast over the whole copy
+            if (words.stream().noneMatch(w -> w.length() >= 3)) {
+                return List.of();
+            }
+            return foods.searchOff(words, 25).stream().map(f -> dto(f, userId)).toList();
         }
         Cached c = searchCache.get(key);
         List<OpenFoodFacts.Product> products;
@@ -111,8 +128,13 @@ public class FoodService {
             throw ApiException.badRequest("food_not_found");
         }
         Optional<Food> cached = foods.findOff(code);
-        if (cached.isPresent() && cached.get().updatedAt().isAfter(Instant.now().minus(OFF_REFRESH))) {
+        boolean local = offLocal.local();
+        // the local copy answers (refreshed at each import); a product too new for it is asked live, if allowed
+        if (cached.isPresent() && (local || cached.get().updatedAt().isAfter(Instant.now().minus(OFF_REFRESH)))) {
             return dto(cached.get(), userId);
+        }
+        if (local && !props.nutrition().offLive()) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "food_not_found");
         }
         try {
             Optional<OpenFoodFacts.Product> p = off.product(code);

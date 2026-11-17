@@ -71,6 +71,20 @@ public class FoodStore {
         return jdbc.query(sql.toString(), FoodStore::map, args.toArray());
     }
 
+    /** the products of Open Food Facts (the local copy): starting with the first word first, then the shortest names */
+    public List<Food> searchOff(List<String> words, int limit) {
+        StringBuilder sql = new StringBuilder("select " + COLUMNS + " from food where source = 'OFF'");
+        List<Object> args = new ArrayList<>();
+        for (String w : words) {
+            sql.append(" and search_name like ?");
+            args.add(SearchText.contains(w));
+        }
+        sql.append(" order by case when search_name like ? then 0 else 1 end, nutriscore is null, length(search_name) limit ?");
+        args.add(words.getFirst().replace("%", "\\%").replace("_", "\\_") + "%");
+        args.add(limit);
+        return jdbc.query(sql.toString(), FoodStore::map, args.toArray());
+    }
+
     public List<Food> ownedBy(UUID userId) {
         return jdbc.query("select " + COLUMNS + " from food where source = 'USER' and owner_id = ? order by lower(name)", FoodStore::map,
                 userId);

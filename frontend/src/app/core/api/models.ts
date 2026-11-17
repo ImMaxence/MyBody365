@@ -444,4 +444,19 @@ export interface FoodsOverview {
   offProducts: number;
   userFoods: number;
   imports: CiqualImport[];
+  /** when the local copy of Open Food Facts was last imported (none: asked live) */
+  offLocalAt?: string;
+  offImports: OffImport[];
+}
+
+export interface OffImport {
+  id: string;
+  status: 'RUNNING' | 'DONE' | 'FAILED';
+  step?: string;
+  progress: number;
+  products?: number;
+  message?: string;
+  startedAt: string;
+  finishedAt?: string;
+  startedBy?: string;
 }

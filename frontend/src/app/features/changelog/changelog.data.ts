@@ -7,6 +7,72 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.4.0",
+    "date": "2026-11-17",
+    "summary": [
+      {
+        "t": "Le repas au snack estimé en deux touches, Open Food Facts gardé sur notre serveur, et des écrans qui arrivent en douceur"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "Burger, kebab, pizza, tacos, frites, nuggets, sushi, sandwich, salade : un tiroir d'estimation. Tu choisis le format, les frites, la sauce et la boisson (Coca, Coca zéro, Ice Tea, jus, bière…), le total se calcule au fur et à mesure, et chaque élément s'ajoute au repas sur sa propre ligne"
+            }
+          ],
+          [
+            {
+              "t": "Open Food Facts en local : depuis l'administration, la mise à jour télécharge l'export complet et garde les produits vendus en France. Les recherches et les scans restent ensuite sur notre serveur, Open Food Facts n'est plus appelé qu'en secours pour un code-barres tout neuf"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "Les écrans arrivent en douceur : un fondu avec une légère remontée, d'un seul tenant, au changement d'onglet comme à l'ouverture de l'app"
+            }
+          ],
+          [
+            {
+              "t": "Repas : le jour choisi s'allume sur place, la pastille ne glisse plus d'un jour à l'autre, et changer de semaine est un simple fondu"
+            }
+          ],
+          [
+            {
+              "t": "Les interrupteurs ne grossissent plus quand le doigt passe dessus en faisant défiler"
+            }
+          ],
+          [
+            {
+              "t": "Plus d'espace entre le titre et le texte des tiroirs (ajout rapide, etc.)"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Notifications : l'heure du rappel n'est plus collée au rappel du jour"
+            }
+          ],
+          [
+            {
+              "t": "Les longs tiroirs (comme l'IMC) ne remontent plus en laissant un vide en dessous, et remonter dans leur texte ne les ferme plus : on les ferme par la poignée, d'un glissé quand ils sont tout en haut, ou par leur bouton"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.3.0",
     "date": "2026-11-17",
     "summary": [

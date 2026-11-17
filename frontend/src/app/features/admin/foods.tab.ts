@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { errorCode } from '../../core/api/api.service';
-import type { CiqualImport, FoodsOverview } from '../../core/api/models';
+import type { CiqualImport, FoodsOverview, OffImport } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MealsApi } from '../../core/meals/meals-api';
@@ -28,7 +28,6 @@ import { IconComponent } from '../../shared/icon.component';
           @if (o.supersededFoods) {
             <li>{{ 'adminFoods.superseded' | t: { n: i18n.number(o.supersededFoods) } }}</li>
           }
-          <li>{{ 'adminFoods.off' | t: { n: i18n.number(o.offProducts) } }}</li>
           <li>{{ 'adminFoods.user' | t: { n: i18n.number(o.userFoods) } }}</li>
         </ul>
       }
@@ -44,6 +43,44 @@ import { IconComponent } from '../../shared/icon.component';
         <button type="button" class="btn btn-primary btn-block" [disabled]="busy()" (click)="start()"><app-icon name="refresh" /> {{ 'adminFoods.update' | t }}</button>
       }
       <p class="tiny muted">{{ 'adminFoods.source' | t }}</p>
+    </section>
+
+    <section class="card ciqual">
+      <div class="head">
+        <span class="ico off"><app-icon name="barcode" /></span>
+        <div>
+          <h2 class="h3">{{ 'adminFoods.offTitle' | t }}</h2>
+          <p class="small muted">
+            @if (overview()?.offLocalAt; as at) {
+              {{ 'adminFoods.offLocal' | t: { date: i18n.dateTime(at) } }}
+            } @else {
+              {{ 'adminFoods.offLive' | t }}
+            }
+          </p>
+        </div>
+      </div>
+      <p class="small">{{ 'adminFoods.offText' | t }}</p>
+      @if (overview(); as o) {
+        <ul class="counts small" role="list">
+          <li>{{ 'adminFoods.off' | t: { n: i18n.number(o.offProducts) } }}</li>
+        </ul>
+      }
+      @if (offRunning(); as r) {
+        <div class="progress" aria-live="polite">
+          <div class="progress-head small"><span>{{ 'adminFoods.offSteps.' + (r.step ?? 'download') | t }}</span><span class="num">{{ r.progress }} %</span></div>
+          <div class="bar" role="progressbar" [attr.aria-label]="'adminFoods.offUpdate' | t" [attr.aria-valuenow]="r.progress" aria-valuemin="0" aria-valuemax="100">
+            <i [style.width.%]="r.progress"></i>
+          </div>
+        </div>
+      } @else {
+        <button type="button" class="btn btn-secondary btn-block" [disabled]="busy()" (click)="startOff()"><app-icon name="refresh" /> {{ 'adminFoods.offUpdate' | t }}</button>
+      }
+      @for (i of overview()?.offImports ?? []; track i.id) {
+        <p class="tiny muted">
+          {{ i18n.dateTime(i.startedAt) }} · {{ 'adminFoods.status.' + i.status | t }}{{ i.products != null ? ' · ' + ('adminFoods.offProducts' | t: { n: i18n.number(i.products) }) : '' }}{{ i.status === 'FAILED' && i.message ? ' · ' + i.message : '' }}
+        </p>
+      }
+      <p class="tiny muted">{{ 'adminFoods.offSource' | t }}</p>
     </section>
 
     <h2 class="section-title">{{ 'adminFoods.history' | t }}</h2>
@@ -128,6 +165,10 @@ import { IconComponent } from '../../shared/icon.component';
     .err {
       color: var(--danger);
     }
+    .ico.off {
+      background: var(--cool-soft);
+      color: var(--cool);
+    }
   `,
 })
 export class AdminFoodsTab {
@@ -136,12 +177,17 @@ export class AdminFoodsTab {
   protected readonly i18n = inject(I18nService);
   protected readonly overview = signal<FoodsOverview | null>(null);
   protected readonly running = signal<CiqualImport | null>(null);
+  protected readonly offRunning = signal<OffImport | null>(null);
   protected readonly busy = signal(false);
   private timer: ReturnType<typeof setTimeout> | null = null;
+  private offTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     void this.refresh();
-    inject(DestroyRef).onDestroy(() => this.timer && clearTimeout(this.timer));
+    inject(DestroyRef).onDestroy(() => {
+      if (this.timer) clearTimeout(this.timer);
+      if (this.offTimer) clearTimeout(this.offTimer);
+    });
   }
 
   private async refresh(): Promise<void> {
@@ -150,6 +196,8 @@ export class AdminFoodsTab {
       this.overview.set(o);
       const r = o.imports.find((i) => i.status === 'RUNNING');
       if (r && !this.running()) this.follow(r);
+      const off = o.offImports.find((i) => i.status === 'RUNNING');
+      if (off && !this.offRunning()) this.followOff(off);
     } catch {
       /* shown empty */
     }
@@ -165,6 +213,38 @@ export class AdminFoodsTab {
     } finally {
       this.busy.set(false);
     }
+  }
+
+  protected async startOff(): Promise<void> {
+    this.busy.set(true);
+    try {
+      this.followOff(await this.api.startOff());
+      this.toast.show(this.i18n.t('adminFoods.offStarted'));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  /** a long one (a large download, then a large file read): polled every 2 seconds */
+  private followOff(r: OffImport): void {
+    this.offRunning.set(r);
+    this.offTimer = setTimeout(async () => {
+      try {
+        const next = await this.api.offImport(r.id);
+        if (next.status === 'RUNNING') {
+          this.followOff(next);
+          return;
+        }
+        this.offRunning.set(null);
+        if (next.status === 'DONE') this.toast.show(this.i18n.t('adminFoods.offDone', { n: this.i18n.number(next.products ?? 0) }));
+        else this.toast.error(this.i18n.t('adminFoods.failed', { message: next.message ?? '' }));
+        await this.refresh();
+      } catch {
+        this.followOff(r);
+      }
+    }, 2000);
   }
 
   /** polled every second until the import ends */

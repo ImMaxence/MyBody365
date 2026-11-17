@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
+import { EstimatedItem, FastFoodSheetComponent } from './fast-food-sheet.component';
 import { FormsModule } from '@angular/forms';
 import { errorCode } from '../../core/api/api.service';
 import type { Food, RecentItem, Recipe, Slot } from '../../core/api/models';
@@ -21,7 +22,7 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
 @Component({
   selector: 'app-meal-add',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, BackButtonComponent, FoodPickerComponent, QuantitySheetComponent],
+  imports: [FastFoodSheetComponent, FormsModule, TranslatePipe, IconComponent, BackButtonComponent, FoodPickerComponent, QuantitySheetComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -35,7 +36,9 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
         createLink="/app/meals/food/new"
         (picked)="pick($event)"
         (quick)="openQuick({ name: $event })"
+        (dish)="estimate.open($event)"
       />
+      <app-fast-food-sheet #estimate [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event)" />
       <app-quantity-sheet (confirm)="add($event)" />
 
       <dialog class="sheet" #quickDialog [attr.aria-label]="'meals.quick.title' | t">
@@ -110,6 +113,7 @@ export class MealAddPage {
   private readonly i18n = inject(I18nService);
   private readonly sheet = viewChild.required(QuantitySheetComponent);
   private readonly quickDialog = viewChild.required<ElementRef<HTMLDialogElement>>('quickDialog');
+  private readonly estimateSheet = viewChild.required(FastFoodSheetComponent);
   protected qName = '';
   protected qKcal = '';
   protected qMacros: Record<'proteinG' | 'carbsG' | 'fatG', string> = { proteinG: '', carbsG: '', fatG: '' };
@@ -199,6 +203,26 @@ export class MealAddPage {
       this.toast.error(this.i18n.error(errorCode(e)));
     } finally {
       this.quickBusy.set(false);
+    }
+  }
+
+  /** a meal at the snack bar, by estimate: each item on its own line (no line for a glass of water) */
+  protected async addEstimate(items: EstimatedItem[]): Promise<void> {
+    const sheet = this.estimateSheet();
+    const lines = items.filter((i) => i.kcal >= 1);
+    if (!lines.length) return;
+    sheet.busy.set(true);
+    try {
+      for (const i of lines) {
+        await this.store.add({ day: this.day(), slot: this.slot(), quick: { name: i.name, kcal: i.kcal, proteinG: i.proteinG, carbsG: i.carbsG, fatG: i.fatG } });
+      }
+      sheet.close();
+      this.toast.show(this.i18n.t('meals.estimate.added', { kcal: this.i18n.number(lines.reduce((t, i) => t + i.kcal, 0)) }));
+      this.stack.back('/app/meals');
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      sheet.busy.set(false);
     }
   }
 

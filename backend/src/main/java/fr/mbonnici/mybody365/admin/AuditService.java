@@ -28,6 +28,7 @@ public class AuditService {
         LINK_REVOKED,
         USER_QUOTA_CHANGED,
         CIQUAL_IMPORT_STARTED,
+        OFF_IMPORT_STARTED,
         REPORT_DISMISSED,
         REPORTED_PHOTO_DELETED,
         RECIPE_HIDDEN,

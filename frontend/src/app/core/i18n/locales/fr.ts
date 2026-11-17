@@ -827,6 +827,8 @@ export const fr = {
         ACCESS_REJECTED: 'a refusé la demande de',
         LINK_CREATED: 'a généré un lien pour',
         LINK_REVOKED: 'a révoqué un lien de',
+        CIQUAL_IMPORT_STARTED: 'a lancé la mise à jour de',
+        OFF_IMPORT_STARTED: 'a lancé la mise à jour de',
       },
     },
   },

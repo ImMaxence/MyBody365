@@ -6,6 +6,7 @@ import type { Food, RecentItem, Recipe } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MealsApi } from '../../core/meals/meals-api';
+import { DISHES } from '../../core/meals/fast-food';
 import { IconComponent } from '../../shared/icon.component';
 import { NutriscoreComponent } from '../../shared/nutriscore.component';
 
@@ -52,7 +53,7 @@ export type Picked = { kind: 'FOOD'; food: Food } | { kind: 'RECIPE'; recipe: Re
         <h2 class="section-title">{{ 'meals.quick.restaurant' | t }}</h2>
         <div class="slide-chips" role="group" [attr.aria-label]="'meals.quick.restaurant' | t">
           @for (c of restaurant; track c.q) {
-            <button type="button" (click)="query.set(c.q)"><span aria-hidden="true">{{ c.emoji }}</span> {{ 'meals.quick.dishes.' + c.key | t }}</button>
+            <button type="button" (click)="dish.emit(c.key)"><span aria-hidden="true">{{ c.emoji }}</span> {{ 'meals.quick.dishes.' + c.key | t }}</button>
           }
         </div>
       }
@@ -279,18 +280,9 @@ export class FoodPickerComponent {
   readonly picked = output<Picked>();
   /** the quick add (name and calories only), with what was typed as its name */
   readonly quick = output<string>();
-  /** fast food and restaurant dishes: what to search (Ciqual's generic dishes and the products of Open Food Facts) */
-  protected readonly restaurant = [
-    { key: 'burger', q: 'hamburger', emoji: '🍔' },
-    { key: 'kebab', q: 'kebab', emoji: '🥙' },
-    { key: 'pizza', q: 'pizza', emoji: '🍕' },
-    { key: 'tacos', q: 'tacos', emoji: '🌮' },
-    { key: 'fries', q: 'frites', emoji: '🍟' },
-    { key: 'nuggets', q: 'nuggets', emoji: '🍗' },
-    { key: 'sushi', q: 'sushi', emoji: '🍣' },
-    { key: 'sandwich', q: 'sandwich', emoji: '🥪' },
-    { key: 'salad', q: 'salade composée', emoji: '🥗' },
-  ];
+  /** a fast-food or restaurant dish to estimate (core/meals/fast-food.ts) */
+  readonly dish = output<string>();
+  protected readonly restaurant = DISHES.map((d) => ({ key: d.key, q: d.key, emoji: d.emoji }));
 
   protected readonly query = signal('');
   protected readonly local = signal<Food[] | null>(null);

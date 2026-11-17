@@ -18,6 +18,21 @@ test.describe('meals', () => {
     await expect(page.getByRole('heading', { name: 'Repas', level: 1 })).toBeVisible();
     await expect(page.getByRole('button', { name: /Menu burger frites/ })).toContainText(/1\s?080/);
 
+    // a kebab at the snack bar, by estimate: the sandwich, medium fries, a Coke; each on its own line
+    await page.goto('/app/meals/add?slot=LUNCH');
+    await page.getByRole('group', { name: 'Au restaurant, en fast-food' }).getByRole('button', { name: /Kebab/ }).click();
+    const est = page.getByRole('dialog', { name: 'Kebab' });
+    await expect(est.getByRole('radio', { name: /Sandwich \(pain\)/ })).toHaveAttribute('aria-checked', 'true');
+    await est.getByRole('radiogroup', { name: 'Des frites avec ?' }).getByRole('radio', { name: /Moyenne/ }).click();
+    await est.getByRole('radio', { name: /Coca-Cola 33 cl/ }).click();
+    await expect(est.getByText(/≈ 1\s?179 kcal/)).toBeVisible();
+    await expectAccessible(page);
+    await est.getByRole('button', { name: /Ajouter au déjeuner/ }).click();
+    await expect(page.getByRole('heading', { name: 'Repas', level: 1 })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Kebab \(Sandwich \(pain\)\)/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Frites \(Moyenne\)/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Coca-Cola 33 cl/ })).toBeVisible();
+
     // a recipe from a site, written by hand: lines and calories per serving
     await page.goto('/app/meals/recipes/new');
     await page.getByLabel('Nom de la recette').fill('Bruschetta maison');
