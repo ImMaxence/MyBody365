@@ -21,6 +21,29 @@ class PushPayloadTest {
     }
 
     @Test
+    void theWeekInReviewSaysNothingPersonal() {
+        Map<String, Object> n = notification(PushService.Kind.WEEKLY, false, Map.of());
+        assertThat(n.get("title")).isEqualTo("Ton bilan de la semaine 📊");
+        // no weight, no calories: the figures are in the app
+        assertThat(n.get("body")).isEqualTo("Ton poids, tes séances et tes repas des 7 derniers jours, en un coup d’œil");
+        assertThat(url(n)).isEqualTo("/app/week");
+    }
+
+    @Test
+    void theTimerSaysThePhaseAndOpensTheTimer() {
+        Map<String, Object> rest = notification(PushService.Kind.TIMER, false, Map.of("phase", "REST", "round", "2", "total", "5"));
+        assertThat(rest.get("title")).isEqualTo("Repos 😮‍💨");
+        assertThat(rest.get("body")).isEqualTo("Série 2 sur 5 terminée, souffle un peu");
+        assertThat(url(rest)).isEqualTo("/app/timer");
+        // each alert takes the place of the previous one on the locked screen
+        assertThat(rest.get("tag")).isEqualTo("timer");
+        assertThat(notification(PushService.Kind.TIMER, false, Map.of("phase", "WORK", "round", "3", "total", "5")).get("body"))
+                .isEqualTo("Série 3 sur 5");
+        assertThat(notification(PushService.Kind.TIMER, true, Map.of("phase", "DONE", "round", "5", "total", "5")).get("title"))
+                .isEqualTo("Workout done 🎉");
+    }
+
+    @Test
     void aFriendsRecipeOpensTheRecipe() {
         Map<String, Object> fr = notification(PushService.Kind.FRIEND_RECIPE, false,
                 Map.of("name", "Léa", "recipe", "Bruschetta", "path", "/app/meals/recipes/42"));

@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
+import fr.mbonnici.mybody365.recipe.CommunityGuard;
 import fr.mbonnici.mybody365.user.AppUser;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -22,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.ResultActions;
@@ -34,6 +36,9 @@ class SocialTest extends AbstractIntegrationTest {
     private AppUser hugo;
     private AppUser ines;
     private AppUser admin;
+
+    @Autowired
+    private CommunityGuard guard;
 
     @BeforeEach
     void setUp() {
@@ -159,12 +164,31 @@ class SocialTest extends AbstractIntegrationTest {
         // a friend may copy it, not vote on it (votes are for the community)
         mvc.perform(post("/api/recipes/" + id + "/copy").with(as(hugo)).with(csrf())).andExpect(status().isCreated());
 
-        // the older "shared" flag still means the community
+        // the community is the admins' (1.7): Léa becomes one; the older "shared" flag still means the community
+        jdbc.update("update app_user set role = 'ADMIN' where id = ?", lea.getId());
         json(put("/api/me/recipes/" + id), lea, """
                 {"name":"Galettes du dimanche","type":"BREAKFAST","servings":2,"shared":true,
                  "ingredients":[{"foodId":"%s","grams":200}]}""".formatted(food))
                 .andExpect(jsonPath("$.visibility").value("PUBLIC")).andExpect(jsonPath("$.shared").value(true));
         mvc.perform(get("/api/recipes/community").with(as(ines))).andExpect(jsonPath("$[*].id", hasItem(id)));
+        // for several meals (1.7): the main one first, found under each of them
+        json(put("/api/me/recipes/" + id), lea, """
+                {"name":"Galettes du dimanche","type":"BREAKFAST","types":["SNACK","BREAKFAST","KETO"],"servings":2,"shared":true,
+                 "ingredients":[{"foodId":"%s","grams":200}]}""".formatted(food)).andExpect(status().isBadRequest());
+        json(put("/api/me/recipes/" + id), lea, """
+                {"name":"Galettes du dimanche","type":"BREAKFAST","types":["SNACK","BREAKFAST"],"servings":2,"shared":true,
+                 "ingredients":[{"foodId":"%s","grams":200}]}""".formatted(food))
+                .andExpect(jsonPath("$.types.length()").value(2))
+                .andExpect(jsonPath("$.types[0]").value("BREAKFAST"))
+                .andExpect(jsonPath("$.types[1]").value("SNACK"));
+        mvc.perform(get("/api/recipes/community").param("type", "SNACK").with(as(ines))).andExpect(jsonPath("$[*].id", hasItem(id)));
+        mvc.perform(get("/api/recipes/community").param("type", "DINNER").with(as(ines))).andExpect(jsonPath("$[*].id", not(hasItem(id))));
+        // no longer an admin: at the next start, the recipe goes back to Léa's friends (nothing deleted)
+        jdbc.update("update app_user set role = 'USER' where id = ?", lea.getId());
+        assertThat(guard.run()).isEqualTo(1);
+        assertThat(guard.run()).isZero();
+        mvc.perform(get("/api/recipes/" + id).with(as(lea))).andExpect(jsonPath("$.visibility").value("FRIENDS")).andExpect(jsonPath("$.shared").value(false));
+        mvc.perform(get("/api/recipes/community").with(as(ines))).andExpect(jsonPath("$[*].id", not(hasItem(id))));
         // back to private: out of everybody's reach
         json(put("/api/me/recipes/" + id), lea, """
                 {"name":"Galettes du dimanche","type":"BREAKFAST","servings":2,"visibility":"PRIVATE",

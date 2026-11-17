@@ -61,13 +61,14 @@ function writeFlag(key: string): void {
         </a>
       }
 
-      <section class="streak" [class.lit]="streakDays() > 0" [attr.aria-label]="'today.streak' | t">
+      <!-- the whole card opens the calendar of the flame (the button is there for the keyboard and screen readers) -->
+      <section class="streak" [class.lit]="streakDays() > 0" [attr.aria-label]="'today.streak' | t" (click)="flameDialog.open || flameDialog.showModal()">
         <div class="flame"><app-icon name="flame" [size]="34" [stroke]="2.1" /></div>
         <div class="streak-copy">
           <span class="label">{{ 'today.streak' | t }}</span>
           <span class="big num">{{ streakDays() }} <small>{{ 'today.streakDays' | t }}</small></span>
         </div>
-        <button type="button" class="icon-btn flame-more" [attr.aria-label]="'engage.flame.open' | t" (click)="flameDialog.showModal()">
+        <button type="button" class="icon-btn flame-more" [attr.aria-label]="'engage.flame.open' | t">
           @if (freezes() > 0) {
             <span class="freeze-chip num"><app-icon name="snowflake" [size]="14" [stroke]="2.4" /> {{ freezes() }}</span>
           }
@@ -178,6 +179,14 @@ function writeFlag(key: string): void {
           </span>
           <app-icon name="chevronRight" />
         </a>
+        <a class="list-item task" routerLink="/app/week">
+          <span class="list-icon"><app-icon name="calendar" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'week.title' | t }}</span>
+            <span class="list-sub">{{ 'week.sub' | t }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </a>
         <a class="list-item task" routerLink="/app/timer">
           <span class="list-icon"><app-icon name="timer" /></span>
           <span class="list-body">
@@ -262,6 +271,12 @@ function writeFlag(key: string): void {
         radial-gradient(100% 100% at 100% 100%, rgba(255, 194, 61, 0.14), transparent 60%),
         var(--surface);
       border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform var(--dur-1) var(--ease-out);
+    }
+    .streak:active {
+      transform: scale(0.99);
     }
     .flame {
       display: grid;

@@ -1,0 +1,429 @@
+# Petits-déjeuners, desserts et collations (même format que 1-viandes-volailles.txt)
+
+= Porridge aux fruits rouges | BREAKFAST | 2
+32140 80 flocons d'avoine
+19033 300 lait
+13015 100 framboises
+13028 60 myrtilles
+31008 15 miel
+: Cuire les flocons dans le lait 5 minutes à feu doux en remuant
+: Servir avec les fruits et le miel
+
+= Pancakes | BREAKFAST,DESSERT | 4
+9440 250 farine
+19033 300 lait
+22000 100 œufs
+31016 30 sucre
+16400 30 beurre fondu
+11046 10 levure chimique
+11058 1 sel
+: Mélanger la farine, la levure, le sucre et le sel, ajouter les œufs puis le lait et le beurre fondu
+: Cuire des petites crêpes épaisses 2 minutes par face dans une poêle légèrement graissée
+
+= Pain perdu | BREAKFAST,DESSERT | 4
+7742 300 brioche ou pain rassis
+19033 300 lait
+22000 150 œufs
+31016 40 sucre
+16400 30 beurre
+11025 2 cannelle
+: Battre les œufs avec le lait, le sucre et la cannelle
+: Tremper les tranches et les dorer 2 minutes par face dans le beurre
+
+= Granola maison | BREAKFAST,SNACK | 10
+32140 300 flocons d'avoine
+15000 80 amandes
+15004 50 noisettes
+31008 80 miel
+17130 40 huile de colza
+13046 60 raisins secs
+11025 2 cannelle
+: Mélanger les flocons, les fruits secs concassés, le miel, l'huile et la cannelle
+: Étaler sur une plaque et cuire 25 minutes à 160 °C en remuant à mi-cuisson
+: Ajouter les raisins secs une fois refroidi, conserver dans un bocal
+
+= Overnight oats | BREAKFAST | 2
+32140 80 flocons d'avoine
+19033 200 lait
+19593 125 yaourt nature
+15047 15 graines de chia
+13005 120 banane
+31034 15 sirop d'érable
+: Mélanger les flocons, le lait, le yaourt et le chia dans un bocal, laisser une nuit au frais
+: Servir avec la banane en rondelles et le sirop d'érable
+
+= Bowl de skyr aux fruits rouges | BREAKFAST,SNACK | 1
+19724 150 skyr
+13014 80 fraises
+13028 50 myrtilles
+32140 30 flocons d'avoine
+31008 10 miel
+: Verser le skyr dans un bol, ajouter les fruits, les flocons et le miel
+
+= Tartines beurre et confiture | BREAKFAST | 2
+7001 120 baguette
+16400 20 beurre
+31037 40 confiture
+: Couper la baguette en tartines, les beurrer et les garnir de confiture
+
+= Avocado toast à l'œuf | BREAKFAST,LUNCH | 2
+7110 120 pain complet
+13004 150 avocat
+22000 100 œufs
+2028 10 jus de citron
+11058 1 sel
+: Écraser l'avocat avec le citron et le sel, le tartiner sur le pain grillé
+: Ajouter un œuf poché ou au plat et du poivre
+
+= Smoothie banane et fraise | BREAKFAST,SNACK,DRINK | 2
+13005 150 banane
+13014 200 fraises
+19593 125 yaourt nature
+19033 150 lait
+: Mixer tous les ingrédients jusqu'à obtenir une boisson lisse, servir frais
+
+= Œuf à la coque et mouillettes | BREAKFAST | 1
+22000 100 œufs
+7001 60 pain
+16400 10 beurre
+11058 1 sel
+: Plonger les œufs dans l'eau bouillante 3 minutes
+: Servir avec les mouillettes de pain beurré
+
+= Gaufres | BREAKFAST,DESSERT,SNACK | 8
+9440 300 farine
+19033 500 lait
+22000 150 œufs
+16400 80 beurre fondu
+31016 40 sucre
+31044 8 sucre vanillé
+11046 10 levure chimique
+: Mélanger la farine, la levure et les sucres, ajouter les œufs, puis le lait et le beurre fondu
+: Laisser reposer 30 minutes et cuire dans un gaufrier bien chaud
+
+= Crêpes | BREAKFAST,DESSERT,SNACK | 6
+9440 250 farine
+19033 500 lait
+22000 150 œufs
+16400 30 beurre fondu
+31016 20 sucre
+11058 1 sel
+: Mélanger la farine, le sucre et le sel, ajouter les œufs puis le lait petit à petit
+: Ajouter le beurre fondu, laisser reposer 1 heure
+: Cuire les crêpes dans une poêle chaude légèrement graissée, 1 minute par face
+
+= Banana bread | BREAKFAST,SNACK | 10
+13005 350 bananes bien mûres
+9440 220 farine
+22000 100 œufs
+31017 100 sucre roux
+16400 80 beurre fondu
+11046 10 levure chimique
+15005 50 noix
+11025 2 cannelle
+: Écraser les bananes, ajouter les œufs, le sucre et le beurre fondu
+: Incorporer la farine, la levure, la cannelle et les noix
+: Cuire 50 minutes à 170 °C dans un moule à cake
+
+= Mousse au chocolat | DESSERT | 6
+31085 200 chocolat noir
+22000 300 œufs
+31016 20 sucre
+: Faire fondre le chocolat, ajouter les jaunes
+: Monter les blancs en neige avec le sucre et les incorporer délicatement
+: Réserver au moins 4 heures au frais
+
+= Tiramisu | DESSERT | 6
+19584 250 mascarpone
+22000 150 œufs
+31016 80 sucre
+24430 200 biscuits à la cuillère
+18071 300 café fort
+18100 15 cacao
+: Fouetter les jaunes avec le sucre, ajouter le mascarpone, puis les blancs montés en neige
+: Tremper rapidement les biscuits dans le café et alterner avec la crème dans un plat
+: Réserver une nuit au frais et saupoudrer de cacao
+
+= Crème brûlée | DESSERT | 4
+19417 400 crème liquide
+22002 80 jaunes d'œufs
+31016 70 sucre
+11098 5 vanille
+31017 30 cassonade
+: Fouetter les jaunes avec le sucre, ajouter la crème et la vanille
+: Verser dans des ramequins et cuire 1 heure à 100 °C, laisser refroidir
+: Saupoudrer de cassonade et caraméliser au chalumeau ou sous le gril
+
+= Crème caramel | DESSERT | 6
+19033 500 lait
+22000 200 œufs
+31016 140 sucre
+11098 5 vanille
+: Faire un caramel avec 60 g de sucre et le verser dans le moule
+: Battre les œufs avec le reste du sucre, ajouter le lait chaud vanillé
+: Cuire 45 minutes au bain-marie à 160 °C, démouler froid
+
+= Flan pâtissier | DESSERT | 8
+23414 230 pâte brisée
+19033 750 lait
+22000 150 œufs
+31016 150 sucre
+9510 80 fécule de maïs
+11098 5 vanille
+: Porter le lait vanillé à ébullition
+: Fouetter les œufs, le sucre et la fécule, verser le lait chaud et épaissir sur le feu en fouettant
+: Verser sur la pâte et cuire 45 minutes à 180 °C, laisser refroidir
+
+= Riz au lait | DESSERT | 6
+9100 150 riz rond
+19016 1000 lait entier
+31016 90 sucre
+11098 5 vanille
+: Blanchir le riz 2 minutes, l'égoutter
+: Le cuire 40 minutes à feu très doux dans le lait vanillé en remuant souvent, ajouter le sucre à la fin
+
+= Tarte aux pommes | DESSERT | 8
+23414 230 pâte brisée
+13039 900 pommes
+31016 50 sucre
+16400 20 beurre
+31044 8 sucre vanillé
+: Foncer le moule, disposer les pommes en fines lamelles en rosace
+: Parsemer de sucre et de noisettes de beurre, cuire 40 minutes à 190 °C
+
+= Tarte Tatin | DESSERT | 8
+23424 230 pâte feuilletée
+13039 1200 pommes
+31016 150 sucre
+16400 70 beurre
+: Faire un caramel avec le sucre et le beurre dans un moule allant au four
+: Serrer les quartiers de pommes dessus, cuire 20 minutes à feu doux
+: Couvrir de pâte, cuire 30 minutes à 200 °C et retourner tiède
+
+= Clafoutis aux cerises | DESSERT | 6
+13008 500 cerises
+22000 200 œufs
+19033 300 lait
+9440 80 farine
+31016 80 sucre
+16400 15 beurre
+: Disposer les cerises dans un plat beurré
+: Mélanger les œufs, le sucre, la farine puis le lait, verser sur les fruits
+: Cuire 40 minutes à 180 °C
+
+= Fondant au chocolat | DESSERT | 8
+31085 200 chocolat noir
+16400 150 beurre
+22000 200 œufs
+31016 120 sucre
+9440 50 farine
+: Faire fondre le chocolat avec le beurre
+: Fouetter les œufs avec le sucre, ajouter le chocolat puis la farine
+: Cuire 20 minutes à 180 °C, le cœur doit rester fondant
+
+= Gâteau au yaourt | DESSERT,SNACK | 8
+19593 125 yaourt nature
+9440 250 farine
+31016 150 sucre
+22000 150 œufs
+17440 80 huile
+11046 10 levure chimique
+31044 8 sucre vanillé
+: Mélanger le yaourt, le sucre et les œufs, ajouter la farine et la levure, puis l'huile
+: Verser dans un moule et cuire 35 minutes à 180 °C
+
+= Cookies aux pépites de chocolat | DESSERT,SNACK | 12
+9440 250 farine
+16400 120 beurre mou
+31017 150 sucre roux
+22000 50 œuf
+31085 150 chocolat noir en pépites
+11046 5 levure chimique
+11058 1 sel
+: Mélanger le beurre et le sucre, ajouter l'œuf, puis la farine, la levure et le sel
+: Incorporer le chocolat concassé, former des boules
+: Cuire 10 minutes à 180 °C, ils durcissent en refroidissant
+
+= Brownie | DESSERT,SNACK | 12
+31085 200 chocolat noir
+16400 150 beurre
+31016 180 sucre
+22000 150 œufs
+9440 80 farine
+15005 80 noix
+: Faire fondre le chocolat avec le beurre
+: Ajouter le sucre, les œufs, la farine et les noix concassées
+: Cuire 25 minutes à 180 °C dans un moule carré
+
+= Cheesecake | DESSERT | 10
+12068 600 fromage frais type cream cheese
+24009 200 biscuits spéculoos
+16400 80 beurre fondu
+31016 150 sucre
+22000 150 œufs
+19417 100 crème liquide
+2028 15 jus de citron
+: Mélanger les biscuits écrasés et le beurre fondu, tasser au fond d'un moule
+: Fouetter le fromage, le sucre, les œufs, la crème et le citron, verser sur le fond
+: Cuire 1 heure à 150 °C, laisser refroidir dans le four puis une nuit au frais
+
+= Crumble aux pommes | DESSERT | 6
+13039 900 pommes
+9440 120 farine
+16400 90 beurre
+31017 100 sucre roux
+11025 2 cannelle
+: Couper les pommes en dés dans un plat, saupoudrer de cannelle
+: Sabler la farine, le beurre et le sucre du bout des doigts, répartir sur les fruits
+: Cuire 35 minutes à 180 °C
+
+= Île flottante | DESSERT | 6
+22002 120 jaunes d'œufs
+22001 180 blancs d'œufs
+19033 600 lait
+31016 120 sucre
+11098 5 vanille
+31046 40 caramel
+: Préparer une crème anglaise : jaunes et 80 g de sucre fouettés, lait vanillé chaud, épaissir à feu doux sans bouillir
+: Monter les blancs avec le reste du sucre, les pocher 1 minute par face dans de l'eau frémissante
+: Poser les blancs sur la crème froide et napper de caramel
+
+= Far breton | DESSERT | 8
+9440 200 farine
+22000 200 œufs
+19016 750 lait entier
+31016 150 sucre
+13042 250 pruneaux
+16402 30 beurre demi-sel
+: Mélanger la farine, le sucre et les œufs, ajouter le lait petit à petit
+: Verser dans un plat beurré avec les pruneaux, cuire 1 heure à 180 °C
+
+= Quatre-quarts | DESSERT,SNACK | 8
+22000 200 œufs
+9440 200 farine
+31016 200 sucre
+16402 200 beurre demi-sel
+11046 5 levure chimique
+: Fouetter les œufs et le sucre, ajouter le beurre fondu, puis la farine et la levure
+: Cuire 45 minutes à 170 °C dans un moule à cake
+
+= Madeleines | DESSERT,SNACK | 12
+9440 125 farine
+22000 100 œufs
+31016 100 sucre
+16400 100 beurre fondu
+11046 5 levure chimique
+13009 10 zeste de citron
+: Fouetter les œufs et le sucre, ajouter la farine, la levure, le zeste, puis le beurre fondu
+: Reposer 1 heure au frais, remplir les moules et cuire 10 minutes à 200 °C
+
+= Salade de fruits frais | DESSERT,SNACK | 6
+13039 300 pommes
+13005 200 bananes
+13034 300 oranges
+13021 200 kiwis
+13014 200 fraises
+2028 20 jus de citron
+31016 20 sucre
+: Couper tous les fruits en morceaux
+: Arroser de citron, sucrer légèrement et servir bien frais
+
+= Panna cotta aux fruits rouges | DESSERT | 6
+19417 500 crème liquide
+19033 200 lait
+31016 80 sucre
+11007 6 gélatine
+11098 5 vanille
+13998 150 coulis de fruits rouges
+: Faire ramollir la gélatine dans l'eau froide
+: Chauffer la crème, le lait, le sucre et la vanille, ajouter la gélatine essorée
+: Verser dans des verrines, laisser prendre 4 heures et napper de coulis
+
+= Tarte au citron meringuée | DESSERT | 8
+23444 250 pâte sablée
+2028 150 jus de citron
+22000 150 œufs
+22001 90 blancs d'œufs
+31016 250 sucre
+16400 80 beurre
+9510 20 fécule de maïs
+: Cuire la pâte à blanc 20 minutes à 180 °C
+: Cuire le jus de citron, les œufs, 150 g de sucre et la fécule en fouettant jusqu'à épaississement, ajouter le beurre
+: Verser sur la pâte, couvrir des blancs montés avec le reste du sucre et dorer 5 minutes sous le gril
+
+= Houmous | SNACK,LUNCH | 6
+20532 400 pois chiches cuits
+15203 60 tahin
+2028 40 jus de citron
+11000 5 ail
+17270 30 huile d'olive
+11042 2 cumin
+11058 3 sel
+: Mixer les pois chiches avec le tahin, le citron, l'ail, le cumin, le sel et un peu d'eau
+: Servir avec un filet d'huile et des crudités ou du pain
+
+= Guacamole | SNACK | 4
+13004 400 avocats
+20385 100 tomate
+20034 30 oignon rouge
+13067 30 citron vert
+11094 10 coriandre
+11058 2 sel
+: Écraser les avocats avec le citron vert
+: Ajouter la tomate et l'oignon en petits dés, la coriandre et le sel
+
+= Tzatziki | SNACK,LUNCH | 4
+19860 400 yaourt à la grecque
+20019 250 concombre
+11000 5 ail
+11027 10 menthe
+17270 10 huile d'olive
+11058 2 sel
+: Râper le concombre, le saler et le presser
+: Le mélanger au yaourt avec l'ail, la menthe et l'huile
+
+= Rillettes de thon | SNACK | 6
+26039 280 thon au naturel
+12069 150 fromage frais
+2028 15 jus de citron
+11003 5 ciboulette
+11015 1 poivre
+: Écraser le thon avec le fromage frais, le citron, la ciboulette et le poivre
+: Servir frais sur du pain ou des crudités
+
+= Energy balls | SNACK | 12
+13011 200 dattes
+15000 100 amandes
+32140 60 flocons d'avoine
+18100 15 cacao
+15007 20 noix de coco râpée
+: Mixer les dattes, les amandes, les flocons et le cacao
+: Former des boules et les rouler dans la noix de coco
+
+= Cake salé jambon et olives | SNACK,LUNCH | 8
+9440 200 farine
+22000 150 œufs
+19033 100 lait
+17440 80 huile
+28910 150 jambon cuit
+13033 80 olives vertes
+12118 100 emmental râpé
+11046 10 levure chimique
+: Mélanger la farine, la levure et les œufs, ajouter le lait et l'huile
+: Incorporer le jambon en dés, les olives et le fromage
+: Cuire 45 minutes à 180 °C dans un moule à cake
+
+= Yaourt grec au miel et aux noix | SNACK,DESSERT,BREAKFAST | 1
+19860 150 yaourt à la grecque
+31008 15 miel
+15005 15 noix
+: Verser le yaourt dans un bol, ajouter le miel et les noix concassées
+
+= Barres de céréales maison | SNACK | 10
+32140 200 flocons d'avoine
+31008 80 miel
+15202 80 beurre de cacahuète
+15000 50 amandes
+13046 50 raisins secs
+: Chauffer le miel et le beurre de cacahuète, les mêler aux flocons et aux fruits secs
+: Tasser dans un moule, cuire 20 minutes à 170 °C et couper en barres une fois froid

@@ -56,11 +56,12 @@ describe('I18nService', () => {
     }
   });
 
-  it('translates with placeholders and follows the language', () => {
+  it('translates with placeholders and follows the language (English loaded the first time it is needed)', async () => {
     expect(i18n.t('onboarding.hello', { name: 'Léa' })).toBe('Salut Léa 👋');
     i18n.set('en');
-    expect(i18n.t('onboarding.hello', { name: 'Lea' })).toBe('Hi Lea 👋');
     expect(document.documentElement.lang).toBe('en');
+    await i18n.load('en');
+    expect(i18n.t('onboarding.hello', { name: 'Lea' })).toBe('Hi Lea 👋');
   });
 
   it('returns the key of an unknown text, and the generic message of an unknown error', () => {

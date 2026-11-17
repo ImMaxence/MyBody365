@@ -144,12 +144,16 @@ export interface ApiErrorBody {
 // ── tracking ─────────────────────────────────────────────────────────────────
 export type Sex = 'FEMALE' | 'MALE' | 'OTHER';
 export type Activity = 'SEDENTARY' | 'LIGHT' | 'MODERATE' | 'ACTIVE' | 'VERY_ACTIVE';
+/** the day without sport (1.7: with the sessions a week, it replaces the level) */
+export type Job = 'SEATED' | 'STANDING' | 'PHYSICAL';
+export type MacroSplit = 'BALANCED' | 'PROTEIN' | 'LOW_CARB';
 
 export interface ProfileInput {
   sex: Sex;
   birthDate: string;
   heightCm: number;
-  activityLevel: Activity;
+  job: Job;
+  sessionsPerWeek: number;
   currentWeightKg: number;
   goalWeightKg: number;
   weeklyRateKg: number;
@@ -161,6 +165,13 @@ export interface BodyProfile {
   age: number;
   heightCm: number;
   activityLevel: Activity;
+  /** null on a profile saved before 1.7 (its level counts until answered) */
+  job?: Job | null;
+  sessionsPerWeek?: number | null;
+  activityFactor: number;
+  macroSplit: MacroSplit;
+  /** the member asked for the target from their real numbers */
+  adaptiveTdee: boolean;
   startWeightKg: number;
   startDate: string;
   goalWeightKg: number;
@@ -178,7 +189,20 @@ export interface StreakDay {
 export interface Summary {
   profile: BodyProfile;
   current: { weightKg?: number; day?: string; trendKg: number; bmi: number; changeKg?: number };
-  energy: { bmr: number; tdee: number; targetKcal: number; floorApplied: boolean };
+  /**
+   * tdee: what the target counts on; estimatedTdee: the formula's; realTdee: from the member's meals and weigh-ins
+   * of the last 4 weeks (realDays: the days fully noted), when there are enough; adaptive: the target counts on it
+   */
+  energy: {
+    bmr: number;
+    tdee: number;
+    targetKcal: number;
+    floorApplied: boolean;
+    estimatedTdee: number;
+    realTdee?: number | null;
+    realDays?: number | null;
+    adaptive: boolean;
+  };
   goal: {
     goalKg: number;
     remainingKg: number;
@@ -190,6 +214,8 @@ export interface Summary {
   };
   streak: { days: number; todayDone: boolean; week: StreakDay[]; best: number; freezes: number; calendar: StreakDay[] };
   warnings: string[];
+  /** the sessions of sport noted (timer, or by hand) */
+  training: { thisWeek: number; last28: number; perWeek: number; any: boolean };
 }
 
 export interface LogInput {
@@ -328,6 +354,16 @@ export interface MealStats {
   topByKcal: FoodStat[];
   slots: { slot: Slot; kcal: number; days: number }[];
   grades: { grade: string | null; kcal: number }[];
+  /** the foods that brought the most of it over the period (grams) */
+  sugarSources?: NutrientSource[];
+  saltSources?: NutrientSource[];
+  satFatSources?: NutrientSource[];
+}
+
+export interface NutrientSource {
+  name: string;
+  times: number;
+  grams: number;
 }
 
 export interface MealInput {
@@ -374,7 +410,9 @@ export type RecipeType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'DESSERT' 
 export interface Recipe {
   id: string;
   name: string;
+  /** the main meal it is for, and all of them (the main one first) */
   type: RecipeType;
+  types?: RecipeType[];
   servings: number;
   notes?: string;
   shared: boolean;
@@ -395,7 +433,8 @@ export interface Recipe {
   myVote?: number;
   imageUrl?: string;
   thumbUrl?: string;
-  ingredients?: { foodId?: string; name: string; grams: number; kcal: number }[];
+  /** each line: its calories for the weight, its food's values per 100 g, whether it counts as fruit and vegetables */
+  ingredients?: { foodId?: string; name: string; grams: number; kcal: number; per100?: Nutrients; fruitVeg?: boolean }[];
   createdAt: string;
 }
 
@@ -405,6 +444,7 @@ export type RecipeVisibility = 'PRIVATE' | 'FRIENDS' | 'PUBLIC';
 export interface RecipeInput {
   name: string;
   type: RecipeType;
+  types?: RecipeType[];
   servings: number;
   notes?: string | null;
   visibility: RecipeVisibility;

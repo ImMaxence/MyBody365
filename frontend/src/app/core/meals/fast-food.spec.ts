@@ -32,6 +32,32 @@ describe('fast food estimates', () => {
     expect(DISHES.flatMap((d) => d.formats).every((f) => gradeOf(f) !== null)).toBe(true);
   });
 
+  it('a choice changes the dish, scaled to its size: tacos without cheese sauce, pizza on a cream base', () => {
+    const tacos = dish('tacos')!;
+    const m = estimate(tacos, 'm', 'none', [], 'none').total.kcal;
+    expect(estimate(tacos, 'm', 'none', [], 'none', 'without').total.kcal).toBe(m - 180);
+    // an XL holds twice as much
+    const xl = estimate(tacos, 'xl', 'none', [], 'none').total.kcal;
+    expect(estimate(tacos, 'xl', 'none', [], 'none', 'without').total.kcal).toBe(xl - 360);
+    // the sauces of a tacos, to tick
+    expect(estimate(tacos, 'm', 'none', ['algerienne', 'blanche'], 'none').total.kcal).toBe(m + 110 + 75);
+    const pizza = dish('pizza')!;
+    expect(estimate(pizza, 'whole', 'none', [], 'none', 'cream').total.kcal).toBe(1040 + 175);
+    expect(estimate(pizza, 'half', 'none', [], 'none', 'cream').total.kcal).toBe(520 + Math.round(175 / 2));
+    // still graded, with its own values
+    expect(estimate(tacos, 'm', 'none', [], 'none', 'without').grade).not.toBeNull();
+  });
+
+  it('the share eaten of a dish one may not finish (pizzas have their slices)', () => {
+    const kebab = dish('kebab')!;
+    // half the sandwich, all the fries
+    expect(estimate(kebab, 'sandwich', 'medium', [], 'none', undefined, 0.5).total.kcal).toBe(350 + 340);
+    expect(estimate(kebab, 'sandwich', 'none', [], 'none', undefined, 0.5).grade).toBe(estimate(kebab, 'sandwich', 'none', [], 'none').grade);
+    // a quarter of an M tacos without its cheese sauce
+    expect(estimate(dish('tacos')!, 'm', 'none', [], 'none', 'without', 0.25).total.kcal).toBe(Math.round((950 - 180) * 0.25));
+    expect(dish('pizza')!.share).toBeFalsy();
+  });
+
   it('keeps every portion plausible: calories match the macros (±25 %)', () => {
     for (const p of [...DISHES.flatMap((d) => [...d.formats, ...d.extras]), ...DRINKS]) {
       const fromMacros = p.proteinG * 4 + p.carbsG * 4 + p.fatG * 9;

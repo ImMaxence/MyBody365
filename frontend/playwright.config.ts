@@ -8,6 +8,9 @@ import { defineConfig, devices } from '@playwright/test';
  *
  * The stack runs with DEV_LOGIN=true, so the tests sign in without Google. E2E_BASE_URL points
  * elsewhere if needed (never at production: the local sign-in does not exist there).
+ *
+ * Safari (WebKit, an iPhone): `npm run e2e:iphone` runs the same tests in Playwright's Linux image (WebKit does
+ * not start on Windows), against the stack of this machine (e2e/run-iphone.mjs).
  */
 const baseURL = process.env['E2E_BASE_URL'] ?? 'http://localhost:4300';
 
@@ -25,8 +28,13 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: [
-    { name: 'mobile', use: { ...devices['Pixel 7'] } },
-    { name: 'desktop', use: { ...devices['Desktop Chrome'] }, testMatch: /landing\.spec\.ts/ },
-  ],
+  projects: process.env['E2E_WEBKIT']
+    ? // Safari on an iPhone (iOS's engine): the app's own tests, the public pages being Chromium's job
+      // (no service worker: WebKit refuses to register one on http://localhost behind the container's relay; on a real
+      // iPhone it is there, the notifications prove it)
+      [{ name: 'iphone', timeout: 90_000, use: { ...devices['iPhone 15'], serviceWorkers: 'block' }, testIgnore: /landing\.spec\.ts/ }]
+    : [
+        { name: 'mobile', use: { ...devices['Pixel 7'] } },
+        { name: 'desktop', use: { ...devices['Desktop Chrome'] }, testMatch: /landing\.spec\.ts/ },
+      ],
 });

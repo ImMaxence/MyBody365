@@ -10,6 +10,9 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { StackNavigation } from '../../core/nav/stack-navigation';
 import { IconComponent } from '../../shared/icon.component';
+import { Outbox } from '../../core/offline/outbox';
+import { TimerRun } from '../../core/engage/timer-run';
+import { ToastService } from '../../core/ui/toast.service';
 
 /** how far (share of the width) or how fast (px/ms, the last moves) the screen must travel to go back */
 const DISTANCE = 0.4;
@@ -42,6 +45,23 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
     <!-- the left edge: the back swipe (see edgeStart) -->
     <div class="edge" aria-hidden="true" (touchstart)="edgeStart($event)" (touchmove)="edgeMove($event)" (touchend)="edgeEnd($event)"
       (touchcancel)="edgeCancel()"></div>
+    @if (showTabs() && (outbox.pending().length || timerAway())) {
+      <div class="floating">
+        @if (timerAway()) {
+          <!-- the workout timer goes on while one looks at something else: one tap back to it -->
+          <a class="timer-pill" routerLink="/app/timer" [attr.data-phase]="timer.state() === 'paused' ? 'paused' : timer.phase()"
+            [attr.aria-label]="'engage.timer.pill' | t: { phase: timerLabel(), time: clockOf(timer.shown()) }">
+            <app-icon [name]="timer.state() === 'paused' ? 'pause' : 'timer'" [size]="16" />
+            <span>{{ timerLabel() }}</span>
+            <b class="num">{{ clockOf(timer.shown()) }}</b>
+          </a>
+        }
+        @if (outbox.pending().length; as n) {
+          <!-- noted without network: it goes as soon as the network is back -->
+          <p class="outbox" role="status"><app-icon name="cloud" [size]="15" /> {{ (n === 1 ? 'offline.one' : 'offline.many') | t: { n: n } }}</p>
+        }
+      </div>
+    }
     @if (showTabs()) {
       <nav class="tabbar" [attr.aria-label]="'nav.main' | t" [style.--i]="activeIndex()">
         <span class="indicator" [class.hidden]="activeIndex() < 0" aria-hidden="true"></span>
@@ -78,6 +98,70 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
         opacity: 0;
         transform: translateY(8px);
       }
+    }
+    .floating {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: calc(var(--tabbar-bottom) + var(--tabbar-h) + 10px);
+      z-index: 96;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .timer-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: #fff;
+      box-shadow: var(--shadow-1);
+      font-size: var(--fs-s);
+      font-weight: 650;
+      text-decoration: none;
+      pointer-events: auto;
+      animation: pill-in 260ms var(--ease-out) both;
+    }
+    .timer-pill[data-phase='rest'] {
+      background: var(--cool);
+    }
+    .timer-pill[data-phase='paused'] {
+      background: var(--surface);
+      color: var(--fg-1);
+      box-shadow: var(--shadow-1), inset 0 0 0 1px var(--line);
+    }
+    .timer-pill b {
+      font-variant-numeric: tabular-nums;
+    }
+    @keyframes pill-in {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .timer-pill {
+        animation: none;
+      }
+    }
+    .outbox {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      background: var(--surface);
+      box-shadow: var(--shadow-1), inset 0 0 0 1px var(--line);
+      color: var(--fg-2);
+      font-size: var(--fs-s);
+      font-weight: 650;
+      white-space: nowrap;
+      pointer-events: none;
     }
     .status-shield {
       position: fixed;
@@ -214,6 +298,17 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
   `,
 })
 export class ShellComponent {
+  protected readonly outbox = inject(Outbox);
+  protected readonly timer = inject(TimerRun);
+  /** a run of the timer goes on, and its screen is not the one shown */
+  protected readonly timerAway = computed(() => this.timer.active() && !this.url().startsWith('/app/timer'));
+  protected readonly timerLabel = computed(() => this.i18n.t(this.timer.state() === 'paused' ? 'engage.timer.paused' : 'engage.timer.' + this.timer.phase()));
+
+  protected clockOf(s: number): string {
+    const v = Math.max(0, Math.ceil(s));
+    return `${Math.floor(v / 60)}:${String(v % 60).padStart(2, '0')}`;
+  }
+  private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
   private readonly session = inject(SessionStore);
   private readonly stack = inject(StackNavigation);
@@ -246,7 +341,8 @@ export class ShellComponent {
     if (path.startsWith('/app/progress')) return 3;
     if (path.startsWith('/app/photos')) return 2;
     if (path.startsWith('/app/meals')) return 1;
-    return path === '/app' || path === '/app/' ? 0 : -1;
+    // Today, and the screens opened from it (the timer, the week in review)
+    return path === '/app' || path === '/app/' || /^\/app\/(timer|week)(\/|$)/.test(path) ? 0 : -1;
   });
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -269,6 +365,8 @@ export class ShellComponent {
   private leaving: { ghost: HTMLElement; how: 'history' | 'opened' } | null = null;
 
   constructor() {
+    // sent later and refused by the server (rare: a day too far, a food deleted meanwhile): said once
+    this.outbox.refused.pipe(takeUntilDestroyed()).subscribe(() => this.toastService.error(this.i18n.t('offline.refused')));
     this.router.events
       .pipe(
         filter((e) => e instanceof NavigationEnd),

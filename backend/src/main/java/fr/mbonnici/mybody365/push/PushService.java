@@ -36,7 +36,9 @@ public class PushService {
     private static final List<String> PUSH_HOSTS = List.of("fcm.googleapis.com", "googleapis.com", "push.services.mozilla.com",
             "push.apple.com", "notify.windows.com");
 
-    public enum Kind { TEST, DAILY_WEIGH, DAILY_PHOTO, GYM, NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED, WATER, UPDATE, FEEDBACK, FRIEND_RECIPE }
+    public enum Kind { TEST, DAILY_WEIGH, DAILY_PHOTO, GYM, NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED, WATER, UPDATE, FEEDBACK, FRIEND_RECIPE, WEEKLY,
+        /** a change of phase of the workout timer while the app is off screen (TimerAlerts) */
+        TIMER }
 
     public record Subscription(String endpoint, String p256dh, String auth) {}
 
@@ -139,23 +141,25 @@ public class PushService {
             throw new IllegalStateException(e);
         }
         List<Map<String, Object>> subs = jdbc.queryForList("select id, endpoint, p256dh, auth from push_subscription where user_id = ?", userId);
+        // a timer alert is worth nothing late: delivered at once, or dropped after a minute
+        boolean now = kind == Kind.TIMER;
         int ok = 0;
         for (Map<String, Object> s : subs) {
-            if (send((UUID) s.get("id"), (String) s.get("endpoint"), (String) s.get("p256dh"), (String) s.get("auth"), body)) {
+            if (send((UUID) s.get("id"), (String) s.get("endpoint"), (String) s.get("p256dh"), (String) s.get("auth"), body, now)) {
                 ok++;
             }
         }
         return ok;
     }
 
-    private boolean send(UUID id, String endpoint, String p256dh, String auth, byte[] payload) {
+    private boolean send(UUID id, String endpoint, String p256dh, String auth, byte[] payload, boolean urgent) {
         try {
             URI uri = URI.create(endpoint);
             String audience = uri.getScheme() + "://" + uri.getHost();
             String subject = props.url().startsWith("https://") ? props.url() : "mailto:noreply@mybody365.invalid";
             String jwt = WebPushCrypto.vapidJwt(audience, subject, Instant.now().plus(Duration.ofHours(12)).getEpochSecond(), privateKey());
             byte[] body = WebPushCrypto.encrypt(payload, WebPushCrypto.unb64(p256dh), WebPushCrypto.unb64(auth));
-            int status = transport.post(uri, Map.of("TTL", "43200", "Urgency", "normal", "Content-Encoding", "aes128gcm",
+            int status = transport.post(uri, Map.of("TTL", urgent ? "60" : "43200", "Urgency", urgent ? "high" : "normal", "Content-Encoding", "aes128gcm",
                     "Content-Type", "application/octet-stream", "Authorization", "vapid t=" + jwt + ", k=" + publicKey()), body);
             if (status == 404 || status == 410) {
                 // the device unsubscribed or the app was removed
@@ -193,6 +197,8 @@ public class PushService {
             case NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED -> "/app/friends";
             case UPDATE -> "/changelog";
             case FEEDBACK -> "/app/admin/feedback";
+            case WEEKLY -> "/app/week";
+            case TIMER -> "/app/timer";
             // the recipe itself (an address of the app only)
             case FRIEND_RECIPE -> args.getOrDefault("path", "").startsWith("/app/meals/recipes/") ? args.get("path") : "/app/meals/recipes";
             default -> "/app";
@@ -244,10 +250,25 @@ public class PushService {
                 };
                 yield new String[] {(en ? name + " sent " : name + " a envoyé ") + what, args.getOrDefault("text", "")};
             }
+            // nothing personal on a locked screen: the figures are in the app
+            case WEEKLY -> en ? new String[] {"Your week in review 📊", "Your weight, sessions and meals of the last 7 days, at a glance"}
+                    : new String[] {"Ton bilan de la semaine 📊", "Ton poids, tes séances et tes repas des 7 derniers jours, en un coup d’œil"};
             case FRIEND_RECIPE -> {
                 String recipe = args.getOrDefault("recipe", "");
                 yield en ? new String[] {name + " shared a recipe 🍳", recipe + ", now in your friends’ recipes"}
                         : new String[] {name + " a partagé une recette 🍳", recipe + ", à découvrir dans les recettes de tes amis"};
+            }
+            case TIMER -> {
+                String round = args.getOrDefault("round", "1");
+                String total = args.getOrDefault("total", "1");
+                yield switch (args.getOrDefault("phase", "DONE")) {
+                    case "WORK" -> en ? new String[] {"Go! 💪", "Round " + round + " of " + total}
+                            : new String[] {"C’est reparti 💪", "Série " + round + " sur " + total};
+                    case "REST" -> en ? new String[] {"Rest 😮‍💨", "Round " + round + " of " + total + " done, catch your breath"}
+                            : new String[] {"Repos 😮‍💨", "Série " + round + " sur " + total + " terminée, souffle un peu"};
+                    default -> en ? new String[] {"Workout done 🎉", "Well done! Note it in the timer"}
+                            : new String[] {"Séance terminée 🎉", "Bravo ! Pense à la noter dans le minuteur"};
+                };
             }
             case UPDATE -> en ? new String[] {"MyBody365 " + args.getOrDefault("version", "") + " is here ✨",
                     "Open the app to discover what’s new"}

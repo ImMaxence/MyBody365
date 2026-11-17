@@ -40,7 +40,10 @@ final class BackupFormat {
 
     static final Table PROFILE = new Table("body_profile", cols("sex", Type.TEXT, "birth_date", Type.DATE, "height_cm", Type.NUM,
             "activity_level", Type.TEXT, "start_weight_kg", Type.NUM, "start_date", Type.DATE, "goal_weight_kg", Type.NUM,
-            "weekly_rate_kg", Type.NUM));
+            "weekly_rate_kg", Type.NUM, "job", Type.TEXT, "sessions_per_week", Type.INT, "macro_split", Type.TEXT, "adaptive_tdee", Type.BOOL));
+
+    /** columns a backup made before they existed does not have (1.7): restored with their default */
+    static final java.util.Set<String> PROFILE_OPTIONAL = java.util.Set.of("job", "sessions_per_week", "macro_split", "adaptive_tdee");
 
     static final Table WATER = new Table("water_log", cols("day", Type.DATE, "glasses", Type.INT));
 
@@ -54,7 +57,7 @@ final class BackupFormat {
             "protein_g", Type.NUM, "carbs_g", Type.NUM, "sugars_g", Type.NUM, "fat_g", Type.NUM, "sat_fat_g", Type.NUM, "fiber_g", Type.NUM,
             "salt_g", Type.NUM, "nutriscore", Type.TEXT, "nutriscore_estimated", Type.BOOL, "serving_g", Type.NUM));
 
-    static final Table RECIPES = new Table("recipe", cols("id", Type.UUID, "name", Type.TEXT, "type", Type.TEXT, "servings", Type.INT,
+    static final Table RECIPES = new Table("recipe", cols("id", Type.UUID, "name", Type.TEXT, "type", Type.TEXT, "types", Type.TEXT, "servings", Type.INT,
             "notes", Type.TEXT, "shared", Type.BOOL, "visibility", Type.TEXT, "manual_nutrition", Type.BOOL, "ingredient_lines", Type.TEXT,
             "source_url", Type.TEXT, "kcal", Type.NUM, "protein_g", Type.NUM, "carbs_g", Type.NUM, "fat_g", Type.NUM,
             "sugars_g", Type.NUM, "fiber_g", Type.NUM, "sat_fat_g", Type.NUM, "salt_g", Type.NUM, "serving_g", Type.NUM, "nutriscore",

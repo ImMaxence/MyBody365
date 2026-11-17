@@ -5,16 +5,19 @@ import { errorCode } from '../../core/api/api.service';
 import type { Nutrients, RecipeDraft, RecipeType, RecipeVisibility } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { SessionStore } from '../../core/auth/session.store';
 import { MealsApi } from '../../core/meals/meals-api';
 import { scaled } from '../../core/meals/meals.store';
+import { isFruitVeg, recipeGrade } from '../../core/meals/nutriscore';
+import { NutriscoreComponent } from '../../shared/nutriscore.component';
 import { StackNavigation } from '../../core/nav/stack-navigation';
 import { prepareImage } from '../../core/photos/image-tools';
-import { closeSheet } from '../../core/ui/sheets';
 import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { FoodPickerComponent, Picked } from './food-picker.component';
+import { RecipeImportSheetComponent, firstLink } from './recipe-import-sheet.component';
 import { RECIPE_TYPES, TYPE_EMOJI } from './recipes.page';
 import { SegDirective } from '../../shared/seg.directive';
 
@@ -24,8 +27,10 @@ interface Line {
   foodId: string;
   name: string;
   grams: number;
-  /** per 100 g, for the live totals (unknown for ingredients loaded from a saved recipe: kcal only) */
+  /** per 100 g, for the live totals and the Nutri-Score */
   per100: Nutrients;
+  /** a fruit, a vegetable or a legume: its share lifts the Nutri-Score */
+  fruitVeg?: boolean;
   /** the line as the imported recipe wrote it, to check the food found for it */
   from?: string;
 }
@@ -37,7 +42,7 @@ interface Line {
 @Component({
   selector: 'app-recipe-edit',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, FormsModule, TranslatePipe, IconComponent, BackButtonComponent, NumberStepperComponent, FoodPickerComponent],
+  imports: [RecipeImportSheetComponent, SegDirective, FormsModule, TranslatePipe, IconComponent, BackButtonComponent, NumberStepperComponent, FoodPickerComponent, NutriscoreComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -81,14 +86,15 @@ interface Line {
           <input class="input" id="r-name" name="name" required maxlength="120" [(ngModel)]="name" />
         </div>
 
-        <span class="label">{{ 'meals.recipe.type' | t }}</span>
-        <div class="types" role="radiogroup" [attr.aria-label]="'meals.recipe.type' | t">
+        <span class="label" id="r-types">{{ 'meals.recipe.type' | t }}</span>
+        <div class="types" role="group" aria-labelledby="r-types">
           @for (t of types; track t) {
-            <button type="button" role="radio" class="chip" [class.chip-accent]="type() === t" [attr.aria-checked]="type() === t" (click)="type.set(t)">
+            <button type="button" class="chip" [class.chip-accent]="picked().includes(t)" [attr.aria-pressed]="picked().includes(t)" (click)="toggleType(t)">
               {{ emoji[t] }} {{ 'meals.recipe.types.' + t | t }}
             </button>
           }
         </div>
+        <p class="tiny muted types-hint">{{ 'meals.recipe.typesHint' | t }}</p>
 
         <span class="label">{{ 'meals.recipe.servingsLabel' | t }}</span>
         <app-number-stepper [(value)]="servings" [step]="1" [min]="1" [max]="50" [decimals]="0" [label]="'meals.recipe.servingsLabel' | t" />
@@ -129,10 +135,13 @@ interface Line {
             @for (l of lines(); track $index; let i = $index) {
               <li class="line">
                 <span class="line-name">
-                  {{ l.name }}
+                  <span class="line-food">{{ l.name }}</span>
                   @if (l.from) {
                     <small class="line-from">{{ l.from }}</small>
                   }
+                  <button type="button" class="line-change" [attr.aria-label]="'meals.recipe.changeFoodOf' | t: { name: l.name }" (click)="changeLine(i)">
+                    {{ 'meals.recipe.changeFood' | t }}
+                  </button>
                 </span>
                 <input class="input grams" type="text" inputmode="decimal" [name]="'g' + i" [ngModel]="l.grams" (ngModelChange)="setGrams(i, $event)"
                   [attr.aria-label]="'meals.recipe.ingredientGrams' | t: { name: l.name }" />
@@ -141,7 +150,15 @@ interface Line {
               </li>
             }
           </ul>
-          <p class="totals small"><b class="num">{{ i18n.number(perServing().kcal) }} kcal</b> {{ 'meals.perServing' | t }}</p>
+          <div class="totals-row">
+            @if (grade(); as g) {
+              <span class="grade">
+                <app-nutriscore [grade]="g" [estimated]="true" />
+                <span class="tiny muted">{{ 'meals.recipe.gradeHint' | t }}</span>
+              </span>
+            }
+            <p class="totals small"><b class="num">{{ i18n.number(perServing().kcal) }} kcal</b> {{ 'meals.perServing' | t }}</p>
+          </div>
         }
         @if (unmatched().length) {
           <div class="unmatched card">
@@ -168,7 +185,7 @@ interface Line {
         <div class="field">
           <span class="label" id="r-vis">{{ 'meals.recipe.visibility.title' | t }}</span>
           <div class="seg vis" role="radiogroup" aria-labelledby="r-vis">
-            @for (v of visibilities; track v) {
+            @for (v of visibilities(); track v) {
               <button type="button" role="radio" [attr.aria-checked]="visibility() === v" (click)="visibility.set(v)">
                 <app-icon [name]="visibilityIcon[v]" [size]="16" /> {{ 'meals.recipe.visibility.' + v | t }}
               </button>
@@ -182,23 +199,7 @@ interface Line {
         <button type="submit" class="btn btn-primary btn-block" [disabled]="busy()"><app-icon name="check" /> {{ 'meals.recipe.save' | t }}</button>
       </form>
 
-      <dialog class="sheet" #importDialog [attr.aria-label]="'meals.recipe.import.title' | t">
-        <div class="sheet-grip"></div>
-        <form class="stack" (ngSubmit)="runImport()">
-          <div>
-            <h2 class="h3">{{ 'meals.recipe.import.title' | t }}</h2>
-            <p class="small muted">{{ 'meals.recipe.import.text' | t }}</p>
-          </div>
-          <div class="field">
-            <label class="label" for="r-url">{{ 'meals.recipe.import.label' | t }}</label>
-            <input class="input" id="r-url" name="url" type="url" inputmode="url" autocomplete="off" placeholder="https://…" [(ngModel)]="importUrl" />
-          </div>
-          <button type="submit" class="btn btn-primary btn-block" [disabled]="importing() || !importUrl.trim()">
-            <app-icon [name]="importing() ? 'refresh' : 'download'" [class.spin]="importing()" /> {{ (importing() ? 'meals.recipe.import.reading' : 'meals.recipe.import.run') | t }}
-          </button>
-          <p class="tiny muted note"><app-icon name="info" [size]="14" /> {{ 'meals.recipe.import.note' | t }}</p>
-        </form>
-      </dialog>
+      <app-recipe-import-sheet (imported)="applyDraft($event)" />
 
       <dialog class="sheet picker" #picker>
         <div class="sheet-grip"></div>
@@ -225,7 +226,10 @@ interface Line {
       border-style: solid;
       border-color: transparent;
     }
+    /* the frame sets the size, never the photo (a tall one would stretch it on Safari) */
     .photo img {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -297,7 +301,20 @@ interface Line {
       color: var(--fg-2);
       font-weight: 600;
     }
+    .totals-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+    .grade {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
     .totals {
+      margin: 0 0 0 auto;
       text-align: right;
       color: var(--fg-2);
     }
@@ -393,25 +410,29 @@ interface Line {
       font-weight: 600;
       pointer-events: none;
     }
-    .note {
-      display: flex;
-      align-items: flex-start;
-      gap: 6px;
-    }
-    .spin {
-      animation: spin 900ms linear infinite;
-    }
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
+    /* tall enough to search in, never taller than what the keyboard leaves visible (a min-height wins over the
+       sheet's max-height: the search box then went off the top, out of reach) */
     .picker {
-      min-height: 70dvh;
+      min-height: min(70dvh, calc(var(--vvh, 100dvh) - 12px));
     }
     .line-name {
       display: grid;
       gap: 1px;
+      min-width: 0;
+      white-space: normal;
+    }
+    .line-food {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    /* another food for this line: the search opens with the line's words */
+    .line-change {
+      justify-self: start;
+      padding: 2px 0;
+      color: var(--accent-text);
+      font-size: var(--fs-xs, 0.75rem);
+      font-weight: 700;
     }
     .line-from {
       color: var(--fg-2);
@@ -465,17 +486,17 @@ export class RecipeEditPage {
   private readonly stack = inject(StackNavigation);
   protected readonly i18n = inject(I18nService);
   private readonly pickerDialog = viewChild.required<ElementRef<HTMLDialogElement>>('picker');
-  private readonly importDialog = viewChild.required<ElementRef<HTMLDialogElement>>('importDialog');
+  private readonly importSheet = viewChild.required(RecipeImportSheetComponent);
   protected readonly mode = signal<'computed' | 'manual'>('computed');
   protected readonly source = signal<{ url: string; name: string } | null>(null);
-  protected readonly importing = signal(false);
   /** the lines of an imported recipe whose food was not found: the member picks it, or leaves it out */
   protected readonly unmatched = signal<string[]>([]);
   protected readonly fromImport = computed(() => this.mode() === 'computed' && this.lines().some((l) => l.from));
   /** what the food picker starts with (an unmatched line), and which line it is for */
   protected readonly pickerQuery = signal('');
   private pickingFor: string | null = null;
-  protected importUrl = '';
+  /** the line whose food is being changed */
+  private replacing: number | null = null;
   protected ingredientText = '';
   protected kcal = '';
   protected macros: Record<'proteinG' | 'carbsG' | 'fatG', string> = { proteinG: '', carbsG: '', fatG: '' };
@@ -489,10 +510,18 @@ export class RecipeEditPage {
   protected readonly emoji = TYPE_EMOJI;
   protected name = '';
   protected notes = '';
-  protected readonly visibilities: RecipeVisibility[] = ['PRIVATE', 'FRIENDS', 'PUBLIC'];
+  /** the community is published by the admins only: a member shares with their friends */
+  private readonly session = inject(SessionStore);
+  protected readonly visibilities = computed<RecipeVisibility[]>(() => (this.session.isAdmin() ? ['PRIVATE', 'FRIENDS', 'PUBLIC'] : ['PRIVATE', 'FRIENDS']));
   protected readonly visibilityIcon = VISIBILITY_ICON;
   protected readonly visibility = signal<RecipeVisibility>('PRIVATE');
-  protected readonly type = signal<RecipeType>('LUNCH');
+  /** every meal it is for (one at least); the main one: the first of them in the usual order */
+  protected readonly picked = signal<RecipeType[]>(['LUNCH']);
+  protected readonly type = computed<RecipeType>(() => RECIPE_TYPES.find((t) => this.picked().includes(t)) ?? 'LUNCH');
+
+  protected toggleType(t: RecipeType): void {
+    this.picked.update((list) => (list.includes(t) ? (list.length > 1 ? list.filter((x) => x !== t) : list) : [...list, t]));
+  }
   protected readonly servings = signal(2);
   protected readonly lines = signal<Line[]>([]);
   protected readonly preview = signal<string | null>(null);
@@ -501,6 +530,9 @@ export class RecipeEditPage {
   private image: Blob | null = null;
   private imageRemoved = false;
   private objectUrl: string | null = null;
+
+  /** the Nutri-Score as the lines stand (the server works out the same one on saving) */
+  protected readonly grade = computed(() => (this.lines().length ? recipeGrade(this.lines()) : null));
 
   protected readonly perServing = computed<Nutrients>(() => {
     let kcal = 0;
@@ -517,11 +549,9 @@ export class RecipeEditPage {
   /** opened with a link (shared from the phone's browser, or ?import from the list): the import sheet at once */
   private importAtOnce(): void {
     if (this.id()) return;
-    const shared = this.importParam() || this.sharedUrl() || /https?:\/\/\S+/.exec(this.sharedText() ?? '')?.[0];
+    const shared = firstLink(this.importParam() ?? '') ?? firstLink(this.sharedUrl() ?? '') ?? firstLink(this.sharedText() ?? '');
     if (!shared && this.importParam() === undefined) return;
-    this.importUrl = shared ?? '';
-    this.importDialog().nativeElement.showModal();
-    if (shared) void this.runImport();
+    this.importSheet().open(shared);
   }
 
   private async load(): Promise<void> {
@@ -530,8 +560,9 @@ export class RecipeEditPage {
     const r = await this.api.recipe(id);
     this.name = r.name;
     this.notes = r.notes ?? '';
-    this.visibility.set(r.visibility ?? (r.shared ? 'PUBLIC' : 'PRIVATE'));
-    this.type.set(r.type);
+    const vis: RecipeVisibility = r.visibility ?? (r.shared ? 'PUBLIC' : 'PRIVATE');
+    this.visibility.set(vis === 'PUBLIC' && !this.session.isAdmin() ? 'FRIENDS' : vis);
+    this.picked.set(r.types?.length ? r.types : [r.type]);
     this.servings.set(r.servings);
     this.preview.set(r.imageUrl ?? null);
     if (r.manualNutrition) {
@@ -544,7 +575,13 @@ export class RecipeEditPage {
     this.lines.set(
       (r.ingredients ?? [])
         .filter((i) => i.foodId)
-        .map((i) => ({ foodId: i.foodId!, name: i.name, grams: i.grams, per100: { kcal: i.grams ? (i.kcal * 100) / i.grams : 0 } })),
+        .map((i) => ({
+          foodId: i.foodId!,
+          name: i.name,
+          grams: i.grams,
+          per100: i.per100 ?? { kcal: i.grams ? (i.kcal * 100) / i.grams : 0 },
+          fruitVeg: i.fruitVeg,
+        })),
     );
   }
 
@@ -553,7 +590,7 @@ export class RecipeEditPage {
   }
 
   protected openImport(): void {
-    this.importDialog().nativeElement.showModal();
+    this.importSheet().open();
   }
 
   /**
@@ -561,14 +598,10 @@ export class RecipeEditPage {
    * and the Nutri-Score are then computed, the member checks each line. When the site gives the calories and
    * some lines were not found, its calories are kept instead (entered by hand, the lines as written).
    */
-  protected async runImport(): Promise<void> {
-    const url = this.importUrl.trim();
-    if (!url) return;
-    this.importing.set(true);
-    try {
-      const d: RecipeDraft = await this.api.importRecipe(url);
+  protected async applyDraft(d: RecipeDraft): Promise<void> {
+    {
       this.name = d.name;
-      this.type.set(d.type);
+      this.picked.set([d.type]);
       if (d.servings) this.servings.set(d.servings);
       this.notes = d.instructions ?? this.notes;
       this.ingredientText = d.ingredients.join('\n');
@@ -586,6 +619,7 @@ export class RecipeEditPage {
             name: m.food!.brand ? `${m.food!.name} · ${m.food!.brand}` : m.food!.name,
             grams: m.grams!,
             per100: m.food!.per100,
+            fruitVeg: isFruitVeg(m.food!.category),
             from: m.line,
           })),
         );
@@ -595,7 +629,7 @@ export class RecipeEditPage {
         this.unmatched.set([]);
       }
       if (d.photo && !this.image && !this.preview()) await this.usePhoto(d.photo);
-      closeSheet(this.importDialog().nativeElement);
+      this.importSheet().close();
       this.toast.show(
         computedMode
           ? this.i18n.t('meals.recipe.import.doneFound', { n: found.length, total: d.ingredients.length })
@@ -603,10 +637,6 @@ export class RecipeEditPage {
       );
       // the calories are the member's part: straight to the field when the site gave none
       if (!computedMode && d.kcal == null) setTimeout(() => document.getElementById('r-kcal')?.focus(), 450);
-    } catch (e) {
-      this.toast.error(this.i18n.error(errorCode(e)));
-    } finally {
-      this.importing.set(false);
     }
   }
 
@@ -627,7 +657,19 @@ export class RecipeEditPage {
   }
 
   /** an ingredient to find (a line of the imported recipe), or any */
+  /** another food for a line (the one found was not the right one): its weight and its origin stay */
+  protected changeLine(i: number): void {
+    const l = this.lines()[i];
+    if (!l) return;
+    this.replacing = i;
+    this.pickingFor = l.from ?? null;
+    this.pickerQuery.set(searchable(l.from ?? l.name));
+    this.pickerOpen.set(true);
+    this.pickerDialog().nativeElement.showModal();
+  }
+
   protected openPicker(line?: string): void {
+    this.replacing = null;
     this.pickingFor = line ?? null;
     this.pickerQuery.set(line ? searchable(line) : '');
     this.pickerOpen.set(true);
@@ -638,9 +680,17 @@ export class RecipeEditPage {
     if (p.kind !== 'FOOD') return;
     const f = p.food;
     const line = this.pickingFor;
-    const grams = (line && gramsOf(line)) || f.servingG || 100;
-    this.lines.update((l) => [...l, { foodId: f.id, name: f.brand ? `${f.name} · ${f.brand}` : f.name, grams, per100: f.per100, from: line ?? undefined }]);
-    if (line) this.skip(line);
+    const name = f.brand ? `${f.name} · ${f.brand}` : f.name;
+    const at = this.replacing;
+    if (at !== null && this.lines()[at]) {
+      // the same line, another food: the weight already checked stays
+      this.lines.update((l) => l.map((x, j) => (j === at ? { ...x, foodId: f.id, name, per100: f.per100, fruitVeg: isFruitVeg(f.category) } : x)));
+    } else {
+      const grams = (line && gramsOf(line)) || f.servingG || 100;
+      this.lines.update((l) => [...l, { foodId: f.id, name, grams, per100: f.per100, fruitVeg: isFruitVeg(f.category), from: line ?? undefined }]);
+      if (line) this.skip(line);
+    }
+    this.replacing = null;
     this.pickerDialog().nativeElement.close();
     this.pickerOpen.set(false);
   }
@@ -706,6 +756,7 @@ export class RecipeEditPage {
       const input = {
         name: this.name.trim(),
         type: this.type(),
+        types: RECIPE_TYPES.filter((t) => this.picked().includes(t)),
         servings: this.servings(),
         notes: this.notes.trim() || null,
         visibility: this.visibility(),

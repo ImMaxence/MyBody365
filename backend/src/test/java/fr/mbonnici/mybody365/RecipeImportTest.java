@@ -3,6 +3,7 @@ package fr.mbonnici.mybody365;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.closeTo;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -61,6 +62,11 @@ class RecipeImportTest extends AbstractIntegrationTest {
         json(post("/api/me/recipes/import"), lea, "{\"url\":\"file:///etc/passwd\"}").andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("recipe_url_invalid"));
         json(post("/api/me/recipes/import"), lea, "{\"url\":\"pas un lien\"}").andExpect(status().isBadRequest());
+        // a whole message pasted: its first https link
+        json(post("/api/me/recipes/import"), lea,
+                "{\"url\":\"Regarde http://blog.example/ puis https://recettes.example/bruschetta, trop bon !\"}")
+                .andExpect(status().isOk()).andExpect(jsonPath("$.name").value("Bruschetta"));
+        assertThat(pages.fetched.getLast().toString()).isEqualTo("https://recettes.example/bruschetta");
 
         // saved with the calories the member entered: no ingredient from the database
         String id = JsonPath.read(json(post("/api/me/recipes"), lea, """
@@ -137,6 +143,14 @@ class RecipeImportTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.sourceName").value("les-creations-de-yona.fr"))
                 .andReturn().getResponse().getContentAsString();
         assertThat(pages.fetched.getLast().toString()).isEqualTo("https://les-creations-de-yona.fr/api/images/4599/1600.webp");
+        // the line no food was found for, kept for the admins (the tables to complete), nobody's name with it
+        AppUser admin = account("admin@example.com", AppUser.Role.ADMIN);
+        mvc.perform(get("/api/admin/foods/misses").with(as(admin))).andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.key == 'calvado')].reason").value(org.hamcrest.Matchers.hasItem("FOOD")))
+                .andExpect(jsonPath("$[?(@.key == 'calvado')].example").value(org.hamcrest.Matchers.hasItem("Calvados (facultatif)")));
+        mvc.perform(get("/api/admin/foods/misses").with(as(lea))).andExpect(status().isForbidden());
+        mvc.perform(delete("/api/admin/foods/misses").param("key", "calvado").with(as(admin)).with(csrf())).andExpect(status().isNoContent());
+        mvc.perform(get("/api/admin/foods/misses").with(as(admin))).andExpect(jsonPath("$[?(@.key == 'calvado')]").isEmpty());
 
         // saved with its foods: calories and Nutri-Score computed like any recipe
         StringBuilder ingredients = new StringBuilder();

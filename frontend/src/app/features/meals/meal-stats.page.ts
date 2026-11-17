@@ -5,7 +5,8 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MealsApi } from '../../core/meals/meals-api';
 import { SLOTS, shiftDay, weekOf } from '../../core/meals/meals.store';
-import { localDay } from '../../core/tracking/tracking.store';
+import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
+import { macroPlan } from '../../core/meals/macro-plan';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 import { SegDirective } from '../../shared/seg.directive';
@@ -215,7 +216,9 @@ function niceStep(max: number): number {
                     <span><i class="sw" [style.background]="p.color"></i>{{ p.label | t }} · <b class="num">{{ p.pct }} %</b> · {{ i18n.number(p.gPerDay) }} g/{{ 'meals.stats.perDayShort' | t }}</span>
                   }
                 </div>
-                <p class="tiny muted">{{ 'meals.stats.macrosHint' | t }}</p>
+                @if (plan(); as pl) {
+                  <p class="tiny muted">{{ 'meals.stats.macrosHint' | t: { p: pl.shares.p, c: pl.shares.c, f: pl.shares.f } }}</p>
+                }
               </section>
             }
 
@@ -723,6 +726,13 @@ function niceStep(max: number): number {
 export class MealStatsPage {
   private readonly api = inject(MealsApi);
   protected readonly i18n = inject(I18nService);
+  private readonly tracking = inject(TrackingStore);
+  /** the member's guides (their split, protein by the kilo) */
+  protected readonly plan = computed(() => {
+    const t = this.tracking.summary();
+    const kcal = this.data()?.targetKcal ?? t?.energy.targetKcal;
+    return kcal ? macroPlan(kcal, t?.profile.macroSplit ?? 'BALANCED', t?.current.weightKg ?? t?.profile.startWeightKg, t?.profile.goalWeightKg) : null;
+  });
   protected readonly periods = PERIODS;
   protected readonly slotIcon = SLOT_ICON;
   protected readonly w = W;
@@ -903,18 +913,27 @@ export class MealStatsPage {
         out.push({ icon: 'check', tone: 'good', text: t('onTrack') });
       }
     }
-    const m = this.macros();
-    const protein = m?.find((r) => r.key === 'p');
-    if (protein && protein.pct < 20) out.push({ icon: 'dumbbell', tone: 'info', text: t('protein', { pct: protein.pct }) });
+    // protein against the member's guide in grams (by the kilo), else against a fifth of the calories
+    const plan = this.plan();
+    const proteinPerDay = (s.totals.proteinG ?? 0) / Math.max(1, n);
+    const protein = this.macros()?.find((r) => r.key === 'p');
+    if (plan && s.totals.proteinG != null && proteinPerDay < plan.proteinG * 0.8) {
+      out.push({ icon: 'dumbbell', tone: 'info', text: t('protein', { g: this.i18n.number(proteinPerDay), guide: plan.proteinG }) });
+    } else if (!plan && protein && protein.pct < 20) {
+      out.push({ icon: 'dumbbell', tone: 'info', text: t('proteinPct', { pct: protein.pct }) });
+    }
     const g = this.grades();
     if (g && g.de > 0.35) out.push({ icon: 'leaf', tone: 'warn', text: t('grades', { pct: Math.round(g.de * 100) }) });
     const perDay = (v?: number) => (v == null ? null : v / n);
     const fiber = perDay(s.totals.fiberG);
     if (fiber != null && fiber > 0 && fiber < 22) out.push({ icon: 'leaf', tone: 'info', text: t('fiber', { g: this.i18n.number(fiber) }) });
     const sugars = perDay(s.totals.sugarsG);
-    if (sugars != null && sugars > 60) out.push({ icon: 'info', tone: 'warn', text: t('sugars', { g: this.i18n.number(sugars) }) });
+    // too much sugar or salt: and what brought the most of it
+    const from = (list?: { name: string }[]) =>
+      list?.length ? '. ' + this.i18n.t('meals.trends.mostly', { from: list.slice(0, 2).map((x) => x.name).join(', ') }) : '';
+    if (sugars != null && sugars > 50) out.push({ icon: 'info', tone: 'warn', text: t('sugars', { g: this.i18n.number(sugars) }) + from(s.sugarSources) });
     const salt = perDay(s.totals.saltG);
-    if (salt != null && salt > 6) out.push({ icon: 'info', tone: 'warn', text: t('salt', { g: this.i18n.number(salt, 1) }) });
+    if (salt != null && salt > 6) out.push({ icon: 'info', tone: 'warn', text: t('salt', { g: this.i18n.number(salt, 1) }) + from(s.saltSources) });
     const weekend = b.filter((d) => [0, 6].includes(new Date(d.day + 'T12:00:00').getDay()));
     const weekdays = b.filter((d) => ![0, 6].includes(new Date(d.day + 'T12:00:00').getDay()));
     if (weekend.length && weekdays.length >= 2) {
@@ -941,6 +960,7 @@ export class MealStatsPage {
   );
 
   constructor() {
+    if (!this.tracking.summary()) void this.tracking.load().catch(() => undefined);
     effect(() => {
       const p = this.period();
       this.loading.set(true);

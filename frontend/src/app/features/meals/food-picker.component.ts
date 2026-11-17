@@ -247,6 +247,10 @@ export type Picked = { kind: 'FOOD'; food: Food } | { kind: 'RECIPE'; recipe: Re
       border: 1px solid var(--line-strong);
       box-shadow: var(--shadow-1);
     }
+    /* in a sheet, the box sticks to the sheet's own top (the status bar is not there) */
+    :host-context(dialog.sheet) .search {
+      top: 0;
+    }
     .search .input {
       flex: 1;
       min-width: 0;

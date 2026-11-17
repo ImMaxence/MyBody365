@@ -24,13 +24,50 @@ const PROTEIN = [2.4, 4.8, 7.2, 9.6, 12, 14, 17];
 /** one point per threshold strictly exceeded */
 const points = (v: number, thresholds: number[]) => thresholds.filter((t) => v > t).length;
 
-export function nutriscore(p: Per100): Grade {
+/** Ciqual's plain fruits, vegetables and legumes: what counts as fruit and vegetables in a recipe (as the server says) */
+const FRUIT_VEG = new Set(['fruits', 'légumes', 'légumineuses']);
+
+export function isFruitVeg(category?: string | null): boolean {
+  return !!category && FRUIT_VEG.has(category.trim().toLowerCase());
+}
+
+/** @param fruitVegPct the share of fruit, vegetables and legumes, in % (a recipe made mostly of them) */
+export function nutriscore(p: Per100, fruitVegPct = 0): Grade {
   const negative = points(p.kcal * 4.184, ENERGY_KJ) + points(p.sugarsG, SUGARS) + points(p.satFatG, SAT_FAT) + points(p.saltG, SALT);
   const fiber = p.fiberG == null ? 0 : points(p.fiberG, FIBER);
   const protein = p.proteinG == null ? 0 : points(p.proteinG, PROTEIN);
-  // above 11 negative points, proteins no longer make up for the rest
-  const score = negative - (negative >= 11 ? fiber : fiber + protein);
+  const fruit = fruitVegPct > 80 ? 5 : fruitVegPct > 60 ? 2 : fruitVegPct > 40 ? 1 : 0;
+  // above 11 negative points, proteins no longer make up for the rest (unless it is nearly all fruit and vegetables)
+  const score = negative - (negative >= 11 && fruit < 5 ? fiber + fruit : fiber + protein + fruit);
   return score <= 0 ? 'a' : score <= 2 ? 'b' : score <= 10 ? 'c' : score <= 18 ? 'd' : 'e';
+}
+
+/**
+ * A recipe's grade from its lines (values per 100 g and weights), as the server works it out; null when
+ * the sugars, saturated fat or salt of every line are unknown.
+ */
+export function recipeGrade(lines: { grams: number; per100: Partial<Per100> & { kcal: number }; fruitVeg?: boolean }[]): Grade | null {
+  const grams = lines.reduce((t, l) => t + (l.grams > 0 ? l.grams : 0), 0);
+  if (!grams) return null;
+  const sum = (k: keyof Per100) => {
+    let known = false;
+    let v = 0;
+    for (const l of lines) {
+      const x = l.per100[k];
+      if (x != null && l.grams > 0) {
+        known = true;
+        v += (x * l.grams) / 100;
+      }
+    }
+    return known ? (v * 100) / grams : undefined;
+  };
+  const kcal = sum('kcal') ?? 0;
+  const sugarsG = sum('sugarsG');
+  const satFatG = sum('satFatG');
+  const saltG = sum('saltG');
+  if (sugarsG == null || satFatG == null || saltG == null) return null;
+  const fruitVeg = lines.reduce((t, l) => t + (l.fruitVeg && l.grams > 0 ? l.grams : 0), 0);
+  return nutriscore({ kcal, sugarsG, satFatG, saltG, fiberG: sum('fiberG'), proteinG: sum('proteinG') }, (100 * fruitVeg) / grams);
 }
 
 /* the beverages' own scale (2023): stricter on energy and sugars, proteins always count, A for water only */

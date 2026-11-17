@@ -121,7 +121,8 @@ test.describe('friends', () => {
     const admin = await adminCtx.newPage();
     await signIn(admin, 'admin');
     await admin.goto('/app/admin/moderation');
-    const report = admin.locator('article.report').filter({ hasText: 'Contenu choquant' }).first();
+    // this photo's report (others may wait from earlier runs)
+    const report = admin.locator('article.report').filter({ has: admin.locator(`img.thumb[src*="${photo.id}"]`) });
     await expect(report).toBeVisible();
     await expect(report.locator('img.thumb')).toHaveJSProperty('complete', true);
     await report.getByRole('button', { name: 'Supprimer la photo' }).click();

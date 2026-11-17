@@ -1,7 +1,8 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { ApiService } from '../api/api.service';
-import type { BodyLogEntry, LogInput, ProfileInput, Summary } from '../api/models';
+import type { BodyLogEntry, LogInput, MacroSplit, ProfileInput, Summary } from '../api/models';
 import { SessionStore } from '../auth/session.store';
+import { Outbox, isOffline } from '../offline/outbox';
 
 /** today in the user's calendar (yyyy-mm-dd), not UTC */
 export function localDay(d = new Date()): string {
@@ -16,6 +17,7 @@ export function localDay(d = new Date()): string {
 export class TrackingStore {
   private readonly api = inject(ApiService);
   private readonly session = inject(SessionStore);
+  private readonly outbox = inject(Outbox);
 
   readonly summary = signal<Summary | null>(null);
   readonly logs = signal<BodyLogEntry[] | null>(null);
@@ -47,11 +49,43 @@ export class TrackingStore {
     return s;
   }
 
-  async saveLog(day: string, input: LogInput): Promise<Summary> {
-    const s = await this.api.saveLog(day, input);
+  async setAdaptive(on: boolean): Promise<Summary> {
+    const s = await this.api.setAdaptive(on);
     this.summary.set(s);
-    if (this.logs()) await this.loadLogs();
     return s;
+  }
+
+  async setMacroSplit(split: MacroSplit): Promise<Summary> {
+    const s = await this.api.setMacroSplit(split);
+    this.summary.set(s);
+    return s;
+  }
+
+  constructor() {
+    // a weigh-in noted offline reached the server: the summary and the curve again
+    this.outbox.sent.subscribe((p) => {
+      if (p.kind !== 'weigh') return;
+      void this.load().catch(() => undefined);
+      if (this.logs()) void this.loadLogs().catch(() => undefined);
+    });
+  }
+
+  /** the last weigh-in was kept on the phone (no network): it counts once sent */
+  readonly lastQueued = signal(false);
+
+  async saveLog(day: string, input: LogInput): Promise<Summary | null> {
+    try {
+      const s = await this.api.saveLog(day, input);
+      this.lastQueued.set(false);
+      this.summary.set(s);
+      if (this.logs()) await this.loadLogs();
+      return s;
+    } catch (e) {
+      if (!isOffline(e)) throw e;
+      this.outbox.add({ kind: 'weigh', method: 'PUT', url: `/api/me/logs/${day}`, body: input, day });
+      this.lastQueued.set(true);
+      return this.summary();
+    }
   }
 
   async deleteLog(day: string): Promise<void> {

@@ -1,10 +1,15 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
-import type { MealEntry, Slot } from '../../core/api/models';
+import type { MacroSplit, MealEntry, MealStats, Slot } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { DayStatus, MealsStore, SLOTS, dayStatus, macroTargets, monthGrid, shiftDay, shiftMonth, weekOf } from '../../core/meals/meals.store';
+import { DayStatus, MealsStore, PENDING, SLOTS, dayStatus, monthGrid, shiftDay, shiftMonth, weekOf } from '../../core/meals/meals.store';
+import { MealsApi } from '../../core/meals/meals-api';
+import { macroPlan } from '../../core/meals/macro-plan';
+import { trends } from '../../core/meals/trends';
+import { GuidesSheetComponent } from './guides-sheet.component';
+import { TrendsCardComponent } from './trends-card.component';
 import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
 import { closeSheet } from '../../core/ui/sheets';
 import { ToastService } from '../../core/ui/toast.service';
@@ -21,7 +26,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
 @Component({
   selector: 'app-meals',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, NutriscoreComponent, NumberStepperComponent],
+  imports: [GuidesSheetComponent, TrendsCardComponent, DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, NutriscoreComponent, NumberStepperComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -68,7 +73,14 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
         <section class="card summary">
           <app-kcal-ring [eaten]="d.totals.kcal" [target]="d.targetKcal" [size]="128" />
           <div class="macros">
-            <p class="small muted">{{ 'meals.kcalTarget' | t: { kcal: i18n.number(d.targetKcal ?? 0) } }}</p>
+            <!-- the day's limit stays in view: the ring tells the gap, this says what it was measured against -->
+            @if (d.targetKcal) {
+              <p class="target">
+                <span class="tiny muted">{{ 'meals.dayTarget' | t }}</span>
+                <span class="target-v"><b class="num">{{ i18n.number(d.targetKcal) }}</b> kcal</span>
+                <span class="tiny muted">{{ 'meals.eatenKcal' | t: { kcal: i18n.number(Math.round(d.totals.kcal)) } }}</span>
+              </p>
+            }
             @for (m of macros(); track m.key) {
               <div class="macro">
                 <div class="macro-head small"><span>{{ m.label | t }}</span><span class="num">{{ i18n.number(m.value) }} / {{ m.target }} g</span></div>
@@ -77,10 +89,40 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
             }
           </div>
           @if (targetWhy(); as why) {
-            <p class="why small"><span class="why-ico"><app-icon name="info" [size]="15" /></span><span>{{ why }}</span></p>
+            <div class="whys">
+              <p class="why small"><span class="why-ico"><app-icon name="info" [size]="15" /></span><span>{{ why }}</span></p>
+              @if (activityNote(); as a) {
+                <p class="why small">
+                  <span class="why-ico cool"><app-icon name="dumbbell" [size]="15" /></span>
+                  <span>{{ a }} <a routerLink="/app/account/goal" class="why-link">{{ 'meals.activity.change' | t }}</a></span>
+                </p>
+              }
+              @if (realNote(); as rn) {
+                <div class="why real small" [class.on]="rn.on">
+                  <span class="why-ico real-ico"><app-icon name="activity" [size]="15" /></span>
+                  <span class="real-body">
+                    <span>{{ rn.text }}</span>
+                    @if (rn.action) {
+                      <button type="button" class="why-link real-btn" [disabled]="busy()" (click)="setAdaptive(!rn.on)">{{ rn.action }}</button>
+                    }
+                    @if (!rn.on && rn.action) {
+                      <span class="tiny muted">{{ 'meals.real.honest' | t }}</span>
+                    }
+                  </span>
+                </div>
+              }
+              @if (realityNote(); as r) {
+                <p class="why small">
+                  <span class="why-ico warn"><app-icon name="alert" [size]="15" /></span>
+                  <span>{{ r }} <a routerLink="/app/account/goal" class="why-link">{{ 'meals.activity.adjust' | t }}</a></span>
+                </p>
+              }
+            </div>
           }
         </section>
-        <app-day-score [day]="d" />
+        <app-day-score [day]="d" [shares]="plan().shares" />
+
+        <app-trends-card [trends]="weekTrends()" />
 
         @for (slot of slots; track slot; let i = $index) {
           <section class="card slot" [style.--i]="i">
@@ -96,7 +138,11 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
                     <button type="button" class="entry" (click)="edit(e)">
                       <span class="entry-body">
                         <span class="entry-name">{{ e.name }}</span>
-                        <span class="entry-sub small muted">{{ amount(e) }}{{ e.detail ? ' · ' + e.detail : '' }}</span>
+                        @if (isPending(e)) {
+                          <span class="entry-sub small muted"><app-icon name="cloud" [size]="13" /> {{ 'offline.waiting' | t }}</span>
+                        } @else {
+                          <span class="entry-sub small muted">{{ amount(e) }}{{ e.detail ? ' · ' + e.detail : '' }}</span>
+                        }
                       </span>
                       @if (e.nutriscore) {
                         <app-nutriscore [grade]="e.nutriscore" />
@@ -117,7 +163,10 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
             </div>
           </section>
         }
-        <p class="tiny muted hint">{{ 'meals.macroHint' | t }}</p>
+        <button type="button" class="guides-link tiny" (click)="guides.open()">
+          <app-icon name="info" [size]="14" />
+          <span>{{ 'meals.guides.link' | t: { p: plan().proteinG, c: plan().carbsG, f: plan().fatG, fi: plan().fiberG } }}</span>
+        </button>
           </div>
       } @else {
         <div class="skeleton" style="height: 168px; border-radius: 24px"></div>
@@ -198,6 +247,8 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
           </div>
         }
       </dialog>
+
+      <app-guides-sheet #guides [plan]="plan()" [kcal]="planKcal()" />
     </main>
   `,
   styles: `
@@ -504,17 +555,79 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       display: grid;
       gap: var(--space-3);
     }
-    /* where the target comes from, in a sentence, under the ring */
-    .why {
+    .target {
+      display: grid;
+      gap: 1px;
+      margin: 0;
+      line-height: 1.2;
+    }
+    .target-v {
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+    .target-v b {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    /* where the target comes from, in a sentence or three, under the ring */
+    .whys {
       grid-column: 1 / -1;
-      display: flex;
-      align-items: flex-start;
+      display: grid;
       gap: 10px;
       margin-top: calc(-1 * var(--space-1));
       padding-top: var(--space-4);
       border-top: 1px solid var(--line);
+    }
+    .why {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 0;
       color: var(--fg-2);
       line-height: 1.45;
+    }
+    .why-ico.cool {
+      background: var(--cool-soft);
+      color: var(--cool);
+    }
+    .why-ico.warn {
+      background: color-mix(in srgb, var(--warning, #ee8100) 16%, transparent);
+      color: var(--warning-text, #a35400);
+    }
+    .real-body {
+      display: grid;
+      gap: 4px;
+      justify-items: start;
+    }
+    .real-ico {
+      background: var(--success-soft, color-mix(in srgb, var(--success) 14%, transparent));
+      color: var(--success);
+    }
+    .real-btn {
+      padding: 2px 0;
+    }
+    .why-link {
+      color: var(--accent-text);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    /* the guides, discreet at the bottom: a tap explains them */
+    .guides-link {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: var(--space-2);
+      color: var(--fg-2);
+      text-align: center;
+      line-height: 1.45;
+    }
+    .guides-link span {
+      text-decoration: underline;
+      text-decoration-color: var(--line-strong);
+      text-underline-offset: 3px;
     }
     .why-ico {
       display: grid;
@@ -657,9 +770,11 @@ export class MealsPage {
   protected readonly store = inject(MealsStore);
   private readonly tracking = inject(TrackingStore);
   protected readonly i18n = inject(I18nService);
+  protected readonly Math = Math;
   private readonly toast = inject(ToastService);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('entryDialog');
   private readonly calDialog = viewChild.required<ElementRef<HTMLDialogElement>>('calDialog');
+  private readonly mealsApi = inject(MealsApi);
   protected readonly statusIcon = STATUS_ICON;
   /** -1: going back in time, 1: forward (the side the new day slides in from) */
   protected readonly dir = signal(0);
@@ -704,13 +819,21 @@ export class MealsPage {
     if (d === shiftDay(today, 1)) return this.i18n.t('meals.tomorrow');
     return this.i18n.date(d, { weekday: 'long', day: 'numeric', month: 'long' });
   });
+  /** the day's guides in grams: the split chosen, protein by the kilo (core/meals/macro-plan.ts) */
+  protected readonly split = computed<MacroSplit>(() => this.tracking.summary()?.profile.macroSplit ?? 'BALANCED');
+  protected readonly planKcal = computed(() => this.store.data()?.targetKcal ?? this.tracking.summary()?.energy.targetKcal ?? 2000);
+  protected readonly plan = computed(() => {
+    const s = this.tracking.summary();
+    return macroPlan(this.planKcal(), this.split(), s?.current.weightKg ?? s?.profile.startWeightKg, s?.profile.goalWeightKg);
+  });
   protected readonly macros = computed(() => {
     const d = this.store.data();
-    const t = macroTargets(d?.targetKcal ?? 2000);
+    const t = this.plan();
     const rows = [
       { key: 'p', label: 'meals.protein', value: d?.totals.proteinG ?? 0, target: t.proteinG, color: 'var(--macro-protein)' },
       { key: 'c', label: 'meals.carbs', value: d?.totals.carbsG ?? 0, target: t.carbsG, color: 'var(--macro-carbs)' },
       { key: 'f', label: 'meals.fat', value: d?.totals.fatG ?? 0, target: t.fatG, color: 'var(--macro-fat)' },
+      { key: 'fi', label: 'meals.fiber', value: d?.totals.fiberG ?? 0, target: t.fiberG, color: 'var(--success)' },
     ];
     return rows.map((r) => ({ ...r, pct: Math.min(100, (r.value / Math.max(1, r.target)) * 100) }));
   });
@@ -740,9 +863,76 @@ export class MealsPage {
     return this.i18n.t('meals.targetWhy.' + key, params);
   });
 
+  /**
+   * What the target counts on for the activity: the day and the sessions, the sport already in it (no need to
+   * eat more on a training day); a profile from before 1.7 shows its level and asks for the two answers.
+   */
+  protected readonly activityNote = computed(() => {
+    const p = this.tracking.summary()?.profile;
+    if (!p) return null;
+    if (!p.job) return this.i18n.t('meals.activity.level', { level: this.i18n.t('setup.activities.' + p.activityLevel + '.label').toLowerCase() });
+    const n = p.sessionsPerWeek ?? 0;
+    const day = this.i18n.t('meals.activity.jobs.' + p.job);
+    return this.i18n.t(n === 0 ? 'meals.activity.none' : n === 1 ? 'meals.activity.one' : 'meals.activity.many', { day, n });
+  });
+
+  /**
+   * What the member's own numbers say of their needs (4 weeks of meals and weigh-ins): offered when they differ
+   * from the formula by 100 kcal or more, and said when the target counts on them.
+   */
+  protected readonly realNote = computed(() => {
+    const s = this.tracking.summary();
+    if (!s?.energy) return null;
+    const e = s.energy;
+    const n = (v: number) => this.i18n.number(v);
+    if (e.adaptive && e.realTdee != null) {
+      return { on: true, text: this.i18n.t('meals.real.on', { real: n(e.realTdee), days: e.realDays ?? 0 }), action: this.i18n.t('meals.real.off') };
+    }
+    if (s.profile.adaptiveTdee) return { on: true, text: this.i18n.t('meals.real.notEnough'), action: this.i18n.t('meals.real.off') };
+    if (e.realTdee != null && Math.abs(e.realTdee - e.estimatedTdee) >= 100) {
+      return {
+        on: false,
+        text: this.i18n.t('meals.real.offer', { real: n(e.realTdee), estimated: n(e.estimatedTdee), days: e.realDays ?? 0 }),
+        action: this.i18n.t('meals.real.use'),
+      };
+    }
+    return null;
+  });
+
+  protected async setAdaptive(on: boolean): Promise<void> {
+    this.busy.set(true);
+    try {
+      await this.tracking.setAdaptive(on);
+      // the target of the day comes from the server: the day again
+      await this.store.load().catch(() => undefined);
+      this.toast.show(this.i18n.t(on ? 'meals.real.usedToast' : 'meals.real.offToast'));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  /** the sessions noted fall well short of the ones the target counts on: say so (once some were noted) */
+  protected readonly realityNote = computed(() => {
+    const s = this.tracking.summary();
+    const planned = s?.profile.sessionsPerWeek ?? 0;
+    if (!s?.profile.job || !s.training?.any || planned < 2) return null;
+    if (s.training.perWeek >= planned - 1 || s.training.thisWeek >= planned) return null;
+    return this.i18n.t('meals.activity.reality', { done: this.i18n.number(s.training.perWeek, 1), planned });
+  });
+
+  /** what stands out in the last 7 days (core/meals/trends.ts) */
+  private readonly weekStats = signal<MealStats | null>(null);
+  protected readonly weekTrends = computed(() => trends(this.weekStats(), this.plan()));
+
   constructor() {
     void this.store.load().catch(() => undefined);
     if (!this.tracking.summary()) void this.tracking.load();
+    this.mealsApi
+      .stats(7)
+      .then((st) => this.weekStats.set(st))
+      .catch(() => undefined);
     // a new day on screen (once its data is there): its content fades in
     effect(() => {
       const day = this.store.data()?.day ?? null;
@@ -826,7 +1016,16 @@ export class MealsPage {
     return this.i18n.t('meals.servings', { n: this.i18n.number(e.servings ?? 1, (e.servings ?? 1) % 1 ? 1 : 0) });
   }
 
+  /** noted offline, not sent yet: shown, not editable until the server has it */
+  protected isPending(e: MealEntry): boolean {
+    return e.id.startsWith(PENDING);
+  }
+
   protected edit(e: MealEntry): void {
+    if (this.isPending(e)) {
+      this.toast.show(this.i18n.t('offline.notYet'));
+      return;
+    }
     this.selected.set(e);
     this.qty.set(e.grams ?? e.servings ?? 1);
     this.moveTo.set(e.slot);

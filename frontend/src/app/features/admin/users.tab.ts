@@ -95,7 +95,7 @@ import { LinkSheetComponent } from './link-sheet.component';
               </dd>
             </div>
             <div>
-              <dt>{{ 'admin.users.lastLogin' | t: { date: '' } }}</dt>
+              <dt>{{ 'admin.users.lastLoginTitle' | t }}</dt>
               <dd>
                 @if (u.lastLoginAt) {
                   {{ i18n.dateTime(u.lastLoginAt) }} · {{ 'admin.users.lastLoginMethod.' + u.lastLoginMethod | t }}
@@ -256,10 +256,11 @@ import { LinkSheetComponent } from './link-sheet.component';
       background: var(--surface-2);
       font-size: var(--fs-s);
     }
+    /* both columns can shrink: a long address wraps, the quota select stays inside the card */
     .facts div {
       display: grid;
-      grid-template-columns: 9.5rem 1fr;
-      gap: 8px;
+      grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr);
+      gap: 10px;
     }
     .facts dt {
       color: var(--fg-3);
@@ -267,14 +268,27 @@ import { LinkSheetComponent } from './link-sheet.component';
     }
     .facts dd {
       margin: 0;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
     .facts .quota {
       display: grid;
       gap: 6px;
+      min-width: 0;
     }
     .facts .quota .select {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
       min-height: 40px;
       padding-block: 6px;
+    }
+    /* a narrow phone: the label above its value */
+    @media (max-width: 360px) {
+      .facts div {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2px;
+      }
     }
     .actions .list-item:disabled {
       opacity: 0.5;

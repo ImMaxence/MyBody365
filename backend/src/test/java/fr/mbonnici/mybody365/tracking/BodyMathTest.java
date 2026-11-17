@@ -24,6 +24,20 @@ class BodyMathTest {
     }
 
     @Test
+    void theActivityIsTheDayPlusTheSessions() {
+        // seated, 3 sessions a week: 1.29, nearer « light » than « moderate »
+        assertThat(BodyMath.activityFactor(BodyMath.Job.SEATED, 3)).isCloseTo(1.29, within(1e-9));
+        assertThat(BodyMath.nearest(1.29)).isEqualTo(Activity.LIGHT);
+        assertThat(BodyMath.activityFactor(BodyMath.Job.SEATED, 0)).isCloseTo(Activity.SEDENTARY.factor, within(1e-9));
+        assertThat(BodyMath.activityFactor(BodyMath.Job.STANDING, 5)).isCloseTo(1.5, within(1e-9));
+        assertThat(BodyMath.nearest(1.5)).isEqualTo(Activity.MODERATE);
+        // two sessions a day on a building site, and no more than 14 sessions counted
+        assertThat(BodyMath.activityFactor(BodyMath.Job.PHYSICAL, 14)).isCloseTo(1.97, within(1e-9));
+        assertThat(BodyMath.activityFactor(BodyMath.Job.PHYSICAL, 30)).isCloseTo(1.97, within(1e-9));
+        assertThat(BodyMath.nearest(1.97)).isEqualTo(Activity.VERY_ACTIVE);
+    }
+
+    @Test
     void theCalorieTargetNeverGoesUnderTheFloor() {
         // 0.5 kg/week = 550 kcal/day
         assertThat(BodyMath.targetKcal(2759, 0.5, true, Sex.MALE)).isEqualTo(2209);

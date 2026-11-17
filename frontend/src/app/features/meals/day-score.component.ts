@@ -219,9 +219,11 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
 })
 export class DayScoreComponent {
   readonly day = input.required<MealDay>();
+  /** the member's split, in % of the calories (the macros are judged against it) */
+  readonly shares = input<{ p: number; c: number; f: number } | undefined>(undefined);
   protected readonly i18n = inject(I18nService);
   protected readonly icon = ICON;
-  protected readonly score = computed(() => dayScore(this.day(), localDay()));
+  protected readonly score = computed(() => dayScore(this.day(), localDay(), this.shares()));
 
   protected level(points: number, max: number): 'good' | 'mid' | 'low' {
     const r = points / max;

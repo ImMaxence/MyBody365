@@ -15,7 +15,15 @@ public final class Nutriscore {
     private static final double[] FIBER = {3.0, 4.1, 5.2, 6.3, 7.4};
     private static final double[] PROTEIN = {2.4, 4.8, 7.2, 9.6, 12, 14, 17};
 
+    /** Ciqual's plain fruits, vegetables and legumes: what counts as fruit and vegetables in a recipe (not potatoes nor nuts) */
+    private static final java.util.Set<String> FRUIT_VEG = java.util.Set.of("fruits", "légumes", "légumineuses");
+
     private Nutriscore() {}
+
+    /** a food of this category counts as fruit, vegetables or legumes (for the share of a recipe) */
+    public static boolean fruitVeg(String category) {
+        return category != null && FRUIT_VEG.contains(category.strip().toLowerCase(java.util.Locale.ROOT));
+    }
 
     /** a–e, or null when the nutrients needed are missing */
     public static String grade(Nutrients per100) {

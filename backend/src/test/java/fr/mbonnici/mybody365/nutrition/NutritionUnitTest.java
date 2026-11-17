@@ -19,6 +19,14 @@ class NutritionUnitTest {
         assertThat(Nutriscore.grade(new Nutrients(536, 6.6, 50d, 0.6, 34d, 3.1, 4.4, 1.3))).isIn("c", "d");
         // unknown sugars: no grade
         assertThat(Nutriscore.grade(new Nutrients(143, 2.7, 31d, null, 0.3, 0.1, 0.4, 0d))).isNull();
+        // a ratatouille: the same values, but 85 % vegetables (a recipe counts its share)
+        Nutrients ratatouille = new Nutrients(80, 1.3, 6d, 4.5, 5.5, 0.8, 1.8, 0.7);
+        assertThat(Nutriscore.grade(ratatouille)).isEqualTo("c");
+        assertThat(Nutriscore.grade(ratatouille, 85)).isEqualTo("a");
+        assertThat(Nutriscore.fruitVeg("légumes")).isTrue();
+        assertThat(Nutriscore.fruitVeg("Légumineuses")).isTrue();
+        assertThat(Nutriscore.fruitVeg("fruits à coque et graines oléagineuses")).isFalse();
+        assertThat(Nutriscore.fruitVeg(null)).isFalse();
     }
 
     @Test

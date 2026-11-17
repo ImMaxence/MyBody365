@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { errorCode } from '../../core/api/api.service';
 import type { CiqualImport, FoodsOverview, OffImport } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { MealsApi } from '../../core/meals/meals-api';
+import { IngredientMiss, MealsApi } from '../../core/meals/meals-api';
 import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
 
@@ -19,6 +19,9 @@ import { IconComponent } from '../../shared/icon.component';
         <div>
           <h2 class="h3">{{ 'adminFoods.ciqual' | t }}</h2>
           <p class="small muted">{{ 'adminFoods.version' | t }} · <b>{{ overview()?.ciqualVersion ? versionLabel(overview()!.ciqualVersion!) : ('adminFoods.versionNone' | t) }}</b></p>
+          @if (ciqualCheckedAt(); as at) {
+            <p class="tiny muted">{{ 'adminFoods.lastUpdate' | t: { date: i18n.dateTime(at) } }}</p>
+          }
         </div>
       </div>
       <p class="small">{{ 'adminFoods.ciqualText' | t }}</p>
@@ -47,7 +50,7 @@ import { IconComponent } from '../../shared/icon.component';
 
     <section class="card ciqual">
       <div class="head">
-        <span class="ico off"><app-icon name="barcode" /></span>
+        <span class="ico logo"><img src="/brands/open-food-facts.svg" alt="" width="34" height="34" /></span>
         <div>
           <h2 class="h3">{{ 'adminFoods.offTitle' | t }}</h2>
           <p class="small muted">
@@ -62,7 +65,7 @@ import { IconComponent } from '../../shared/icon.component';
       <p class="small">{{ 'adminFoods.offText' | t }}</p>
       @if (overview(); as o) {
         <ul class="counts small" role="list">
-          <li>{{ 'adminFoods.off' | t: { n: i18n.number(o.offProducts) } }}</li>
+          <li>{{ (o.offLocalAt ? 'adminFoods.off' : 'adminFoods.offCached') | t: { n: i18n.number(o.offProducts) } }}</li>
         </ul>
       }
       @if (offRunning(); as r) {
@@ -103,6 +106,29 @@ import { IconComponent } from '../../shared/icon.component';
       </div>
     } @else {
       <p class="small muted">{{ 'adminFoods.none' | t }}</p>
+    }
+
+    <h2 class="section-title">{{ 'adminFoods.misses.title' | t }}</h2>
+    <p class="small muted">{{ 'adminFoods.misses.text' | t }}</p>
+    @if (misses(); as list) {
+      @if (list.length) {
+        <div class="list">
+          @for (m of list; track m.key + m.reason) {
+            <div class="list-item">
+              <span class="list-body">
+                <span class="list-title">{{ m.example }}</span>
+                <span class="list-sub">{{ 'adminFoods.misses.' + m.reason | t }} · {{ 'adminFoods.misses.times' | t: { n: m.count } }} · {{ i18n.dateTime(m.lastAt) }}</span>
+              </span>
+              <button type="button" class="icon-btn" [attr.aria-label]="'adminFoods.misses.forget' | t: { line: m.example }" (click)="forget(m)">
+                <app-icon name="check" />
+              </button>
+            </div>
+          }
+        </div>
+        <button type="button" class="btn btn-ghost btn-s" (click)="forget()"><app-icon name="trash" [size]="16" /> {{ 'adminFoods.misses.clear' | t }}</button>
+      } @else {
+        <p class="small muted">{{ 'adminFoods.misses.none' | t }}</p>
+      }
     }
   `,
   styles: `
@@ -165,9 +191,13 @@ import { IconComponent } from '../../shared/icon.component';
     .err {
       color: var(--danger);
     }
-    .ico.off {
-      background: var(--cool-soft);
-      color: var(--cool);
+    /* the Open Food Facts logo on white, in both themes, as its makers show it */
+    .ico.logo {
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+    .ico.logo img {
+      display: block;
     }
   `,
 })
@@ -176,18 +206,38 @@ export class AdminFoodsTab {
   private readonly toast = inject(ToastService);
   protected readonly i18n = inject(I18nService);
   protected readonly overview = signal<FoodsOverview | null>(null);
+  /** the last time Ciqual was brought up to date here (a new version, or the check that found none) */
+  protected readonly ciqualCheckedAt = computed(() => {
+    const last = this.overview()?.imports?.find((i) => i.status === 'DONE' || i.status === 'UP_TO_DATE');
+    return last ? (last.finishedAt ?? last.startedAt) : null;
+  });
   protected readonly running = signal<CiqualImport | null>(null);
   protected readonly offRunning = signal<OffImport | null>(null);
   protected readonly busy = signal(false);
+  protected readonly misses = signal<IngredientMiss[] | null>(null);
   private timer: ReturnType<typeof setTimeout> | null = null;
   private offTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     void this.refresh();
+    void this.api
+      .misses()
+      .then((m) => this.misses.set(m))
+      .catch(() => this.misses.set([]));
     inject(DestroyRef).onDestroy(() => {
       if (this.timer) clearTimeout(this.timer);
       if (this.offTimer) clearTimeout(this.offTimer);
     });
+  }
+
+  /** a line taken care of (added to the tables), or all of them */
+  protected async forget(m?: IngredientMiss): Promise<void> {
+    try {
+      await this.api.forgetMiss(m);
+      this.misses.update((list) => (m ? (list ?? []).filter((x) => !(x.key === m.key && x.reason === m.reason)) : []));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    }
   }
 
   private async refresh(): Promise<void> {

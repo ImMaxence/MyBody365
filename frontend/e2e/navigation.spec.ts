@@ -41,7 +41,8 @@ test.describe('stack navigation', () => {
     await expect(page).toHaveURL(/\/app\/account$/);
   });
 
-  test('a swipe from the left edge goes back', async ({ page }) => {
+  test('a swipe from the left edge goes back', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'the touch events are sent through CDP, Chromium only');
     await signIn(page, 'user');
     await tab(page, 'Profil').click();
     await page.getByRole('link', { name: /Connexion et sécurité/ }).click();
@@ -60,7 +61,8 @@ test.describe('stack navigation', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Profil');
   });
 
-  test('a short swipe springs back and stays', async ({ page }) => {
+  test('a short swipe springs back and stays', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'the touch events are sent through CDP, Chromium only');
     await signIn(page, 'user');
     await page.goto('/app/account/security');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Connexion et sécurité');

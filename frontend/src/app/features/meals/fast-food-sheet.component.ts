@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
-import { DRINKS, Dish, FRIES, Portion, dish, estimate, gradeOf } from '../../core/meals/fast-food';
+import { DRINKS, Dish, FRIES, Portion, SHARES, dish, estimate, gradeOf, part, withChoice } from '../../core/meals/fast-food';
 import type { Grade } from '../../core/meals/nutriscore';
 import { NutriscoreComponent } from '../../shared/nutriscore.component';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -186,14 +186,39 @@ export const ESTIMATE_STYLES = `
               <button type="button" class="opt" role="radio" [attr.aria-checked]="format() === f.key" (click)="format.set(f.key)">
                 <span class="opt-name">{{ 'meals.estimate.formats.' + dish.key + '.' + f.key | t }}</span>
                 <span class="opt-foot">
-                  <span class="opt-kcal num">≈ {{ i18n.number(f.kcal) }} kcal</span>
-                  @if (grade(f); as g) {
+                  <span class="opt-kcal num">≈ {{ i18n.number(chosen(f).kcal) }} kcal</span>
+                  @if (grade(chosen(f)); as g) {
                     <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
                   }
                 </span>
               </button>
             }
           </div>
+
+          @if (dish.share) {
+            <h3 class="section-title">{{ 'meals.estimate.share' | t }}</h3>
+            <div class="chips" role="radiogroup" [attr.aria-label]="'meals.estimate.share' | t">
+              @for (sh of shares; track sh.key) {
+                <button type="button" class="chip-opt" role="radio" [attr.aria-checked]="share() === sh.part" (click)="share.set(sh.part)">
+                  {{ 'meals.estimate.shares.' + sh.key | t }}
+                </button>
+              }
+            </div>
+          }
+
+          @if (dish.choice; as c) {
+            <h3 class="section-title">{{ 'meals.estimate.choices.' + c.key + '.title' | t }}</h3>
+            <div class="chips" role="radiogroup" [attr.aria-label]="'meals.estimate.choices.' + c.key + '.title' | t">
+              @for (o of c.options; track o.key) {
+                <button type="button" class="chip-opt" role="radio" [attr.aria-checked]="choice() === o.key" (click)="choice.set(o.key)">
+                  {{ 'meals.estimate.choices.' + c.key + '.' + o.key | t }}
+                  @if (choiceKcal(o); as k) {
+                    <small class="num">{{ k > 0 ? '+' : '−' }}{{ i18n.number(Math.abs(k)) }}</small>
+                  }
+                </button>
+              }
+            </div>
+          }
 
           @if (dish.fries) {
             <h3 class="section-title">{{ 'meals.estimate.fries' | t }}</h3>
@@ -284,13 +309,17 @@ export class FastFoodSheetComponent {
   protected readonly fries = signal('none');
   protected readonly extras = signal<string[]>([]);
   protected readonly drink = signal('none');
+  protected readonly choice = signal('');
+  protected readonly share = signal(1);
+  protected readonly shares = SHARES;
+  protected readonly Math = Math;
   protected readonly friesOptions = FRIES;
   protected readonly drinks = DRINKS;
 
   protected readonly result = computed(() => {
     const d = this.d();
     return d
-      ? estimate(d, this.format(), this.fries(), this.extras(), this.drink())
+      ? estimate(d, this.format(), this.fries(), this.extras(), this.drink(), this.choice() || undefined, this.share())
       : { lines: [], total: { key: 'total', kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 }, grade: null };
   });
 
@@ -302,6 +331,8 @@ export class FastFoodSheetComponent {
     this.fries.set('none');
     this.extras.set([]);
     this.drink.set('none');
+    this.choice.set(d.choice?.usual ?? '');
+    this.share.set(1);
     this.busy.set(false);
     this.dialog().nativeElement.showModal();
   }
@@ -314,6 +345,18 @@ export class FastFoodSheetComponent {
     return gradeOf(x);
   }
 
+  /** a format as chosen (without its cheese sauce, on a cream base…) */
+  protected chosen(f: Portion): Portion {
+    const c = this.d()?.choice;
+    return part(withChoice(f, c?.options.find((o) => o.key === this.choice())), this.d()?.share ? this.share() : 1);
+  }
+
+  /** what an option adds to the format chosen (kcal), 0 for the one the formats count */
+  protected choiceKcal(o: Portion): number {
+    const f = this.d()?.formats.find((x) => x.key === this.format());
+    return Math.round(o.kcal * (f?.scale ?? 1));
+  }
+
   protected toggle(key: string): void {
     this.extras.update((list) => (list.includes(key) ? list.filter((k) => k !== key) : [...list, key]));
   }
@@ -323,8 +366,13 @@ export class FastFoodSheetComponent {
     if (!d) return;
     const name = (kind: string, p: Portion) => {
       switch (kind) {
-        case 'main':
-          return `${this.i18n.t('meals.quick.dishes.' + d.key)} (${this.i18n.t('meals.estimate.formats.' + d.key + '.' + p.key)})`;
+        case 'main': {
+          // « Tacos (M, sans sauce fromagère) », « Pizza (Entière, base crème) »
+          const c = d.choice && this.choice() !== d.choice.usual ? `, ${this.i18n.t('meals.estimate.choices.' + d.choice.key + '.lines.' + this.choice())}` : '';
+          const sh = SHARES.find((x) => x.part === this.share());
+          const s = d.share && sh && sh.part !== 1 ? `, ${this.i18n.t('meals.estimate.shareLines.' + sh.key)}` : '';
+          return `${this.i18n.t('meals.quick.dishes.' + d.key)} (${this.i18n.t('meals.estimate.formats.' + d.key + '.' + p.key)}${c}${s})`;
+        }
         case 'fries':
           return `${this.i18n.t('meals.quick.dishes.fries')} (${this.i18n.t('meals.estimate.friesSizes.' + p.key)})`;
         case 'extra':

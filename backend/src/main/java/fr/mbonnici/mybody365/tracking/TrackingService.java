@@ -12,6 +12,7 @@ import fr.mbonnici.mybody365.tracking.TrackingDtos.ProfileDto;
 import fr.mbonnici.mybody365.tracking.TrackingDtos.ProfileInput;
 import fr.mbonnici.mybody365.tracking.TrackingDtos.Streak;
 import fr.mbonnici.mybody365.tracking.TrackingDtos.Summary;
+import fr.mbonnici.mybody365.tracking.TrackingDtos.Training;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
@@ -20,9 +21,11 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,10 +38,12 @@ public class TrackingService {
 
     private final BodyProfileRepository profiles;
     private final BodyLogRepository logs;
+    private final JdbcTemplate jdbc;
 
-    public TrackingService(BodyProfileRepository profiles, BodyLogRepository logs) {
+    public TrackingService(BodyProfileRepository profiles, BodyLogRepository logs, JdbcTemplate jdbc) {
         this.profiles = profiles;
         this.logs = logs;
+        this.jdbc = jdbc;
     }
 
     public static LocalDate today() {
@@ -82,7 +87,22 @@ public class TrackingService {
         p.setSex(in.sex());
         p.setBirthDate(in.birthDate());
         p.setHeightCm(in.heightCm().setScale(1, RoundingMode.HALF_UP));
-        p.setActivityLevel(in.activityLevel());
+        if (in.job() != null) {
+            // the two answers, and the level nearest to them (for the older apps)
+            if (in.sessionsPerWeek() == null) {
+                throw ApiException.badRequest("validation_failed");
+            }
+            p.setActivity(in.job(), in.sessionsPerWeek());
+            p.setActivityLevel(BodyMath.nearest(BodyMath.activityFactor(in.job(), in.sessionsPerWeek())));
+        } else if (in.activityLevel() != null) {
+            // an app older than 1.7: its level, the answers kept while it sends back the same one
+            if (first || p.getActivityLevel() != in.activityLevel()) {
+                p.setActivity(null, null);
+            }
+            p.setActivityLevel(in.activityLevel());
+        } else {
+            throw ApiException.badRequest("validation_failed");
+        }
         p.setGoalWeightKg(scale2(in.goalWeightKg()));
         p.setWeeklyRateKg(rate);
         p.touch();
@@ -161,7 +181,10 @@ public class TrackingService {
                 round1(BodyMath.bmi(weight, height)), last == null ? null : round2(weight - start));
 
         double bmr = BodyMath.bmr(p.getSex(), weight, height, age);
-        double tdee = BodyMath.tdee(bmr, p.getActivityLevel());
+        double estimated = bmr * p.activityFactor();
+        RealNeeds real = realNeeds(userId, points, trend, today);
+        // the real needs when asked for, never far from the formula (a forgotten meal makes them look lower)
+        double tdee = p.isAdaptiveTdee() && real != null ? Math.clamp(real.kcal(), estimated * 0.8, estimated * 1.2) : estimated;
         boolean losing = goalKg < trendNow;
         double rate = p.getWeeklyRateKg().doubleValue();
         int target = BodyMath.targetKcal(tdee, rate, losing, p.getSex());
@@ -172,7 +195,8 @@ public class TrackingService {
         if (rate >= 0.75) {
             warnings.add("fast_pace");
         }
-        Energy energy = new Energy((int) Math.round(bmr), (int) Math.round(tdee), target, floor);
+        Energy energy = new Energy((int) Math.round(bmr), (int) Math.round(tdee), target, floor, (int) Math.round(estimated),
+                real == null ? null : real.kcal(), real == null ? null : real.days(), p.isAdaptiveTdee() && real != null);
 
         double remaining = round2(goalKg - trendNow);
         double total = goalKg - start;
@@ -185,9 +209,90 @@ public class TrackingService {
         Goal goal = new Goal(goalKg, remaining, progress, reached, planDate, trendDate,
                 slope == null ? null : round2(slope * 7));
 
-        ProfileDto profile = new ProfileDto(p.getSex(), p.getBirthDate(), age, height, p.getActivityLevel(), start,
-                p.getStartDate(), goalKg, rate, round1(BodyMath.minHealthyWeight(height)));
-        return new Summary(profile, current, energy, goal, streak(all, today), warnings);
+        ProfileDto profile = new ProfileDto(p.getSex(), p.getBirthDate(), age, height, p.getActivityLevel(), p.getJob(),
+                p.getSessionsPerWeek(), round2(p.activityFactor()), p.getMacroSplit(), p.isAdaptiveTdee(), start, p.getStartDate(), goalKg, rate,
+                round1(BodyMath.minHealthyWeight(height)));
+        return new Summary(profile, current, energy, goal, streak(all, today), warnings, training(userId, today));
+    }
+
+    /** the real needs (kcal a day) and the days they come from */
+    record RealNeeds(int kcal, int days) {}
+
+    /** at least 3 weeks between two weigh-ins, and meals noted on most days in between */
+    static final int REAL_MIN_SPAN = 21;
+    static final int REAL_MIN_LOGGED = 14;
+    /** a day of meals below this was not fully noted: left out */
+    static final int REAL_FULL_DAY_KCAL = 800;
+
+    /**
+     * What the member really spends, from their own numbers over the last 28 days: what they ate on average (the
+     * days fully noted) plus what the weight trend lost (or minus what it gained), 7 700 kcal a kilo. Null without
+     * enough of them: two weigh-ins at least 3 weeks apart, meals noted on 14 days and 70 % of the days between.
+     */
+    RealNeeds realNeeds(UUID userId, List<Point> points, List<Double> trend, LocalDate today) {
+        LocalDate from = today.minusDays(28);
+        int first = -1;
+        int last = -1;
+        for (int i = 0; i < points.size(); i++) {
+            LocalDate d = points.get(i).day();
+            if (!d.isBefore(from) && !d.isAfter(today)) {
+                if (first < 0) {
+                    first = i;
+                }
+                last = i;
+            }
+        }
+        if (first < 0 || last <= first) {
+            return null;
+        }
+        LocalDate a = points.get(first).day();
+        LocalDate b = points.get(last).day();
+        long span = java.time.temporal.ChronoUnit.DAYS.between(a, b);
+        if (span < REAL_MIN_SPAN) {
+            return null;
+        }
+        List<Double> days = jdbc.queryForList("""
+                select sum(kcal) from meal_entry where user_id = ? and day >= ? and day < ? group by day having sum(kcal) >= ?""",
+                Double.class, userId, a, b, REAL_FULL_DAY_KCAL);
+        if (days.size() < REAL_MIN_LOGGED || days.size() < span * 0.7) {
+            return null;
+        }
+        double eaten = days.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+        double changeKg = trend.get(last) - trend.get(first);
+        double kcal = eaten - changeKg * BodyMath.KCAL_PER_KG / span;
+        if (kcal < 1000 || kcal > 5000) {
+            return null;
+        }
+        return new RealNeeds((int) Math.round(kcal / 10) * 10, days.size());
+    }
+
+    /** the target from the real needs (when known), or from the formula */
+    @Transactional
+    public void setAdaptive(UUID userId, boolean on) {
+        BodyProfile p = profiles.findById(userId).orElseThrow(() -> ApiException.notFound());
+        p.setAdaptiveTdee(on);
+        p.touch();
+        profiles.save(p);
+    }
+
+    /** the sessions noted, to compare with the ones the calorie target counts on */
+    private Training training(UUID userId, LocalDate today) {
+        LocalDate monday = today.minusDays(today.getDayOfWeek().getValue() - 1L);
+        Map<String, Object> r = jdbc.queryForMap("""
+                select count(*) filter (where day >= ?) week, count(*) filter (where day > ?) last28, count(*) total
+                from workout_session where user_id = ? and day <= ?""", monday, today.minusDays(28), userId, today);
+        int last28 = ((Number) r.get("last28")).intValue();
+        return new Training(((Number) r.get("week")).intValue(), last28, Math.round(last28 / 4.0 * 10) / 10.0,
+                ((Number) r.get("total")).longValue() > 0);
+    }
+
+    /** the split of the macros the member chose */
+    @Transactional
+    public void setMacroSplit(UUID userId, MacroSplit split) {
+        BodyProfile p = profiles.findById(userId).orElseThrow(() -> ApiException.notFound());
+        p.setMacroSplit(split);
+        p.touch();
+        profiles.save(p);
     }
 
     /** The flame and its freezes (see {@link Streaks}), with the week and the last 28 days to draw them. */

@@ -50,12 +50,26 @@ public class RecipeController {
     @PostMapping("/api/me/recipes")
     @ResponseStatus(HttpStatus.CREATED)
     public RecipeDto create(@Valid @RequestBody RecipeInput body, Authentication auth) {
-        return recipes.create(users.current(auth).getId(), body);
+        AppUser me = users.current(auth);
+        communityCheck(me, body);
+        return recipes.create(me.getId(), body);
     }
 
     @PutMapping("/api/me/recipes/{id}")
     public RecipeDto update(@PathVariable UUID id, @Valid @RequestBody RecipeInput body, Authentication auth) {
-        return recipes.update(users.current(auth).getId(), id, body);
+        AppUser me = users.current(auth);
+        communityCheck(me, body);
+        return recipes.update(me.getId(), id, body);
+    }
+
+    /**
+     * The community (every member sees it) is published by the admins only: a member's recipe stays private or goes to
+     * their friends, so that nobody can show everyone a shocking photo or an unlawful text.
+     */
+    private void communityCheck(AppUser me, RecipeInput body) {
+        if (body.resolved() == RecipeService.Visibility.PUBLIC && !users.isAdmin(me)) {
+            throw ApiException.badRequest("community_admins_only");
+        }
     }
 
     @DeleteMapping("/api/me/recipes/{id}")
@@ -75,9 +89,10 @@ public class RecipeController {
     }
 
     @GetMapping("/api/recipes/community")
-    public List<RecipeDto> community(@RequestParam(required = false) Type type, @RequestParam(defaultValue = "top") String sort,
+    public List<RecipeDto> community(@RequestParam(required = false) Type type, @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "top") String sort,
             @RequestParam(defaultValue = "0") int page, Authentication auth) {
-        return recipes.community(users.current(auth).getId(), type, "new".equals(sort), page);
+        return recipes.community(users.current(auth).getId(), type, "new".equals(sort), page, q);
     }
 
     /** a draft read from a recipe site (nothing saved): the app fills its form with it */

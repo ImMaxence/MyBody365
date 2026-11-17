@@ -3,6 +3,15 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import type { CiqualImport, OffImport, Food, FoodInput, FoodsOverview, MealDay, MealDays, MealInput, MealStats, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, Slot } from '../api/models';
 
+/** an ingredient of imported recipes the tables do not know (FOOD) or cannot weigh (WEIGHT) */
+export interface IngredientMiss {
+  key: string;
+  reason: 'FOOD' | 'WEIGHT';
+  example: string;
+  count: number;
+  lastAt: string;
+}
+
 /** Foods, meals and recipes (the server asks Open Food Facts itself: the app never calls a third party). */
 @Injectable({ providedIn: 'root' })
 export class MealsApi {
@@ -86,9 +95,11 @@ export class MealsApi {
     return firstValueFrom(this.http.get<Recipe[]>('/api/recipes/friends', { params: type ? { type } : {} }));
   }
 
-  community(type: RecipeType | null, sort: 'top' | 'new', page = 0): Promise<Recipe[]> {
+  /** 30 a page; q: words of the name */
+  community(type: RecipeType | null, sort: 'top' | 'new', page = 0, q = ''): Promise<Recipe[]> {
     const params: Record<string, string | number> = { sort, page };
     if (type) params['type'] = type;
+    if (q.trim()) params['q'] = q.trim();
     return firstValueFrom(this.http.get<Recipe[]>('/api/recipes/community', { params }));
   }
 
@@ -129,6 +140,16 @@ export class MealsApi {
   // ── admin ─────────────────────────────────────────────────────────────────
   foodsOverview(): Promise<FoodsOverview> {
     return firstValueFrom(this.http.get<FoodsOverview>('/api/admin/foods'));
+  }
+
+  /** the ingredient lines of imported recipes that found no food or no weight, the most frequent first */
+  misses(): Promise<IngredientMiss[]> {
+    return firstValueFrom(this.http.get<IngredientMiss[]>('/api/admin/foods/misses'));
+  }
+
+  forgetMiss(m?: IngredientMiss): Promise<void> {
+    const params: Record<string, string> = m ? { key: m.key, reason: m.reason } : {};
+    return firstValueFrom(this.http.delete<void>('/api/admin/foods/misses', { params }));
   }
 
   startCiqual(): Promise<CiqualImport> {

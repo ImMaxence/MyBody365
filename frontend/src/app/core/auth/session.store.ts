@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { ApiService } from '../api/api.service';
 import type { Account, Me, Providers } from '../api/models';
 import { I18nService } from '../i18n/i18n.service';
+import { Outbox } from '../offline/outbox';
 
 const ANONYMOUS: Me = { authenticated: false };
 
@@ -11,6 +12,7 @@ const ANONYMOUS: Me = { authenticated: false };
 export class SessionStore {
   private readonly api = inject(ApiService);
   private readonly i18n = inject(I18nService);
+  private readonly outbox = inject(Outbox);
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly me = signal<Me | null>(null);
@@ -68,6 +70,8 @@ export class SessionStore {
 
   private setMe(me: Me): void {
     this.me.set(me);
+    // the entries noted offline by this account go; another account's never do
+    if (me.account?.id) this.outbox.setOwner(me.account.id);
     // the account language wins over the device, unless a choice was made on this device
     const locale = me.account?.locale;
     if (locale) {

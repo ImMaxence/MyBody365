@@ -3,6 +3,7 @@ app:
   admin-emails: admin@example.com;second-admin@example.com
   trust-proxy: false
   dev-login: false
+  community-seed: false
   rate-limit:
     enabled: true
     api-per-minute: 5000

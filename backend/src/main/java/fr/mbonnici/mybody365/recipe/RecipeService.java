@@ -66,7 +66,19 @@ public class RecipeService {
             /** the ingredients as written, one per line (with manual nutrition) */
             @Size(max = 80) List<@Size(max = 300) String> ingredientLines,
             /** where the recipe comes from (the page it was imported from) */
-            @Size(max = 500) String sourceUrl) {
+            @Size(max = 500) String sourceUrl,
+            /** every meal it is for, the main one (type) counting anyway; null: the main one only */
+            @Size(max = 6) List<Type> types) {
+
+        /** the main type first, then the others in the usual order, each once: "BREAKFAST,SNACK" */
+        String allTypes() {
+            java.util.LinkedHashSet<Type> all = new java.util.LinkedHashSet<>();
+            all.add(type);
+            if (types != null) {
+                java.util.Arrays.stream(Type.values()).filter(types::contains).forEach(all::add);
+            }
+            return String.join(",", all.stream().map(Type::name).toList());
+        }
 
         /** the visibility asked, or the older "shared" flag (true: the community) */
         Visibility resolved() {
@@ -74,7 +86,8 @@ public class RecipeService {
         }
     }
 
-    public record IngredientDto(UUID foodId, String name, double grams, double kcal) {}
+    /** a line: its calories for the weight, its food's values per 100 g, and whether it counts as fruit and vegetables */
+    public record IngredientDto(UUID foodId, String name, double grams, double kcal, Nutrients per100, boolean fruitVeg) {}
 
     /** per serving: the calories, the macros when known */
     public record ManualNutrition(
@@ -83,7 +96,7 @@ public class RecipeService {
             @DecimalMin("0") @DecimalMax("500") Double carbsG,
             @DecimalMin("0") @DecimalMax("500") Double fatG) {}
 
-    public record RecipeDto(UUID id, String name, Type type, int servings, String notes, boolean shared, Visibility visibility,
+    public record RecipeDto(UUID id, String name, Type type, List<Type> types, int servings, String notes, boolean shared, Visibility visibility,
             boolean hidden, boolean mine,
             String author, Nutrients perServing, Double servingG, String nutriscore, int score, Integer myVote, String imageUrl,
             String thumbUrl, List<IngredientDto> ingredients, Instant createdAt,
@@ -91,7 +104,7 @@ public class RecipeService {
             Boolean manualNutrition, List<String> ingredientLines, String sourceUrl, String sourceName) {}
 
     /** a recipe as stored */
-    public record RecipeRow(UUID id, UUID ownerId, String ownerName, String name, Type type, int servings, String notes, boolean shared,
+    public record RecipeRow(UUID id, UUID ownerId, String ownerName, String name, Type type, List<Type> types, int servings, String notes, boolean shared,
             Visibility visibility, boolean hidden, String imageFormat, Long imageBytes, int imageVersion, Nutrients perServing, Double servingG,
             String nutriscore, int score, Instant createdAt) {
 
@@ -122,7 +135,7 @@ public class RecipeService {
     }
 
     private static final String SELECT = """
-            select r.id, r.owner_id, u.display_name, r.name, r.type, r.servings, r.notes, r.shared, r.visibility, r.hidden, r.image_format, r.image_bytes,
+            select r.id, r.owner_id, u.display_name, r.name, r.type, r.types, r.servings, r.notes, r.shared, r.visibility, r.hidden, r.image_format, r.image_bytes,
               r.image_version, r.kcal, r.protein_g, r.carbs_g, r.sugars_g, r.fat_g, r.sat_fat_g, r.fiber_g, r.salt_g, r.serving_g,
               r.nutriscore, r.score, r.created_at
             from recipe r join app_user u on u.id = r.owner_id""";
@@ -133,7 +146,8 @@ public class RecipeService {
         double serving = rs.getDouble("serving_g");
         boolean noServing = rs.wasNull();
         return new RecipeRow(rs.getObject("id", UUID.class), rs.getObject("owner_id", UUID.class), rs.getString("display_name"),
-                rs.getString("name"), Type.valueOf(rs.getString("type")), rs.getInt("servings"), rs.getString("notes"),
+                rs.getString("name"), Type.valueOf(rs.getString("type")), types(rs.getString("type"), rs.getString("types")), rs.getInt("servings"),
+                rs.getString("notes"),
                 rs.getBoolean("shared"), Visibility.valueOf(rs.getString("visibility")), rs.getBoolean("hidden"), rs.getString("image_format"),
                 noImage ? null : bytes,
                 rs.getInt("image_version"), Nutrients.from(rs), noServing ? null : serving, rs.getString("nutriscore"), rs.getInt("score"),
@@ -171,7 +185,7 @@ public class RecipeService {
         String base = "/api/recipes/" + r.id() + "/image/";
         String v = "?v=" + r.imageVersion();
         boolean mine = r.ownerId().equals(viewerId);
-        return new RecipeDto(r.id(), r.name(), r.type(), r.servings(), withIngredients ? r.notes() : null, r.shared(), r.visibility(), r.hidden(),
+        return new RecipeDto(r.id(), r.name(), r.type(), r.types(), r.servings(), withIngredients ? r.notes() : null, r.shared(), r.visibility(), r.hidden(),
                 mine,
                 firstName(r.ownerName()), r.perServing().rounded(), r.servingG(), r.nutriscore(), r.score(), myVote,
                 r.imageFormat() == null ? null : base + "full" + v, r.imageFormat() == null ? null : base + "thumb" + v, ingredients,
@@ -179,10 +193,33 @@ public class RecipeService {
     }
 
     private List<IngredientDto> ingredients(UUID recipeId) {
-        return jdbc.query("select food_id, name, grams, kcal from recipe_ingredient where recipe_id = ? order by position",
+        return jdbc.query("""
+                select ri.food_id, ri.name, ri.grams, ri.kcal, ri.protein_g, ri.carbs_g, ri.sugars_g, ri.fat_g, ri.sat_fat_g, ri.fiber_g, ri.salt_g,
+                  f.category
+                from recipe_ingredient ri left join food f on f.id = ri.food_id where ri.recipe_id = ? order by ri.position""",
                 (rs, i) -> new IngredientDto(rs.getObject("food_id", UUID.class), rs.getString("name"), rs.getDouble("grams"),
-                        Math.round(rs.getDouble("kcal") * rs.getDouble("grams") / 100)),
+                        Math.round(rs.getDouble("kcal") * rs.getDouble("grams") / 100), Nutrients.from(rs).rounded(),
+                        Nutriscore.fruitVeg(rs.getString("category"))),
                 recipeId);
+    }
+
+    /** "BREAKFAST,SNACK" → the types, the main one always there (and first) */
+    static List<Type> types(String main, String all) {
+        java.util.LinkedHashSet<Type> out = new java.util.LinkedHashSet<>();
+        out.add(Type.valueOf(main));
+        for (String t : all == null ? new String[0] : all.split(",")) {
+            for (Type x : Type.values()) {
+                if (x.name().equals(t.strip())) {
+                    out.add(x);
+                }
+            }
+        }
+        return List.copyOf(out);
+    }
+
+    /** a recipe of this type: its main one, or one of the others */
+    private static String ofType(Type type) {
+        return type == null ? "" : " and (r.type = '" + type.name() + "' or (',' || coalesce(r.types, '') || ',') like '%," + type.name() + ",%')";
     }
 
     public List<RecipeDto> mine(UUID userId) {
@@ -191,10 +228,24 @@ public class RecipeService {
     }
 
     /** the community: shared recipes, best first or newest first, by type */
+    /** a recipe name without case nor accents (as SearchText.normalize, letter for letter) */
+    private static final String PLAIN_NAME = "translate(lower(r.name), 'àáâäãåèéêëìíîïòóôöõùúûüýÿçñœæ', 'aaaaaaeeeeiiiiooooouuuuyycnoa')";
+
     public List<RecipeDto> community(UUID viewerId, Type type, boolean newest, int page) {
-        String where = " where r.shared and not r.hidden" + (type == null ? "" : " and r.type = '" + type.name() + "'");
+        return community(viewerId, type, newest, page, null);
+    }
+
+    /** 30 a page; with words, the recipes whose name holds every one of them (« creme brulee » finds « Crème brûlée ») */
+    public List<RecipeDto> community(UUID viewerId, Type type, boolean newest, int page, String query) {
+        StringBuilder where = new StringBuilder(" where r.shared and not r.hidden").append(ofType(type));
+        List<Object> args = new java.util.ArrayList<>();
+        for (String word : fr.mbonnici.mybody365.nutrition.SearchText.words(query)) {
+            where.append(" and ").append(PLAIN_NAME).append(" like ? escape '\\'");
+            args.add(fr.mbonnici.mybody365.nutrition.SearchText.contains(word));
+        }
         String order = newest ? " order by r.shared_at desc nulls last" : " order by r.score desc, r.shared_at desc nulls last";
-        return jdbc.query(SELECT + where + order + " limit 30 offset ?", RecipeService::map, Math.max(0, page) * 30).stream()
+        args.add(Math.max(0, page) * 30);
+        return jdbc.query(SELECT + where + order + " limit 30 offset ?", RecipeService::map, args.toArray()).stream()
                 .map(r -> dto(r, viewerId, false)).toList();
     }
 
@@ -202,7 +253,7 @@ public class RecipeService {
     public List<RecipeDto> ofFriends(UUID viewerId, Type type) {
         String where = " where not r.hidden and r.visibility <> 'PRIVATE'"
                 + " and r.owner_id in (select user_b from friendship where user_a = ? union select user_a from friendship where user_b = ?)";
-        String byType = type == null ? "" : " and r.type = '" + type.name() + "'";
+        String byType = ofType(type);
         return jdbc.query(SELECT + where + byType + " order by r.updated_at desc limit 60", RecipeService::map, viewerId, viewerId)
                 .stream().map(r -> dto(r, viewerId, false)).toList();
     }
@@ -210,8 +261,8 @@ public class RecipeService {
     @Transactional
     public RecipeDto create(UUID userId, RecipeInput in) {
         UUID id = UUID.randomUUID();
-        jdbc.update("insert into recipe (id, owner_id, name, type, servings) values (?, ?, ?, ?, ?)", id, userId, in.name().strip(),
-                in.type().name(), in.servings());
+        jdbc.update("insert into recipe (id, owner_id, name, type, types, servings) values (?, ?, ?, ?, ?, ?)", id, userId, in.name().strip(),
+                in.type().name(), in.allTypes(), in.servings());
         write(id, userId, in);
         news.saved(userId, id);
         return dto(row(id), userId, true);
@@ -260,12 +311,12 @@ public class RecipeService {
         boolean pub = in.resolved() == Visibility.PUBLIC;
         boolean wasShared = Boolean.TRUE.equals(jdbc.queryForObject("select shared from recipe where id = ?", Boolean.class, id));
         jdbc.update("""
-                update recipe set name = ?, type = ?, servings = ?, notes = ?, shared = ?, visibility = ?, kcal = ?, protein_g = ?, carbs_g = ?,
+                update recipe set name = ?, type = ?, types = ?, servings = ?, notes = ?, shared = ?, visibility = ?, kcal = ?, protein_g = ?, carbs_g = ?,
                   sugars_g = null, fat_g = ?, sat_fat_g = null, fiber_g = null, salt_g = null, serving_g = null, nutriscore = null,
                   manual_nutrition = true, ingredient_lines = ?, source_url = ?, updated_at = now(),
                   shared_at = case when ? and not ? then now() else shared_at end
                 where id = ?""",
-                in.name().strip(), in.type().name(), in.servings(), in.notes() == null || in.notes().isBlank() ? null : in.notes().strip(), pub,
+                in.name().strip(), in.type().name(), in.allTypes(), in.servings(), in.notes() == null || in.notes().isBlank() ? null : in.notes().strip(), pub,
                 in.resolved().name(), m.kcal(), m.proteinG(), m.carbsG(), m.fatG(), lines.isEmpty() ? null : String.join("\n", lines),
                 source(in.sourceUrl()), pub, wasShared, id);
     }
@@ -282,6 +333,7 @@ public class RecipeService {
         jdbc.update("delete from recipe_ingredient where recipe_id = ?", id);
         Nutrients total = Nutrients.ZERO;
         double grams = 0;
+        double fruitVeg = 0;
         int position = 0;
         for (IngredientInput ing : in.ingredients()) {
             Food f = foods.usable(ing.foodId(), userId);
@@ -293,16 +345,20 @@ public class RecipeService {
                     n.proteinG(), n.carbsG(), n.sugarsG(), n.fatG(), n.satFatG(), n.fiberG(), n.saltG());
             total = total.plus(n.times(ing.grams() / 100));
             grams += ing.grams();
+            if (Nutriscore.fruitVeg(f.category())) {
+                fruitVeg += ing.grams();
+            }
         }
         Nutrients perServing = total.times(1.0 / in.servings());
-        String grade = Nutriscore.grade(total.times(100 / grams));
+        // a ratatouille is mostly vegetables: their share counts, as on a packaging
+        String grade = Nutriscore.grade(total.times(100 / grams), 100 * fruitVeg / grams);
         boolean wasShared = Boolean.TRUE.equals(jdbc.queryForObject("select shared from recipe where id = ?", Boolean.class, id));
         jdbc.update("""
-                update recipe set name = ?, type = ?, servings = ?, notes = ?, shared = ?, visibility = ?, kcal = ?, protein_g = ?, carbs_g = ?, sugars_g = ?,
+                update recipe set name = ?, type = ?, types = ?, servings = ?, notes = ?, shared = ?, visibility = ?, kcal = ?, protein_g = ?, carbs_g = ?, sugars_g = ?,
                   fat_g = ?, sat_fat_g = ?, fiber_g = ?, salt_g = ?, serving_g = ?, nutriscore = ?, updated_at = now(),
                   shared_at = case when ? and not ? then now() else shared_at end
                 where id = ?""",
-                in.name().strip(), in.type().name(), in.servings(), in.notes() == null || in.notes().isBlank() ? null : in.notes().strip(),
+                in.name().strip(), in.type().name(), in.allTypes(), in.servings(), in.notes() == null || in.notes().isBlank() ? null : in.notes().strip(),
                 in.resolved() == Visibility.PUBLIC, in.resolved().name(), perServing.kcal(), perServing.proteinG(), perServing.carbsG(),
                 perServing.sugarsG(), perServing.fatG(), perServing.satFatG(), perServing.fiberG(), perServing.saltG(), grams / in.servings(), grade,
                 in.resolved() == Visibility.PUBLIC, wasShared, id);
@@ -322,9 +378,9 @@ public class RecipeService {
         RecipeRow r = viewable(id, userId, false);
         UUID copy = UUID.randomUUID();
         jdbc.update("""
-                insert into recipe (id, owner_id, name, type, servings, notes, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g,
+                insert into recipe (id, owner_id, name, type, types, servings, notes, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g,
                   salt_g, serving_g, nutriscore, manual_nutrition, ingredient_lines, source_url)
-                select ?, ?, name, type, servings, notes, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g, salt_g, serving_g,
+                select ?, ?, name, type, types, servings, notes, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g, salt_g, serving_g,
                   nutriscore, manual_nutrition, ingredient_lines, source_url from recipe where id = ?""", copy, userId, id);
         jdbc.update("""
                 insert into recipe_ingredient (id, recipe_id, position, food_id, name, grams, kcal, protein_g, carbs_g, sugars_g, fat_g,
@@ -338,7 +394,7 @@ public class RecipeService {
             byte[] thumb = storage.get(r.imageKey(true));
             if (full != null && thumb != null && fits(userId, full.length + thumb.length)) {
                 RecipeRow c = row(copy);
-                RecipeRow withImage = new RecipeRow(c.id(), c.ownerId(), c.ownerName(), c.name(), c.type(), c.servings(), c.notes(), false,
+                RecipeRow withImage = new RecipeRow(c.id(), c.ownerId(), c.ownerName(), c.name(), c.type(), c.types(), c.servings(), c.notes(), false,
                         Visibility.PRIVATE, false, r.imageFormat(), (long) (full.length + thumb.length), 1, c.perServing(), c.servingG(), c.nutriscore(), 0,
                         c.createdAt());
                 storage.put(withImage.imageKey(false), full, contentType(r.imageFormat()));
@@ -363,7 +419,7 @@ public class RecipeService {
         long size = img.full().length + img.thumb().length;
         quota.check(userId, size, r.imageBytes() == null ? 0 : r.imageBytes());
         int version = r.imageVersion() + 1;
-        RecipeRow next = new RecipeRow(r.id(), r.ownerId(), r.ownerName(), r.name(), r.type(), r.servings(), r.notes(), r.shared(),
+        RecipeRow next = new RecipeRow(r.id(), r.ownerId(), r.ownerName(), r.name(), r.type(), r.types(), r.servings(), r.notes(), r.shared(),
                 r.visibility(), r.hidden(), img.format(), size, version, r.perServing(), r.servingG(), r.nutriscore(), r.score(), r.createdAt());
         storage.put(next.imageKey(false), img.full(), img.contentType());
         storage.put(next.imageKey(true), img.thumb(), img.contentType());

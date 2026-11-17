@@ -25,6 +25,24 @@ html.app-mode {
 html.app-mode body {
   touch-action: pan-x pan-y;
 }
+/* like a phone app: the app's texts cannot be selected nor copied, and a long press on a link or a button shows no
+   preview of the next page (« Ouvrir dans Safari, Partager… »). What is meant to be copied has its « Copier » button
+   (a link, a username, an error trace) */
+html.app-mode body {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* the fields keep their own menu (select, copy, paste): on iOS, a field that inherits « none » cannot even be typed in */
+/* one's own photo, shown whole: a long press still offers « Enregistrer l'image » */
+html.app-mode img.savable {
+  -webkit-touch-callout: default;
+}
+html.app-mode :is(input, textarea, select, [contenteditable='true'], [contenteditable='']) {
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  user-select: text;
+}
 body {
   min-height: 100dvh;
   background: var(--bg);

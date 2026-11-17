@@ -231,12 +231,16 @@ class MealsTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.slots[0].slot").value("BREAKFAST"))
                 .andExpect(jsonPath("$.slots[0].days").value(3))
                 .andExpect(jsonPath("$.grades[0].grade").value("E"))
-                .andExpect(jsonPath("$.totals.kcal").value(closeTo(593.0, 1)));
+                .andExpect(jsonPath("$.totals.kcal").value(closeTo(593.0, 1)))
+                // what brought the most sugar this week, for the trends
+                .andExpect(jsonPath("$.sugarSources[0].name").value("Pâte à tartiner noisettes"))
+                .andExpect(jsonPath("$.sugarSources[0].grams").isNumber());
         mvc.perform(get("/api/me/meals/stats").param("days", "12").with(as(lea))).andExpect(status().isBadRequest());
         // nothing logged: empty but valid
         mvc.perform(get("/api/me/meals/stats").param("days", "30").with(as(hugo)))
                 .andExpect(jsonPath("$.daily.length()").value(0))
-                .andExpect(jsonPath("$.totals.kcal").value(0));
+                .andExpect(jsonPath("$.totals.kcal").value(0))
+                .andExpect(jsonPath("$.sugarSources.length()").value(0));
     }
 
     @Test
@@ -252,12 +256,23 @@ class MealsTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.perServing.kcal").value(closeTo(266.6, 0.1)))
                 .andExpect(jsonPath("$.servingG").value(250.0))
                 .andExpect(jsonPath("$.ingredients.length()").value(2))
+                // each line with its values per 100 g (the editor's live Nutri-Score) and whether it is fruit or vegetables
+                .andExpect(jsonPath("$.ingredients[0].per100.kcal").value(closeTo(52.1, 0.1)))
+                .andExpect(jsonPath("$.ingredients[0].fruitVeg").value(true))
+                .andExpect(jsonPath("$.ingredients[1].fruitVeg").value(false))
+                .andExpect(jsonPath("$.nutriscore").exists())
                 .andReturn().getResponse().getContentAsString();
         String id = JsonPath.read(recipe, "$.id");
 
         // private until shared
         mvc.perform(get("/api/recipes/" + id).with(as(hugo))).andExpect(status().isNotFound());
         mvc.perform(get("/api/recipes/community").with(as(hugo))).andExpect(jsonPath("$[*].id", not(hasItem(id))));
+        // the community: its admins publish it (1.7), a member cannot
+        json(put("/api/me/recipes/" + id), lea, """
+                {"name":"Riz aux pommes","type":"DESSERT","servings":2,"shared":true,
+                 "ingredients":[{"foodId":"%s","grams":200},{"foodId":"%s","grams":300}]}""".formatted(apple, rice))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value("community_admins_only"));
+        jdbc.update("update app_user set role = 'ADMIN' where id = ?", lea.getId());
         json(put("/api/me/recipes/" + id), lea, """
                 {"name":"Riz aux pommes","type":"DESSERT","servings":2,"shared":true,
                  "ingredients":[{"foodId":"%s","grams":200},{"foodId":"%s","grams":300}]}""".formatted(apple, rice)).andExpect(status().isOk());

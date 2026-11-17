@@ -152,15 +152,20 @@ class FriendsTest extends AbstractIntegrationTest {
     void aReportedRecipeIsHiddenFromTheCommunity() throws Exception {
         String food = JsonPath.read(mvc.perform(post("/api/me/foods").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"Pain\",\"kcal\":250}")).andReturn().getResponse().getContentAsString(), "$.id");
+        String body = "{\"name\":\"Tartine\",\"type\":\"SNACK\",\"servings\":1,\"shared\":true,\"ingredients\":[{\"foodId\":\"" + food
+                + "\",\"grams\":60}]}";
+        // the community is published by the admins (1.7): a member is refused, an admin's recipe can still be reported
+        mvc.perform(post("/api/me/recipes").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest());
+        jdbc.update("update app_user set role = 'ADMIN' where id = ?", lea.getId());
         String recipe = JsonPath.read(mvc.perform(post("/api/me/recipes").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"name\":\"Tartine\",\"type\":\"SNACK\",\"servings\":1,\"shared\":true,\"ingredients\":[{\"foodId\":\"" + food
-                        + "\",\"grams\":60}]}")).andReturn().getResponse().getContentAsString(), "$.id");
+                .content(body)).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), "$.id");
         mvc.perform(post("/api/reports").with(as(hugo)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"type\":\"RECIPE\",\"targetId\":\"" + recipe + "\",\"reason\":\"SPAM\",\"comment\":\"pub\"}"))
                 .andExpect(status().isNoContent());
         String id = JsonPath.read(mvc.perform(get("/api/admin/moderation").with(as(admin))).andExpect(jsonPath("$.reports[0].title").value("Tartine"))
                 .andReturn().getResponse().getContentAsString(), "$.reports[0].id");
-        mvc.perform(get("/api/admin/moderation").with(as(lea))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/admin/moderation").with(as(hugo))).andExpect(status().isForbidden());
         mvc.perform(post("/api/admin/reports/" + id + "/act").with(as(admin)).with(csrf())).andExpect(status().isOk());
         mvc.perform(get("/api/recipes/" + recipe).with(as(hugo))).andExpect(status().isNotFound());
         mvc.perform(post("/api/admin/recipes/" + recipe + "/restore").with(as(admin)).with(csrf())).andExpect(status().isOk());
@@ -211,7 +216,7 @@ class FriendsTest extends AbstractIntegrationTest {
         assertThat(pushes.sent.getFirst().endpoint().toString()).endsWith("/hugo");
         // once per recipe
         mvc.perform(put("/api/me/recipes/" + id).with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                .content(recipe("PUBLIC", "Bruschetta maison"))).andExpect(status().isOk());
+                .content(recipe("FRIENDS", "Bruschetta maison"))).andExpect(status().isOk());
         awaitPushes(1);
         // and one an hour at most: the next one shows in the friends' tab only
         mvc.perform(post("/api/me/recipes").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
@@ -222,7 +227,7 @@ class FriendsTest extends AbstractIntegrationTest {
         // an hour later, a new recipe is announced again
         jdbc.update("update recipe set announced_at = announced_at - interval '2 hours'");
         mvc.perform(post("/api/me/recipes").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                .content(recipe("PUBLIC", "Tzatziki"))).andExpect(status().isCreated());
+                .content(recipe("FRIENDS", "Tzatziki"))).andExpect(status().isCreated());
         awaitPushes(2);
     }
 }

@@ -13,6 +13,10 @@ class IngredientMatcherTest {
     private static final List<Candidate> TABLE = List.of(
             IngredientMatcher.candidate("9440", "Farine de blé tendre ou froment T45 (pour pâtisserie)", "farines"),
             IngredientMatcher.candidate("9999", "Farine de riz", "farines"),
+            IngredientMatcher.candidate("9415", "Farine de blé tendre ou froment T150", "farines"),
+            IngredientMatcher.candidate("20915", "Farine de soja complète", "farines"),
+            IngredientMatcher.candidate("26039", "Thon, au naturel, appertisé, égoutté", "poissons"),
+            IngredientMatcher.candidate("26179", "Thon germon ou thon blanc, à l'huile d'olive, appertisé", "poissons"),
             IngredientMatcher.candidate("16400", "Beurre à 80% MG minimum, doux", "beurres"),
             IngredientMatcher.candidate("31016", "Sucre blanc", "sucres"),
             IngredientMatcher.candidate("31017", "Sucre roux", "sucres"),
@@ -68,6 +72,19 @@ class IngredientMatcherTest {
         // nothing to weigh
         parsed("Sel, poivre", null, "Sel");
         parsed("1 poulet fermier", null, "poulet fermier");
+        // what a container holds
+        parsed("1 boîte de thon", 140.0, "thon");
+        parsed("1 boîte de pois chiches", 260.0, "pois chiches");
+        parsed("1 filet d'huile d'olive", 5.0, "huile d'olive");
+        parsed("2 filets de saumon", 280.0, "saumon");
+        parsed("1 noix de beurre", 10.0, "beurre");
+        parsed("1 poignée de roquette", 30.0, "roquette");
+        parsed("1 botte de radis", 200.0, "radis");
+        parsed("4 carrés de chocolat noir", 20.0, "chocolat noir");
+        parsed("1 verre de lait", 200.0, "lait");
+        parsed("2 pavés de saumon", 250.0, "pavés de saumon");
+        // hazelnuts, not a knob of anything
+        parsed("2 noisettes", null, "noisettes");
     }
 
     private static String food(String name) {
@@ -78,6 +95,10 @@ class IngredientMatcherTest {
     @Test
     void findsTheFoodItMostProbablyIs() {
         assertThat(food("Farine")).isEqualTo("9440");
+        // wholemeal wheat flour, not soya flour
+        assertThat(food("Farine complète")).isEqualTo("9415");
+        // canned tuna in water, the usual one
+        assertThat(food("thon")).isEqualTo("26039");
         assertThat(food("Beurre")).isEqualTo("16400");
         assertThat(food("Oeufs")).isEqualTo("22000");
         assertThat(food("Jaunes d'œufs")).isEqualTo("22002");

@@ -1,0 +1,653 @@
+# Soupes, salades, légumes, plats végétariens, œufs et tartes salées (même format que 1-viandes-volailles.txt)
+
+= Soupe de légumes | LUNCH,DINNER | 6
+20009 300 carottes
+20039 300 poireaux
+4008 300 pommes de terre
+20020 300 courgettes
+20034 100 oignon
+11041 15 bouillon de légumes
+18066 1500 eau
+16400 15 beurre
+11058 3 sel
+: Faire revenir l'oignon dans le beurre
+: Ajouter les légumes en morceaux, l'eau et le bouillon, cuire 30 minutes
+: Mixer et rectifier l'assaisonnement
+
+= Velouté de potiron | LUNCH,DINNER | 6
+20044 1200 potiron
+4008 200 pomme de terre
+20034 100 oignon
+11041 15 bouillon de légumes
+18066 1000 eau
+19436 100 crème légère
+11048 1 muscade
+11058 3 sel
+: Cuire le potiron, la pomme de terre et l'oignon 25 minutes dans l'eau avec le bouillon
+: Mixer avec la crème et la muscade
+
+= Soupe à l'oignon gratinée | LUNCH,DINNER | 4
+20034 700 oignons
+16400 40 beurre
+9440 20 farine
+5215 150 vin blanc
+11001 15 bouillon de bœuf
+18066 1200 eau
+7001 120 pain
+12114 120 gruyère râpé
+: Faire dorer les oignons émincés 20 minutes dans le beurre, saupoudrer de farine
+: Ajouter le vin, l'eau et le bouillon, cuire 20 minutes
+: Verser dans des bols, poser une tranche de pain et le gruyère, gratiner sous le gril
+
+= Velouté poireaux et pommes de terre | LUNCH,DINNER | 6
+20039 600 poireaux
+4008 500 pommes de terre
+11041 15 bouillon de légumes
+18066 1300 eau
+19436 100 crème légère
+16400 15 beurre
+11058 3 sel
+: Faire fondre les poireaux émincés dans le beurre
+: Ajouter les pommes de terre, l'eau et le bouillon, cuire 25 minutes
+: Mixer avec la crème
+
+= Gaspacho | LUNCH,DINNER,SNACK | 4
+20385 1000 tomates bien mûres
+20019 250 concombre
+20041 150 poivron
+20034 50 oignon
+11000 5 ail
+17270 30 huile d'olive
+11018 15 vinaigre de vin
+11058 4 sel
+: Mixer tous les ingrédients jusqu'à obtenir une soupe lisse
+: Réserver au frais au moins 2 heures et servir glacé
+
+= Soupe de lentilles corail | LUNCH,DINNER | 4
+20535 200 lentilles corail
+20009 200 carottes
+20034 100 oignon
+18041 200 lait de coco
+11042 3 cumin
+11005 3 curry
+11041 10 bouillon de légumes
+18066 1000 eau
+11058 2 sel
+: Faire revenir l'oignon avec les épices, ajouter les carottes, les lentilles, l'eau et le bouillon
+: Cuire 20 minutes, mixer avec le lait de coco
+
+= Velouté de carottes au cumin | LUNCH,DINNER | 4
+20009 800 carottes
+20034 100 oignon
+4008 150 pomme de terre
+11042 3 cumin
+11041 10 bouillon de légumes
+18066 900 eau
+19436 80 crème légère
+11058 2 sel
+: Cuire carottes, oignon et pomme de terre 25 minutes dans l'eau avec le bouillon et le cumin
+: Mixer avec la crème
+
+= Minestrone | LUNCH,DINNER | 6
+20020 300 courgettes
+20009 200 carottes
+20023 100 céleri branche
+20061 150 haricots verts
+20511 250 haricots blancs cuits
+20137 400 tomates pelées
+9810 100 petites pâtes
+20034 100 oignon
+11041 15 bouillon de légumes
+18066 1500 eau
+17270 20 huile d'olive
+12120 40 parmesan
+: Faire revenir l'oignon, les carottes et le céleri dans l'huile
+: Ajouter les tomates, l'eau, le bouillon et les légumes restants, cuire 25 minutes
+: Ajouter les pâtes et les haricots 10 minutes avant la fin, servir avec le parmesan
+
+= Velouté de courgettes au fromage frais | LUNCH,DINNER | 4
+20020 1000 courgettes
+20034 80 oignon
+12069 100 fromage frais
+11041 10 bouillon de légumes
+18066 600 eau
+11058 2 sel
+: Cuire les courgettes et l'oignon 15 minutes dans l'eau avec le bouillon
+: Mixer avec le fromage frais
+
+= Soupe de pois cassés | LUNCH,DINNER | 6
+20515 400 pois cassés
+20009 200 carottes
+20034 100 oignon
+28720 100 lardons fumés
+18066 1800 eau
+11058 3 sel
+: Faire revenir les lardons et l'oignon
+: Ajouter les pois cassés, les carottes et l'eau, cuire 1 heure à petit feu
+: Mixer et ajuster l'assaisonnement
+
+= Salade César | LUNCH,DINNER | 4
+20171 400 laitue romaine
+36017 400 blancs de poulet
+7001 100 pain pour les croûtons
+12120 50 parmesan
+22002 20 jaune d'œuf
+26000 15 anchois
+2028 15 jus de citron
+11013 10 moutarde
+17270 60 huile d'olive
+11000 5 ail
+: Griller le poulet et le couper en lanières, dorer le pain en cubes à la poêle
+: Mixer jaune d'œuf, anchois, citron, moutarde, ail et huile pour la sauce
+: Mélanger la salade avec la sauce, ajouter le poulet, les croûtons et le parmesan
+
+= Salade niçoise | LUNCH,DINNER | 4
+20385 400 tomates
+20031 150 salade
+26039 280 thon au naturel
+22000 200 œufs durs
+20061 200 haricots verts
+20041 100 poivron
+13032 60 olives noires
+26000 30 anchois
+20034 50 oignon nouveau
+17270 40 huile d'olive
+11018 10 vinaigre
+11058 3 sel
+: Cuire les œufs 10 minutes et les haricots 8 minutes
+: Disposer la salade, les tomates en quartiers, les haricots, le poivron, le thon, les œufs, les anchois et les olives
+: Arroser de vinaigrette
+
+= Taboulé | LUNCH,DINNER,SNACK | 6
+9610 250 semoule
+20385 400 tomates
+20019 250 concombre
+20034 60 oignon
+11014 30 persil
+11027 20 menthe
+2028 60 jus de citron
+17270 50 huile d'olive
+18066 250 eau
+11058 4 sel
+: Verser l'eau bouillante sur la semoule, couvrir 5 minutes, égrener
+: Ajouter les légumes en petits dés, les herbes ciselées, le citron, l'huile et le sel
+: Réserver au frais 1 heure
+
+= Salade de pâtes | LUNCH,DINNER | 4
+9810 300 pâtes
+20172 250 tomates cerises
+19590 125 mozzarella
+28910 120 jambon cuit
+20066 100 maïs
+11033 10 basilic
+17270 40 huile d'olive
+11091 10 vinaigre balsamique
+11058 3 sel
+: Cuire les pâtes, les rafraîchir à l'eau froide
+: Mélanger avec les tomates, la mozzarella, le jambon, le maïs, le basilic et la vinaigrette
+
+= Salade de riz | LUNCH,DINNER | 4
+9100 250 riz
+26039 200 thon au naturel
+22000 100 œufs durs
+20385 250 tomates
+20066 120 maïs
+20041 100 poivron
+13032 40 olives noires
+17270 40 huile d'olive
+11018 10 vinaigre
+11058 3 sel
+: Cuire le riz, le rincer à l'eau froide
+: Mélanger avec tous les ingrédients et la vinaigrette, servir frais
+
+= Salade de lentilles | LUNCH,DINNER | 4
+20585 250 lentilles vertes
+20097 40 échalote
+20009 150 carotte
+28910 100 jambon cuit ou lardons
+11014 15 persil
+17130 30 huile de colza
+11013 10 moutarde
+11018 15 vinaigre
+11058 3 sel
+: Cuire les lentilles 25 minutes à l'eau, les égoutter
+: Les mélanger tièdes avec l'échalote, la carotte râpée, le jambon, le persil et la vinaigrette moutardée
+
+= Salade piémontaise | LUNCH,DINNER | 6
+4008 800 pommes de terre
+22000 150 œufs durs
+28910 150 jambon cuit
+20385 250 tomates
+11004 60 cornichons
+11054 120 mayonnaise
+11058 3 sel
+: Cuire les pommes de terre et les œufs, les couper en dés
+: Mélanger avec le jambon, les tomates, les cornichons et la mayonnaise
+
+= Salade grecque | LUNCH,DINNER | 4
+20385 500 tomates
+20019 300 concombre
+12066 200 feta
+20041 100 poivron vert
+20034 60 oignon rouge
+13032 60 olives noires
+17270 40 huile d'olive
+11060 2 origan ou herbes
+: Couper les légumes en morceaux, ajouter les olives et la feta en dés
+: Arroser d'huile et parsemer d'origan
+
+= Carottes râpées | LUNCH,DINNER,SNACK | 4
+20009 500 carottes
+2028 30 jus de citron
+17270 30 huile d'olive
+11014 10 persil
+11058 2 sel
+: Râper les carottes finement
+: Assaisonner de citron, d'huile, de persil et de sel
+
+= Céleri rémoulade | LUNCH,DINNER,SNACK | 4
+20055 500 céleri-rave
+11054 100 mayonnaise
+11013 20 moutarde
+2028 15 jus de citron
+11058 2 sel
+: Râper le céleri et l'arroser de citron
+: Mélanger avec la mayonnaise et la moutarde, réserver au frais
+
+= Salade de chèvre chaud | LUNCH,DINNER | 4
+20031 200 salade
+12812 240 chèvre en bûche
+7001 120 pain
+15005 30 noix
+31008 15 miel
+17270 30 huile d'olive
+11091 10 vinaigre balsamique
+: Poser une rondelle de chèvre sur chaque tranche de pain, ajouter un peu de miel et passer 5 minutes sous le gril
+: Servir sur la salade assaisonnée avec les noix
+
+= Œufs mimosa | LUNCH,DINNER,SNACK | 4
+22000 300 œufs
+11054 60 mayonnaise
+11003 5 ciboulette
+11058 1 sel
+: Cuire les œufs 10 minutes, les écaler et les couper en deux
+: Écraser les jaunes avec la mayonnaise, en garnir les blancs et parsemer de ciboulette
+
+= Poireaux vinaigrette | LUNCH,DINNER | 4
+20039 800 poireaux
+22000 100 œufs durs
+17130 40 huile de colza
+11013 10 moutarde
+11018 15 vinaigre
+11058 2 sel
+: Cuire les poireaux 15 minutes à l'eau, les égoutter
+: Les napper de vinaigrette moutardée et de l'œuf dur haché
+
+= Salade de quinoa, avocat et feta | LUNCH,DINNER | 4
+9340 200 quinoa
+13004 200 avocat
+12066 120 feta
+20172 200 tomates cerises
+20019 150 concombre
+2028 30 jus de citron
+17270 30 huile d'olive
+11027 10 menthe
+11058 2 sel
+: Cuire le quinoa 12 minutes, le rincer et le laisser refroidir
+: Mélanger avec les légumes, l'avocat, la feta, la menthe, le citron et l'huile
+
+= Ratatouille | LUNCH,DINNER | 6
+20053 500 aubergines
+20020 500 courgettes
+20041 400 poivrons
+20385 600 tomates
+20034 200 oignons
+11000 15 ail
+17270 50 huile d'olive
+11060 3 herbes de Provence
+11058 5 sel
+: Faire revenir séparément aubergines, courgettes et poivrons en dés dans l'huile
+: Faire fondre les oignons, ajouter les tomates, l'ail et les herbes
+: Réunir tous les légumes et laisser mijoter 40 minutes
+
+= Gratin dauphinois | LUNCH,DINNER | 6
+4008 1500 pommes de terre
+19016 500 lait entier
+19417 250 crème liquide
+11000 10 ail
+16400 15 beurre
+11048 1 muscade
+11058 6 sel
+: Couper les pommes de terre en fines rondelles sans les laver
+: Les cuire 10 minutes dans le lait avec l'ail, la muscade et le sel
+: Verser dans un plat beurré, ajouter la crème et cuire 1 heure à 160 °C
+
+= Gratin de courgettes | LUNCH,DINNER | 4
+20020 1000 courgettes
+22000 100 œufs
+19436 150 crème légère
+12118 80 emmental râpé
+11000 5 ail
+17270 15 huile d'olive
+11058 3 sel
+: Faire revenir les courgettes en rondelles dans l'huile avec l'ail, 10 minutes
+: Les disposer dans un plat, napper des œufs battus avec la crème, couvrir de fromage
+: Cuire 25 minutes à 190 °C
+
+= Gratin de chou-fleur | LUNCH,DINNER | 4
+20016 1000 chou-fleur
+16400 30 beurre
+9440 30 farine
+19033 500 lait
+12118 80 emmental râpé
+11048 1 muscade
+11058 4 sel
+: Cuire le chou-fleur en bouquets 10 minutes à l'eau salée
+: Le napper d'une béchamel muscadée, couvrir de fromage et gratiner 20 minutes à 200 °C
+
+= Purée de pommes de terre | LUNCH,DINNER | 4
+4008 1000 pommes de terre
+19033 250 lait
+16400 50 beurre
+11048 1 muscade
+11058 5 sel
+: Cuire les pommes de terre 25 minutes à l'eau salée
+: Les écraser avec le lait chaud, le beurre et la muscade
+
+= Frites maison au four | LUNCH,DINNER,SNACK | 4
+4008 1000 pommes de terre
+17270 30 huile d'olive
+11049 3 paprika
+11058 4 sel
+: Couper les pommes de terre en bâtonnets, les rincer et bien les sécher
+: Les mélanger à l'huile, au paprika et au sel, cuire 35 minutes à 220 °C en les retournant
+
+= Pommes de terre sautées | LUNCH,DINNER | 4
+4008 1000 pommes de terre
+17270 40 huile d'olive
+11000 10 ail
+11014 10 persil
+11058 4 sel
+: Cuire les pommes de terre en dés 10 minutes à l'eau, les égoutter
+: Les faire dorer 15 minutes dans l'huile, ajouter l'ail et le persil hachés en fin de cuisson
+
+= Poêlée de légumes | LUNCH,DINNER | 4
+20020 300 courgette
+20041 200 poivron
+20009 200 carotte
+20057 250 brocoli
+20034 100 oignon
+17270 30 huile d'olive
+11060 2 herbes de Provence
+11058 3 sel
+: Faire sauter tous les légumes en morceaux dans l'huile 12 minutes à feu vif
+: Assaisonner d'herbes et de sel, servir encore croquant
+
+= Tian de légumes | LUNCH,DINNER | 4
+20020 400 courgettes
+20053 400 aubergine
+20385 400 tomates
+20034 150 oignon
+17270 40 huile d'olive
+11070 3 thym
+11058 4 sel
+: Étaler l'oignon émincé dans un plat
+: Disposer les légumes en rondelles en les alternant serrés, arroser d'huile, saler et parsemer de thym
+: Cuire 1 heure à 180 °C
+
+= Courgettes farcies | LUNCH,DINNER | 4
+20020 1000 courgettes rondes ou longues
+6254 400 bœuf haché 15 %
+20034 80 oignon
+7500 30 chapelure
+12118 40 emmental râpé
+11000 5 ail
+11014 10 persil
+11058 4 sel
+: Évider les courgettes coupées en deux
+: Mélanger la viande avec la chair hachée, l'oignon, l'ail, le persil et la chapelure
+: Farcir, parsemer de fromage et cuire 40 minutes à 180 °C
+
+= Tomates farcies | LUNCH,DINNER | 4
+20385 1000 tomates (8)
+30050 400 chair à saucisse
+20034 80 oignon
+7500 30 chapelure
+11014 10 persil
+11000 5 ail
+9100 120 riz
+: Évider les tomates, mélanger la chair à saucisse avec l'oignon, l'ail, le persil et la chapelure
+: Farcir les tomates, mettre le riz cru au fond du plat avec la pulpe et un verre d'eau
+: Cuire 1 heure à 180 °C
+
+= Curry de pois chiches | LUNCH,DINNER | 4
+20532 500 pois chiches cuits
+18041 400 lait de coco
+20137 400 tomates pelées
+20059 200 épinards
+20034 100 oignon
+11005 10 curry
+11074 10 gingembre frais
+11000 10 ail
+17440 15 huile
+11058 3 sel
+: Faire revenir l'oignon, l'ail et le gingembre, ajouter le curry
+: Ajouter les tomates, les pois chiches et le lait de coco, mijoter 20 minutes
+: Ajouter les épinards 2 minutes avant de servir
+
+= Dahl de lentilles corail | LUNCH,DINNER | 4
+20535 250 lentilles corail
+18041 300 lait de coco
+20137 300 tomates pelées
+20034 100 oignon
+11005 8 curry
+11042 3 cumin
+11074 10 gingembre frais
+18066 600 eau
+17440 15 huile
+11058 3 sel
+: Faire revenir l'oignon, le gingembre et les épices
+: Ajouter les lentilles, les tomates, l'eau et le lait de coco, cuire 20 minutes en remuant
+
+= Chili sin carne | LUNCH,DINNER | 4
+20524 500 haricots rouges cuits
+20535 100 lentilles corail
+20137 600 tomates pelées
+20066 150 maïs
+20041 150 poivron
+20034 100 oignon
+11042 4 cumin
+11049 4 paprika
+18066 250 eau
+17270 15 huile d'olive
+11058 3 sel
+: Faire revenir l'oignon et le poivron, ajouter les épices
+: Ajouter tomates, lentilles et eau, cuire 15 minutes, puis haricots et maïs 10 minutes
+
+= Falafels | LUNCH,DINNER,SNACK | 4
+20516 250 pois chiches secs trempés une nuit
+20034 80 oignon
+11014 20 persil
+11094 20 coriandre
+11000 10 ail
+11042 4 cumin
+9440 20 farine
+17440 60 huile
+11058 4 sel
+: Mixer les pois chiches crus égouttés avec l'oignon, l'ail, les herbes et les épices
+: Ajouter la farine, former des boulettes et les dorer dans l'huile ou au four à 200 °C 20 minutes
+
+= Buddha bowl | LUNCH,DINNER | 2
+9340 120 quinoa
+20532 200 pois chiches cuits
+4101 250 patate douce
+13004 100 avocat
+20059 60 jeunes pousses d'épinards
+15203 30 tahin
+2028 20 jus de citron
+17270 15 huile d'olive
+11042 2 cumin
+: Rôtir la patate douce en cubes et les pois chiches avec l'huile et le cumin, 25 minutes à 200 °C
+: Cuire le quinoa 12 minutes
+: Dresser le tout avec l'avocat et les épinards, napper de tahin détendu au citron
+
+= Galettes de courgettes | LUNCH,DINNER,SNACK | 4
+20020 600 courgettes râpées
+22000 100 œufs
+9440 60 farine
+12066 100 feta
+11027 10 menthe
+17270 30 huile d'olive
+11058 2 sel
+: Saler les courgettes râpées 10 minutes, bien les presser
+: Mélanger avec les œufs, la farine, la feta et la menthe
+: Cuire des petites galettes 3 minutes par face dans l'huile
+
+= Shakshuka | BREAKFAST,LUNCH,DINNER | 2
+22000 200 œufs
+20137 400 tomates pelées
+20087 150 poivron rouge
+20034 80 oignon
+11000 5 ail
+11042 2 cumin
+11049 2 paprika
+17270 15 huile d'olive
+11094 5 coriandre
+11058 2 sel
+: Faire revenir l'oignon et le poivron, ajouter l'ail, les épices et les tomates, cuire 10 minutes
+: Creuser des puits, y casser les œufs, couvrir et cuire 6 minutes, parsemer de coriandre
+
+= Curry de légumes au lait de coco | LUNCH,DINNER | 4
+4101 400 patate douce
+20016 300 chou-fleur
+20072 150 petits pois
+18041 400 lait de coco
+20034 100 oignon
+11005 10 curry
+11074 10 gingembre frais
+17440 15 huile
+11058 3 sel
+: Faire revenir l'oignon et le gingembre avec le curry
+: Ajouter la patate douce, le chou-fleur et le lait de coco, cuire 20 minutes
+: Ajouter les petits pois 5 minutes avant la fin
+
+= Tofu sauté aux légumes | LUNCH,DINNER | 4
+20904 400 tofu ferme
+20057 250 brocoli
+20087 150 poivron rouge
+20009 150 carotte
+11104 40 sauce soja
+11074 10 gingembre frais
+15010 10 graines de sésame
+17440 20 huile
+: Dorer le tofu en cubes dans l'huile, le réserver
+: Faire sauter les légumes avec le gingembre, remettre le tofu avec la sauce soja et le sésame
+
+= Poivrons farcis au riz et aux légumes | LUNCH,DINNER | 4
+20087 800 poivrons
+9100 150 riz
+20020 200 courgette
+20137 300 tomates pelées
+12066 100 feta
+20034 80 oignon
+17270 20 huile d'olive
+11060 2 herbes de Provence
+11058 3 sel
+: Cuire le riz 10 minutes, faire revenir l'oignon et la courgette en dés
+: Mélanger le riz, les légumes, les tomates, la feta et les herbes, farcir les poivrons évidés
+: Cuire 45 minutes à 180 °C
+
+= Omelette aux champignons | BREAKFAST,LUNCH,DINNER | 2
+22000 300 œufs
+20056 200 champignons de Paris
+16400 15 beurre
+11014 5 persil
+11058 2 sel
+: Faire sauter les champignons dans la moitié du beurre
+: Battre les œufs, les cuire dans le reste du beurre, garnir de champignons et plier
+
+= Omelette aux fines herbes | BREAKFAST,LUNCH,DINNER | 2
+22000 300 œufs
+11003 5 ciboulette
+11014 5 persil
+16400 15 beurre
+11058 2 sel
+: Battre les œufs avec les herbes ciselées et le sel
+: Cuire à feu moyen dans le beurre en ramenant les bords vers le centre, plier encore baveuse
+
+= Œufs brouillés | BREAKFAST | 2
+22000 200 œufs
+16400 10 beurre
+19436 30 crème légère
+11003 3 ciboulette
+11058 1 sel
+: Cuire les œufs battus à feu très doux dans le beurre en remuant sans arrêt
+: Hors du feu, ajouter la crème et la ciboulette
+
+= Quiche lorraine | LUNCH,DINNER | 6
+23414 230 pâte brisée
+28720 200 lardons fumés
+22000 150 œufs
+19410 200 crème fraîche
+19033 200 lait
+11048 1 muscade
+: Foncer un moule avec la pâte, faire revenir les lardons
+: Battre les œufs avec la crème, le lait et la muscade
+: Répartir les lardons sur la pâte, verser l'appareil et cuire 35 minutes à 180 °C
+
+= Quiche aux poireaux | LUNCH,DINNER | 6
+23414 230 pâte brisée
+20039 500 poireaux
+22000 150 œufs
+19436 200 crème légère
+12118 60 emmental râpé
+16400 15 beurre
+11058 3 sel
+: Faire fondre les poireaux émincés dans le beurre 15 minutes
+: Les étaler sur la pâte, verser les œufs battus avec la crème, couvrir de fromage
+: Cuire 35 minutes à 180 °C
+
+= Tarte à la tomate et à la moutarde | LUNCH,DINNER | 6
+23414 230 pâte brisée
+20385 600 tomates
+11013 50 moutarde
+12118 60 emmental râpé
+17270 15 huile d'olive
+11060 2 herbes de Provence
+11058 2 sel
+: Tartiner la pâte de moutarde, parsemer de fromage
+: Couvrir de rondelles de tomates, arroser d'huile, saler et parsemer d'herbes
+: Cuire 35 minutes à 200 °C
+
+= Tarte au thon | LUNCH,DINNER | 6
+23414 230 pâte brisée
+26039 280 thon au naturel
+20137 300 tomates pelées
+22000 150 œufs
+19436 200 crème légère
+11013 30 moutarde
+12118 60 emmental râpé
+: Tartiner la pâte de moutarde, répartir le thon émietté et les tomates égouttées
+: Verser les œufs battus avec la crème, couvrir de fromage et cuire 35 minutes à 180 °C
+
+= Tarte flambée | LUNCH,DINNER | 4
+37001 400 pâte à pain ou à pizza fine
+19410 200 crème fraîche
+19501 100 fromage blanc
+28720 150 lardons fumés
+20034 200 oignons
+11048 1 muscade
+: Étaler la pâte très finement, la couvrir de crème mêlée au fromage blanc et à la muscade
+: Parsemer d'oignons émincés et de lardons, cuire 12 minutes à 250 °C
+
+= Galette complète | LUNCH,DINNER | 4
+9540 250 farine de sarrasin
+22000 250 œufs
+28910 160 jambon cuit
+12114 160 gruyère râpé
+16402 30 beurre demi-sel
+18066 500 eau
+11058 2 sel
+: Mélanger la farine, l'eau, un œuf et le sel, laisser reposer 1 heure
+: Cuire une galette, la garnir de jambon et de fromage, casser un œuf au centre
+: Replier les bords quand le blanc est pris et servir avec une noisette de beurre

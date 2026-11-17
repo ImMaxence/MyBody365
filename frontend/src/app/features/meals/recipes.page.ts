@@ -6,6 +6,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MealsApi } from '../../core/meals/meals-api';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
+import { NutriscoreComponent } from '../../shared/nutriscore.component';
 import { SegDirective } from '../../shared/seg.directive';
 
 export const RECIPE_TYPES: RecipeType[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK', 'DESSERT', 'DRINK'];
@@ -15,7 +16,7 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
 @Component({
   selector: 'app-recipes',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent, BackButtonComponent],
+  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, NutriscoreComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -43,6 +44,13 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
 
       @if (tab() !== 'mine') {
         <div class="filters">
+          @if (tab() === 'community') {
+            <label class="search">
+              <app-icon name="search" [size]="18" />
+              <input type="search" class="input" [value]="term()" (input)="search($any($event.target).value)" enterkeyhint="search"
+                [placeholder]="'meals.recipe.searchPlaceholder' | t" [attr.aria-label]="'meals.recipe.search' | t" />
+            </label>
+          }
           <div class="slide-chips" role="group" [attr.aria-label]="'meals.recipe.type' | t">
             <button type="button" [attr.aria-pressed]="type() === null" (click)="type.set(null)">{{ 'meals.recipe.allTypes' | t }}</button>
             @for (t of types; track t) {
@@ -69,6 +77,9 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
                   } @else {
                     <span class="emoji" aria-hidden="true">{{ emoji[r.type] }}</span>
                   }
+                  @if (r.nutriscore) {
+                    <app-nutriscore class="grade" [grade]="r.nutriscore" [estimated]="true" />
+                  }
                 </span>
                 <span class="rbody">
                   <span class="rname">{{ r.name }}</span>
@@ -80,7 +91,7 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
                     } @else if (tab() === 'friends') {
                       <span class="friend-by"><app-icon name="users" [size]="13" /> {{ r.author }}</span>
                     } @else {
-                      <span>{{ 'meals.recipe.types.' + r.type | t }}</span>
+                      <span class="types-line">{{ typesOf(r) }}</span>
                       @if (r.visibility !== 'PRIVATE') {
                         <span class="vis-ico" [attr.title]="'meals.recipe.visibility.' + r.visibility | t" [attr.aria-label]="'meals.recipe.visibility.' + r.visibility | t">
                           <app-icon [name]="r.visibility === 'FRIENDS' ? 'users' : 'globe'" [size]="13" />
@@ -92,10 +103,13 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
               </a>
             }
           </div>
+          @if (tab() === 'community' && more()) {
+            <button type="button" class="btn btn-ghost btn-block" [disabled]="loadingMore()" (click)="loadMore()">{{ 'meals.recipe.more' | t }}</button>
+          }
         } @else {
           <div class="empty">
             <span class="empty-icon"><app-icon name="book" /></span>
-            <p class="small">{{ 'meals.recipe.empty.' + tab() | t }}</p>
+            <p class="small">{{ tab() === 'community' && query() ? ('meals.recipe.noMatch' | t: { q: query() }) : ('meals.recipe.empty.' + tab() | t) }}</p>
           </div>
         }
       } @else if (slow()) {
@@ -158,6 +172,21 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
       display: grid;
       gap: var(--space-3);
     }
+    .search {
+      position: relative;
+      display: block;
+    }
+    .search app-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--fg-3);
+      pointer-events: none;
+    }
+    .search .input {
+      padding-left: 42px;
+    }
     .chip-emoji {
       font-size: 1.1rem;
       line-height: 1;
@@ -187,19 +216,32 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
         transform: translateY(10px);
       }
     }
+    /* the frame sets the size, never the photo: on Safari a tall photo at height 100% would spill over the text */
     .pic {
+      position: relative;
       display: grid;
       place-items: center;
       aspect-ratio: 4 / 3;
+      overflow: hidden;
       background: var(--accent-soft);
     }
     .pic img {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
     .emoji {
       font-size: 2.6rem;
+    }
+    /* the Nutri-Score in a corner of the picture, as on a packaging */
+    .pic .grade {
+      position: absolute;
+      left: 8px;
+      bottom: 8px;
+      width: 54px;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
     }
     .rbody {
       display: grid;
@@ -255,12 +297,45 @@ export class RecipesPage {
   readonly dayParam = input<string | undefined>(undefined, { alias: 'day' });
   protected readonly mealParams = computed(() => (this.slotParam() ? { slot: this.slotParam(), day: this.dayParam() ?? null } : {}));
   private readonly api = inject(MealsApi);
+
+  /** « Petit-déj · Collation » */
+  protected typesOf(r: Recipe): string {
+    return (r.types?.length ? r.types : [r.type]).map((t) => this.i18n.t('meals.recipe.types.' + t)).join(' · ');
+  }
   protected readonly i18n = inject(I18nService);
   protected readonly types = RECIPE_TYPES;
   protected readonly emoji = TYPE_EMOJI;
   protected readonly tab = signal<'mine' | 'friends' | 'community'>('mine');
   protected readonly type = signal<RecipeType | null>(null);
   protected readonly sort = signal<'top' | 'new'>('top');
+  /** what is typed in the community search, and what is searched (a moment after the last key) */
+  protected readonly term = signal('');
+  protected readonly query = signal('');
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+  /** the community comes 30 at a time */
+  protected readonly more = signal(false);
+  protected readonly loadingMore = signal(false);
+  private page = 0;
+
+  protected search(value: string): void {
+    this.term.set(value);
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => this.query.set(value.trim()), 300);
+  }
+
+  protected async loadMore(): Promise<void> {
+    const n = this.seq;
+    this.loadingMore.set(true);
+    try {
+      const next = await this.api.community(this.type(), this.sort(), this.page + 1, this.query());
+      if (n !== this.seq) return;
+      this.page++;
+      this.list.update((l) => [...(l ?? []), ...next.filter((r) => !l?.some((x) => x.id === r.id))]);
+      this.more.set(next.length === 30);
+    } finally {
+      this.loadingMore.set(false);
+    }
+  }
   protected readonly list = signal<Recipe[] | null>(null);
   protected readonly loading = signal(false);
   /** the first list is still not there after a moment: placeholders, never for a quick one */
@@ -274,18 +349,23 @@ export class RecipesPage {
       const tab = this.tab();
       const type = tab === 'mine' ? null : this.type();
       const sort = this.sort();
-      const key = [tab, type, tab === 'community' ? sort : ''].join('|');
+      const query = tab === 'community' ? this.query() : '';
+      const key = [tab, type, tab === 'community' ? sort : '', query].join('|');
+      this.page = 0;
       const n = ++this.seq;
       const known = this.seen.get(key);
       if (known) this.list.set(known);
+      this.more.set(tab === 'community' && (known?.length ?? 0) === 30);
       this.loading.set(!known);
       // read without tracking: the list it sets must not start it again
       const slow = untracked(this.list) === null ? setTimeout(() => n === this.seq && this.slow.set(true), 450) : null;
-      const load = tab === 'mine' ? this.api.myRecipes() : tab === 'friends' ? this.api.friendsRecipes(type) : this.api.community(type, sort);
+      const load = tab === 'mine' ? this.api.myRecipes() : tab === 'friends' ? this.api.friendsRecipes(type) : this.api.community(type, sort, 0, query);
       load
         .then((r) => {
           this.seen.set(key, r);
-          if (n === this.seq) this.list.set(r);
+          if (n !== this.seq) return;
+          this.list.set(r);
+          this.more.set(tab === 'community' && r.length === 30);
         })
         .catch(() => n === this.seq && this.list.set(this.list() ?? []))
         .finally(() => {

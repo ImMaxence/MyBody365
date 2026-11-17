@@ -42,6 +42,7 @@ export const fr = {
   },
 
   errors: {
+    community_admins_only: 'La communauté est publiée par l’équipe MyBody365. Partage-la plutôt avec tes amis',
     feedback_too_short: 'Ton message est un peu court',
     generic: 'Quelque chose s’est mal passé. Réessaie dans un instant',
     offline: 'Pas de connexion. Vérifie ton réseau',
@@ -460,6 +461,17 @@ export const fr = {
       tooFast: 'Trop rapide pour rester en bonne santé : au plus tôt le {date}, à {kg} kg par semaine',
     },
     activity: 'Activité au quotidien',
+    job: 'Ta journée, sans compter le sport',
+    jobs: {
+      SEATED: { label: 'Plutôt assise', hint: 'Bureau, études, voiture, télétravail' },
+      STANDING: { label: 'Debout, à marcher', hint: 'Commerce, enseignement, soins, restauration' },
+      PHYSICAL: { label: 'Physique', hint: 'Chantier, manutention, livraison à pied, ferme' },
+    },
+    sessions: 'Séances de sport par semaine',
+    sessionsLess: 'Une séance de moins',
+    sessionsMore: 'Une séance de plus',
+    sessionsHint: 'Une séance, c’est 45 min à 1 h de sport : salle, course, foot, natation. La marche du quotidien est déjà dans ta journée',
+    activityNew: 'Nouveau : ton activité se règle en deux questions, ta journée puis tes séances, pour un objectif plus juste. Vérifie et enregistre',
     activities: {
       SEDENTARY: { label: 'Sédentaire', hint: 'Bureau, peu de marche' },
       LIGHT: { label: 'Légère', hint: '1 à 3 séances par semaine' },
@@ -540,6 +552,7 @@ export const fr = {
     sub: '{goal} kg · {pace} kg / semaine',
     save: 'Enregistrer',
     saved: 'Objectif mis à jour',
+    foodFocus: 'MyBody365 se concentre sur ce que tu manges : le sport fait dans la journée ne s’ajoute pas à tes calories, ton activité habituelle est déjà comptée dans ton objectif',
   },
 
   photos: frPhotos,
@@ -622,6 +635,7 @@ export const fr = {
   adminSupport: {
     feedbackTitle: 'Retours des membres',
     errorsTitle: 'Journal des erreurs',
+    errorsIntro: 'Les plantages de l’app, sur les téléphones et sur le serveur, avec leur trace. Une même erreur tient sur une ligne, archive-la une fois corrigée',
     open: 'À traiter',
     archived: 'Archivés',
     unknown: 'Compte supprimé',
@@ -686,6 +700,30 @@ export const fr = {
       OTHER: 'Masse grasse {pct} % : {band}',
     },
     fatClasses: { low: 'très basse', athletic: 'niveau sportif', fit: 'en forme', average: 'dans la moyenne', high: 'élevée' },
+  },
+  offline: {
+    queued: 'Pas de réseau : noté sur ton téléphone, envoyé dès le retour du réseau',
+    one: '1 saisie en attente de réseau',
+    many: '{n} saisies en attente de réseau',
+    waiting: 'En attente de réseau',
+    notYet: 'Modifiable une fois envoyé, au retour du réseau',
+    refused: 'Une saisie faite sans réseau n’a pas pu être enregistrée',
+  },
+  week: {
+    title: 'Ta semaine',
+    sub: 'Poids, séances et repas des 7 derniers jours',
+    range: 'Du {from} au {to}',
+    weight: 'Poids',
+    weightTrend: 'sur la tendance, en 7 jours',
+    weightNone: 'Pèse-toi quelques jours pour voir ta tendance',
+    sessions: 'Séances',
+    sessionsOf: 'cette semaine, ton objectif en compte {n}',
+    sessionsNoted: 'notées cette semaine',
+    meals: 'Repas',
+    mealsDays: 'jours notés',
+    average: 'Moyenne',
+    averageOf: 'par jour, pour un objectif de {target}',
+    averageNone: 'Note tes repas pour voir ta moyenne',
   },
   water: {
     title: 'Eau',
@@ -763,6 +801,7 @@ export const fr = {
       passkeys: '{n} passkey(s)',
       noMethod: 'Aucune',
       lastLogin: 'Dernière connexion : {date}',
+      lastLoginTitle: 'Dernière connexion',
       never: 'jamais',
       storage: 'Stockage',
       storageUsed: '{used} utilisés',
@@ -820,6 +859,7 @@ export const fr = {
       expires: 'Expire {date}',
     },
     journal: {
+      intro: 'Ce que les admins ont fait, du plus récent au plus ancien : comptes créés, suspendus ou supprimés, demandes validées, liens générés, mises à jour des aliments',
       empty: 'Aucune action enregistrée',
       more: 'Voir plus',
       actions: {

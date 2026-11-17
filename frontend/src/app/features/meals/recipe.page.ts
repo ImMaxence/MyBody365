@@ -5,7 +5,7 @@ import type { Recipe, Slot } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MealsApi } from '../../core/meals/meals-api';
-import { MealsStore, slotNow } from '../../core/meals/meals.store';
+import { MealsStore, scaled, slotNow } from '../../core/meals/meals.store';
 import { StackNavigation } from '../../core/nav/stack-navigation';
 import { localDay } from '../../core/tracking/tracking.store';
 import { ToastService } from '../../core/ui/toast.service';
@@ -36,7 +36,9 @@ import { TYPE_EMOJI } from './recipes.page';
           }
         </figure>
         <div class="meta">
-          <span class="chip">{{ emoji[r.type] }} {{ 'meals.recipe.types.' + r.type | t }}</span>
+          @for (t of r.types?.length ? r.types : [r.type]; track t) {
+            <span class="chip">{{ emoji[t] }} {{ 'meals.recipe.types.' + t | t }}</span>
+          }
           @if (!r.mine && r.author) {
             <span class="small muted">{{ 'meals.recipe.by' | t: { name: r.author } }}</span>
           }
@@ -47,6 +49,19 @@ import { TYPE_EMOJI } from './recipes.page';
             <span class="chip chip-warning">{{ 'meals.recipe.hidden' | t }}</span>
           }
         </div>
+
+        <!-- imported: everyone sees what it is based on, and can open the original -->
+        @if (r.sourceUrl && r.sourceName) {
+          <a class="source card" [href]="r.sourceUrl" target="_blank" rel="noopener noreferrer nofollow">
+            <span class="source-ico"><app-icon name="link" [size]="18" /></span>
+            <span class="source-body">
+              <b>{{ 'meals.recipe.source.title' | t: { site: r.sourceName } }}</b>
+              <span class="source-url small">{{ shortUrl(r.sourceUrl) }}</span>
+              <span class="tiny muted">{{ (r.manualNutrition ? 'meals.recipe.source.byHand' : 'meals.recipe.source.computed') | t }}</span>
+            </span>
+            <app-icon name="arrowRight" [size]="18" />
+          </a>
+        }
 
         @if (r.shared && !r.mine) {
           <div class="votes" role="group" [attr.aria-label]="'meals.recipe.score' | t: { n: r.score }">
@@ -93,11 +108,6 @@ import { TYPE_EMOJI } from './recipes.page';
             <li><span>{{ line }}</span></li>
           }
         </ul>
-        @if (r.sourceUrl && r.sourceName) {
-          <a class="source-link small" [href]="r.sourceUrl" target="_blank" rel="noopener noreferrer nofollow">
-            <app-icon name="link" [size]="15" /> {{ 'meals.recipe.import.from' | t: { site: r.sourceName } }}
-          </a>
-        }
         @if (r.notes) {
           <h2 class="section-title">{{ 'meals.recipe.notes' | t }}</h2>
           <p class="notes card">{{ r.notes }}</p>
@@ -133,6 +143,7 @@ import { TYPE_EMOJI } from './recipes.page';
   `,
   styles: `
     .hero {
+      position: relative;
       margin: 0;
       display: grid;
       place-items: center;
@@ -142,7 +153,10 @@ import { TYPE_EMOJI } from './recipes.page';
       background: var(--accent-soft);
       animation: zoom-in 380ms var(--ease-out);
     }
+    /* the frame sets the size, never the photo (a tall one would stretch it on Safari) */
     .hero img {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -232,13 +246,36 @@ import { TYPE_EMOJI } from './recipes.page';
       margin: 0;
       font-weight: 750;
     }
-    .source-link {
-      display: inline-flex;
+    .source {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      justify-self: start;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      color: inherit;
+      text-decoration: none;
+    }
+    .source-ico {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      flex: none;
+      border-radius: 12px;
+      background: var(--cool-soft);
+      color: var(--cool);
+    }
+    .source-body {
+      display: grid;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+    .source-url {
+      overflow: hidden;
       color: var(--accent-text);
       font-weight: 650;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .ingredients {
       display: grid;
@@ -310,6 +347,11 @@ export class RecipePage {
     });
   }
 
+  /** « les-creations-de-yona.fr/recettes/…/bruschetta »: the address without its scheme */
+  protected shortUrl(url: string): string {
+    return url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+  }
+
   protected g(v?: number): string {
     return v == null ? '–' : `${this.i18n.number(v, v < 10 ? 1 : 0)} g`;
   }
@@ -335,9 +377,9 @@ export class RecipePage {
     if (!r) return;
     this.sheet().busy.set(true);
     try {
-      await this.meals.add({ day: this.day(), slot: this.slot(), recipeId: r.id, servings });
+      await this.meals.add({ day: this.day(), slot: this.slot(), recipeId: r.id, servings }, { name: r.name, nutrients: scaled(r.perServing, servings) });
       this.sheet().close();
-      this.toast.show(this.i18n.t('meals.search.added', { name: r.name }));
+      this.toast.show(this.i18n.t(this.meals.lastQueued() ? 'offline.queued' : 'meals.search.added', { name: r.name }));
     } catch (e) {
       this.sheet().busy.set(false);
       this.toast.error(this.i18n.error(errorCode(e)));

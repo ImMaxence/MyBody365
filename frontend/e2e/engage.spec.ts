@@ -13,6 +13,22 @@ test.describe('engagement', () => {
     await expect(sheet.locator('.cell.today, .cell.done')).toHaveCount(1);
     await expectAccessible(page);
     await sheet.getByRole('button', { name: 'Fermer' }).click();
+    await expect(sheet).toBeHidden();
+    // anywhere on the card opens it too
+    await page.locator('section.streak .big').click();
+    await expect(sheet.getByRole('heading', { name: /Ta flamme/ })).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
+  test('the week in review, from Today', async ({ page }) => {
+    const errors = watchErrors(page);
+    await signIn(page, 'new');
+    await page.getByRole('link', { name: /Ta semaine/ }).click();
+    await expect(page.getByRole('heading', { name: 'Ta semaine', level: 1 })).toBeVisible();
+    await expect(page.getByText('Séances', { exact: true })).toBeVisible();
+    await expect(page.getByText('jours notés')).toBeVisible();
+    await expectAccessible(page);
+    await expectNoHorizontalOverflow(page);
     expect(errors).toEqual([]);
   });
 
@@ -28,6 +44,8 @@ test.describe('engagement', () => {
     const updates = page.getByRole('switch', { name: /Nouveautés de l’app/ });
     await expect(updates).toBeChecked();
     await updates.uncheck();
+    // the Sunday summary: on by default
+    await expect(page.getByRole('switch', { name: /Bilan du dimanche/ })).toBeChecked();
     // water reminders wait for the glasses of water
     await expect(page.getByRole('switch', { name: /Pense à boire/ })).toBeDisabled();
     await expectNoHorizontalOverflow(page);
@@ -47,6 +65,15 @@ test.describe('engagement', () => {
     await expect(page.getByText('Durée totale : 3:50')).toBeVisible();
     await page.getByRole('button', { name: 'Plus : Tours' }).click();
     await expect(page.getByText('Durée totale : 4:20')).toBeVisible();
+    // a value typed rather than stepped to: 45 s of effort
+    await page.getByRole('button', { name: 'Saisir Effort : 0:20' }).click();
+    const value = page.getByRole('dialog', { name: 'Effort' });
+    await value.getByLabel('Secondes').fill('45');
+    await value.getByRole('button', { name: 'Valider' }).click();
+    await expect(page.getByText('Durée totale : 8:05')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Tabata' })).toHaveAttribute('aria-pressed', 'false');
+    // what the timer is, and is not
+    await expect(page.getByText(/n’ajoute pas de calories à manger/)).toBeVisible();
     await expectAccessible(page);
     await page.getByRole('button', { name: 'Démarrer' }).click();
     const timer = page.getByRole('timer');
@@ -57,12 +84,27 @@ test.describe('engagement', () => {
     await expect(timer).toHaveAttribute('aria-label', /^Effort/);
     await expect(page.getByText('Tour 1 sur 9', { exact: true })).toBeVisible();
     await expectNoHorizontalOverflow(page);
+    await expect(page.getByText(/le minuteur continue/)).toBeVisible();
+
+    // it goes on elsewhere, even through a reload of the app: the pill above the tabs leads back to it
+    await page.goto('/app');
+    const pill = page.getByRole('link', { name: /^Minuteur en cours : Effort/ });
+    await expect(pill).toBeVisible();
+    await pill.click();
+    await expect(page.getByRole('heading', { name: 'Minuteur', level: 1 })).toBeVisible();
+    await expect(timer).toHaveAttribute('aria-label', /^Effort/);
+    await expect(page.getByRole('link', { name: /^Minuteur en cours/ })).toHaveCount(0);
     await page.getByRole('button', { name: 'Arrêter' }).click();
     await expect(page.getByRole('button', { name: 'Démarrer' })).toBeVisible();
 
     // saved under a name of one's own, then deleted
     await page.getByRole('button', { name: 'Enregistrer ce chrono' }).click();
     const sheet = page.getByRole('dialog', { name: 'Enregistrer ce chrono' });
+    // like a phone app: the texts cannot be selected, the fields can (typing, copy, paste)
+    const selectable = (l: import('@playwright/test').Locator) =>
+      l.evaluate((e) => getComputedStyle(e).getPropertyValue('user-select') || getComputedStyle(e).getPropertyValue('-webkit-user-select'));
+    expect(await selectable(page.locator('body'))).toBe('none');
+    expect(await selectable(sheet.getByLabel('Nom du chrono'))).toBe('text');
     await sheet.getByLabel('Nom du chrono').fill('Gainage du soir');
     await sheet.getByRole('button', { name: 'Enregistrer' }).click();
     await expect(page.getByRole('button', { name: 'Gainage du soir', exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -72,6 +114,14 @@ test.describe('engagement', () => {
     await page.getByRole('button', { name: 'Gainage du soir', exact: true }).click();
     await page.getByRole('button', { name: 'Supprimer « Gainage du soir »' }).click();
     await expect(page.getByRole('button', { name: 'Gainage du soir', exact: true })).toHaveCount(0);
+
+    // a session done without the timer, noted for the week, then taken back
+    await expect(page.getByText('Aucune séance notée cette semaine')).toBeVisible();
+    await page.getByRole('button', { name: 'J’ai fait ma séance aujourd’hui' }).click();
+    await expect(page.getByText('1 séance notée cette semaine')).toBeVisible();
+    await expect(page.getByText('Séance du jour notée')).toBeVisible();
+    await page.getByRole('button', { name: 'Annuler' }).click();
+    await expect(page.getByText('Aucune séance notée cette semaine')).toBeVisible();
     expect(errors).toEqual([]);
   });
 

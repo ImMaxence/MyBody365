@@ -5,6 +5,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { localDay } from '../../core/tracking/tracking.store';
 import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
+import { Outbox, isOffline } from '../../core/offline/outbox';
 
 /** a glass is 25 cl */
 const GLASS_L = 0.25;
@@ -108,6 +109,8 @@ export class WaterRowComponent {
   readonly goal = input.required<number>();
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
+  private readonly outbox = inject(Outbox);
+  private toldOffline = false;
   protected readonly i18n = inject(I18nService);
   protected readonly glasses = signal(0);
   private readonly day = localDay();
@@ -132,7 +135,15 @@ export class WaterRowComponent {
     if (delta > 0 && next === this.goal()) this.toast.show(this.i18n.t('water.reached'));
     this.saving = this.saving
       .then(() => this.api.setWater(this.day, next))
+      .then(() => undefined)
       .catch((e) => {
+        if (isOffline(e)) {
+          // no network: the count stays on screen and goes when the network is back (the last one counts)
+          this.outbox.add({ kind: 'water', method: 'PUT', url: `/api/me/water/${this.day}`, body: { glasses: next }, day: this.day });
+          if (!this.toldOffline) this.toast.show(this.i18n.t('offline.queued'));
+          this.toldOffline = true;
+          return;
+        }
         this.glasses.set(before);
         this.toast.error(this.i18n.error(errorCode(e)));
       });

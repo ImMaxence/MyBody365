@@ -28,7 +28,8 @@ import { IconComponent } from '../../shared/icon.component';
       </header>
       @if (photo(); as p) {
         <figure class="frame">
-          <img [src]="p.url" [attr.width]="p.width" [attr.height]="p.height" alt="" />
+          <!-- a long press keeps « Enregistrer l’image » here: one's own photo, worth keeping -->
+          <img class="savable" [src]="p.url" [attr.width]="p.width" [attr.height]="p.height" alt="" />
         </figure>
         <div class="actions">
           <a class="btn btn-secondary" routerLink="/app/photos/compare" [queryParams]="{ after: p.id }"><app-icon name="columns" /> {{ 'photos.viewer.compareFirst' | t }}</a>

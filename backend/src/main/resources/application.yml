@@ -80,6 +80,8 @@ app:
   # local only (refused unless app.url is localhost): /api/auth/dev-login opens a session without Google
   dev-login: ${DEV_LOGIN:false}
   recovery-link-hours: 24
+  # the community's first recipes (resources/community), added once their Ciqual foods are there
+  community-seed: ${COMMUNITY_SEED:true}
   rate-limit:
     enabled: true
     api-per-minute: ${RATE_LIMIT_API_PER_MINUTE:600}

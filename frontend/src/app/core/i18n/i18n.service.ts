@@ -1,7 +1,12 @@
-import { DOCUMENT, Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { DOCUMENT, Injectable, InjectionToken, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { en } from './locales/en';
 import { fr, type Dictionary } from './locales/fr';
+
+/**
+ * The English texts, given at once where the size of the bundle does not matter (the server, which
+ * prerenders /en). In the browser they are a file of their own, loaded the first time English is needed.
+ */
+export const ENGLISH = new InjectionToken<Dictionary>('english texts');
 
 export type Lang = 'fr' | 'en';
 type Params = Record<string, string | number>;
@@ -15,7 +20,10 @@ export class I18nService {
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly lang = signal<Lang>('fr');
-  readonly dict = computed<Dictionary>(() => (this.lang() === 'en' ? en : fr));
+  private readonly english = signal<Dictionary | null>(inject(ENGLISH, { optional: true }));
+  private loading: Promise<void> | null = null;
+  /** English once its file is there (French for the instant it takes) */
+  readonly dict = computed<Dictionary>(() => (this.lang() === 'en' ? (this.english() ?? fr) : fr));
   readonly locale = computed(() => (this.lang() === 'fr' ? 'fr-FR' : 'en-GB'));
   readonly other = computed<Lang>(() => (this.lang() === 'fr' ? 'en' : 'fr'));
 
@@ -31,7 +39,20 @@ export class I18nService {
     return (navigator.language || 'fr').toLowerCase().startsWith('fr') ? 'fr' : 'en';
   }
 
+  /** the texts of a language, ready (the app waits for them before its first screen) */
+  load(lang: Lang): Promise<void> {
+    if (lang !== 'en' || this.english()) return Promise.resolve();
+    this.loading ??= import('./locales/en')
+      .then((m) => this.english.set(m.en))
+      .catch(() => {
+        // offline before the file was ever kept: French for now, another try next time
+        this.loading = null;
+      });
+    return this.loading;
+  }
+
   set(lang: Lang, remember = false): void {
+    void this.load(lang);
     this.lang.set(lang);
     if (this.document.documentElement.lang !== lang) this.document.documentElement.lang = lang;
     if (remember && this.browser) {

@@ -1,7 +1,12 @@
-import { ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, ElementRef, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { PushSetup } from '../../core/engage/push-setup.service';
+import { TimerRun, TimerSettings } from '../../core/engage/timer-run';
 import { FormsModule } from '@angular/forms';
 import { errorCode } from '../../core/api/api.service';
-import { EngageApi, SavedTimer } from '../../core/engage/engage-api';
+import { EngageApi, SavedTimer, WorkoutSession } from '../../core/engage/engage-api';
+import { weekOf } from '../../core/meals/meals.store';
+import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { closeSheet } from '../../core/ui/sheets';
@@ -9,19 +14,12 @@ import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 
-type Phase = 'prep' | 'work' | 'rest';
-
-interface Settings {
-  work: number;
-  rest: number;
-  rounds: number;
-}
+type Settings = TimerSettings;
 
 interface Preset extends Settings {
   key: string;
 }
 
-const PREP = 5;
 const STORE = 'mb-timer';
 /** what "Personnalisé" starts from: a timer of one's own, none of the presets */
 const CUSTOM: Settings = { work: 30, rest: 15, rounds: 5 };
@@ -46,13 +44,13 @@ function same(a: Settings, b: Settings): boolean {
 /**
  * A timer for a workout, nothing more: effort, rest and rounds (one's own, a preset, or a timer saved
  * under a name), a 5-second "ready", beeps on the last three seconds and at each change, a vibration,
- * the screen kept awake. The ring follows the clock frame by frame (smooth, and no drift when the phone
- * slows the page down).
+ * the screen kept awake. The run itself is TimerRun's: it goes on on the other screens, on a locked
+ * screen and behind other apps (notifications then). The ring follows the clock frame by frame.
  */
 @Component({
   selector: 'app-timer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, BackButtonComponent],
+  imports: [FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -80,9 +78,14 @@ function same(a: Settings, b: Settings): boolean {
                   <button type="button" class="step" [disabled]="value(f.key) <= f.min" [attr.aria-label]="'engage.timer.less' | t: { what: ('engage.timer.' + f.key | t) }" (click)="change(f.key, -1)">
                     <app-icon name="minus" [size]="18" [stroke]="2.4" />
                   </button>
-                  @for (v of [value(f.key)]; track v) {
-                    <output class="val num" aria-live="polite">{{ f.key === 'rounds' ? v : f.key === 'rest' && v === 0 ? ('engage.timer.noRest' | t) : clockOf(v) }}</output>
-                  }
+                  <span class="val-wrap" aria-live="polite">
+                    @for (v of [value(f.key)]; track v) {
+                      <!-- a tap to type the value, the buttons around for small steps -->
+                      <button type="button" class="val num" [attr.aria-label]="'engage.timer.editValue' | t: { what: ('engage.timer.' + f.key | t), value: shownValue(f.key) }" (click)="edit(f.key)">
+                        {{ shownValue(f.key) }}
+                      </button>
+                    }
+                  </span>
                   <button type="button" class="step" [disabled]="value(f.key) >= f.max" [attr.aria-label]="'engage.timer.more' | t: { what: ('engage.timer.' + f.key | t) }" (click)="change(f.key, 1)">
                     <app-icon name="plus" [size]="18" [stroke]="2.4" />
                   </button>
@@ -91,6 +94,7 @@ function same(a: Settings, b: Settings): boolean {
             }
           </div>
           <p class="total small muted num">{{ 'engage.timer.total' | t: { time: clockOf(totalSeconds()) } }}</p>
+          <p class="disclaimer tiny muted">{{ 'engage.timer.disclaimer' | t }}</p>
           <button type="button" class="btn btn-primary btn-block go" (click)="start()"><app-icon name="play" /> {{ 'engage.timer.start' | t }}</button>
           <div class="keep">
             @if (selectedSaved(); as s) {
@@ -99,6 +103,25 @@ function same(a: Settings, b: Settings): boolean {
               <button type="button" class="btn btn-ghost btn-s" (click)="openSave()"><app-icon name="bookmark" [size]="16" /> {{ 'engage.timer.save' | t }}</button>
             }
           </div>
+
+          <!-- the sessions of the week, compared with the ones the calorie target counts on -->
+          <section class="card week">
+            <p class="week-head">
+              <b>{{ (weekCount() === 0 ? 'engage.timer.weekNone' : weekCount() === 1 ? 'engage.timer.weekOne' : 'engage.timer.weekMany') | t: { n: weekCount() } }}</b>
+              @if (planned(); as n) {
+                <span class="small muted">{{ 'engage.timer.planned' | t: { n: n } }}</span>
+              }
+            </p>
+            <p class="tiny muted">{{ 'engage.timer.weekHint' | t }}</p>
+            @if (todayNoted(); as tn) {
+              <div class="noted small">
+                <app-icon name="check" [size]="16" /> <span>{{ 'engage.timer.notedToday' | t }}</span>
+                <button type="button" class="btn btn-ghost btn-s" [disabled]="busy()" (click)="undo(tn)">{{ 'engage.timer.undo' | t }}</button>
+              </div>
+            } @else {
+              <button type="button" class="btn btn-secondary btn-block" [disabled]="busy()" (click)="note('manual')"><app-icon name="plus" /> {{ 'engage.timer.noteManual' | t }}</button>
+            }
+          </section>
         </section>
       } @else {
         <section class="run" [attr.data-phase]="state() === 'done' ? 'done' : phase()">
@@ -118,13 +141,21 @@ function same(a: Settings, b: Settings): boolean {
                 <span class="time num">{{ clockOf(s) }}</span>
               }
               @if (state() !== 'done' && phase() !== 'prep') {
-                <span class="round small">{{ 'engage.timer.round' | t: { n: round(), total: settings().rounds } }}</span>
+                <span class="round small">{{ 'engage.timer.round' | t: { n: round(), total: run.settings().rounds } }}</span>
               }
             </div>
           </div>
           <p class="sr-only" aria-live="assertive">{{ announce() }}</p>
           @if (state() !== 'done') {
             <p class="left small muted num">{{ 'engage.timer.left' | t: { time: clockOf(totalLeft()) } }}</p>
+            <!-- it goes on elsewhere: on the other screens, on a locked screen, behind another app -->
+            <p class="away tiny muted">
+              @if (pushOn()) {
+                {{ 'engage.timer.awayOn' | t }}
+              } @else {
+                {{ 'engage.timer.awayOff' | t }} <a routerLink="/app/account/notifications">{{ 'engage.timer.awayEnable' | t }}</a>
+              }
+            </p>
             <div class="controls">
               <button type="button" class="ctl" [attr.aria-label]="'engage.timer.stop' | t" (click)="stop()"><app-icon name="x" [size]="22" /></button>
               <button type="button" class="ctl main" [attr.aria-label]="(state() === 'paused' ? 'engage.timer.resume' : 'engage.timer.pause') | t" (click)="toggle()">
@@ -134,12 +165,44 @@ function same(a: Settings, b: Settings): boolean {
             </div>
           } @else {
             <div class="controls done">
-              <button type="button" class="btn btn-primary" (click)="start()"><app-icon name="repeat" /> {{ 'engage.timer.again' | t }}</button>
+              @if (todayNoted()) {
+                <p class="noted small"><app-icon name="check" [size]="16" /> {{ 'engage.timer.notedToday' | t }}</p>
+              } @else {
+                <button type="button" class="btn btn-primary" [disabled]="busy()" (click)="note('timer', runMinutes())"><app-icon name="check" /> {{ 'engage.timer.noteRun' | t }}</button>
+              }
+              <button type="button" class="btn btn-secondary" (click)="again()"><app-icon name="repeat" /> {{ 'engage.timer.again' | t }}</button>
               <button type="button" class="btn btn-ghost" (click)="stop()">{{ 'engage.timer.close' | t }}</button>
             </div>
           }
         </section>
       }
+
+      <dialog class="sheet" #valueDialog [attr.aria-label]="'engage.timer.' + editing() | t">
+        <div class="sheet-grip"></div>
+        <form class="stack" (ngSubmit)="applyEdit()">
+          <h2 class="h3">{{ 'engage.timer.' + editing() | t }}</h2>
+          @if (editing() === 'rounds') {
+            <div class="field">
+              <label class="label" for="t-rounds">{{ 'engage.timer.rounds' | t }}</label>
+              <input class="input num" id="t-rounds" name="rounds" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" [(ngModel)]="editRounds" />
+            </div>
+          } @else {
+            <div class="mmss">
+              <div class="field">
+                <label class="label" for="t-min">{{ 'engage.timer.minutes' | t }}</label>
+                <input class="input num" id="t-min" name="min" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" [(ngModel)]="editMin" />
+              </div>
+              <span class="colon" aria-hidden="true">:</span>
+              <div class="field">
+                <label class="label" for="t-sec">{{ 'engage.timer.seconds' | t }}</label>
+                <input class="input num" id="t-sec" name="sec" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" [(ngModel)]="editSec" />
+              </div>
+            </div>
+          }
+          <p class="tiny muted">{{ 'engage.timer.range' | t: { min: rangeOf('min'), max: rangeOf('max') } }}</p>
+          <button type="submit" class="btn btn-primary btn-block"><app-icon name="check" /> {{ 'engage.timer.apply' | t }}</button>
+        </form>
+      </dialog>
 
       <dialog class="sheet" #saveDialog [attr.aria-label]="'engage.timer.save' | t">
         <div class="sheet-grip"></div>
@@ -157,6 +220,16 @@ function same(a: Settings, b: Settings): boolean {
     </main>
   `,
   styles: `
+    .away {
+      margin: 0;
+      max-width: 34ch;
+      text-align: center;
+      justify-self: center;
+    }
+    .away a {
+      color: var(--accent-text);
+      font-weight: 700;
+    }
     .setup {
       display: grid;
       gap: var(--space-4);
@@ -210,12 +283,49 @@ function same(a: Settings, b: Settings): boolean {
     .step:disabled {
       opacity: 0.35;
     }
+    .val-wrap {
+      display: grid;
+    }
     .val {
       min-width: 74px;
+      min-height: 44px;
+      padding: 0 6px;
+      border: 0;
+      border-radius: 12px;
+      background: none;
+      color: inherit;
+      font: inherit;
       text-align: center;
       font-size: 1.3rem;
       font-weight: 750;
+      text-decoration: underline dotted color-mix(in srgb, currentColor 35%, transparent);
+      text-underline-offset: 5px;
+      cursor: pointer;
       animation: bump 220ms var(--ease-out);
+    }
+    .val:active {
+      background: var(--surface-2);
+    }
+    .disclaimer {
+      margin: calc(var(--space-2) * -1) 0 0;
+      text-align: center;
+      text-wrap: pretty;
+    }
+    .mmss {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: end;
+      gap: var(--space-2);
+    }
+    .mmss .input {
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    .colon {
+      padding-bottom: 12px;
+      font-size: 1.4rem;
+      font-weight: 700;
     }
     @keyframes bump {
       from {
@@ -354,7 +464,36 @@ function same(a: Settings, b: Settings): boolean {
       gap: var(--space-6);
     }
     .controls.done {
+      flex-wrap: wrap;
       gap: var(--space-3);
+    }
+    .week {
+      display: grid;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+      padding: var(--space-4);
+    }
+    .week-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 6px;
+      margin: 0;
+    }
+    .noted {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin: 0;
+      color: var(--success-text, var(--fg));
+      font-weight: 650;
+    }
+    .week .noted {
+      justify-content: flex-start;
+    }
+    .week .noted .btn {
+      margin-left: auto;
     }
     .ctl {
       display: grid;
@@ -395,11 +534,20 @@ function same(a: Settings, b: Settings): boolean {
 })
 export class TimerPage {
   protected readonly i18n = inject(I18nService);
+  protected readonly run = inject(TimerRun);
+  private readonly pushSetup = inject(PushSetup);
+  protected readonly pushOn = this.pushSetup.enabled;
   private readonly api = inject(EngageApi);
   private readonly toast = inject(ToastService);
   private readonly doc = inject(DOCUMENT);
   private readonly arc = viewChild<ElementRef<SVGCircleElement>>('arc');
   private readonly saveDialog = viewChild.required<ElementRef<HTMLDialogElement>>('saveDialog');
+  private readonly valueDialog = viewChild.required<ElementRef<HTMLDialogElement>>('valueDialog');
+  /** the value typed in the sheet: which one, and its fields */
+  protected readonly editing = signal<keyof Settings>('work');
+  protected editMin = '';
+  protected editSec = '';
+  protected editRounds = '';
   protected readonly presets = PRESETS;
   protected readonly fields: { key: keyof Settings; icon: string; min: number; max: number }[] = [
     { key: 'work', icon: 'flame', min: 5, max: 3600 },
@@ -408,23 +556,31 @@ export class TimerPage {
   ];
 
   protected readonly settings = signal<Settings>(this.load());
+  private readonly tracking = inject(TrackingStore);
+  /** the sessions noted (newest first): this week's, today's */
+  protected readonly sessions = signal<WorkoutSession[]>([]);
+  protected readonly weekCount = computed(() => {
+    const today = localDay();
+    const monday = weekOf(today)[0];
+    return this.sessions().filter((x) => x.day >= monday && x.day <= today).length;
+  });
+  protected readonly todayNoted = computed(() => this.sessions().find((x) => x.day === localDay()) ?? null);
+  /** the sessions a week the calorie target counts on (the profile's answer) */
+  protected readonly planned = computed(() => this.tracking.summary()?.profile.sessionsPerWeek || null);
+  /** the run's length in minutes, for the session noted */
+  protected readonly runMinutes = computed(() => Math.max(1, Math.round(this.run.totalSeconds() / 60)));
   protected readonly saved = signal<SavedTimer[]>([]);
-  protected readonly state = signal<'idle' | 'running' | 'paused' | 'done'>('idle');
+  protected readonly state = this.run.state;
   protected readonly busy = signal(false);
   protected name = '';
-  /** the phases of the run, in order */
-  private plan: { phase: Phase; seconds: number; round: number }[] = [];
-  protected readonly index = signal(0);
+  protected readonly index = this.run.index;
   /** the whole seconds shown (the ring itself moves every frame) */
-  protected readonly shown = signal(0);
-  protected readonly announce = signal('');
-  private endAt = 0;
-  private pausedLeft = 0;
+  protected readonly shown = this.run.shown;
+  protected readonly announce = this.run.announce;
+  protected readonly phase = this.run.phase;
+  protected readonly round = this.run.round;
+  protected readonly totalLeft = this.run.totalLeft;
   private frame = 0;
-  private fallback: ReturnType<typeof setInterval> | null = null;
-  private lastBeep = -1;
-  private audio: AudioContext | null = null;
-  private wakeLock: { release(): Promise<void> } | null = null;
 
   /** which chip is lit: a preset, a saved timer, or one's own settings */
   protected readonly mode = computed(() => {
@@ -434,15 +590,9 @@ export class TimerPage {
     return PRESETS.find((p) => same(p, s))?.key ?? 'custom';
   });
   protected readonly selectedSaved = computed(() => this.saved().find((x) => x.id === this.mode()) ?? null);
-  protected readonly phase = computed<Phase>(() => this.plan[this.index()]?.phase ?? 'prep');
-  protected readonly round = computed(() => this.plan[this.index()]?.round ?? 1);
   protected readonly totalSeconds = computed(() => {
     const s = this.settings();
     return s.work * s.rounds + s.rest * (s.rounds - 1);
-  });
-  protected readonly totalLeft = computed(() => {
-    const i = this.index();
-    return this.shown() + this.plan.slice(i + 1).reduce((s, p) => s + p.seconds, 0);
   });
   protected readonly phaseLabel = computed(() => this.i18n.t('engage.timer.' + this.phase()));
   protected readonly summary = computed(() => {
@@ -455,19 +605,26 @@ export class TimerPage {
       .timers()
       .then((t) => this.saved.set(t))
       .catch(() => undefined);
-    const onVisible = () => {
-      if (this.doc.visibilityState === 'visible' && this.state() === 'running') {
-        // the browser lets the screen lock go when the page is hidden: asked again
-        this.wakeLock = null;
-        void this.keepAwake();
-        this.loop();
-      }
-    };
-    this.doc.addEventListener('visibilitychange', onVisible);
-    inject(DestroyRef).onDestroy(() => {
-      this.doc.removeEventListener('visibilitychange', onVisible);
-      this.halt();
+    void this.api
+      .workouts()
+      .then((w) => this.sessions.set(w))
+      .catch(() => undefined);
+    if (!this.tracking.summary()) void this.tracking.load().catch(() => undefined);
+    // the ring, frame by frame, while there is a run on this screen
+    effect(() => {
+      if (this.run.state() !== 'idle') untracked(() => this.paint());
     });
+    inject(DestroyRef).onDestroy(() => cancelAnimationFrame(this.frame));
+  }
+
+  private paint(): void {
+    const win = this.doc.defaultView;
+    if (!win || this.frame) return;
+    const step = () => {
+      this.draw(this.run.fraction());
+      this.frame = this.run.state() === 'idle' ? 0 : win.requestAnimationFrame(step);
+    };
+    this.frame = win.requestAnimationFrame(step);
   }
 
   protected clockOf(s: number): string {
@@ -476,6 +633,39 @@ export class TimerPage {
 
   protected value(k: keyof Settings): number {
     return this.settings()[k];
+  }
+
+  /** "0:20", "Pas de repos", "8" */
+  protected shownValue(k: keyof Settings): string {
+    const v = this.value(k);
+    return k === 'rounds' ? String(v) : k === 'rest' && v === 0 ? this.i18n.t('engage.timer.noRest') : clock(v);
+  }
+
+  /** the bounds of the value typed, as shown */
+  protected rangeOf(end: 'min' | 'max'): string {
+    const f = this.fields.find((x) => x.key === this.editing())!;
+    return f.key === 'rounds' ? String(f[end]) : clock(f[end]);
+  }
+
+  /** a value typed rather than stepped to */
+  protected edit(k: keyof Settings): void {
+    const v = this.value(k);
+    this.editing.set(k);
+    this.editRounds = String(v);
+    this.editMin = String(Math.floor(v / 60));
+    this.editSec = String(v % 60).padStart(2, '0');
+    this.valueDialog().nativeElement.showModal();
+  }
+
+  protected applyEdit(): void {
+    const k = this.editing();
+    const f = this.fields.find((x) => x.key === k)!;
+    const n = (s: string) => Number.parseInt(s.replace(/\D/g, '') || '0', 10);
+    const v = k === 'rounds' ? n(this.editRounds) : n(this.editMin) * 60 + n(this.editSec);
+    const next = { ...this.settings(), [k]: Math.min(f.max, Math.max(f.min, v)) };
+    this.settings.set(next);
+    this.keep(next);
+    closeSheet(this.valueDialog().nativeElement);
   }
 
   protected apply(p: Settings): void {
@@ -532,161 +722,59 @@ export class TimerPage {
     }
   }
 
-  protected start(): void {
-    const s = this.settings();
-    this.plan = [{ phase: 'prep', seconds: PREP, round: 1 }];
-    for (let r = 1; r <= s.rounds; r++) {
-      this.plan.push({ phase: 'work', seconds: s.work, round: r });
-      if (s.rest > 0 && r < s.rounds) this.plan.push({ phase: 'rest', seconds: s.rest, round: r });
-    }
-    // the sound needs a tap to be allowed: this one
+  /** a session of the day, by the timer or by hand; the calorie target's comparison follows */
+  protected async note(program: 'timer' | 'manual', minutes?: number): Promise<void> {
+    this.busy.set(true);
     try {
-      this.audio ??= new AudioContext();
-      void this.audio.resume();
-    } catch {
-      this.audio = null;
+      this.sessions.set(await this.api.noteWorkout(localDay(), program, minutes));
+      this.toast.show(this.i18n.t('engage.timer.noted'));
+      void this.tracking.load().catch(() => undefined);
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.busy.set(false);
     }
-    // a new run: the index moves even when it was already 0, so everything read from the plan follows
-    this.index.set(-1);
-    this.state.set('running');
-    this.enter(0);
-    void this.keepAwake();
-    this.loop();
+  }
+
+  protected async undo(session: WorkoutSession): Promise<void> {
+    this.busy.set(true);
+    try {
+      await this.api.deleteWorkout(session.id);
+      this.sessions.update((list) => list.filter((x) => x.id !== session.id));
+      void this.tracking.load().catch(() => undefined);
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  protected start(): void {
+    this.run.start(this.settings());
+  }
+
+  /** the same run once more (its own settings, even if the screen's changed) */
+  protected again(): void {
+    this.run.start(this.run.settings());
   }
 
   protected toggle(): void {
-    if (this.state() === 'running') {
-      this.pausedLeft = Math.max(0, (this.endAt - Date.now()) / 1000);
-      this.state.set('paused');
-      this.halt(false);
-    } else if (this.state() === 'paused') {
-      this.endAt = Date.now() + this.pausedLeft * 1000;
-      this.state.set('running');
-      this.loop();
-    }
+    this.run.toggle();
   }
 
   protected stop(): void {
-    this.halt();
-    this.state.set('idle');
+    this.run.stop();
   }
 
-  /** the next phase (also the "skip" button) */
+  /** the next phase (the "skip" button) */
   protected next(): void {
-    const i = this.index() + 1;
-    if (i >= this.plan.length) {
-      this.finish();
-      return;
-    }
-    this.enter(i);
-    this.beep(this.plan[i].phase === 'work' ? 990 : 520, 0.28);
-    this.doc.defaultView?.navigator.vibrate?.(this.plan[i].phase === 'work' ? [120, 60, 120] : 200);
-    if (this.state() === 'paused') {
-      this.state.set('running');
-      this.loop();
-    }
-  }
-
-  /** a frame: the ring where the clock says, the seconds when they change, the beeps */
-  private tick(): void {
-    if (this.state() !== 'running') return;
-    const p = this.plan[this.index()];
-    const left = (this.endAt - Date.now()) / 1000;
-    if (left <= 0) {
-      this.next();
-      return;
-    }
-    this.draw(left / p.seconds);
-    const whole = Math.ceil(left);
-    if (whole !== this.shown()) this.shown.set(whole);
-    // the last three seconds of a phase
-    if (whole <= 3 && whole !== this.lastBeep) {
-      this.lastBeep = whole;
-      this.beep(660, 0.09);
-    }
+    this.run.next();
   }
 
   /** the ring empties as the phase goes by */
   private draw(fraction: number): void {
     const el = this.arc()?.nativeElement;
     if (el) el.style.strokeDashoffset = String(1 - Math.max(0, Math.min(1, fraction)));
-  }
-
-  private loop(): void {
-    const win = this.doc.defaultView;
-    if (!win) return;
-    cancelAnimationFrame(this.frame);
-    const step = () => {
-      this.tick();
-      if (this.state() === 'running') this.frame = win.requestAnimationFrame(step);
-    };
-    this.frame = win.requestAnimationFrame(step);
-    // frames stop when the page is hidden: the phases still change on time
-    if (!this.fallback) this.fallback = setInterval(() => this.doc.hidden && this.tick(), 250);
-  }
-
-  private enter(i: number): void {
-    const p = this.plan[i];
-    this.index.set(i);
-    this.endAt = Date.now() + p.seconds * 1000;
-    this.shown.set(p.seconds);
-    this.lastBeep = -1;
-    // the new ring starts full (the view may need a moment to show the arc: next frame)
-    this.draw(1);
-    const label = this.i18n.t('engage.timer.' + p.phase);
-    this.announce.set(p.phase === 'prep' ? label : `${label}, ${this.i18n.t('engage.timer.round', { n: p.round, total: this.settings().rounds })}`);
-  }
-
-  private finish(): void {
-    this.halt();
-    this.shown.set(0);
-    this.draw(0);
-    this.state.set('done');
-    this.announce.set(this.i18n.t('engage.timer.done'));
-    this.beep(880, 0.2);
-    setTimeout(() => this.beep(1320, 0.35), 220);
-    this.doc.defaultView?.navigator.vibrate?.([200, 80, 200, 80, 400]);
-  }
-
-  private halt(releaseScreen = true): void {
-    cancelAnimationFrame(this.frame);
-    if (this.fallback) clearInterval(this.fallback);
-    this.fallback = null;
-    if (releaseScreen) {
-      void this.wakeLock?.release().catch(() => undefined);
-      this.wakeLock = null;
-    }
-  }
-
-  /** a short tone, made on the spot (no sound file) */
-  private beep(freq: number, seconds: number): void {
-    const ctx = this.audio;
-    if (!ctx) return;
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.frequency.value = freq;
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + seconds);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + seconds + 0.02);
-    } catch {
-      /* no sound: the screen and the vibration remain */
-    }
-  }
-
-  /** the screen stays on while the timer runs (where the browser allows it) */
-  private async keepAwake(): Promise<void> {
-    const nav = this.doc.defaultView?.navigator as Navigator & { wakeLock?: { request(type: 'screen'): Promise<{ release(): Promise<void> }> } };
-    if (!nav?.wakeLock || this.wakeLock) return;
-    try {
-      this.wakeLock = await nav.wakeLock.request('screen');
-    } catch {
-      this.wakeLock = null;
-    }
   }
 
   /** one's own settings, kept on this device */

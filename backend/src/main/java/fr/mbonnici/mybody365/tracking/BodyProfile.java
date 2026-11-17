@@ -34,6 +34,20 @@ public class BodyProfile {
     @Column(nullable = false)
     private Activity activityLevel;
 
+    /** the two answers that replace the level (null on a profile saved before 1.7: the level counts) */
+    @Enumerated(EnumType.STRING)
+    private BodyMath.Job job;
+
+    private Integer sessionsPerWeek;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MacroSplit macroSplit = MacroSplit.BALANCED;
+
+    /** the target counts on the real needs (meals and weigh-ins of the last weeks) when they are known */
+    @Column(nullable = false)
+    private boolean adaptiveTdee;
+
     @Column(nullable = false, precision = 5, scale = 2)
     private BigDecimal startWeightKg;
 
@@ -93,6 +107,41 @@ public class BodyProfile {
 
     public void setActivityLevel(Activity activityLevel) {
         this.activityLevel = activityLevel;
+    }
+
+    public BodyMath.Job getJob() {
+        return job;
+    }
+
+    public Integer getSessionsPerWeek() {
+        return sessionsPerWeek;
+    }
+
+    /** both answers, or none (back to the level) */
+    public void setActivity(BodyMath.Job job, Integer sessionsPerWeek) {
+        this.job = job;
+        this.sessionsPerWeek = job == null ? null : sessionsPerWeek;
+    }
+
+    /** the factor of the needs: the two answers when given, else the level chosen before 1.7 */
+    public double activityFactor() {
+        return job != null && sessionsPerWeek != null ? BodyMath.activityFactor(job, sessionsPerWeek) : activityLevel.factor;
+    }
+
+    public MacroSplit getMacroSplit() {
+        return macroSplit;
+    }
+
+    public boolean isAdaptiveTdee() {
+        return adaptiveTdee;
+    }
+
+    public void setAdaptiveTdee(boolean adaptiveTdee) {
+        this.adaptiveTdee = adaptiveTdee;
+    }
+
+    public void setMacroSplit(MacroSplit macroSplit) {
+        this.macroSplit = macroSplit;
     }
 
     public BigDecimal getStartWeightKg() {

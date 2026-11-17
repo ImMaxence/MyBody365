@@ -1,9 +1,12 @@
 package fr.mbonnici.mybody365.tracking;
 
 import fr.mbonnici.mybody365.tracking.BodyMath.Activity;
+import fr.mbonnici.mybody365.tracking.BodyMath.Job;
 import fr.mbonnici.mybody365.tracking.BodyMath.Sex;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
@@ -19,7 +22,10 @@ public final class TrackingDtos {
             @NotNull Sex sex,
             @NotNull @Past LocalDate birthDate,
             @NotNull @DecimalMin("100") @DecimalMax("250") BigDecimal heightCm,
-            @NotNull Activity activityLevel,
+            /** the level of an app older than 1.7; the newer ones give the job and the sessions instead */
+            Activity activityLevel,
+            Job job,
+            @Min(0) @Max(14) Integer sessionsPerWeek,
             /** today's weight: the starting point on the first save */
             @NotNull @DecimalMin("30") @DecimalMax("350") BigDecimal currentWeightKg,
             @NotNull @DecimalMin("30") @DecimalMax("350") BigDecimal goalWeightKg,
@@ -31,6 +37,12 @@ public final class TrackingDtos {
             int age,
             double heightCm,
             Activity activityLevel,
+            /** the two answers (null on a profile saved before 1.7) and the factor they give */
+            Job job,
+            Integer sessionsPerWeek,
+            double activityFactor,
+            MacroSplit macroSplit,
+            boolean adaptiveTdee,
             double startWeightKg,
             LocalDate startDate,
             double goalWeightKg,
@@ -62,7 +74,13 @@ public final class TrackingDtos {
 
     public record Current(Double weightKg, LocalDate day, Double trendKg, Double bmi, Double changeKg) {}
 
-    public record Energy(int bmr, int tdee, int targetKcal, boolean floorApplied) {}
+    /**
+     * tdee: the needs the target counts on; estimatedTdee: the formula's (Mifflin-St Jeor × activity);
+     * realTdee: from the member's own numbers over the last weeks, when there are enough (realDays: how many);
+     * adaptive: the member chose to count on the real one.
+     */
+    public record Energy(int bmr, int tdee, int targetKcal, boolean floorApplied, int estimatedTdee, Integer realTdee, Integer realDays,
+            boolean adaptive) {}
 
     public record Goal(
             double goalKg,
@@ -83,5 +101,9 @@ public final class TrackingDtos {
      */
     public record Streak(int days, boolean todayDone, List<Day> week, int best, int freezes, List<Day> calendar) {}
 
-    public record Summary(ProfileDto profile, Current current, Energy energy, Goal goal, Streak streak, List<String> warnings) {}
+    /** the sessions of sport noted (the timer, or by hand): this week (from Monday), the last 28 days, ever */
+    public record Training(int thisWeek, int last28, double perWeek, boolean any) {}
+
+    public record Summary(ProfileDto profile, Current current, Energy energy, Goal goal, Streak streak, List<String> warnings,
+            Training training) {}
 }

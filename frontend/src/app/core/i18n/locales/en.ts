@@ -41,6 +41,7 @@ export const en: Dictionary = {
   },
 
   errors: {
+    community_admins_only: 'The community is published by the MyBody365 team. Share it with your friends instead',
     feedback_too_short: 'Your message is a bit short',
     generic: 'Something went wrong. Try again in a moment',
     offline: 'No connection. Check your network',
@@ -459,6 +460,17 @@ export const en: Dictionary = {
       tooFast: 'Too fast to stay healthy: {date} at the earliest, at {kg} kg a week',
     },
     activity: 'Daily activity',
+    job: 'Your day, sport aside',
+    jobs: {
+      SEATED: { label: 'Mostly seated', hint: 'Office, studies, driving, working from home' },
+      STANDING: { label: 'On your feet', hint: 'Shop, teaching, care, catering' },
+      PHYSICAL: { label: 'Physical', hint: 'Building site, handling, delivery on foot, farm' },
+    },
+    sessions: 'Sessions of sport a week',
+    sessionsLess: 'One session less',
+    sessionsMore: 'One session more',
+    sessionsHint: 'A session is 45 min to 1 h of sport: gym, running, football, swimming. Everyday walking is already in your day',
+    activityNew: 'New: your activity now takes two questions, your day then your sessions, for a fairer target. Check and save',
     activities: {
       SEDENTARY: { label: 'Sedentary', hint: 'Desk job, little walking' },
       LIGHT: { label: 'Light', hint: '1 to 3 workouts a week' },
@@ -539,6 +551,7 @@ export const en: Dictionary = {
     sub: '{goal} kg · {pace} kg / week',
     save: 'Save',
     saved: 'Goal updated',
+    foodFocus: 'MyBody365 focuses on what you eat: sport done during the day is not added to your calories, your usual activity is already counted in your target',
   },
 
   photos: enPhotos,
@@ -620,6 +633,7 @@ export const en: Dictionary = {
   },
   adminSupport: {
     feedbackTitle: 'Members’ feedback',
+    errorsIntro: 'The app’s crashes, on the phones and on the server, with their trace. The same error stays on one line, archive it once fixed',
     errorsTitle: 'Error journal',
     open: 'To handle',
     archived: 'Archived',
@@ -685,6 +699,30 @@ export const en: Dictionary = {
       OTHER: 'Body fat {pct} %: {band}',
     },
     fatClasses: { low: 'very low', athletic: 'athlete level', fit: 'fit', average: 'average', high: 'high' },
+  },
+  offline: {
+    queued: 'No network: noted on your phone, sent as soon as the network is back',
+    one: '1 entry waiting for the network',
+    many: '{n} entries waiting for the network',
+    waiting: 'Waiting for the network',
+    notYet: 'Editable once sent, when the network is back',
+    refused: 'An entry made without network could not be saved',
+  },
+  week: {
+    title: 'Your week',
+    sub: 'Weight, sessions and meals of the last 7 days',
+    range: 'From {from} to {to}',
+    weight: 'Weight',
+    weightTrend: 'on the trend, over 7 days',
+    weightNone: 'Weigh yourself a few days to see your trend',
+    sessions: 'Sessions',
+    sessionsOf: 'this week, your target counts on {n}',
+    sessionsNoted: 'noted this week',
+    meals: 'Meals',
+    mealsDays: 'days noted',
+    average: 'Average',
+    averageOf: 'a day, for a target of {target}',
+    averageNone: 'Note your meals to see your average',
   },
   water: {
     title: 'Water',
@@ -762,6 +800,7 @@ export const en: Dictionary = {
       passkeys: '{n} passkey(s)',
       noMethod: 'None',
       lastLogin: 'Last sign-in: {date}',
+      lastLoginTitle: 'Last sign-in',
       never: 'never',
       storage: 'Storage',
       storageUsed: '{used} used',
@@ -819,6 +858,7 @@ export const en: Dictionary = {
       expires: 'Expires {date}',
     },
     journal: {
+      intro: 'What the admins did, newest first: accounts created, suspended or deleted, requests approved, links generated, food data updates',
       empty: 'No action recorded',
       more: 'Show more',
       actions: {

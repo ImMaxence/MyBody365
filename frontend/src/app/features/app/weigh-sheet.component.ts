@@ -144,7 +144,7 @@ export class WeighSheetComponent {
       }
       await this.tracking.saveLog(this.day(), { weightKg: this.weight(), ...measures });
       this.dialog().nativeElement.close();
-      this.toast.show(this.i18n.t('weigh.saved'));
+      this.toast.show(this.i18n.t(this.tracking.lastQueued() ? 'offline.queued' : 'weigh.saved'));
     } catch (e) {
       this.toast.error(this.i18n.error(errorCode(e)));
     } finally {

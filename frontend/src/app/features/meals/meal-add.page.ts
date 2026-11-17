@@ -3,11 +3,11 @@ import { EstimatedItem, FastFoodSheetComponent } from './fast-food-sheet.compone
 import { DrinkSheetComponent } from './drink-sheet.component';
 import { FormsModule } from '@angular/forms';
 import { errorCode } from '../../core/api/api.service';
-import type { Food, RecentItem, Recipe, Slot } from '../../core/api/models';
+import type { Food, Nutrients, RecentItem, Recipe, Slot } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MealsApi } from '../../core/meals/meals-api';
-import { MealsStore, slotNow } from '../../core/meals/meals.store';
+import { MealsStore, scaled, slotNow } from '../../core/meals/meals.store';
 import { StackNavigation } from '../../core/nav/stack-navigation';
 import { localDay } from '../../core/tracking/tracking.store';
 import { closeSheet } from '../../core/ui/sheets';
@@ -135,7 +135,7 @@ export class MealAddPage {
   });
   protected readonly day = computed(() => (this.dayParam() && /^\d{4}-\d{2}-\d{2}$/.test(this.dayParam()!) ? this.dayParam()! : localDay()));
   protected readonly recipes = signal<Recipe[]>([]);
-  private current: { kind: 'FOOD' | 'RECIPE'; id: string; name: string } | null = null;
+  private current: { kind: 'FOOD' | 'RECIPE'; id: string; name: string; base?: Nutrients } | null = null;
 
   constructor() {
     void this.store.loadRecent().catch(() => undefined);
@@ -190,19 +190,19 @@ export class MealAddPage {
     this.quickBusy.set(true);
     const name = this.qName.trim();
     try {
-      await this.store.add({
-        day: this.day(),
-        slot: this.slot(),
-        quick: {
-          name,
-          kcal: MealAddPage.num(this.qKcal)!,
-          proteinG: MealAddPage.num(this.qMacros.proteinG),
-          carbsG: MealAddPage.num(this.qMacros.carbsG),
-          fatG: MealAddPage.num(this.qMacros.fatG),
-        },
-      });
+      const quick = {
+        name,
+        kcal: MealAddPage.num(this.qKcal)!,
+        proteinG: MealAddPage.num(this.qMacros.proteinG),
+        carbsG: MealAddPage.num(this.qMacros.carbsG),
+        fatG: MealAddPage.num(this.qMacros.fatG),
+      };
+      await this.store.add(
+        { day: this.day(), slot: this.slot(), quick },
+        { name, nutrients: { kcal: quick.kcal, proteinG: quick.proteinG ?? undefined, carbsG: quick.carbsG ?? undefined, fatG: quick.fatG ?? undefined } },
+      );
       closeSheet(this.quickDialog().nativeElement);
-      this.toast.show(this.i18n.t('meals.search.added', { name }));
+      this.toast.show(this.addedText(name));
       this.stack.back('/app/meals');
     } catch (e) {
       this.toast.error(this.i18n.error(errorCode(e)));
@@ -220,10 +220,15 @@ export class MealAddPage {
     sheet.busy.set(true);
     try {
       for (const i of lines) {
-        await this.store.add({ day: this.day(), slot: this.slot(), quick: { ...i } });
+        const { name, nutriscore, ...nutrients } = i;
+        await this.store.add({ day: this.day(), slot: this.slot(), quick: { ...i } }, { name, nutrients });
       }
       sheet.close();
-      this.toast.show(this.i18n.t('meals.estimate.added', { kcal: this.i18n.number(lines.reduce((t, i) => t + i.kcal, 0)) }));
+      this.toast.show(
+        this.store.lastQueued()
+          ? this.i18n.t('offline.queued')
+          : this.i18n.t('meals.estimate.added', { kcal: this.i18n.number(lines.reduce((t, i) => t + i.kcal, 0)) }),
+      );
       this.stack.back('/app/meals');
     } catch (e) {
       this.toast.error(this.i18n.error(errorCode(e)));
@@ -232,8 +237,13 @@ export class MealAddPage {
     }
   }
 
+  /** « Ajouté », or kept on the phone when there is no network */
+  private addedText(name: string): string {
+    return this.store.lastQueued() ? this.i18n.t('offline.queued') : this.i18n.t('meals.search.added', { name });
+  }
+
   private openFood(f: Food, initial?: number): void {
-    this.current = { kind: 'FOOD', id: f.id, name: f.name };
+    this.current = { kind: 'FOOD', id: f.id, name: f.name, base: f.per100 };
     this.sheet().open({
       name: f.name,
       detail: f.brand ?? f.category ?? this.i18n.t('meals.search.sources.' + f.source),
@@ -247,7 +257,7 @@ export class MealAddPage {
   }
 
   private openRecipe(r: Recipe, initial?: number): void {
-    this.current = { kind: 'RECIPE', id: r.id, name: r.name };
+    this.current = { kind: 'RECIPE', id: r.id, name: r.name, base: r.perServing };
     this.sheet().open({ name: r.name, detail: this.i18n.t('meals.perServing'), unit: 'serving', base: r.perServing, nutriscore: r.nutriscore, estimated: true, initial });
   }
 
@@ -256,13 +266,16 @@ export class MealAddPage {
     if (!c) return;
     this.sheet().busy.set(true);
     try {
-      await this.store.add({
-        day: this.day(),
-        slot: this.slot(),
-        ...(c.kind === 'FOOD' ? { foodId: c.id, grams: qty } : { recipeId: c.id, servings: qty }),
-      });
+      await this.store.add(
+        {
+          day: this.day(),
+          slot: this.slot(),
+          ...(c.kind === 'FOOD' ? { foodId: c.id, grams: qty } : { recipeId: c.id, servings: qty }),
+        },
+        c.base ? { name: c.name, nutrients: scaled(c.base, c.kind === 'FOOD' ? qty / 100 : qty) } : undefined,
+      );
       this.sheet().close();
-      this.toast.show(this.i18n.t('meals.search.added', { name: c.name }));
+      this.toast.show(this.addedText(c.name));
       this.stack.back('/app/meals');
     } catch (e) {
       this.sheet().busy.set(false);

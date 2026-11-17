@@ -95,6 +95,35 @@ class EngagementTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void theWeekInReviewOnSundayEvening() throws Exception {
+        for (AppUser who : new AppUser[] {lea, hugo}) {
+            mvc.perform(post("/api/me/push/subscriptions").with(as(who)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                    .content(subscription("https://fcm.googleapis.com/fcm/send/" + who.getId()))).andExpect(status().isOk());
+        }
+        java.time.LocalDate sunday = TrackingService.today().with(java.time.temporal.TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY));
+        // Léa weighed herself this week, Hugo did nothing
+        jdbc.update("insert into body_log (user_id, day, weight_kg) values (?, ?, 70)", lea.getId(), sunday.minusDays(2));
+        pushes.sent.clear();
+        reminders.run(sunday.minusDays(1), LocalTime.of(19, 0));
+        reminders.run(sunday, LocalTime.of(18, 59));
+        org.assertj.core.api.Assertions.assertThat(pushes.sent).isEmpty();
+        reminders.run(sunday, LocalTime.of(19, 0));
+        org.assertj.core.api.Assertions.assertThat(pushes.sent).hasSize(1);
+        org.assertj.core.api.Assertions.assertThat(pushes.sent.getFirst().endpoint().toString()).endsWith(lea.getId().toString());
+        reminders.run(sunday, LocalTime.of(19, 0));
+        org.assertj.core.api.Assertions.assertThat(pushes.sent).hasSize(1);
+
+        // turned off: the next Sunday stays quiet
+        mvc.perform(put("/api/me/notifications").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
+                {"dailyEnabled":true,"dailyTime":"08:00","gymEnabled":false,"gymDays":"1,3,5","gymTime":"18:00","friendsEnabled":true,
+                 "weeklyEnabled":false}"""))
+                .andExpect(jsonPath("$.prefs.weeklyEnabled").value(false));
+        jdbc.update("insert into body_log (user_id, day, weight_kg) values (?, ?, 69.8)", lea.getId(), sunday.plusDays(5));
+        reminders.run(sunday.plusDays(7), LocalTime.of(19, 0));
+        org.assertj.core.api.Assertions.assertThat(pushes.sent).hasSize(1);
+    }
+
+    @Test
     void waterRemindersAndWhatsNew() throws Exception {
         mvc.perform(post("/api/me/push/subscriptions").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
                 .content(subscription("https://fcm.googleapis.com/fcm/send/lea"))).andExpect(status().isOk());

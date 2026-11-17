@@ -32,6 +32,44 @@ public final class BodyMath {
 
     public enum Sex { FEMALE, MALE, OTHER }
 
+    /** the day without sport: seated (office, studies, driving), standing or walking, physical work */
+    public enum Job {
+        SEATED(1.2), STANDING(1.35), PHYSICAL(1.55);
+
+        public final double base;
+
+        Job(double base) {
+            this.base = base;
+        }
+    }
+
+    /**
+     * What a weekly session of sport (45 min to 1 h) adds to the activity factor: about 300 kcal spent over
+     * the resting needs, shared over the week (300 / 7 / ~1 500 kcal of basal needs ≈ 0.03).
+     */
+    public static final double SESSION_FACTOR = 0.03;
+    public static final int MAX_SESSIONS = 14;
+
+    /**
+     * The activity factor from the two answers: the job, plus the sessions of sport. Seated with 3 sessions a
+     * week → 1.29, nearer « light » (1.375) than « moderate » (1.55): the usual levels count the sessions as if
+     * the whole day were active, and overestimate the needs of most people.
+     */
+    public static double activityFactor(Job job, int sessionsPerWeek) {
+        return job.base + SESSION_FACTOR * Math.clamp(sessionsPerWeek, 0, MAX_SESSIONS);
+    }
+
+    /** the level nearest to a factor (kept with the two answers, for the older apps and the backups) */
+    public static Activity nearest(double factor) {
+        Activity best = Activity.SEDENTARY;
+        for (Activity a : Activity.values()) {
+            if (Math.abs(a.factor - factor) < Math.abs(best.factor - factor)) {
+                best = a;
+            }
+        }
+        return best;
+    }
+
     public enum Activity {
         SEDENTARY(1.2), LIGHT(1.375), MODERATE(1.55), ACTIVE(1.725), VERY_ACTIVE(1.9);
 

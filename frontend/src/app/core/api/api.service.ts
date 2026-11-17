@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import type {
+  MacroSplit,
   AccessRequestInput,
   Account,
   AdminLink,
@@ -123,6 +124,16 @@ export class ApiService {
 
   saveProfile(input: ProfileInput): Promise<Summary> {
     return firstValueFrom(this.http.put<Summary>('/api/me/profile', input));
+  }
+
+  /** the target from the real needs (meals and weigh-ins of the last weeks), or from the formula */
+  setAdaptive(on: boolean): Promise<Summary> {
+    return firstValueFrom(this.http.put<Summary>('/api/me/profile/adaptive', { on }));
+  }
+
+  /** the split of the macros: balanced, more protein, fewer carbohydrates */
+  setMacroSplit(split: MacroSplit): Promise<Summary> {
+    return firstValueFrom(this.http.put<Summary>('/api/me/profile/macros', { split }));
   }
 
   logs(): Promise<BodyLogEntry[]> {

@@ -1,0 +1,592 @@
+# Pâtes, riz, pizzas, plats du monde et poissons (même format que 1-viandes-volailles.txt)
+
+= Spaghetti bolognaise | LUNCH,DINNER | 4
+9810 400 spaghetti
+6254 400 bœuf haché 15 %
+20137 600 tomates pelées
+20034 100 oignon
+20009 100 carotte
+11000 10 ail
+17270 20 huile d'olive
+12120 40 parmesan
+11058 5 sel
+: Faire revenir l'oignon et la carotte hachés dans l'huile, ajouter la viande et la dorer
+: Ajouter l'ail et les tomates, laisser mijoter 30 minutes
+: Cuire les spaghetti al dente, servir avec la sauce et le parmesan
+
+= Lasagnes à la bolognaise | LUNCH,DINNER | 6
+9821 300 feuilles de lasagne
+6254 500 bœuf haché 15 %
+20137 800 tomates pelées
+20034 120 oignon
+20009 100 carotte
+16400 50 beurre
+9440 50 farine
+19033 700 lait
+12118 100 emmental râpé
+17270 20 huile d'olive
+11048 1 muscade
+11058 6 sel
+: Préparer la bolognaise : oignon, carotte et viande revenus dans l'huile, puis les tomates, 30 minutes à feu doux
+: Préparer une béchamel avec le beurre, la farine, le lait et la muscade
+: Alterner pâtes, bolognaise et béchamel dans un plat, finir par la béchamel et le fromage
+: Cuire 40 minutes à 180 °C
+
+= Pâtes à la carbonara | LUNCH,DINNER | 4
+9810 400 spaghetti
+28720 200 lardons (ou guanciale)
+22000 150 œufs
+22002 40 jaunes d'œufs
+12120 60 parmesan (ou pecorino)
+11015 2 poivre
+: Cuire les pâtes al dente en gardant un peu d'eau de cuisson
+: Dorer les lardons sans matière grasse
+: Hors du feu, mêler les pâtes aux lardons puis aux œufs battus avec le fromage et le poivre, détendre avec l'eau de cuisson
+
+= Gratin de pâtes au jambon | LUNCH,DINNER | 4
+9810 300 coquillettes ou macaronis
+28910 200 jambon cuit
+16400 30 beurre
+9440 30 farine
+19033 500 lait
+12118 100 emmental râpé
+11048 1 muscade
+11058 4 sel
+: Cuire les pâtes 2 minutes de moins que sur le paquet
+: Préparer une béchamel, y mêler les pâtes et le jambon en dés
+: Verser dans un plat, couvrir de fromage et gratiner 20 minutes à 200 °C
+
+= Coquillettes jambon emmental | LUNCH,DINNER | 4
+9810 320 coquillettes
+28910 160 jambon cuit
+12118 80 emmental râpé
+16400 20 beurre
+11058 4 sel
+: Cuire les coquillettes à l'eau salée et les égoutter
+: Ajouter le beurre, le jambon en dés et le fromage, mélanger jusqu'à ce qu'il fonde
+
+= Pâtes au pesto | LUNCH,DINNER | 4
+9810 400 pâtes
+11179 120 pesto
+20172 200 tomates cerises
+12120 30 parmesan
+: Cuire les pâtes al dente
+: Les mêler au pesto avec un peu d'eau de cuisson, ajouter les tomates cerises coupées et le parmesan
+
+= Pâtes au saumon | LUNCH,DINNER | 4
+9810 360 tagliatelles
+26036 300 saumon frais
+19436 200 crème légère
+20097 30 échalote
+13009 30 citron
+11003 5 ciboulette
+11058 4 sel
+: Cuire les pâtes al dente
+: Faire revenir l'échalote, ajouter le saumon en dés 3 minutes, puis la crème, le zeste et le jus de citron
+: Mêler aux pâtes et parsemer de ciboulette
+
+= Penne all'arrabbiata | LUNCH,DINNER | 4
+9810 400 penne
+20137 600 tomates pelées
+11000 15 ail
+20151 5 piment
+17270 30 huile d'olive
+11014 10 persil
+11058 5 sel
+: Faire revenir l'ail et le piment dans l'huile, ajouter les tomates et cuire 20 minutes
+: Mêler aux penne al dente et parsemer de persil
+
+= One pot pasta tomate et basilic | LUNCH,DINNER | 4
+9810 350 spaghetti
+20172 300 tomates cerises
+20034 100 oignon
+11000 10 ail
+11033 15 basilic
+11041 10 bouillon de légumes
+18066 900 eau
+17270 20 huile d'olive
+12120 30 parmesan
+: Tout mettre dans une grande sauteuse, sauf le parmesan
+: Porter à ébullition et cuire 12 minutes en remuant souvent, jusqu'à absorption du liquide
+: Servir avec le parmesan
+
+= Pâtes au thon et à la tomate | LUNCH,DINNER | 4
+9810 400 pâtes
+26039 280 thon au naturel
+20137 500 tomates pelées
+20034 80 oignon
+13032 50 olives noires
+17270 20 huile d'olive
+11058 3 sel
+: Faire revenir l'oignon dans l'huile, ajouter les tomates et cuire 15 minutes
+: Ajouter le thon émietté et les olives, mêler aux pâtes cuites
+
+= Tagliatelles aux champignons | LUNCH,DINNER | 4
+9821 360 tagliatelles
+20056 400 champignons de Paris
+19436 200 crème légère
+20097 40 échalote
+16400 20 beurre
+11014 10 persil
+12120 30 parmesan
+11058 4 sel
+: Faire sauter les champignons émincés et l'échalote dans le beurre
+: Ajouter la crème, saler et poivrer, laisser réduire 5 minutes
+: Mêler aux tagliatelles, parsemer de persil et de parmesan
+
+= Gnocchis à la tomate et à la mozzarella | LUNCH,DINNER | 4
+26264 800 gnocchis
+20137 500 tomates pelées
+19590 250 mozzarella
+11000 10 ail
+11033 10 basilic
+17270 20 huile d'olive
+11058 3 sel
+: Préparer une sauce avec l'huile, l'ail et les tomates, 15 minutes
+: Mêler aux gnocchis pochés, couvrir de mozzarella et gratiner 15 minutes à 200 °C
+
+= Risotto aux champignons | LUNCH,DINNER | 4
+9100 320 riz rond (arborio)
+20056 350 champignons de Paris
+20097 50 échalote
+5215 100 vin blanc
+11041 15 bouillon de légumes
+18066 1000 eau
+16400 40 beurre
+12120 60 parmesan
+17270 15 huile d'olive
+: Faire revenir l'échalote dans l'huile, ajouter le riz et le nacrer 2 minutes, déglacer au vin blanc
+: Ajouter le bouillon chaud louche par louche pendant 18 minutes en remuant
+: Incorporer les champignons poêlés, le beurre et le parmesan hors du feu
+
+= Lasagnes aux épinards et au chèvre | LUNCH,DINNER | 6
+9821 250 feuilles de lasagne
+20059 800 épinards
+12812 200 chèvre en bûche
+12069 250 fromage frais
+16400 40 beurre
+9440 40 farine
+19033 600 lait
+12118 80 emmental râpé
+11048 1 muscade
+11058 5 sel
+: Faire tomber les épinards à la poêle et bien les égoutter, les mêler au fromage frais
+: Préparer une béchamel avec le beurre, la farine, le lait et la muscade
+: Alterner pâtes, épinards, chèvre en rondelles et béchamel, finir par le fromage râpé
+: Cuire 40 minutes à 180 °C
+
+= Pizza margherita | LUNCH,DINNER | 2
+37001 400 pâte à pizza
+20260 150 coulis de tomate
+19590 200 mozzarella
+11033 5 basilic
+17270 10 huile d'olive
+: Étaler la pâte, la couvrir de coulis puis de mozzarella en morceaux
+: Cuire 12 minutes à 250 °C, ajouter le basilic et un filet d'huile
+
+= Pizza reine | LUNCH,DINNER | 2
+37001 400 pâte à pizza
+20260 150 coulis de tomate
+19590 150 mozzarella
+28910 100 jambon cuit
+20056 100 champignons de Paris
+13032 20 olives noires
+: Étaler la pâte, la couvrir de coulis, de mozzarella, de jambon et de champignons émincés
+: Cuire 12 minutes à 250 °C, ajouter les olives
+
+= Pizza quatre fromages | LUNCH,DINNER | 2
+37001 400 pâte à pizza
+20260 120 coulis de tomate
+19590 100 mozzarella
+12812 60 chèvre
+12500 40 roquefort
+12120 30 parmesan
+: Étaler la pâte, la couvrir de coulis et répartir les quatre fromages
+: Cuire 12 minutes à 250 °C
+
+= Riz cantonais | LUNCH,DINNER | 4
+9100 300 riz
+28910 150 jambon cuit
+22000 150 œufs
+20072 150 petits pois
+10007 150 crevettes cuites
+20034 60 oignon
+11104 30 sauce soja
+17440 20 huile
+: Cuire le riz la veille ou quelques heures avant
+: Cuire les œufs battus en omelette fine et la couper en lanières
+: Faire sauter l'oignon, les petits pois, le jambon et les crevettes, ajouter le riz, l'omelette et la sauce soja
+
+= Paella | LUNCH,DINNER | 6
+9100 450 riz rond
+36002 600 cuisses de poulet
+10007 300 crevettes
+10014 150 moules (500 g avec les coquilles)
+30315 120 chorizo
+20087 200 poivron rouge
+20072 150 petits pois
+20034 100 oignon
+20137 300 tomates pelées
+11041 15 bouillon
+18066 1100 eau
+17270 40 huile d'olive
+11049 3 paprika et safran
+11058 4 sel
+: Dorer le poulet et le chorizo dans l'huile, ajouter l'oignon et le poivron
+: Ajouter les tomates, le riz, le paprika et le safran, puis le bouillon chaud
+: Cuire 18 minutes sans remuer, ajouter petits pois, crevettes et moules les 8 dernières minutes
+
+= Bolognaise aux lentilles | LUNCH,DINNER | 4
+9810 360 spaghetti
+20535 150 lentilles corail
+20137 600 tomates pelées
+20034 100 oignon
+20009 120 carotte
+11000 10 ail
+17270 20 huile d'olive
+18066 300 eau
+11058 4 sel
+: Faire revenir l'oignon et la carotte hachés dans l'huile
+: Ajouter les lentilles, l'ail, les tomates et l'eau, cuire 20 minutes
+: Servir sur les spaghetti al dente
+
+= Pad thaï aux crevettes | LUNCH,DINNER | 4
+9901 600 nouilles de riz cuites
+10007 300 crevettes
+22000 100 œufs
+15001 50 cacahuètes
+20034 60 oignon nouveau
+11194 30 nuoc-mâm
+31017 20 sucre roux
+13067 40 citron vert
+17440 20 huile
+11094 10 coriandre
+: Faire sauter les crevettes dans l'huile, pousser sur le côté et brouiller les œufs
+: Ajouter les nouilles, le nuoc-mâm, le sucre et le jus de citron vert, mélanger 2 minutes
+: Servir avec les cacahuètes concassées, l'oignon nouveau et la coriandre
+
+= Bo bun au bœuf | LUNCH,DINNER | 4
+9901 500 vermicelles de riz cuits
+6206 400 bœuf (rumsteck)
+20031 100 salade
+20009 150 carotte
+20019 150 concombre
+15001 40 cacahuètes
+11027 10 menthe
+11194 40 nuoc-mâm
+31016 20 sucre
+13067 30 citron vert
+17440 15 huile
+11000 10 ail
+: Faire sauter le bœuf émincé avec l'ail dans l'huile très chaude
+: Préparer la sauce avec le nuoc-mâm, le sucre, le citron vert et 4 cuillères d'eau
+: Dresser les vermicelles sur la salade et les crudités, ajouter le bœuf, les cacahuètes, la menthe et la sauce
+
+= Nouilles sautées au poulet et aux légumes | LUNCH,DINNER | 4
+9821 300 nouilles aux œufs
+36017 400 blancs de poulet
+20009 150 carotte
+20041 150 poivron
+20020 150 courgette
+20034 60 oignon
+11104 40 sauce soja
+11074 10 gingembre frais
+17400 15 huile de sésame
+17440 15 huile
+: Cuire les nouilles et les égoutter
+: Faire sauter le poulet en lanières, puis les légumes en julienne avec le gingembre
+: Ajouter les nouilles, la sauce soja et l'huile de sésame, mélanger 2 minutes
+
+= Wok de bœuf aux légumes | LUNCH,DINNER | 4
+6206 400 bœuf (rumsteck)
+20057 300 brocoli
+20087 200 poivron rouge
+20009 150 carotte
+11104 40 sauce soja
+11074 10 gingembre frais
+11000 10 ail
+9510 10 fécule de maïs
+17440 20 huile
+: Mariner le bœuf émincé 15 minutes dans la sauce soja et la fécule
+: Le saisir 2 minutes à feu vif, le réserver
+: Faire sauter les légumes avec l'ail et le gingembre, remettre le bœuf
+
+= Poké bowl au saumon | LUNCH,DINNER | 2
+9100 150 riz
+26036 250 saumon cru très frais
+13004 150 avocat
+20019 120 concombre
+20009 80 carotte
+13025 100 mangue
+11104 20 sauce soja
+15010 5 graines de sésame
+: Cuire le riz et le laisser tiédir
+: Couper le saumon en cubes et le mariner 10 minutes dans la sauce soja
+: Dresser le riz, le saumon, les légumes et la mangue, parsemer de sésame
+
+= Bowl de poulet, riz et légumes | LUNCH,DINNER | 2
+9100 140 riz
+36017 300 blancs de poulet
+20057 200 brocoli
+13004 100 avocat
+20066 80 maïs
+11104 15 sauce soja
+17270 10 huile d'olive
+: Cuire le riz et le brocoli à la vapeur
+: Saisir le poulet en lanières dans l'huile avec la sauce soja
+: Dresser le tout avec l'avocat et le maïs
+
+= Burrito bowl | LUNCH,DINNER | 4
+9100 250 riz
+6254 400 bœuf haché 15 %
+20524 250 haricots rouges cuits
+20066 150 maïs
+20385 200 tomates
+13004 150 avocat
+12726 60 cheddar
+13067 20 citron vert
+11042 3 cumin
+11049 3 paprika
+11058 3 sel
+: Cuire le riz, le parfumer au citron vert
+: Dorer la viande avec les épices, ajouter les haricots
+: Dresser le riz, la viande, le maïs, les tomates, l'avocat et le cheddar
+
+= Quesadillas au poulet et au fromage | LUNCH,DINNER,SNACK | 4
+7815 320 tortillas de blé (8)
+36017 300 blancs de poulet
+12726 150 cheddar
+20087 150 poivron rouge
+20066 80 maïs
+11042 2 cumin
+17440 10 huile
+: Saisir le poulet en lanières avec le cumin, ajouter le poivron
+: Garnir une tortilla de poulet, de maïs et de fromage, couvrir d'une seconde
+: Dorer 2 minutes par face à la poêle et couper en quatre
+
+= Kebab maison | LUNCH,DINNER | 4
+36017 500 blancs de poulet (ou cuisse)
+7180 320 pains pita
+19860 150 yaourt à la grecque
+20031 80 salade
+20385 200 tomates
+20034 60 oignon
+11042 3 cumin
+11049 3 paprika
+11000 5 ail
+17270 15 huile d'olive
+11058 3 sel
+: Mariner le poulet en fines lanières avec les épices et l'huile, le saisir à feu vif
+: Mélanger le yaourt avec l'ail pour la sauce blanche
+: Garnir les pains de viande, crudités et sauce
+
+= Pavé de saumon et haricots verts | LUNCH,DINNER | 4
+26036 520 pavés de saumon
+20061 600 haricots verts
+13009 60 citron
+17270 15 huile d'olive
+16400 15 beurre
+11058 3 sel
+: Cuire les pavés côté peau 6 minutes à feu moyen, puis 2 minutes de l'autre côté
+: Cuire les haricots 8 minutes à l'eau, les faire sauter au beurre
+: Servir avec des quartiers de citron
+
+= Saumon en papillote | LUNCH,DINNER | 4
+26036 520 pavés de saumon
+20020 300 courgette
+20009 150 carotte
+13009 80 citron
+11027 5 aneth ou menthe
+17270 15 huile d'olive
+11058 3 sel
+: Poser chaque pavé sur une feuille de papier cuisson avec les légumes en julienne et une rondelle de citron
+: Arroser d'huile, saler, fermer les papillotes et cuire 18 minutes à 200 °C
+
+= Saumon teriyaki et riz | LUNCH,DINNER | 4
+26036 520 pavés de saumon
+9100 250 riz
+11104 50 sauce soja
+31008 25 miel
+11074 10 gingembre frais
+15010 5 graines de sésame
+20057 300 brocoli
+: Mélanger sauce soja, miel et gingembre
+: Saisir le saumon, verser la sauce et laisser caraméliser 2 minutes
+: Servir avec le riz, le brocoli vapeur et le sésame
+
+= Papillote de cabillaud aux petits légumes | LUNCH,DINNER | 4
+26043 600 dos de cabillaud
+20020 300 courgette
+20385 200 tomates
+20034 60 oignon
+13032 30 olives noires
+17270 20 huile d'olive
+11060 2 herbes de Provence
+11058 3 sel
+: Répartir les légumes en dés sur des feuilles de papier cuisson, poser le poisson dessus
+: Ajouter olives, herbes et huile, fermer et cuire 20 minutes à 200 °C
+
+= Cabillaud à la provençale | LUNCH,DINNER | 4
+26043 600 dos de cabillaud
+20137 400 tomates pelées
+20034 100 oignon
+13032 40 olives noires
+11000 10 ail
+17270 20 huile d'olive
+11033 10 basilic
+11058 3 sel
+: Faire une sauce avec l'oignon, l'ail et les tomates, 15 minutes
+: Poser le cabillaud dans la sauce avec les olives, couvrir et cuire 10 minutes, parsemer de basilic
+
+= Moules marinières | LUNCH,DINNER | 4
+10014 600 moules (2 kg avec les coquilles)
+5215 200 vin blanc
+20097 60 échalotes
+16400 30 beurre
+11014 15 persil
+: Faire fondre les échalotes dans le beurre, verser le vin
+: Ajouter les moules nettoyées, couvrir et cuire 5 minutes à feu vif en secouant
+: Parsemer de persil dès qu'elles sont ouvertes
+
+= Moules-frites | LUNCH,DINNER | 4
+10014 600 moules (2 kg avec les coquilles)
+4044 800 frites pour le four
+5215 200 vin blanc
+20097 60 échalotes
+16400 30 beurre
+11014 15 persil
+: Cuire les frites au four selon le paquet
+: Cuire les moules à la marinière : échalotes, beurre et vin, 5 minutes à couvert à feu vif
+
+= Brandade de morue | LUNCH,DINNER | 6
+26043 600 morue dessalée (ou cabillaud)
+4008 800 pommes de terre
+19033 250 lait
+17270 80 huile d'olive
+11000 15 ail
+7500 20 chapelure
+: Pocher le poisson 8 minutes dans le lait, l'émietter
+: Écraser les pommes de terre cuites avec le poisson, l'ail, l'huile et un peu de lait de cuisson
+: Verser dans un plat, saupoudrer de chapelure et gratiner 15 minutes
+
+= Poisson pané maison et purée | LUNCH,DINNER | 4
+26129 560 filets de colin
+22000 100 œufs
+7500 100 chapelure
+9440 30 farine
+4008 800 pommes de terre
+19033 200 lait
+16400 30 beurre
+17440 30 huile
+11058 4 sel
+: Passer les filets dans la farine, l'œuf battu puis la chapelure, les dorer 3 minutes par face dans l'huile
+: Préparer la purée avec les pommes de terre cuites, le lait chaud et le beurre
+
+= Fish and chips | LUNCH,DINNER | 4
+26043 560 cabillaud
+9440 120 farine
+5001 150 bière
+4044 800 frites pour le four
+17440 60 huile
+11058 4 sel
+: Mélanger la farine et la bière en pâte lisse
+: Tremper le poisson dans la pâte et le frire 5 minutes à 180 °C
+: Servir avec les frites cuites au four
+
+= Crevettes sautées à l'ail | LUNCH,DINNER | 4
+10061 500 crevettes crues décortiquées
+11000 20 ail
+11014 15 persil
+17270 30 huile d'olive
+13009 40 citron
+20151 3 piment
+: Saisir les crevettes 2 minutes par face dans l'huile avec l'ail et le piment
+: Arroser de citron et parsemer de persil
+
+= Curry de crevettes au lait de coco | LUNCH,DINNER | 4
+10061 500 crevettes
+18041 400 lait de coco
+20034 100 oignon
+20385 200 tomates
+11005 10 curry
+11074 10 gingembre frais
+11094 10 coriandre
+17440 15 huile
+11058 3 sel
+: Faire revenir l'oignon et le gingembre, ajouter le curry puis les tomates et le lait de coco
+: Laisser mijoter 10 minutes, ajouter les crevettes 4 minutes, parsemer de coriandre
+
+= Tartare de saumon | LUNCH,DINNER | 4
+26036 500 saumon très frais
+13004 150 avocat
+20097 30 échalote
+13067 40 citron vert
+11003 5 ciboulette
+17270 15 huile d'olive
+11058 3 sel
+: Couper le saumon et l'avocat en petits dés
+: Assaisonner avec l'échalote, le citron vert, l'huile, la ciboulette et le sel, servir bien frais
+
+= Sardines grillées | LUNCH,DINNER | 4
+26065 800 sardines fraîches
+13009 80 citron
+17270 15 huile d'olive
+11058 4 sel
+: Badigeonner les sardines d'huile, saler
+: Les griller 3 minutes par face et servir avec le citron
+
+= Maquereaux à la moutarde au four | LUNCH,DINNER | 4
+26051 600 filets de maquereau
+11013 40 moutarde
+19436 100 crème légère
+13009 40 citron
+11058 3 sel
+: Poser les filets dans un plat, les napper de moutarde mêlée à la crème
+: Cuire 15 minutes à 200 °C et arroser de citron
+
+= Parmentier de poisson | LUNCH,DINNER | 6
+26043 700 cabillaud ou colin
+4008 1200 pommes de terre
+19033 300 lait
+16400 50 beurre
+20097 40 échalote
+12118 60 emmental râpé
+11058 6 sel
+: Pocher le poisson 8 minutes, l'émietter avec l'échalote revenue
+: Préparer la purée avec le lait chaud et le beurre
+: Étaler le poisson, couvrir de purée et de fromage, gratiner 20 minutes à 200 °C
+
+= Thon mi-cuit au sésame | LUNCH,DINNER | 4
+26064 600 thon frais
+15010 40 graines de sésame
+11104 30 sauce soja
+13067 30 citron vert
+17400 10 huile de sésame
+: Rouler le thon dans le sésame
+: Le saisir 1 minute par face à feu très vif, le trancher
+: Servir avec la sauce soja mêlée au citron vert et à l'huile de sésame
+
+= Gratin de crozets au jambon cru | LUNCH,DINNER | 4
+9810 300 crozets (ou petites pâtes)
+28800 120 jambon cru
+12105 120 beaufort
+19410 150 crème fraîche
+20034 80 oignon
+: Cuire les crozets 15 minutes à l'eau salée
+: Faire revenir l'oignon, mêler aux pâtes, au jambon et à la crème
+: Couvrir de beaufort râpé et gratiner 20 minutes à 200 °C
+
+= Riz au poulet à la thaïe | LUNCH,DINNER | 4
+9100 250 riz
+36017 500 blancs de poulet
+20087 150 poivron rouge
+20034 60 oignon nouveau
+11194 30 nuoc-mâm
+11104 20 sauce soja
+11033 15 basilic
+11000 10 ail
+20151 3 piment
+17440 15 huile
+: Faire sauter le poulet haché au couteau avec l'ail et le piment
+: Ajouter le poivron, le nuoc-mâm et la sauce soja, puis le basilic hors du feu
+: Servir avec le riz

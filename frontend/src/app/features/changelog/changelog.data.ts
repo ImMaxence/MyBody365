@@ -7,6 +7,222 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.7.0",
+    "date": "2026-11-17",
+    "summary": [
+      {
+        "t": "Ton sport compté au plus juste, des repères en grammes expliqués, les tendances de ta semaine, et un import par lien plus simple"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "L'activité en deux questions : ta journée (plutôt assise, debout, physique), puis tes séances de sport par semaine. Les anciens niveaux mélangeaient les deux et surestimaient souvent la dépense : trois séances avec une journée de bureau, c'est une activité légère, pas modérée. Un profil existant garde son niveau jusqu'à ce que tu répondes, Mon objectif te le propose"
+            }
+          ],
+          [
+            {
+              "t": "Page Repas : l'objectif dit pour quelle activité il est calculé, et que ton sport y est déjà compté, inutile de manger plus les jours de séance"
+            }
+          ],
+          [
+            {
+              "t": "Séances notées : en fin de minuteur, ou « J'ai fait ma séance aujourd'hui » sans minuteur. Si tu en fais nettement moins que ce que compte ton objectif, la page Repas te le dit, avec de quoi l'ajuster"
+            }
+          ],
+          [
+            {
+              "t": "Tes repères en grammes : les protéines comptées sur ton poids (1,6 g par kilo, sur le plus bas de ton poids et de ton poids visé), les lipides, les glucides et 30 g de fibres. Un geste explique à quoi sert chacun"
+            }
+          ],
+          [
+            {
+              "t": "Trois répartitions au choix (équilibrée, plus de protéines, moins de glucides), avec ce qu'il faut savoir : à calories égales, aucune ne fait perdre du gras plus vite"
+            }
+          ],
+          [
+            {
+              "t": "Les tendances de la semaine sur la page Repas : trop de sucre, de sel ou de graisses saturées, avec les aliments qui en apportent le plus, pas assez de fibres ou de protéines, ou une semaine équilibrée"
+            }
+          ],
+          [
+            {
+              "t": "Import de recettes : colle tout un message, le premier lien https est gardé, et une croix vide le champ"
+            }
+          ],
+          [
+            {
+              "t": "Import de recettes : environ 150 ingrédients courants reconnus d'office (la farine complète est bien la farine de blé complète, le thon celui au naturel, les pois chiches ceux en boîte…), et les quantités de la cuisine : une poignée, une boîte, une botte, un filet d'huile, une noix de beurre, un carré de chocolat, un verre"
+            }
+          ],
+          [
+            {
+              "t": "Un bouton « Changer d'aliment » sur chaque ingrédient d'une recette : la recherche s'ouvre avec ses mots, le poids reste"
+            }
+          ],
+          [
+            {
+              "t": "Ta dépense réelle : après 3 à 4 semaines de repas et de pesées, l'app calcule ce que tu dépenses vraiment (ce que tu manges en moyenne, plus ce que dit la tendance de la balance) et propose de caler l'objectif dessus. Jamais à plus de 20 % du calcul, et retour au calcul s'il manque des jours"
+            }
+          ],
+          [
+            {
+              "t": "Noter sans réseau : un repas, une pesée ou les verres d'eau notés sans connexion restent sur le téléphone, s'affichent tout de suite « En attente de réseau » et partent dès le retour du réseau"
+            }
+          ],
+          [
+            {
+              "t": "Le bilan du dimanche : à 19 h, une notification ouvre « Ta semaine » (tendance du poids, séances, jours de repas notés, moyenne, ce qui ressort). Rien de personnel sur l'écran verrouillé, et un interrupteur dans les notifications"
+            }
+          ],
+          [
+            {
+              "t": "Administration : les ingrédients non reconnus à l'import, les plus fréquents d'abord, pour compléter les tables"
+            }
+          ],
+          [
+            {
+              "t": "Une recette peut aller avec plusieurs repas (un petit-déjeuner qui fait aussi une collation) : elle apparaît dans chacun des filtres"
+            }
+          ],
+          [
+            {
+              "t": "Repas au snack : le tacos avec ou sans sauce fromagère, et ses sauces à cocher (algérienne, samouraï, blanche, biggy, barbecue, harissa) ; la pizza base tomate ou base crème ; et « Quelle part ? » (tout, les trois quarts, la moitié, un quart) pour le burger, le kebab, le tacos, le sandwich et la salade"
+            }
+          ],
+          [
+            {
+              "t": "Une recette importée dit à tous sur quelle recette elle est basée, avec son lien, et d'où viennent ses calories"
+            }
+          ],
+          [
+            {
+              "t": "Le Nutri-Score des recettes faites d'aliments : sur leur carte, et en direct pendant que tu la composes. Il compte la part de fruits, de légumes et de légumineuses, comme sur un emballage : une ratatouille n'est plus notée comme un gâteau"
+            }
+          ],
+          [
+            {
+              "t": "200 recettes dans la communauté, publiées par l'équipe MyBody365 : les plats les plus cuisinés et les plus aimés en France (bœuf bourguignon, blanquette, couscous, quiche lorraine, gratin dauphinois, ratatouille, crêpes, mousse au chocolat…), des petits-déjeuners aux desserts. Chaque ingrédient est un aliment de la table Ciqual pesé : calories, macros et Nutri-Score sont calculés, pas recopiés"
+            }
+          ],
+          [
+            {
+              "t": "Communauté : une recherche par nom (sans se soucier des accents) et « Voir plus de recettes », 30 à la fois"
+            }
+          ],
+          [
+            {
+              "t": "Minuteur : il continue quand tu changes d'écran, verrouilles le téléphone ou passes sur une autre app, jusqu'à la fin ou jusqu'à ce que tu l'arrêtes, même si le téléphone ferme l'app entre-temps. Une pastille au-dessus des onglets y ramène, et écran verrouillé une notification annonce chaque repos, chaque série et la fin (notifications activées)"
+            }
+          ],
+          [
+            {
+              "t": "Minuteur : un tap sur la durée de l'effort, du repos ou sur le nombre de tours pour la saisir directement, les boutons − et + restant là pour les petits pas"
+            }
+          ],
+          [
+            {
+              "t": "Minuteur et Mon objectif : une phrase discrète rappelle que MyBody365 se concentre sur ce que tu manges. Le sport fait dans la journée ne s'ajoute pas à tes calories, ton activité habituelle est déjà comptée dans ton objectif"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "La note d'équilibre et les statistiques comparent tes macros à ta répartition, et non plus à 25 / 45 / 30 fixes"
+            }
+          ],
+          [
+            {
+              "t": "Les textes anglais ne sont chargés que si l'app est en anglais : elle démarre plus légère"
+            }
+          ],
+          [
+            {
+              "t": "Aujourd'hui : toute la carte de la flamme ouvre son calendrier, pas seulement la petite flèche"
+            }
+          ],
+          [
+            {
+              "t": "Sur iPhone, un appui long sur un bouton ou un lien n'ouvre plus l'aperçu de la page suivante (« Ouvrir dans Safari, Partager… »)"
+            }
+          ],
+          [
+            {
+              "t": "Dans l'app, les textes ne se sélectionnent plus et ne se copient plus, comme dans une app du téléphone. Les champs de saisie gardent le copier-coller, ce qui se partage a son bouton « Copier » (lien d'ami, nom d'utilisateur), et une photo de toi ouverte en grand s'enregistre toujours d'un appui long"
+            }
+          ],
+          [
+            {
+              "t": "La communauté est publiée par l'équipe MyBody365 (les admins) : un membre partage ses recettes avec ses amis. Une recette qu'un membre avait mise dans la communauté repasse en « Amis », rien n'est supprimé"
+            }
+          ],
+          [
+            {
+              "t": "Page Repas : l'objectif du jour reste bien lisible, avec les calories déjà consommées, même quand tu le dépasses"
+            }
+          ],
+          [
+            {
+              "t": "Administration, Aliments : le logo d'Open Food Facts, la date de la dernière mise à jour de chaque source, et le nombre de produits Open Food Facts expliqué (en direct, seuls ceux déjà choisis par les membres sont gardés sur le serveur)"
+            }
+          ],
+          [
+            {
+              "t": "Administration : les onglets Journal (ce que les admins ont fait) et Erreurs (les plantages de l'app) disent en une phrase ce qu'ils contiennent"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Recette : la recherche d'un ingrédient ne passe plus hors de l'écran quand le clavier s'ouvre sur iPhone"
+            }
+          ],
+          [
+            {
+              "t": "Minuteur : quitter son écran par mégarde ne l'arrête plus"
+            }
+          ],
+          [
+            {
+              "t": "L'onglet Aujourd'hui reste allumé sur le minuteur et sur « Ta semaine », qui s'ouvrent depuis lui"
+            }
+          ],
+          [
+            {
+              "t": "Recettes : une photo en hauteur ne déborde plus sur le nom et les calories de la carte (sur iPhone), ni sur la page de la recette"
+            }
+          ],
+          [
+            {
+              "t": "Administration : la fiche d'un compte ne déborde plus de l'écran (adresse longue, choix du quota)"
+            }
+          ],
+          [
+            {
+              "t": "Import de recettes : la ricotta et la vanille sont de nouveau reconnues (leurs codes Ciqual avaient changé)"
+            }
+          ],
+          [
+            {
+              "t": "Aujourd'hui : la carte « Ton objectif », tout en bas, ouvre Progrès sans que l'écran remonte d'un coup avant (sur iPhone, l'ancien écran réapparaissait depuis son haut le temps du fondu)"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.6.0",
     "date": "2026-11-17",
     "summary": [

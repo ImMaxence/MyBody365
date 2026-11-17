@@ -5,6 +5,7 @@ test.describe('tracking', () => {
   test('a new account: consents, profile, plan, then day 1 of the streak', async ({ page }) => {
     const errors = watchErrors(page);
     await openApp(page);
+    await page.waitForLoadState('networkidle');
     await page.goto('/api/auth/dev-login?as=new');
 
     // consents
@@ -44,7 +45,10 @@ test.describe('tracking', () => {
     await page.getByLabel('Date souhaitée').fill(soon.toISOString().slice(0, 10));
     await expect(page.getByText(/Trop rapide pour rester en bonne santé/)).toBeVisible();
     await page.getByRole('radio', { name: /Soutenu/ }).click();
-    await page.getByRole('radio', { name: /Modérée/ }).click();
+    // the activity in two answers: the day, then the sessions of sport a week
+    await page.getByRole('radio', { name: /Debout, à marcher/ }).click();
+    await page.getByRole('button', { name: 'Une séance de plus' }).click();
+    await expect(page.getByLabel('Séances de sport par semaine')).toHaveValue('3');
     await expect(page.getByText(/Arrivée estimée/)).toBeVisible();
     await page.getByRole('button', { name: 'Voir mon plan' }).click();
 
@@ -67,6 +71,7 @@ test.describe('tracking', () => {
 
   test('weigh-in, progress curve and goal', async ({ page }) => {
     await openApp(page);
+    await page.waitForLoadState('networkidle');
     await page.goto('/api/auth/dev-login?as=new');
     const { completeOnboarding } = await import('./helpers');
     await completeOnboarding(page);
@@ -114,20 +119,39 @@ test.describe('tracking', () => {
     await tab(page, 'Repas').click();
     await expect(page.getByText(/kcal par jour pour perdre .* kg par semaine/)).toBeVisible();
     await expect(page.getByText(/baisse d’environ \d+ kcal par kilo perdu/)).toBeVisible();
+    // the sport the target counts on (the onboarding answers: a seated day, 2 sessions), already in it
+    await expect(page.getByText(/Calculé pour une journée plutôt assise et 2 séances de sport par semaine : ton sport est déjà compté/)).toBeVisible();
+    // the guides, in grams, explained on a tap; the split can change
+    await page.getByRole('button', { name: /Tes repères : \d+ g de protéines/ }).click();
+    const guides = page.getByRole('dialog', { name: 'Tes repères du jour' });
+    await expect(guides.getByText(/Gardent tes muscles/)).toBeVisible();
+    await expect(guides.getByText(/aucune répartition ne fait perdre du gras plus vite/)).toBeVisible();
+    await expectAccessible(page);
+    await guides.getByRole('radio', { name: /Plus de protéines/ }).click();
+    await expect(page.getByText('Répartition enregistrée')).toBeVisible();
+    await expect(guides.getByRole('radio', { name: /Plus de protéines/ })).toHaveAttribute('aria-checked', 'true');
+    await guides.getByRole('button', { name: 'Masquer le panneau' }).click();
 
     // my goal, from the profile
     await tab(page, 'Profil').click();
     await page.getByRole('link', { name: /Mon objectif/ }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mon objectif');
+    await expect(page.getByText(/se concentre sur ce que tu manges/)).toBeVisible();
     await page.getByRole('radio', { name: /Doux/ }).click();
+    await expect(page.getByRole('radio', { name: /Plutôt assise/ })).toHaveAttribute('aria-checked', 'true');
+    await page.getByRole('radio', { name: /Debout, à marcher/ }).click();
     await page.getByRole('button', { name: 'Enregistrer' }).click();
     await expect(page.getByText('Objectif mis à jour')).toBeVisible();
     await expect(page).toHaveURL(/\/app\/account$/);
     await expect(page.getByRole('link', { name: /Mon objectif/ })).toContainText('0,25 kg / semaine');
+    // the meals now say what the target counts on: the sport is already in it
+    await tab(page, 'Repas').click();
+    await expect(page.getByText(/Calculé pour une journée debout et \d+ séances? de sport par semaine/)).toBeVisible();
   });
 
   test('a goal under a healthy weight is refused', async ({ page }) => {
     await openApp(page);
+    await page.waitForLoadState('networkidle');
     await page.goto('/api/auth/dev-login?as=new');
     const { completeOnboarding } = await import('./helpers');
     await completeOnboarding(page);

@@ -38,7 +38,9 @@ public class NotificationController {
             /** a glass of water when the day is behind; null (an app older than 1.1): unchanged */
             Boolean waterEnabled,
             /** a word when a new version comes out; null (an app older than 1.1): unchanged */
-            Boolean updatesEnabled) {}
+            Boolean updatesEnabled,
+            /** the summary of the week on Sunday evening; null (an app older than 1.7): unchanged */
+            Boolean weeklyEnabled) {}
 
     public record Settings(String publicKey, int devices, Prefs prefs) {}
 
@@ -63,15 +65,17 @@ public class NotificationController {
         UUID me = users.current(auth).getId();
         jdbc.update("""
                 insert into notification_pref (user_id, daily_enabled, daily_time, gym_enabled, gym_days, gym_time, friends_enabled,
-                  water_enabled, updates_enabled)
-                values (?, ?, ?, ?, ?, ?, ?, coalesce(?, false), coalesce(?, true))
+                  water_enabled, updates_enabled, weekly_enabled)
+                values (?, ?, ?, ?, ?, ?, ?, coalesce(?, false), coalesce(?, true), coalesce(?, true))
                 on conflict (user_id) do update set daily_enabled = excluded.daily_enabled, daily_time = excluded.daily_time,
                   gym_enabled = excluded.gym_enabled, gym_days = excluded.gym_days, gym_time = excluded.gym_time,
                   friends_enabled = excluded.friends_enabled,
                   water_enabled = coalesce(?, notification_pref.water_enabled),
-                  updates_enabled = coalesce(?, notification_pref.updates_enabled)""",
+                  updates_enabled = coalesce(?, notification_pref.updates_enabled),
+                  weekly_enabled = coalesce(?, notification_pref.weekly_enabled)""",
                 me, p.dailyEnabled(), LocalTime.parse(p.dailyTime()), p.gymEnabled(), p.gymDays(), LocalTime.parse(p.gymTime()),
-                p.friendsEnabled(), p.waterEnabled(), p.updatesEnabled(), p.waterEnabled(), p.updatesEnabled());
+                p.friendsEnabled(), p.waterEnabled(), p.updatesEnabled(), p.weeklyEnabled(), p.waterEnabled(), p.updatesEnabled(),
+                p.weeklyEnabled());
         return settings(auth);
     }
 
@@ -96,7 +100,7 @@ public class NotificationController {
         return jdbc.query("select * from notification_pref where user_id = ?", (rs, i) -> new Prefs(rs.getBoolean("daily_enabled"),
                 rs.getTime("daily_time").toLocalTime().toString(), rs.getBoolean("gym_enabled"), rs.getString("gym_days"),
                 rs.getTime("gym_time").toLocalTime().toString(), rs.getBoolean("friends_enabled"), rs.getBoolean("water_enabled"),
-                rs.getBoolean("updates_enabled")), userId).stream().findFirst()
-                .orElse(new Prefs(true, "08:00", false, "1,3,5", "18:00", true, false, true));
+                rs.getBoolean("updates_enabled"), rs.getBoolean("weekly_enabled")), userId).stream().findFirst()
+                .orElse(new Prefs(true, "08:00", false, "1,3,5", "18:00", true, false, true, true));
     }
 }

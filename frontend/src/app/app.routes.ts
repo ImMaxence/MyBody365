@@ -53,6 +53,7 @@ export const routes: Routes = [
           { path: 'account/settings', loadComponent: () => import('./features/app/app-settings.page').then((m) => m.AppSettingsPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/notifications', loadComponent: () => import('./features/app/notifications.page').then((m) => m.NotificationsPage), data: { depth: 1, back: '/app/account' } },
           { path: 'friends', loadComponent: () => import('./features/friends/friends.page').then((m) => m.FriendsPage), data: { depth: 1, back: '/app/account' } },
+          { path: 'week', loadComponent: () => import('./features/app/week.page').then((m) => m.WeekPage), data: { depth: 1, back: '/app' } },
           { path: 'timer', loadComponent: () => import('./features/timer/timer.page').then((m) => m.TimerPage), data: { depth: 1, back: '/app' } },
           // the workout programs (0.5 to 0.7) gave way to the timer
           { path: 'workouts', redirectTo: 'timer' },

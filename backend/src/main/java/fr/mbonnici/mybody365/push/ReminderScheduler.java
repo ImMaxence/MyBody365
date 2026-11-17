@@ -19,8 +19,8 @@ import org.springframework.stereotype.Component;
 /**
  * Every minute (Paris time): the daily reminder of whoever set it for now and has not weighed in (or
  * taken the photo) yet, each one at most once a day; and at 10:00, 13:00, 16:00 and 19:00, "drink some
- * water" for whoever turned it on and is behind on their glasses. (The gym reminders went with the
- * workout programs in 1.0.)
+ * water" for whoever turned it on and is behind on their glasses; on Sunday at 19:00, the summary of the
+ * week for whoever was active in it. (The gym reminders went with the workout programs in 1.0.)
  */
 @Component
 public class ReminderScheduler {
@@ -52,6 +52,40 @@ public class ReminderScheduler {
             water(today, minute);
         } catch (RuntimeException e) {
             log.warn("Water reminders failed: {}", e.getMessage());
+        }
+        try {
+            weekly(today, minute);
+        } catch (RuntimeException e) {
+            log.warn("Weekly summaries failed: {}", e.getMessage());
+        }
+    }
+
+    static final LocalTime WEEKLY_AT = LocalTime.of(19, 0);
+
+    /**
+     * Sunday at 19:00: « Ton bilan de la semaine » for whoever has a device, did not turn it off, and weighed in
+     * or noted a meal in the last 7 days (a quiet account is left alone). Once a week; its text says nothing
+     * personal, the figures are in the app (/app/week).
+     */
+    private void weekly(LocalDate today, LocalTime minute) {
+        if (today.getDayOfWeek() != java.time.DayOfWeek.SUNDAY || !minute.equals(WEEKLY_AT)) {
+            return;
+        }
+        LocalDate since = today.minusDays(7);
+        List<UUID> due = jdbc.queryForList("""
+                select s.user_id from (select distinct user_id from push_subscription) s
+                left join notification_pref p on p.user_id = s.user_id
+                where coalesce(p.weekly_enabled, true) and (p.last_weekly is null or p.last_weekly < ?)
+                  and (exists (select 1 from body_log b where b.user_id = s.user_id and b.day > ? and b.weight_kg is not null)
+                    or exists (select 1 from meal_entry m where m.user_id = s.user_id and m.day > ?))""", UUID.class, today, since, since);
+        for (UUID user : due) {
+            jdbc.update("insert into notification_pref (user_id) values (?) on conflict (user_id) do nothing", user);
+            // claimed first: two instances never send it twice
+            int claimed = jdbc.update("update notification_pref set last_weekly = ? where user_id = ? and (last_weekly is null or last_weekly < ?)",
+                    today, user, today);
+            if (claimed == 1) {
+                push.notify(user, Kind.WEEKLY, Map.of());
+            }
         }
     }
 

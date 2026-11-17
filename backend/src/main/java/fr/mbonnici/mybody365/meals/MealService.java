@@ -83,8 +83,13 @@ public class MealService {
     /** calories by Nutri-Score grade (null: unknown) */
     public record GradeStat(String grade, double kcal) {}
 
+    /** a food and how much of a nutrient it brought over the period (grams) */
+    public record Source(String name, int times, double grams) {}
+
     public record StatsDto(int days, LocalDate from, LocalDate to, Integer targetKcal, List<DayTotal> daily, Nutrients totals,
-            List<FoodStat> topByCount, List<FoodStat> topByKcal, List<SlotStat> slots, List<GradeStat> grades) {}
+            List<FoodStat> topByCount, List<FoodStat> topByKcal, List<SlotStat> slots, List<GradeStat> grades,
+            /** the foods that brought the most sugars, salt and saturated fat */
+            List<Source> sugarSources, List<Source> saltSources, List<Source> satFatSources) {}
 
     /** a food, a recipe or a quick portion logged lately, with the amount used last time (the portion's nutrients for QUICK) */
     public record RecentDto(String kind, UUID id, String name, String detail, Double grams, Double servings, double kcal,
@@ -183,7 +188,19 @@ public class MealService {
                 group by upper(nutriscore) order by 1 nulls last""",
                 (rs, i) -> new GradeStat(rs.getString("grade"), Math.round(rs.getDouble("kcal"))), userId, from, to);
         return new StatsDto(days, from, to, target(userId), daily, sum == null ? Nutrients.ZERO : sum.rounded(), byCount, byKcal, slots,
-                grades);
+                grades, sources(userId, from, to, "sugars_g"), sources(userId, from, to, "salt_g"), sources(userId, from, to, "sat_fat_g"));
+    }
+
+    /** the three foods that brought the most of a nutrient (a column of ours, never a word from outside) */
+    private List<Source> sources(UUID userId, LocalDate from, LocalDate to, String column) {
+        if (!List.of("sugars_g", "salt_g", "sat_fat_g").contains(column)) {
+            throw new IllegalArgumentException(column);
+        }
+        return jdbc.query("""
+                select max(name) name, count(*) n, sum(%1$s) g from meal_entry
+                where user_id = ? and day between ? and ? and %1$s > 0
+                group by coalesce(food_id::text, recipe_id::text, lower(name)) order by g desc limit 3""".formatted(column),
+                (rs, i) -> new Source(rs.getString("name"), rs.getInt("n"), Math.round(rs.getDouble("g") * 10) / 10.0), userId, from, to);
     }
 
     @Transactional

@@ -87,8 +87,31 @@ public class RecipeImporter {
         }
     }
 
+    /** a link in a text (« Regarde ça https://… trop bon ! »): https first, without the punctuation after it */
+    private static final Pattern LINK = Pattern.compile("https?://[^\\s<>\"'«»]+", Pattern.CASE_INSENSITIVE);
+
+    /** the first link of a pasted text (an https one when there is one), or the text itself */
+    static String firstLink(String text) {
+        Matcher m = LINK.matcher(text);
+        String first = null;
+        while (m.find()) {
+            String link = m.group().replaceFirst("[.,;:!?)\\]}»]+$", "");
+            if (link.regionMatches(true, 0, "https:", 0, 6)) {
+                return link;
+            }
+            if (first == null) {
+                first = link;
+            }
+        }
+        return first != null ? first : text.strip();
+    }
+
     static URI parse(String url) {
-        if (url == null || url.isBlank() || url.length() > 500) {
+        if (url == null || url.isBlank() || url.length() > 2000) {
+            throw ApiException.badRequest("recipe_url_invalid");
+        }
+        url = firstLink(url);
+        if (url.length() > 500) {
             throw ApiException.badRequest("recipe_url_invalid");
         }
         try {

@@ -18,6 +18,7 @@ import { AdminStore } from './admin.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [SegDirective, TranslatePipe, IconComponent],
   template: `
+    <p class="small muted intro">{{ 'adminSupport.errorsIntro' | t }}</p>
     <div class="bar">
       <div class="seg" appSeg role="group" [attr.aria-label]="'adminSupport.errorsTitle' | t">
         <button type="button" [attr.aria-pressed]="!archived()" (click)="show(false)">{{ 'adminSupport.open' | t }}</button>
@@ -99,6 +100,9 @@ import { AdminStore } from './admin.store';
     </dialog>
   `,
   styles: `
+    .intro {
+      margin: 0;
+    }
     :host {
       display: grid;
       gap: var(--space-3);

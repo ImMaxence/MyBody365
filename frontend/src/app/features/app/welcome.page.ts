@@ -2,20 +2,20 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ApiService, errorCode } from '../../core/api/api.service';
-import type { Activity, Sex, Summary } from '../../core/api/models';
+import type { Job, Sex, Summary } from '../../core/api/models';
 import { SessionStore } from '../../core/auth/session.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
 import { IconComponent } from '../../shared/icon.component';
 import { PacePickerComponent } from './pace-picker.component';
+import { ActivityPickerComponent } from './activity-picker.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { SegDirective } from '../../shared/seg.directive';
 import { MonthlyForecastComponent } from './monthly-forecast.component';
 
 type Step = 'consent' | 'about' | 'body' | 'goal' | 'plan';
 
-const ACTIVITIES: Activity[] = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VERY_ACTIVE'];
 
 /**
  * First visit, in a few steps: the two consents (18+, health data), then the body profile the plan
@@ -24,7 +24,7 @@ const ACTIVITIES: Activity[] = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VER
 @Component({
   selector: 'app-welcome',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MonthlyForecastComponent, PacePickerComponent, SegDirective, FormsModule, RouterLink, TranslatePipe, IconComponent, NumberStepperComponent],
+  imports: [MonthlyForecastComponent, PacePickerComponent, ActivityPickerComponent, SegDirective, FormsModule, RouterLink, TranslatePipe, IconComponent, NumberStepperComponent],
   template: `
     <main class="page no-tabs">
       <header class="top">
@@ -120,15 +120,7 @@ const ACTIVITIES: Activity[] = ['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VER
               <p class="eta"><app-icon name="target" [size]="18" /> {{ 'setup.eta' | t: { date: date } }}</p>
             }
 
-            <span class="label">{{ 'setup.activity' | t }}</span>
-            <div class="choices" role="radiogroup" [attr.aria-label]="'setup.activity' | t">
-              @for (a of activities; track a) {
-                <button type="button" role="radio" class="choice row-choice" [attr.aria-checked]="activity() === a" (click)="activity.set(a)">
-                  <strong>{{ 'setup.activities.' + a + '.label' | t }}</strong>
-                  <span class="small muted">{{ 'setup.activities.' + a + '.hint' | t }}</span>
-                </button>
-              }
-            </div>
+            <app-activity-picker [(job)]="job" [(sessions)]="sessions" />
             @if (error()) {
               <p class="notice notice-danger" role="alert"><app-icon name="alert" /> {{ error() }}</p>
             }
@@ -344,7 +336,6 @@ export class WelcomePage {
   protected readonly Math = Math;
 
   protected readonly sexes: Sex[] = ['FEMALE', 'MALE', 'OTHER'];
-  protected readonly activities = ACTIVITIES;
   protected readonly maxBirth = localDay(new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate()));
 
   protected adult = false;
@@ -357,7 +348,8 @@ export class WelcomePage {
   /** until the person picks a goal, it follows their weight (5 kg lower) */
   protected goalTouched = false;
   protected readonly pace = signal<number>(0.5);
-  protected readonly activity = signal<Activity>('LIGHT');
+  protected readonly job = signal<Job>('SEATED');
+  protected readonly sessions = signal(2);
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly plan = signal<Summary | null>(null);
@@ -428,7 +420,8 @@ export class WelcomePage {
         sex,
         birthDate: this.birthDate(),
         heightCm: this.height(),
-        activityLevel: this.activity(),
+        job: this.job(),
+        sessionsPerWeek: this.sessions(),
         currentWeightKg: this.weight(),
         goalWeightKg: this.goal(),
         weeklyRateKg: this.pace(),

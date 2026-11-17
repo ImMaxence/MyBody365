@@ -70,9 +70,15 @@ export function onViewTransitionCreated(info: ViewTransitionInfo): void {
   }
   const root = doc.documentElement;
   // the public site: page to page; the app: like a phone app
-  root.dataset['nav'] = toApp ? navKind(depthOf(info.from), depthOf(info.to)) : 'page';
+  const kind = toApp ? navKind(depthOf(info.from), depthOf(info.to)) : 'page';
+  root.dataset['nav'] = kind;
+  // another tab opened from further down a screen (the goal card at the bottom of Today): Safari shows the
+  // picture of the old screen from its top, a jump up just before the new one. The old one does not fade
+  // there: it goes at once, the new screen arrives as usual.
+  if (kind === 'fade' && (doc.defaultView?.scrollY ?? 0) > 24) root.dataset['navScrolled'] = '';
   info.transition.finished.finally(() => {
     delete root.dataset['nav'];
+    delete root.dataset['navScrolled'];
   });
 }
 

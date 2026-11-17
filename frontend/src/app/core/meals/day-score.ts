@@ -16,11 +16,11 @@ const GRADE: Record<string, number> = { a: 1, b: 2, c: 3, d: 4, e: 5 };
 
 /**
  * How balanced and healthy a day of meals is, out of 10, from what is known:
- * calories against the target (3), protein / carbs / fat against 25 / 45 / 30 % (2), the Nutri-Score of
+ * calories against the target (3), protein / carbs / fat against the member's split (25 / 45 / 30 % by default) (2), the Nutri-Score of
  * the foods weighted by their calories (3), fibre, sugars, salt and saturated fat (2). A part without the
  * data it needs is left out and the rest brought back to 10. Null when nothing was logged.
  */
-export function dayScore(day: MealDay, today: string): DayScore | null {
+export function dayScore(day: MealDay, today: string, shares: { p: number; c: number; f: number } = { p: 25, c: 45, f: 30 }): DayScore | null {
   const t = day.totals;
   if (!day.entries.length || t.kcal <= 0) return null;
   const ongoing = day.day >= today;
@@ -35,7 +35,7 @@ export function dayScore(day: MealDay, today: string): DayScore | null {
     }
   }
 
-  // macros: the share of the calories from each, against 25 / 45 / 30
+  // macros: the share of the calories from each, against the split's shares
   const p = (t.proteinG ?? 0) * 4;
   const c = (t.carbsG ?? 0) * 4;
   const f = (t.fatG ?? 0) * 9;
@@ -44,8 +44,8 @@ export function dayScore(day: MealDay, today: string): DayScore | null {
     const sp = Math.round((p / macroKcal) * 100);
     const sc = Math.round((c / macroKcal) * 100);
     const sf = 100 - sp - sc;
-    const dev = Math.abs(sp - 25) + Math.abs(sc - 45) + Math.abs(sf - 30);
-    parts.push({ key: 'macros', max: 2, points: dev <= 15 ? 2 : dev <= 30 ? 1 : 0, values: { p: sp, c: sc, f: sf } });
+    const dev = Math.abs(sp - shares.p) + Math.abs(sc - shares.c) + Math.abs(sf - shares.f);
+    parts.push({ key: 'macros', max: 2, points: dev <= 15 ? 2 : dev <= 30 ? 1 : 0, values: { p: sp, c: sc, f: sf, tp: shares.p, tc: shares.c, tf: shares.f } });
   }
 
   // quality: the Nutri-Score of what was eaten, weighted by the calories (when most of them are rated)

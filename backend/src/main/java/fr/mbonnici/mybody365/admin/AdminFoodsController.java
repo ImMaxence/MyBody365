@@ -53,6 +53,31 @@ public class AdminFoodsController {
                 ((Number) c.get("off")).longValue(), ((Number) c.get("mine")).longValue(), ciqual.history(10), off.localAt(), off.history(5));
     }
 
+    /** an ingredient of imported recipes that found no food (FOOD) or no weight (WEIGHT), and how often */
+    public record Miss(String key, String reason, String example, int count, Instant lastAt) {}
+
+    /** the most frequent first: what the tables of usual foods and weights should learn */
+    @GetMapping("/misses")
+    public List<Miss> misses() {
+        return jdbc.query("select key, reason, example, count, last_at from ingredient_miss order by count desc, last_at desc limit 100",
+                (rs, i) -> new Miss(rs.getString("key"), rs.getString("reason"), rs.getString("example"), rs.getInt("count"),
+                        rs.getTimestamp("last_at").toInstant()));
+    }
+
+    /** one line done with (added to the tables), or all of them */
+    @org.springframework.web.bind.annotation.DeleteMapping("/misses")
+    @org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+    public void forget(@org.springframework.web.bind.annotation.RequestParam(required = false) String key,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String reason) {
+        if (key == null) {
+            jdbc.update("delete from ingredient_miss");
+        } else if (reason == null) {
+            jdbc.update("delete from ingredient_miss where key = ?", key);
+        } else {
+            jdbc.update("delete from ingredient_miss where key = ? and reason = ?", key, reason);
+        }
+    }
+
     @PostMapping("/ciqual/import")
     public ImportDto start(Authentication auth) {
         AppUser me = users.current(auth);

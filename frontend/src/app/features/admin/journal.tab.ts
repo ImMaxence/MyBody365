@@ -25,6 +25,7 @@ const ICON: Record<string, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TranslatePipe, IconComponent],
   template: `
+    <p class="small muted intro">{{ 'admin.journal.intro' | t }}</p>
     @if (lines(); as list) {
       @if (list.length) {
         <ol class="timeline" role="list">
@@ -61,6 +62,9 @@ const ICON: Record<string, string> = {
     }
   `,
   styles: `
+    .intro {
+      margin: 0;
+    }
     :host {
       display: grid;
       gap: var(--space-4);

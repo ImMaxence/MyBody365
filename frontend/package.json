@@ -1,6 +1,6 @@
 {
   "name": "mybody365",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "private": true,
   "description": "MyBody365 — mobile-only PWA for a one-year body transformation (Angular 22)",
   "license": "MIT",
@@ -16,7 +16,8 @@
     "icons": "node scripts/icons.mjs",
     "fonts": "node scripts/fonts.mjs",
     "e2e": "playwright test",
-    "e2e:report": "playwright show-report"
+    "e2e:report": "playwright show-report",
+    "e2e:iphone": "node e2e/run-iphone.mjs"
   },
   "packageManager": "npm@11.19.1",
   "dependencies": {

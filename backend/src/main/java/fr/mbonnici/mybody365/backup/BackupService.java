@@ -425,6 +425,12 @@ public class BackupService {
                 if (v.get("name") == null || v.get("type") == null || v.get("servings") == null) {
                     continue;
                 }
+                // its types (1.7): only the known ones, the main one at least; a backup made before has none
+                Object ts = v.get("types");
+                String known = ts == null ? "" : java.util.Arrays.stream(ts.toString().split(",")).map(String::strip)
+                        .filter(t -> java.util.Arrays.stream(fr.mbonnici.mybody365.recipe.RecipeService.Type.values()).anyMatch(x -> x.name().equals(t)))
+                        .distinct().collect(java.util.stream.Collectors.joining(","));
+                v.put("types", known.isEmpty() ? v.get("type") : known);
                 if (v.get("kcal") == null) {
                     v.put("kcal", 0d);
                 }
@@ -605,6 +611,7 @@ public class BackupService {
             if (profile instanceof Map<?, ?> pm) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> v = typed(BackupFormat.PROFILE, (Map<String, Object>) pm);
+                profileOptions(v);
                 if (!v.containsValue(null)) {
                     jdbc.update("delete from body_profile where user_id = ?", userId);
                     insert("body_profile", v, Map.of("user_id", userId));
@@ -653,6 +660,30 @@ public class BackupService {
         storage.put(key, bytes, "webp".equals(fmt) ? "image/webp" : "image/jpeg");
         written.add(key);
         return bytes.length;
+    }
+
+    /**
+     * The answers of 1.7 (job, sessions, split), checked against what the database accepts; absent from an
+     * older backup, or wrong, they are left out (the level of activity counts, the split is balanced).
+     */
+    private static void profileOptions(Map<String, Object> v) {
+        Object job = v.get("job");
+        Object sessions = v.get("sessions_per_week");
+        boolean answers = job != null && java.util.Set.of("SEATED", "STANDING", "PHYSICAL").contains(job.toString())
+                && sessions instanceof Number n && n.intValue() >= 0 && n.intValue() <= 14;
+        if (!answers) {
+            v.remove("job");
+            v.remove("sessions_per_week");
+        }
+        Object split = v.get("macro_split");
+        if (split == null || !java.util.Set.of("BALANCED", "PROTEIN", "LOW_CARB").contains(split.toString())) {
+            v.remove("macro_split");
+        }
+        for (String k : BackupFormat.PROFILE_OPTIONAL) {
+            if (v.containsKey(k) && v.get(k) == null) {
+                v.remove(k);
+            }
+        }
     }
 
     private static Map<String, Object> typed(Table t, Map<String, Object> raw) {

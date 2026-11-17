@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import type { DayTotal, MealDay, MealEntry, MealInput, Nutrients, RecentItem, Slot } from '../api/models';
 import { localDay } from '../tracking/tracking.store';
 import { MealsApi } from './meals-api';
+import { Outbox, isOffline } from '../offline/outbox';
 
 export const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
 
@@ -65,9 +66,35 @@ export interface Pick {
 }
 
 /** The meals of the day on screen, and what was logged lately. */
+/** what a meal noted offline is, to show it before the server has it */
+export interface MealPreview {
+  name: string;
+  nutrients: Nutrients;
+}
+
+/** the id of a meal kept on the phone, not sent yet */
+export const PENDING = 'pending-';
+
+function plus(a: Nutrients, b: Nutrients): Nutrients {
+  const add = (x?: number, y?: number) => (x == null && y == null ? undefined : (x ?? 0) + (y ?? 0));
+  return {
+    kcal: a.kcal + b.kcal,
+    proteinG: add(a.proteinG, b.proteinG),
+    carbsG: add(a.carbsG, b.carbsG),
+    sugarsG: add(a.sugarsG, b.sugarsG),
+    fatG: add(a.fatG, b.fatG),
+    satFatG: add(a.satFatG, b.satFatG),
+    fiberG: add(a.fiberG, b.fiberG),
+    saltG: add(a.saltG, b.saltG),
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class MealsStore {
   private readonly api = inject(MealsApi);
+  private readonly outbox = inject(Outbox);
+  /** the last add was kept on the phone (no network): the screens say so instead of « added » */
+  readonly lastQueued = signal(false);
 
   readonly day = signal(localDay());
   readonly data = signal<MealDay | null>(null);
@@ -79,6 +106,16 @@ export class MealsStore {
   readonly totals = signal<Record<string, DayTotal>>({});
   readonly target = signal<number | null>(null);
   private readonly ranges = new Set<string>();
+
+  constructor() {
+    // a meal noted offline reached the server: its day again, as the server has it now
+    this.outbox.sent.subscribe((p) => {
+      if (p.kind !== 'meal') return;
+      this.recent.set(null);
+      if (p.day === this.day()) void this.load(p.day).catch(() => undefined);
+      else if (p.day === localDay()) void this.loadToday();
+    });
+  }
 
   readonly bySlot = computed(() => {
     const out: Record<Slot, MealEntry[]> = { BREAKFAST: [], LUNCH: [], DINNER: [], SNACK: [] };
@@ -101,11 +138,32 @@ export class MealsStore {
     }
   }
 
-  async add(input: MealInput): Promise<MealDay> {
-    const d = await this.api.add(input);
-    this.apply(d);
-    this.recent.set(null);
-    return d;
+  /**
+   * Without network, and with what it is (name and nutrients, the screen knows them): kept on the phone and
+   * shown at once, marked as waiting (id « pending-… »), sent when the network is back.
+   */
+  async add(input: MealInput, preview?: MealPreview): Promise<MealDay> {
+    try {
+      const d = await this.api.add(input);
+      this.lastQueued.set(false);
+      this.apply(d);
+      this.recent.set(null);
+      return d;
+    } catch (e) {
+      if (!isOffline(e) || !preview) throw e;
+      this.outbox.add({
+        kind: 'meal',
+        method: 'POST',
+        url: '/api/me/meals',
+        body: input,
+        day: input.day,
+        preview: { slot: input.slot, name: preview.name, nutrients: { ...preview.nutrients }, grams: input.grams, servings: input.servings },
+      });
+      this.lastQueued.set(true);
+      const d = this.server.get(input.day) ?? { day: input.day, targetKcal: this.target() ?? undefined, totals: { kcal: 0 }, entries: [] };
+      this.apply(d);
+      return this.data() ?? d;
+    }
   }
 
   async update(id: string, patch: { slot?: Slot; grams?: number; servings?: number }): Promise<void> {
@@ -156,10 +214,39 @@ export class MealsStore {
     this.totals.set({});
     this.target.set(null);
     this.ranges.clear();
+    this.server.clear();
     this.day.set(localDay());
   }
 
-  private apply(d: MealDay): void {
+  /** the days as the server sent them (the meals waiting for the network are added on top) */
+  private readonly server = new Map<string, MealDay>();
+
+  /** a day from the server, with the meals of that day still waiting on the phone */
+  private withPending(d: MealDay): MealDay {
+    const waiting = this.outbox.pending().filter((p) => p.kind === 'meal' && p.day === d.day && p.preview);
+    if (!waiting.length) return d;
+    let totals = d.totals;
+    const entries = [...d.entries];
+    for (const p of waiting) {
+      const v = p.preview!;
+      entries.push({
+        id: PENDING + p.id,
+        day: p.day,
+        slot: v.slot as Slot,
+        name: v.name,
+        grams: v.grams,
+        servings: v.servings,
+        nutrients: v.nutrients as Nutrients,
+        createdAt: new Date(p.at).toISOString(),
+      });
+      totals = plus(totals, v.nutrients as Nutrients);
+    }
+    return { ...d, entries, totals };
+  }
+
+  private apply(server: MealDay): void {
+    this.server.set(server.day, server);
+    const d = this.withPending(server);
     if (d.day === this.day()) this.data.set(d);
     if (d.day === localDay()) this.today.set(d);
     if (d.targetKcal != null) this.target.set(d.targetKcal);
@@ -180,11 +267,6 @@ export class MealsStore {
       return next;
     });
   }
-}
-
-/** grams of protein, carbs and fat matching a calorie target (25 / 45 / 30 %) */
-export function macroTargets(kcal: number): { proteinG: number; carbsG: number; fatG: number } {
-  return { proteinG: Math.round((kcal * 0.25) / 4), carbsG: Math.round((kcal * 0.45) / 4), fatG: Math.round((kcal * 0.3) / 9) };
 }
 
 export function scaled(n: Nutrients, f: number): Nutrients {

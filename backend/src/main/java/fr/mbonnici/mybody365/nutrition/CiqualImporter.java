@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -58,16 +59,21 @@ public class CiqualImporter {
     private final TaskExecutor executor;
     private final JsonMapper json;
     private final AppProperties props;
+    private final ApplicationEventPublisher events;
+
+    /** a new table went in (what waited for its foods can follow: the community's first recipes) */
+    public record Imported(String version) {}
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15))
             .followRedirects(HttpClient.Redirect.NORMAL).build();
 
     public CiqualImporter(JdbcTemplate jdbc, TransactionTemplate tx, @Qualifier("applicationTaskExecutor") TaskExecutor executor,
-            JsonMapper json, AppProperties props) {
+            JsonMapper json, AppProperties props, ApplicationEventPublisher events) {
         this.jdbc = jdbc;
         this.tx = tx;
         this.executor = executor;
         this.json = json;
         this.props = props;
+        this.events = events;
     }
 
     /** an import cut short by a restart will never finish: say so */
@@ -169,6 +175,7 @@ public class CiqualImporter {
             }
             finish(id, "DONE", saved, null);
             log.info("Ciqual {} imported: {} foods", version, saved);
+            events.publishEvent(new Imported(version));
         } catch (Exception e) {
             log.warn("Ciqual import failed", e);
             String msg = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();

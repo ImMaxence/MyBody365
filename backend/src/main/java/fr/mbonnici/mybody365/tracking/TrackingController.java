@@ -8,6 +8,7 @@ import fr.mbonnici.mybody365.tracking.TrackingDtos.Summary;
 import fr.mbonnici.mybody365.user.AppUser;
 import fr.mbonnici.mybody365.user.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -39,6 +40,26 @@ public class TrackingController {
     @GetMapping("/summary")
     public Summary summary(Authentication auth) {
         return tracking.summary(users.current(auth).getId());
+    }
+
+    public record MacrosInput(@NotNull MacroSplit split) {}
+
+    public record AdaptiveInput(boolean on) {}
+
+    /** the target from the real needs (meals and weigh-ins of the last weeks), or from the formula */
+    @PutMapping("/profile/adaptive")
+    public Summary adaptive(@RequestBody AdaptiveInput body, Authentication auth) {
+        AppUser user = users.current(auth);
+        tracking.setAdaptive(user.getId(), body.on());
+        return tracking.summary(user.getId());
+    }
+
+    /** the split of the macros: balanced, more protein, fewer carbohydrates */
+    @PutMapping("/profile/macros")
+    public Summary macros(@Valid @RequestBody MacrosInput body, Authentication auth) {
+        AppUser user = users.current(auth);
+        tracking.setMacroSplit(user.getId(), body.split());
+        return tracking.summary(user.getId());
     }
 
     @PutMapping("/profile")

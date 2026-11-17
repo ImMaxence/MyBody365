@@ -12,6 +12,8 @@ export async function openApp(page: Page, path = '/app/login'): Promise<void> {
  */
 export async function signIn(page: Page, as: 'admin' | 'user' | 'new'): Promise<void> {
   await openApp(page);
+  // let the sign-in screen finish loading: leaving it mid-way aborts its imports, which WebKit reports as errors
+  await page.waitForLoadState('networkidle');
   await page.goto(`/api/auth/dev-login?as=${as}`);
   // the server redirects to /app, then the app itself sends a first visit to /app/welcome
   const welcome = page.getByText(/^Étape \d sur \d$|^Salut .+ 👋$/).first();

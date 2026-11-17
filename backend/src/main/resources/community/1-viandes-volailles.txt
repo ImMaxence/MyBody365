@@ -1,0 +1,729 @@
+# Recettes de la communauté publiées par l'équipe MyBody365 (1.7) : les plats les plus cuisinés et les plus aimés en
+# France (sondages CSA et Ipsos sur les plats préférés, étude INCA2 sur les plats les plus consommés, recettes les plus
+# recherchées). Format :
+#   = Nom | TYPES | parts
+#   code_ciqual grammes   (poids cru pour toute la recette ; le texte après les grammes n'est qu'un repère)
+#   : une étape
+# Les calories et le Nutri-Score sont calculés par l'app à partir de la table Ciqual.
+
+= Bœuf bourguignon | LUNCH,DINNER | 6
+6270 1200 paleron de bœuf
+28720 150 lardons fumés
+20009 400 carottes
+20034 200 oignons
+20056 250 champignons de Paris
+11000 10 ail
+5214 750 vin rouge
+9440 30 farine
+16400 30 beurre
+11070 2 thym
+11058 6 sel
+: Couper le bœuf en gros cubes et le faire dorer dans le beurre avec les lardons
+: Ajouter les oignons et les carottes en rondelles, saupoudrer de farine et remuer 2 minutes
+: Verser le vin, ajouter l'ail et le thym, saler et laisser mijoter 3 heures à couvert à feu doux
+: Faire revenir les champignons et les ajouter 30 minutes avant la fin
+
+= Blanquette de veau | LUNCH,DINNER | 6
+6590 1200 veau (collier ou épaule)
+20009 300 carottes
+20034 150 oignon
+20039 150 poireau
+20056 250 champignons de Paris
+16400 50 beurre
+9440 50 farine
+19417 200 crème liquide
+22002 40 jaunes d'œufs
+2028 15 jus de citron
+11041 10 bouillon de légumes
+18066 800 eau
+11058 5 sel
+: Couvrir la viande d'eau froide avec le bouillon, porter à frémissement et écumer
+: Ajouter les carottes, l'oignon et le poireau, cuire 1 h 30 à feu doux
+: Faire un roux avec le beurre et la farine, le délayer avec 60 cl de bouillon de cuisson, ajouter les champignons
+: Hors du feu, lier avec la crème, les jaunes et le citron, puis remettre la viande
+
+= Pot-au-feu | LUNCH,DINNER | 6
+6122 800 plat de côtes
+6270 700 paleron
+20009 500 carottes
+20064 400 navets
+20039 400 poireaux
+4008 800 pommes de terre
+20023 150 céleri branche
+20034 150 oignon
+18066 1500 eau
+11058 10 sel
+: Mettre la viande dans l'eau froide salée, porter à ébullition et écumer
+: Ajouter l'oignon et le céleri, cuire 2 heures à petits frémissements
+: Ajouter les carottes, les navets et les poireaux, cuire 45 minutes
+: Cuire les pommes de terre à part dans un peu de bouillon et servir le tout avec moutarde et cornichons
+
+= Poulet rôti et pommes de terre | LUNCH,DINNER | 4
+36017 450 blancs de poulet (avec le reste de la volaille)
+36002 600 cuisses de poulet avec la peau
+4008 800 pommes de terre
+16400 30 beurre
+17270 20 huile d'olive
+11000 10 ail
+11070 3 thym
+11058 5 sel
+: Préchauffer le four à 200 °C, frotter le poulet de beurre, saler et poivrer
+: Couper les pommes de terre en quartiers, les mélanger à l'huile, l'ail et le thym autour du poulet
+: Enfourner 1 h 15 en arrosant régulièrement avec le jus
+
+= Poulet frites | LUNCH,DINNER | 4
+36002 800 cuisses de poulet
+4044 600 frites pour le four
+17440 15 huile
+11049 3 paprika
+11058 4 sel
+: Badigeonner les cuisses d'huile, de paprika et de sel, cuire 45 minutes à 200 °C
+: Enfourner les frites pour les 25 dernières minutes, en les retournant à mi-cuisson
+
+= Hachis parmentier | LUNCH,DINNER | 6
+6254 600 bœuf haché 15 %
+20034 150 oignon
+20068 30 concentré de tomate
+4008 1200 pommes de terre
+19033 250 lait
+16400 50 beurre
+12118 80 emmental râpé
+11048 1 muscade
+11058 7 sel
+: Cuire les pommes de terre à l'eau et les écraser avec le lait chaud, le beurre et la muscade
+: Faire revenir l'oignon et la viande, ajouter le concentré de tomate, saler et poivrer
+: Étaler la viande dans un plat, couvrir de purée, parsemer de fromage et gratiner 25 minutes à 200 °C
+
+= Steak frites | LUNCH,DINNER | 2
+6103 400 entrecôte
+4044 400 frites pour le four
+16400 15 beurre
+17440 10 huile
+11058 3 sel
+: Cuire les frites au four selon le paquet
+: Saisir l'entrecôte 2 à 3 minutes par face dans l'huile et le beurre bien chauds, saler en fin de cuisson
+: Laisser reposer la viande 3 minutes avant de servir
+
+= Cassoulet | LUNCH,DINNER | 6
+20511 1200 haricots blancs cuits
+8110 600 confit de canard
+30110 500 saucisses de Toulouse
+28502 200 poitrine de porc fumée
+20137 400 tomates pelées
+20034 150 oignon
+11000 15 ail
+7500 30 chapelure
+11058 3 sel
+: Faire dorer les saucisses, la poitrine en morceaux et le confit dans une cocotte
+: Ajouter l'oignon, l'ail, les tomates et les haricots, mouiller d'un verre d'eau
+: Verser dans un plat, couvrir de chapelure et cuire 2 heures à 160 °C en enfonçant la croûte deux ou trois fois
+
+= Choucroute garnie | LUNCH,DINNER | 6
+25220 1200 choucroute cuisinée
+30104 400 saucisse de Morteau
+30134 360 saucisses de Francfort
+28550 400 poitrine de porc demi-sel
+28104 400 carré de porc fumé
+4008 900 pommes de terre
+5215 250 vin blanc
+: Rincer la choucroute, la mettre en cocotte avec le vin blanc, la poitrine et le carré, cuire 1 heure à couvert
+: Ajouter la saucisse de Morteau et les pommes de terre épluchées, cuire 40 minutes
+: Réchauffer les saucisses de Francfort 10 minutes dans la choucroute avant de servir
+
+= Navarin d'agneau | LUNCH,DINNER | 6
+21514 1200 agneau (collier ou épaule)
+20009 400 carottes
+20064 400 navets
+20072 300 petits pois
+20034 150 oignon
+20068 30 concentré de tomate
+9440 30 farine
+17270 20 huile d'olive
+11000 10 ail
+18066 500 eau
+11058 6 sel
+: Faire dorer l'agneau dans l'huile, ajouter l'oignon, saupoudrer de farine
+: Ajouter le concentré de tomate, l'ail et l'eau, laisser mijoter 1 heure
+: Ajouter carottes et navets, cuire 30 minutes, puis les petits pois 10 minutes
+
+= Gigot d'agneau aux flageolets | LUNCH,DINNER | 6
+21502 1300 gigot d'agneau (sans l'os)
+20508 1000 flageolets cuits
+11000 20 ail
+17270 20 huile d'olive
+11068 3 romarin
+11058 6 sel
+: Piquer le gigot de gousses d'ail, l'enduire d'huile et de romarin, saler
+: Rôtir 15 minutes par livre à 210 °C, puis laisser reposer 10 minutes sous une feuille
+: Réchauffer les flageolets dans le jus de cuisson
+
+= Coq au vin | LUNCH,DINNER | 6
+36002 1500 cuisses de poulet
+5214 750 vin rouge
+28720 150 lardons fumés
+20056 250 champignons de Paris
+20034 150 petits oignons
+20009 200 carottes
+9440 30 farine
+16400 30 beurre
+11000 10 ail
+11058 6 sel
+: Faire dorer les morceaux de volaille dans le beurre avec les lardons
+: Ajouter oignons, carottes et ail, saupoudrer de farine, puis verser le vin
+: Laisser mijoter 1 h 30 à couvert, ajouter les champignons 20 minutes avant la fin
+
+= Poulet basquaise | LUNCH,DINNER | 4
+36002 900 cuisses de poulet
+20087 300 poivron rouge
+20041 300 poivron vert
+20385 500 tomates
+20034 150 oignon
+28800 60 jambon cru
+11000 10 ail
+17270 30 huile d'olive
+11049 3 piment d'Espelette ou paprika
+11058 5 sel
+: Dorer le poulet dans l'huile, le réserver
+: Faire fondre oignon, poivrons en lanières et jambon, ajouter les tomates et l'ail
+: Remettre le poulet, assaisonner et laisser mijoter 45 minutes à couvert
+
+= Poulet à la crème et aux champignons | LUNCH,DINNER | 4
+36017 600 blancs de poulet
+20056 300 champignons de Paris
+19410 200 crème fraîche
+20097 40 échalote
+16400 20 beurre
+5215 100 vin blanc
+11058 4 sel
+: Dorer le poulet en morceaux dans le beurre, le réserver
+: Faire revenir l'échalote et les champignons, déglacer au vin blanc
+: Ajouter la crème et le poulet, laisser épaissir 10 minutes à feu doux
+
+= Escalopes de dinde à la crème | LUNCH,DINNER | 4
+36304 520 escalopes de dinde
+19436 200 crème légère
+20056 200 champignons de Paris
+20097 30 échalote
+11013 15 moutarde
+17270 10 huile d'olive
+11058 3 sel
+: Saisir les escalopes 3 minutes par face dans l'huile, les réserver
+: Faire revenir l'échalote et les champignons, ajouter la crème et la moutarde
+: Remettre les escalopes 5 minutes dans la sauce
+
+= Rôti de porc aux pommes de terre | LUNCH,DINNER | 6
+28300 1000 rôti de porc
+4008 1200 pommes de terre
+20034 200 oignons
+11000 15 ail
+5215 100 vin blanc
+17270 30 huile d'olive
+11070 3 thym
+11058 7 sel
+: Préchauffer le four à 180 °C, dorer le rôti dans l'huile sur toutes ses faces
+: L'entourer des pommes de terre, des oignons et de l'ail, mouiller avec le vin blanc
+: Cuire 1 h 15 en arrosant, laisser reposer 10 minutes avant de trancher
+
+= Filet mignon à la moutarde | LUNCH,DINNER | 4
+28204 600 filet mignon de porc
+19410 150 crème fraîche
+11013 40 moutarde
+20097 30 échalote
+16400 15 beurre
+5215 50 vin blanc
+11058 3 sel
+: Dorer le filet mignon entier dans le beurre, puis le cuire 20 minutes à 180 °C
+: Dans la poêle, faire revenir l'échalote, déglacer au vin blanc, ajouter crème et moutarde
+: Trancher le filet et le napper de sauce
+
+= Saucisses aux lentilles | LUNCH,DINNER | 4
+30110 500 saucisses de Toulouse
+20585 300 lentilles vertes
+20009 200 carottes
+20034 100 oignon
+11053 1 laurier
+18066 900 eau
+11058 3 sel
+: Cuire les lentilles 25 minutes dans l'eau avec carottes, oignon et laurier
+: Dorer les saucisses à la poêle, puis les ajouter aux lentilles 10 minutes
+
+= Petit salé aux lentilles | LUNCH,DINNER | 6
+28550 800 petit salé (poitrine demi-sel)
+20585 450 lentilles vertes
+20009 250 carottes
+20034 150 oignon
+11053 1 laurier
+18066 1300 eau
+: Dessaler le petit salé 1 heure à l'eau froide, puis le cuire 1 heure dans l'eau avec l'oignon et le laurier
+: Ajouter les lentilles et les carottes, cuire encore 30 minutes sans saler
+
+= Carbonade flamande | LUNCH,DINNER | 6
+6270 1200 paleron de bœuf
+20034 400 oignons
+5011 500 bière brune ou d'abbaye
+23200 80 pain d'épices
+11013 20 moutarde
+31017 15 cassonade
+16400 30 beurre
+11053 1 laurier
+11058 6 sel
+: Dorer la viande en cubes dans le beurre, ajouter les oignons émincés
+: Verser la bière, ajouter la cassonade et le laurier
+: Tartiner le pain d'épices de moutarde, le poser sur la viande et mijoter 3 heures à couvert
+
+= Daube provençale | LUNCH,DINNER | 6
+6270 1200 paleron de bœuf
+5214 600 vin rouge
+20009 300 carottes
+20034 200 oignons
+28720 120 lardons
+13032 80 olives noires
+20137 400 tomates pelées
+11000 15 ail
+11060 3 herbes de Provence
+17270 20 huile d'olive
+11058 6 sel
+: Mariner la viande une nuit dans le vin avec carottes, oignons, ail et herbes
+: Égoutter, dorer la viande et les lardons dans l'huile, ajouter les légumes et la marinade
+: Ajouter les tomates, mijoter 3 heures, puis les olives 15 minutes avant la fin
+
+= Bœuf carottes | LUNCH,DINNER | 6
+6270 1200 paleron de bœuf
+20009 900 carottes
+20034 200 oignons
+5215 250 vin blanc
+11001 10 bouillon de bœuf
+18066 500 eau
+17270 20 huile d'olive
+11053 1 laurier
+11058 4 sel
+: Dorer la viande en morceaux, ajouter les oignons
+: Mouiller avec le vin, l'eau et le bouillon, laisser mijoter 2 heures
+: Ajouter les carottes en rondelles et cuire encore 1 heure
+
+= Rôti de bœuf et haricots verts | LUNCH,DINNER | 6
+6206 1000 rôti de bœuf (rumsteck)
+20061 800 haricots verts
+16400 30 beurre
+11000 10 ail
+11014 10 persil
+11058 6 sel
+: Cuire le rôti 15 minutes par livre à 220 °C pour une viande rosée, laisser reposer 10 minutes
+: Cuire les haricots 8 minutes à l'eau bouillante salée, les faire sauter au beurre avec l'ail et le persil
+
+= Lapin à la moutarde | LUNCH,DINNER | 4
+34001 750 lapin en morceaux (sans les os)
+11013 80 moutarde
+19410 150 crème fraîche
+5215 200 vin blanc
+20097 40 échalotes
+16400 20 beurre
+11070 2 thym
+11058 4 sel
+: Badigeonner le lapin de moutarde et le dorer dans le beurre avec les échalotes
+: Mouiller avec le vin blanc, ajouter le thym et cuire 50 minutes à couvert
+: Ajouter la crème en fin de cuisson et laisser réduire 5 minutes
+
+= Curry de poulet au lait de coco | LUNCH,DINNER | 4
+36017 600 blancs de poulet
+18041 400 lait de coco
+20034 150 oignon
+20385 200 tomates
+11005 10 curry
+11074 10 gingembre frais
+11000 10 ail
+17440 15 huile
+11058 4 sel
+: Faire revenir l'oignon, l'ail et le gingembre dans l'huile, ajouter le curry
+: Ajouter le poulet en morceaux, puis les tomates et le lait de coco
+: Laisser mijoter 20 minutes, servir avec du riz
+
+= Poulet tikka masala | LUNCH,DINNER | 4
+36017 600 blancs de poulet
+19593 125 yaourt nature
+20137 400 tomates pelées
+19417 100 crème liquide
+20034 150 oignon
+11000 10 ail
+11074 10 gingembre frais
+11005 10 garam masala ou curry
+11049 3 paprika
+17440 15 huile
+11058 4 sel
+: Mariner le poulet en dés 1 heure dans le yaourt avec la moitié des épices
+: Le dorer à la poêle, puis le réserver
+: Faire revenir oignon, ail et gingembre, ajouter le reste des épices, les tomates et la crème, remettre le poulet 15 minutes
+
+= Chili con carne | LUNCH,DINNER | 6
+6254 600 bœuf haché 15 %
+20524 500 haricots rouges cuits
+20137 800 tomates pelées
+20034 150 oignon
+20041 200 poivron
+20066 150 maïs
+11000 10 ail
+11042 5 cumin
+11049 5 paprika
+17270 15 huile d'olive
+11058 5 sel
+: Faire revenir l'oignon et le poivron dans l'huile, ajouter la viande et la faire dorer
+: Ajouter les épices, l'ail et les tomates, mijoter 30 minutes
+: Ajouter les haricots et le maïs, cuire encore 15 minutes
+
+= Couscous royal | LUNCH,DINNER | 8
+9610 600 semoule
+36002 800 cuisses de poulet
+21514 600 agneau (épaule ou collier)
+30150 400 merguez
+20009 400 carottes
+20020 400 courgettes
+20064 300 navets
+20532 400 pois chiches cuits
+20034 150 oignon
+20068 40 concentré de tomate
+17270 40 huile d'olive
+11042 5 cumin
+11049 5 paprika
+11112 30 harissa
+16400 30 beurre
+18066 2000 eau
+11058 10 sel
+: Dorer l'agneau et le poulet dans l'huile avec l'oignon, ajouter les épices et le concentré de tomate
+: Couvrir d'eau, mijoter 45 minutes, ajouter carottes et navets, puis 20 minutes plus tard courgettes et pois chiches
+: Préparer la semoule avec son volume d'eau bouillante salée et le beurre, l'égrener à la fourchette
+: Griller les merguez et servir le tout avec le bouillon et la harissa
+
+= Tajine de poulet aux citrons et aux olives | LUNCH,DINNER | 4
+36002 1000 cuisses de poulet
+13009 100 citron confit
+13033 100 olives vertes
+20034 250 oignons
+11000 10 ail
+11074 10 gingembre frais
+11042 3 cumin
+11094 15 coriandre
+17270 30 huile d'olive
+18066 300 eau
+11058 3 sel
+: Dorer le poulet dans l'huile avec les oignons émincés, l'ail, le gingembre et le cumin
+: Ajouter l'eau, couvrir et cuire 45 minutes à feu doux
+: Ajouter le citron confit en quartiers et les olives, cuire 15 minutes et parsemer de coriandre
+
+= Tajine d'agneau aux pruneaux | LUNCH,DINNER | 6
+21514 1200 agneau (épaule ou collier)
+13042 250 pruneaux
+20034 250 oignons
+15000 60 amandes
+31008 30 miel
+11025 4 cannelle
+11074 10 gingembre frais
+17270 30 huile d'olive
+18066 500 eau
+11058 5 sel
+: Dorer l'agneau dans l'huile avec les oignons, la cannelle et le gingembre
+: Couvrir d'eau et mijoter 1 h 30
+: Ajouter les pruneaux et le miel, cuire 20 minutes, parsemer d'amandes grillées
+
+= Boulettes de bœuf à la sauce tomate | LUNCH,DINNER | 4
+6254 500 bœuf haché 15 %
+22000 50 œuf
+7500 40 chapelure
+20034 100 oignon
+20137 600 tomates pelées
+11000 10 ail
+11033 10 basilic
+17270 20 huile d'olive
+11058 4 sel
+: Mélanger la viande, l'œuf, la chapelure, la moitié de l'oignon haché et du sel, former des boulettes
+: Les dorer dans l'huile, ajouter le reste de l'oignon, l'ail et les tomates
+: Laisser mijoter 25 minutes et parsemer de basilic
+
+= Osso buco | LUNCH,DINNER | 4
+6583 1200 jarret de veau en tranches
+20137 400 tomates pelées
+20009 150 carotte
+20034 150 oignon
+20023 100 céleri branche
+5215 200 vin blanc
+9440 20 farine
+17270 30 huile d'olive
+13009 20 zeste et jus de citron
+11014 10 persil
+11058 5 sel
+: Fariner les tranches de jarret et les dorer dans l'huile
+: Ajouter carotte, oignon et céleri en dés, le vin et les tomates
+: Mijoter 1 h 30 à couvert, servir avec persil, ail et zeste de citron hachés
+
+= Escalope milanaise | LUNCH,DINNER | 4
+6521 520 escalopes de veau
+22000 100 œufs
+7500 100 chapelure
+12120 30 parmesan
+9440 30 farine
+17270 40 huile d'olive
+13009 60 citron
+11058 3 sel
+: Aplatir les escalopes, les passer dans la farine, l'œuf battu puis la chapelure mêlée au parmesan
+: Les cuire 3 minutes par face dans l'huile chaude, servir avec des quartiers de citron
+
+= Escalopes de poulet panées | LUNCH,DINNER | 4
+36017 560 blancs de poulet
+22000 100 œufs
+7500 100 chapelure
+9440 30 farine
+17440 40 huile
+11058 3 sel
+: Ouvrir les blancs en deux, les passer dans la farine, l'œuf battu puis la chapelure
+: Les dorer 4 minutes par face dans l'huile
+
+= Cuisses de poulet au four et légumes | LUNCH,DINNER | 4
+36002 900 cuisses de poulet
+4008 600 pommes de terre
+20020 300 courgette
+20041 200 poivron
+20034 150 oignon
+17270 30 huile d'olive
+11060 3 herbes de Provence
+11058 5 sel
+: Couper les légumes en morceaux, les mélanger à l'huile, aux herbes et au sel dans un plat
+: Poser les cuisses dessus et cuire 50 minutes à 200 °C
+
+= Brochettes de poulet marinées | LUNCH,DINNER | 4
+36017 600 blancs de poulet
+20041 200 poivron
+20034 150 oignon rouge
+19593 125 yaourt nature
+2028 20 jus de citron
+11049 3 paprika
+11042 2 cumin
+17270 15 huile d'olive
+11058 3 sel
+: Mariner le poulet en cubes 1 heure dans le yaourt, le citron, les épices et l'huile
+: Enfiler sur des piques en alternant avec poivron et oignon
+: Griller 12 minutes en retournant
+
+= Endives au jambon | LUNCH,DINNER | 4
+20026 800 endives
+28910 160 jambon cuit (4 tranches)
+16400 40 beurre
+9440 40 farine
+19033 500 lait
+12118 60 emmental râpé
+11048 1 muscade
+11058 3 sel
+: Cuire les endives 20 minutes à l'eau, bien les égoutter et les rouler dans le jambon
+: Préparer une béchamel avec le beurre, la farine, le lait et la muscade
+: Napper les endives de béchamel, parsemer de fromage et gratiner 25 minutes à 200 °C
+
+= Croque-monsieur | LUNCH,DINNER,SNACK | 4
+7200 320 pain de mie (8 tranches)
+28910 160 jambon cuit
+12114 120 gruyère
+16400 30 beurre
+19410 40 crème fraîche
+: Beurrer le pain, garnir de jambon et de gruyère, refermer
+: Tartiner le dessus de crème et d'un peu de fromage, cuire 10 minutes à 200 °C ou à l'appareil
+
+= Hamburger maison | LUNCH,DINNER | 4
+6254 500 bœuf haché 15 %
+7001 320 pains à burger
+12726 80 cheddar
+20031 60 salade
+20385 150 tomate
+20034 60 oignon rouge
+11008 40 ketchup
+11054 30 mayonnaise
+11058 3 sel
+: Former 4 steaks, les saler et les cuire 3 minutes par face, poser le cheddar à la fin
+: Toaster les pains, garnir de sauce, salade, tomate, oignon et du steak
+
+= Fajitas de poulet | LUNCH,DINNER | 4
+36017 500 blancs de poulet
+7815 320 tortillas de blé (8)
+20087 200 poivron rouge
+20041 200 poivron vert
+20034 150 oignon
+19436 100 crème légère
+11042 3 cumin
+11049 4 paprika
+17270 20 huile d'olive
+11058 3 sel
+: Faire sauter le poulet en lanières dans l'huile avec les épices
+: Ajouter les poivrons et l'oignon émincés, cuire 8 minutes
+: Garnir les tortillas chaudes et ajouter un peu de crème
+
+= Pita au poulet et crudités | LUNCH,DINNER | 4
+36017 450 blancs de poulet
+7180 320 pains pita
+20031 80 salade
+20385 200 tomates
+20019 150 concombre
+20034 50 oignon rouge
+19860 150 yaourt à la grecque
+11000 5 ail
+11042 3 cumin
+17270 15 huile d'olive
+11058 3 sel
+: Saisir le poulet en lanières avec le cumin et l'huile
+: Mélanger le yaourt avec l'ail râpé et un peu de sel
+: Garnir les pitas chaudes de poulet, crudités et sauce
+
+= Moussaka | LUNCH,DINNER | 6
+21514 600 agneau haché (ou bœuf)
+20053 1000 aubergines
+20137 400 tomates pelées
+20034 150 oignon
+16400 40 beurre
+9440 40 farine
+19033 500 lait
+22000 50 œuf
+12120 50 parmesan
+17270 40 huile d'olive
+11025 2 cannelle
+11058 6 sel
+: Couper les aubergines en tranches, les badigeonner d'huile et les rôtir 20 minutes à 200 °C
+: Faire revenir l'oignon et la viande, ajouter les tomates et la cannelle, mijoter 20 minutes
+: Préparer une béchamel, hors du feu ajouter l'œuf et le parmesan
+: Alterner aubergines et viande dans un plat, couvrir de béchamel et cuire 40 minutes à 180 °C
+
+= Magret de canard et pommes de terre sarladaises | LUNCH,DINNER | 4
+36206 700 magrets de canard
+4008 800 pommes de terre
+11000 15 ail
+11014 10 persil
+11058 4 sel
+: Quadriller la peau des magrets, les cuire côté peau 8 minutes, puis 4 minutes côté chair, laisser reposer
+: Faire sauter les pommes de terre en rondelles dans la graisse rendue, 20 minutes
+: Ajouter ail et persil hachés en fin de cuisson
+
+= Confit de canard et haricots verts | LUNCH,DINNER | 4
+8110 800 cuisses de confit de canard
+20061 600 haricots verts
+11000 10 ail
+11014 10 persil
+: Dorer les cuisses côté peau à la poêle, puis 15 minutes au four à 200 °C
+: Cuire les haricots 8 minutes à l'eau, les faire sauter dans un peu de graisse de confit avec ail et persil
+
+= Côtes de porc et purée | LUNCH,DINNER | 4
+28100 600 côtes de porc
+4008 1000 pommes de terre
+19033 200 lait
+16400 40 beurre
+17270 10 huile d'olive
+11058 5 sel
+: Cuire les pommes de terre à l'eau, les écraser avec le lait chaud et le beurre
+: Saisir les côtes 5 minutes par face dans l'huile, saler et poivrer
+
+= Saucisses purée | LUNCH,DINNER | 4
+30110 500 saucisses de Toulouse
+4008 1000 pommes de terre
+19033 200 lait
+16400 40 beurre
+11048 1 muscade
+11058 4 sel
+: Cuire les pommes de terre à l'eau, les écraser avec le lait chaud, le beurre et la muscade
+: Dorer les saucisses à feu moyen 15 minutes en les retournant
+
+= Aligot saucisse | LUNCH,DINNER | 6
+4008 1000 pommes de terre
+12109 400 tomme fraîche ou cantal jeune
+19410 150 crème fraîche
+16400 50 beurre
+11000 10 ail
+30110 600 saucisses de Toulouse
+11058 5 sel
+: Cuire les pommes de terre à l'eau, les réduire en purée avec le beurre, la crème et l'ail
+: Sur feu doux, ajouter le fromage en lamelles et tourner énergiquement jusqu'à ce que la purée file
+: Servir avec les saucisses grillées
+
+= Tartiflette | LUNCH,DINNER | 6
+4008 1200 pommes de terre
+12045 450 reblochon
+28720 200 lardons fumés
+20034 200 oignons
+19410 150 crème fraîche
+5215 100 vin blanc
+: Cuire les pommes de terre à l'eau, les couper en rondelles
+: Faire revenir les lardons et les oignons, déglacer au vin blanc
+: Mêler pommes de terre, lardons et crème dans un plat, poser le reblochon coupé en deux sur le dessus
+: Cuire 25 minutes à 200 °C
+
+= Raclette | LUNCH,DINNER | 6
+12749 1200 fromage à raclette
+4008 1500 pommes de terre
+28800 200 jambon cru
+28910 200 jambon cuit
+30304 100 rosette
+11004 100 cornichons
+: Cuire les pommes de terre à l'eau avec leur peau
+: Faire fondre le fromage dans les poêlons et le verser sur les pommes de terre, avec la charcuterie et les cornichons
+
+= Fondue savoyarde | LUNCH,DINNER | 6
+12105 400 beaufort
+12110 400 comté
+12115 400 emmental
+5215 400 vin blanc sec
+7001 700 pain
+11000 10 ail
+9510 15 fécule de maïs
+: Frotter le caquelon d'ail, y faire chauffer le vin
+: Ajouter les fromages en dés petit à petit en remuant en huit, puis la fécule délayée dans un peu de vin
+: Servir sur le réchaud avec le pain en cubes
+
+= Bouchées à la reine | LUNCH,DINNER | 4
+36017 400 blancs de poulet
+20056 250 champignons de Paris
+23424 280 pâte feuilletée (4 bouchées)
+16400 30 beurre
+9440 30 farine
+19033 300 lait
+19417 100 crème liquide
+11041 5 bouillon
+11058 3 sel
+: Pocher le poulet 15 minutes dans de l'eau avec le bouillon, le couper en dés
+: Faire un roux avec le beurre et la farine, ajouter le lait, puis la crème et les champignons sautés
+: Ajouter le poulet et garnir les bouchées chaudes
+
+= Poulet au citron et au thym | LUNCH,DINNER | 4
+36017 600 blancs de poulet
+13009 80 citron
+11070 3 thym
+11000 10 ail
+17270 20 huile d'olive
+31008 10 miel
+11058 3 sel
+: Mariner le poulet 30 minutes avec le jus et le zeste du citron, l'ail, le thym et l'huile
+: Le saisir à la poêle 6 minutes par face, ajouter le miel en fin de cuisson pour le laquer
+
+= Paupiettes de veau à la tomate | LUNCH,DINNER | 4
+6521 400 escalopes de veau
+30050 300 chair à saucisse
+20137 400 tomates pelées
+20034 100 oignon
+20009 150 carottes
+5215 100 vin blanc
+17270 20 huile d'olive
+11058 4 sel
+: Garnir chaque escalope de chair à saucisse, rouler et ficeler
+: Dorer les paupiettes dans l'huile, ajouter l'oignon et les carottes
+: Mouiller avec le vin et les tomates, mijoter 45 minutes à couvert
+
+= Bavette à l'échalote | LUNCH,DINNER | 2
+6212 340 bavette
+20097 60 échalotes
+16400 20 beurre
+11018 15 vinaigre de vin
+11058 2 sel
+: Saisir la bavette 2 minutes par face dans la moitié du beurre, la réserver
+: Faire fondre les échalotes ciselées dans le reste du beurre, déglacer au vinaigre et napper la viande
+
+= Sauté de porc au caramel | LUNCH,DINNER | 4
+28104 600 échine ou carré de porc
+31016 40 sucre
+11194 30 nuoc-mâm
+20034 100 oignon
+11000 10 ail
+17440 15 huile
+: Faire un caramel blond avec le sucre et 2 cuillères d'eau, ajouter le nuoc-mâm
+: Faire revenir le porc en cubes avec l'oignon et l'ail, verser le caramel
+: Laisser cuire 30 minutes à feu doux jusqu'à ce que la sauce nappe la viande
