@@ -21,15 +21,6 @@ class PushPayloadTest {
     }
 
     @Test
-    void theWeekInReviewSaysNothingPersonal() {
-        Map<String, Object> n = notification(PushService.Kind.WEEKLY, false, Map.of());
-        assertThat(n.get("title")).isEqualTo("Ton bilan de la semaine 📊");
-        // no weight, no calories: the figures are in the app
-        assertThat(n.get("body")).isEqualTo("Ton poids, tes séances et tes repas des 7 derniers jours, en un coup d’œil");
-        assertThat(url(n)).isEqualTo("/app/week");
-    }
-
-    @Test
     void theTimerSaysThePhaseAndOpensTheTimer() {
         Map<String, Object> rest = notification(PushService.Kind.TIMER, false, Map.of("phase", "REST", "round", "2", "total", "5"));
         assertThat(rest.get("title")).isEqualTo("Repos 😮‍💨");

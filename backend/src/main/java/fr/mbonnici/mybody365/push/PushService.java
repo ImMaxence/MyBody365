@@ -36,7 +36,7 @@ public class PushService {
     private static final List<String> PUSH_HOSTS = List.of("fcm.googleapis.com", "googleapis.com", "push.services.mozilla.com",
             "push.apple.com", "notify.windows.com");
 
-    public enum Kind { TEST, DAILY_WEIGH, DAILY_PHOTO, GYM, NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED, WATER, UPDATE, FEEDBACK, FRIEND_RECIPE, WEEKLY,
+    public enum Kind { TEST, DAILY_WEIGH, DAILY_PHOTO, GYM, NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED, WATER, UPDATE, FEEDBACK, FRIEND_RECIPE,
         /** a change of phase of the workout timer while the app is off screen (TimerAlerts) */
         TIMER }
 
@@ -197,7 +197,6 @@ public class PushService {
             case NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED -> "/app/friends";
             case UPDATE -> "/changelog";
             case FEEDBACK -> "/app/admin/feedback";
-            case WEEKLY -> "/app/week";
             case TIMER -> "/app/timer";
             // the recipe itself (an address of the app only)
             case FRIEND_RECIPE -> args.getOrDefault("path", "").startsWith("/app/meals/recipes/") ? args.get("path") : "/app/meals/recipes";
@@ -250,9 +249,6 @@ public class PushService {
                 };
                 yield new String[] {(en ? name + " sent " : name + " a envoyé ") + what, args.getOrDefault("text", "")};
             }
-            // nothing personal on a locked screen: the figures are in the app
-            case WEEKLY -> en ? new String[] {"Your week in review 📊", "Your weight, sessions and meals of the last 7 days, at a glance"}
-                    : new String[] {"Ton bilan de la semaine 📊", "Ton poids, tes séances et tes repas des 7 derniers jours, en un coup d’œil"};
             case FRIEND_RECIPE -> {
                 String recipe = args.getOrDefault("recipe", "");
                 yield en ? new String[] {name + " shared a recipe 🍳", recipe + ", now in your friends’ recipes"}

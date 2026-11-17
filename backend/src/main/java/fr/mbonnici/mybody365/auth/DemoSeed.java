@@ -117,6 +117,13 @@ public class DemoSeed {
             jdbc.update("insert into water_log (user_id, day, glasses) values (?, ?, ?)", lea.getId(), d, 5 + (i * 7) % 5);
         }
         jdbc.update("insert into water_log (user_id, day, glasses) values (?, ?, 3)", lea.getId(), today);
+        // her milestones (1.8): the first reached on the day a weigh-in passed it, a reward for some
+        for (Object[] m : new Object[][] {{76.0, "Un resto avec Inès"}, {74.0, "De nouvelles baskets"}, {71.0, null}, {69.0, "Un week-end à la mer"}}) {
+            jdbc.update("""
+                    insert into weight_milestone (id, user_id, target_kg, reward, reached_on)
+                    values (?, ?, ?, ?, (select min(day) from body_log where user_id = ? and weight_kg <= ?))""",
+                    UUID.randomUUID(), lea.getId(), m[0], m[1], lea.getId(), m[0]);
+        }
         jdbc.update("insert into timer_preset (id, user_id, name, work_s, rest_s, rounds) values (?, ?, 'Gainage du soir', 40, 20, 5)",
                 UUID.randomUUID(), lea.getId());
         recipe(lea.getId(), "Bowl poulet, riz et brocolis", "LUNCH", 560, "FRIENDS",

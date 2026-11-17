@@ -1,3 +1,18 @@
+/** a milestone of one's own on the way to the goal (1.8) */
+export interface Milestone {
+  id: string;
+  targetKg: number;
+  /** what one promised oneself: « un resto », « des baskets » */
+  reward?: string;
+  /** the day a weigh-in passed it (it stays reached) */
+  reachedOn?: string;
+}
+
+export interface MilestoneInput {
+  targetKg: number;
+  reward?: string;
+}
+
 export interface Account {
   id: string;
   email: string;
@@ -18,6 +33,9 @@ export interface Account {
   /** the body profile (height, weight, goal) has been filled in */
   profileComplete: boolean;
   admin: boolean;
+  /** the streak's icon and colour (core/engage/streak-style.ts) */
+  streakIcon?: string;
+  streakColor?: string;
 }
 
 export interface Me {

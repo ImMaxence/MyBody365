@@ -56,6 +56,11 @@ public class AppUser {
     /** glasses of water a day; null: the water tracker is off */
     private Integer waterGoal;
 
+    /** the streak's icon and colour (1.8); null: the flame, in orange */
+    private String streakIcon;
+
+    private String streakColor;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.USER;
@@ -205,6 +210,22 @@ public class AppUser {
 
     public void setWaterGoal(Integer waterGoal) {
         this.waterGoal = waterGoal;
+    }
+
+    public String getStreakIcon() {
+        return streakIcon == null ? "flame" : streakIcon;
+    }
+
+    public void setStreakIcon(String streakIcon) {
+        this.streakIcon = streakIcon;
+    }
+
+    public String getStreakColor() {
+        return streakColor == null ? "orange" : streakColor;
+    }
+
+    public void setStreakColor(String streakColor) {
+        this.streakColor = streakColor;
     }
 
     public boolean isDiscoverable() {

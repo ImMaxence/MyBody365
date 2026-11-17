@@ -45,7 +45,14 @@ public class MeController {
 
     public record UpdateProfile(@Size(min = 1, max = 40) String displayName, @Pattern(regexp = "fr|en") String locale, Boolean discoverable,
             /** glasses of water a day, 0 to turn the tracker off */
-            @jakarta.validation.constraints.Min(0) @jakarta.validation.constraints.Max(30) Integer waterGoal) {}
+            @jakarta.validation.constraints.Min(0) @jakarta.validation.constraints.Max(30) Integer waterGoal,
+            /** the streak's look (1.8): one of the app's icons and colours */
+            @Pattern(regexp = STREAK_ICONS) String streakIcon,
+            @Pattern(regexp = STREAK_COLORS) String streakColor) {}
+
+    /** the choices of the streak's look, as in the app (core/engage/streak-style.ts) */
+    static final String STREAK_ICONS = "flame|muscle|bolt|star|trophy|heart|rocket|diamond|sprout|medal|crown|sun|runner|apple";
+    static final String STREAK_COLORS = "orange|red|pink|violet|blue|cyan|green|gold";
 
     public record Consent(@AssertTrue boolean adult, @AssertTrue boolean health) {}
 
@@ -98,6 +105,12 @@ public class MeController {
         }
         if (body.waterGoal() != null) {
             user.setWaterGoal(body.waterGoal() == 0 ? null : body.waterGoal());
+        }
+        if (body.streakIcon() != null) {
+            user.setStreakIcon(body.streakIcon());
+        }
+        if (body.streakColor() != null) {
+            user.setStreakColor(body.streakColor());
         }
         return AccountDto.of(users.save(user), users.isAdmin(user), tracking.hasProfile(user.getId()));
     }

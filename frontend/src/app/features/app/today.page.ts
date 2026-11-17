@@ -15,6 +15,7 @@ import { IconComponent } from '../../shared/icon.component';
 import { WeighSheetComponent } from './weigh-sheet.component';
 import { WaterRowComponent } from './water-row.component';
 import { PushPromptComponent } from '../../shared/push-prompt.component';
+import { STREAK_COLORS, STREAK_ICONS, streakEmoji, streakTint } from '../../core/engage/streak-style';
 
 /** the water invitation, once hidden on this device */
 const WATER_INVITE_KEY = 'mb.waterInviteHidden';
@@ -62,8 +63,9 @@ function writeFlag(key: string): void {
       }
 
       <!-- the whole card opens the calendar of the flame (the button is there for the keyboard and screen readers) -->
-      <section class="streak" [class.lit]="streakDays() > 0" [attr.aria-label]="'today.streak' | t" (click)="flameDialog.open || flameDialog.showModal()">
-        <div class="flame"><app-icon name="flame" [size]="34" [stroke]="2.1" /></div>
+      <section class="streak" [class.lit]="streakDays() > 0" [attr.aria-label]="'today.streak' | t" (click)="flameDialog.open || flameDialog.showModal()"
+        [style.--st-from]="tint()['--st-from']" [style.--st-to]="tint()['--st-to']" [style.--st-glow]="tint()['--st-glow']">
+        <div class="flame"><span class="flame-emoji" aria-hidden="true">{{ emoji() }}</span></div>
         <div class="streak-copy">
           <span class="label">{{ 'today.streak' | t }}</span>
           <span class="big num">{{ streakDays() }} <small>{{ 'today.streakDays' | t }}</small></span>
@@ -91,11 +93,46 @@ function writeFlag(key: string): void {
         <p class="small hint">{{ streakMessage() | t }}</p>
       </section>
 
+      <!-- the streak's look: an icon and a colour, saved at once -->
+      <dialog class="sheet" #styleDialog [attr.aria-label]="'engage.streakStyle.title' | t">
+        <div class="sheet-grip"></div>
+        <div class="stack style-sheet" [style.--st-from]="tint()['--st-from']" [style.--st-to]="tint()['--st-to']" [style.--st-glow]="tint()['--st-glow']">
+          <div class="flame-head">
+            <span class="flame-big"><span class="flame-emoji small" aria-hidden="true">{{ emoji() }}</span></span>
+            <div>
+              <h2 class="h3">{{ 'engage.streakStyle.title' | t }}</h2>
+              <p class="small muted">{{ 'engage.streakStyle.sub' | t }}</p>
+            </div>
+          </div>
+          <span class="label" id="st-icons">{{ 'engage.streakStyle.icon' | t }}</span>
+          <div class="icon-grid" role="group" aria-labelledby="st-icons">
+            @for (i of icons; track i.key) {
+              <button type="button" class="icon-choice" [attr.aria-pressed]="iconKey() === i.key" [attr.aria-label]="'engage.streakStyle.icons.' + i.key | t"
+                (click)="setStyle({ streakIcon: i.key })">
+                <span aria-hidden="true">{{ i.emoji }}</span>
+              </button>
+            }
+          </div>
+          <span class="label" id="st-colors">{{ 'engage.streakStyle.color' | t }}</span>
+          <div class="color-grid" role="group" aria-labelledby="st-colors">
+            @for (c of colors; track c.key) {
+              <button type="button" class="color-choice" [attr.aria-pressed]="colorKey() === c.key" [attr.aria-label]="'engage.streakStyle.colors.' + c.key | t"
+                [style.background]="'linear-gradient(135deg, ' + c.from + ', ' + c.to + ')'" (click)="setStyle({ streakColor: c.key })">
+                @if (colorKey() === c.key) {
+                  <app-icon name="check" [size]="18" [stroke]="2.6" />
+                }
+              </button>
+            }
+          </div>
+          <button type="button" class="btn btn-ghost btn-block" (click)="styleDialog.close()">{{ 'common.close' | t }}</button>
+        </div>
+      </dialog>
+
       <dialog class="sheet" #flameDialog>
         <div class="sheet-grip"></div>
-        <div class="stack flame-sheet">
+        <div class="stack flame-sheet" [style.--st-from]="tint()['--st-from']" [style.--st-to]="tint()['--st-to']" [style.--st-glow]="tint()['--st-glow']">
           <div class="flame-head">
-            <span class="flame-big"><app-icon name="flame" [size]="30" [stroke]="2.1" /></span>
+            <span class="flame-big"><span class="flame-emoji small" aria-hidden="true">{{ emoji() }}</span></span>
             <div>
               <h2 class="h3">{{ 'engage.flame.title' | t }} · {{ 'engage.flame.days' | t: { n: streakDays() } }}</h2>
               <p class="small muted">{{ 'engage.flame.best' | t: { n: summary()?.streak?.best ?? 0 } }}</p>
@@ -134,6 +171,7 @@ function writeFlag(key: string): void {
             <span><i class="k missed"></i>{{ 'engage.flame.legendMissed' | t }}</span>
             <span><i class="k today"></i>{{ 'engage.flame.legendToday' | t }}</span>
           </div>
+          <button type="button" class="btn btn-secondary btn-block" (click)="styleDialog.showModal()"><app-icon name="sparkles" [size]="18" /> {{ 'engage.streakStyle.open' | t }}</button>
           <button type="button" class="btn btn-ghost btn-block" (click)="flameDialog.close()">{{ 'common.close' | t }}</button>
         </div>
       </dialog>
@@ -176,14 +214,6 @@ function writeFlag(key: string): void {
           <span class="list-body">
             <span class="list-title">{{ 'friends.title' | t }}</span>
             <span class="list-sub">{{ friendsLine() }}</span>
-          </span>
-          <app-icon name="chevronRight" />
-        </a>
-        <a class="list-item task" routerLink="/app/week">
-          <span class="list-icon"><app-icon name="calendar" /></span>
-          <span class="list-body">
-            <span class="list-title">{{ 'week.title' | t }}</span>
-            <span class="list-sub">{{ 'week.sub' | t }}</span>
           </span>
           <app-icon name="chevronRight" />
         </a>
@@ -267,10 +297,10 @@ function writeFlag(key: string): void {
       border-radius: var(--radius-xl);
       overflow: hidden;
       background:
-        radial-gradient(120% 120% at 0% 0%, rgba(255, 61, 31, 0.2), transparent 55%),
-        radial-gradient(100% 100% at 100% 100%, rgba(255, 194, 61, 0.14), transparent 60%),
+        radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--st-from, #ff3d1f) 20%, transparent), transparent 55%),
+        radial-gradient(100% 100% at 100% 100%, color-mix(in srgb, var(--st-to, #ffc23d) 14%, transparent), transparent 60%),
         var(--surface);
-      border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+      border: 1px solid color-mix(in srgb, var(--st-from, var(--accent)) 28%, transparent);
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       transition: transform var(--dur-1) var(--ease-out);
@@ -289,10 +319,69 @@ function writeFlag(key: string): void {
       transition: background-color var(--dur-3);
     }
     .lit .flame {
-      background: var(--flame);
+      background: linear-gradient(135deg, var(--st-from), var(--st-to));
       color: var(--accent-ink);
-      box-shadow: 0 14px 30px -10px var(--accent-glow);
+      box-shadow: 0 14px 30px -10px var(--st-glow);
       animation: flicker 2.4s ease-in-out infinite;
+    }
+    /* the chosen icon, drawn by the phone (a real flame); greyed until the day is weighed */
+    .flame-emoji {
+      font-size: 36px;
+      line-height: 1;
+      filter: grayscale(1);
+      opacity: 0.55;
+    }
+    .flame-emoji.small {
+      font-size: 30px;
+    }
+    .lit .flame-emoji,
+    .flame-big .flame-emoji {
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.18));
+      opacity: 1;
+    }
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .icon-choice {
+      display: grid;
+      place-items: center;
+      aspect-ratio: 1;
+      border: 0;
+      border-radius: 14px;
+      background: var(--surface-2);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: transform var(--dur-1) var(--ease-out);
+    }
+    .icon-choice[aria-pressed='true'] {
+      background: linear-gradient(135deg, var(--st-from), var(--st-to));
+      box-shadow: 0 8px 18px -8px var(--st-glow);
+    }
+    .icon-choice:active,
+    .color-choice:active {
+      transform: scale(0.92);
+    }
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .color-choice {
+      display: grid;
+      place-items: center;
+      aspect-ratio: 1;
+      border: 0;
+      border-radius: 50%;
+      color: #fff;
+      cursor: pointer;
+      transition: transform var(--dur-1) var(--ease-out);
+    }
+    .color-choice[aria-pressed='true'] {
+      box-shadow:
+        0 0 0 3px var(--surface),
+        0 0 0 5px var(--fg-2);
     }
     @keyframes flicker {
       0%,
@@ -396,7 +485,7 @@ function writeFlag(key: string): void {
       width: 54px;
       height: 54px;
       border-radius: 18px;
-      background: var(--flame);
+      background: linear-gradient(135deg, var(--st-from, #ff6a2b), var(--st-to, #ffb03b));
       color: var(--accent-ink);
       flex: none;
     }
@@ -635,6 +724,26 @@ export class TodayPage {
 
   protected readonly weighedIn = computed(() => this.summary()?.streak.todayDone === true);
   protected readonly streakDays = computed(() => this.summary()?.streak.days ?? 0);
+  /** the streak's look, chosen by the member (the flame in orange by default) */
+  protected readonly icons = STREAK_ICONS;
+  protected readonly colors = STREAK_COLORS;
+  protected readonly iconKey = computed(() => this.session.account()?.streakIcon ?? 'flame');
+  protected readonly colorKey = computed(() => this.session.account()?.streakColor ?? 'orange');
+  protected readonly emoji = computed(() => streakEmoji(this.iconKey()));
+  protected readonly tint = computed(() => streakTint(this.colorKey()));
+
+  /** shown at once, saved behind (and put back if it could not be) */
+  protected async setStyle(patch: { streakIcon?: string; streakColor?: string }): Promise<void> {
+    const before = this.session.account();
+    if (!before) return;
+    this.session.setAccount({ ...before, ...patch });
+    try {
+      this.session.setAccount(await this.api.updateMe(patch));
+    } catch (e) {
+      this.session.setAccount(before);
+      this.toast.error(this.i18n.error(errorCode(e)));
+    }
+  }
   protected readonly streakMessage = computed(() =>
     this.weighedIn() ? 'today.streakSafe' : this.streakDays() > 0 ? 'today.streakKeep' : 'today.streakStart',
   );

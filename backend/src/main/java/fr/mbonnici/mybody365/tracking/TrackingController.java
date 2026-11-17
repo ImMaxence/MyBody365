@@ -31,7 +31,10 @@ public class TrackingController {
     private final TrackingService tracking;
     private final UserService users;
 
-    public TrackingController(TrackingService tracking, UserService users) {
+    private final Milestones milestones;
+
+    public TrackingController(TrackingService tracking, UserService users, Milestones milestones) {
+        this.milestones = milestones;
         this.tracking = tracking;
         this.users = users;
     }
@@ -81,6 +84,7 @@ public class TrackingController {
         AppUser user = users.current(auth);
         requireProfile(user);
         tracking.saveLog(user.getId(), day, body);
+        milestones.markReached(user.getId());
         return tracking.summary(user.getId());
     }
 

@@ -12,6 +12,7 @@ import { StackNavigation } from '../../core/nav/stack-navigation';
 import { IconComponent } from '../../shared/icon.component';
 import { Outbox } from '../../core/offline/outbox';
 import { TimerRun } from '../../core/engage/timer-run';
+import { MilestoneCelebrationComponent } from './milestone-celebration.component';
 import { ToastService } from '../../core/ui/toast.service';
 
 /** how far (share of the width) or how fast (px/ms, the last moves) the screen must travel to go back */
@@ -32,7 +33,7 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
 @Component({
   selector: 'app-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, TranslatePipe, IconComponent],
+  imports: [RouterOutlet, RouterLink, TranslatePipe, IconComponent, MilestoneCelebrationComponent],
   template: `
     <div id="main" class="screen" #screen>
       <router-outlet />
@@ -43,6 +44,8 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
       <div class="status-shield" aria-hidden="true"></div>
     }
     <!-- the left edge: the back swipe (see edgeStart) -->
+    <!-- a milestone reached by the weigh-in just noted, wherever it was noted -->
+    <app-milestone-celebration />
     <div class="edge" aria-hidden="true" (touchstart)="edgeStart($event)" (touchmove)="edgeMove($event)" (touchend)="edgeEnd($event)"
       (touchcancel)="edgeCancel()"></div>
     @if (showTabs() && (outbox.pending().length || timerAway())) {
@@ -341,8 +344,8 @@ export class ShellComponent {
     if (path.startsWith('/app/progress')) return 3;
     if (path.startsWith('/app/photos')) return 2;
     if (path.startsWith('/app/meals')) return 1;
-    // Today, and the screens opened from it (the timer, the week in review)
-    return path === '/app' || path === '/app/' || /^\/app\/(timer|week)(\/|$)/.test(path) ? 0 : -1;
+    // Today, and the screen opened from it (the timer)
+    return path === '/app' || path === '/app/' || /^\/app\/timer(\/|$)/.test(path) ? 0 : -1;
   });
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);

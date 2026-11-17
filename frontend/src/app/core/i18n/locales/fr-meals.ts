@@ -141,6 +141,7 @@ export const frMeals = {
     types: { BREAKFAST: 'Petit-déj', LUNCH: 'Déjeuner', DINNER: 'Dîner', SNACK: 'Collation', DESSERT: 'Dessert', DRINK: 'Boisson' },
     typesHint: 'Un ou plusieurs repas : elle apparaît dans chacun des filtres',
     gradeHint: 'Estimé d’après les ingrédients',
+    importShort: 'Importer un lien',
     search: 'Chercher parmi toutes les recettes',
     searchPlaceholder: 'Chercher une recette : blanquette, crêpes…',
     more: 'Voir plus de recettes',
@@ -185,8 +186,6 @@ export const frMeals = {
     import: {
       cta: 'Importer depuis un site de recettes',
       ctaSub: 'Colle le lien : nom, parts, ingrédients et étapes sont remplis pour toi',
-      listCta: 'Importer une recette depuis un lien',
-      listCtaSub: 'Ingrédients, calories et Nutri-Score calculés pour toi',
       title: 'Importer une recette',
       text: 'Colle le lien d’une recette trouvée sur un site. Ses ingrédients sont reconnus, les calories et le Nutri-Score calculés : tu vérifies, et elle rejoint tes recettes',
       label: 'Lien de la recette',

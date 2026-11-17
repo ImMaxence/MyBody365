@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { ApiService } from '../api/api.service';
-import type { BodyLogEntry, LogInput, MacroSplit, ProfileInput, Summary } from '../api/models';
+import type { BodyLogEntry, LogInput, MacroSplit, Milestone, MilestoneInput, ProfileInput, Summary } from '../api/models';
 import { SessionStore } from '../auth/session.store';
 import { Outbox, isOffline } from '../offline/outbox';
 
@@ -23,6 +23,28 @@ export class TrackingStore {
   readonly logs = signal<BodyLogEntry[] | null>(null);
   readonly lastWeight = computed(() => this.summary()?.current.weightKg ?? this.summary()?.profile.startWeightKg ?? null);
   readonly todayLog = computed(() => this.logs()?.find((l) => l.day === localDay()) ?? null);
+  /** one's milestones (1.8), in the order of the way */
+  readonly milestones = signal<Milestone[] | null>(null);
+  /** a milestone the last weigh-in has just reached: the shell celebrates it */
+  readonly celebrate = signal<Milestone | null>(null);
+
+  async loadMilestones(): Promise<Milestone[]> {
+    const list = await this.api.milestones();
+    this.milestones.set(list);
+    return list;
+  }
+
+  async addMilestone(input: MilestoneInput): Promise<void> {
+    this.milestones.set(await this.api.addMilestone(input));
+  }
+
+  async updateMilestone(id: string, input: MilestoneInput): Promise<void> {
+    this.milestones.set(await this.api.updateMilestone(id, input));
+  }
+
+  async deleteMilestone(id: string): Promise<void> {
+    this.milestones.set(await this.api.deleteMilestone(id));
+  }
 
   async load(): Promise<Summary | null> {
     try {
@@ -75,10 +97,13 @@ export class TrackingStore {
 
   async saveLog(day: string, input: LogInput): Promise<Summary | null> {
     try {
+      // the milestones reached before: a weigh-in that reaches another one is celebrated
+      const before = input.weightKg == null ? null : (this.milestones() ?? (await this.loadMilestones().catch(() => null)));
       const s = await this.api.saveLog(day, input);
       this.lastQueued.set(false);
       this.summary.set(s);
       if (this.logs()) await this.loadLogs();
+      if (before) void this.newlyReached(before);
       return s;
     } catch (e) {
       if (!isOffline(e)) throw e;
@@ -86,6 +111,14 @@ export class TrackingStore {
       this.lastQueued.set(true);
       return this.summary();
     }
+  }
+
+  /** the furthest milestone this weigh-in reached, if any */
+  private async newlyReached(before: Milestone[]): Promise<void> {
+    const was = new Set(before.filter((m) => m.reachedOn).map((m) => m.id));
+    const now = await this.loadMilestones().catch(() => null);
+    const fresh = (now ?? []).filter((m) => m.reachedOn && !was.has(m.id));
+    if (fresh.length) this.celebrate.set(fresh[fresh.length - 1]);
   }
 
   async deleteLog(day: string): Promise<void> {
@@ -96,5 +129,7 @@ export class TrackingStore {
   clear(): void {
     this.summary.set(null);
     this.logs.set(null);
+    this.milestones.set(null);
+    this.celebrate.set(null);
   }
 }

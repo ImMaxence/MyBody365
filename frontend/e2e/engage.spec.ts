@@ -17,18 +17,21 @@ test.describe('engagement', () => {
     // anywhere on the card opens it too
     await page.locator('section.streak .big').click();
     await expect(sheet.getByRole('heading', { name: /Ta flamme/ })).toBeVisible();
-    expect(errors).toEqual([]);
-  });
 
-  test('the week in review, from Today', async ({ page }) => {
-    const errors = watchErrors(page);
-    await signIn(page, 'new');
-    await page.getByRole('link', { name: /Ta semaine/ }).click();
-    await expect(page.getByRole('heading', { name: 'Ta semaine', level: 1 })).toBeVisible();
-    await expect(page.getByText('Séances', { exact: true })).toBeVisible();
-    await expect(page.getByText('jours notés')).toBeVisible();
+    // its look: a real flame by default, an icon and a colour of one's own
+    await expect(page.locator('section.streak .flame-emoji')).toHaveText('🔥');
+    await sheet.getByRole('button', { name: 'Personnaliser' }).click();
+    const look = page.getByRole('dialog', { name: 'Ta série, à ton image' });
+    await look.getByRole('button', { name: 'Bras musclé' }).click();
+    await look.getByRole('button', { name: 'Violet' }).click();
+    await expect(look.getByRole('button', { name: 'Bras musclé' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(look.getByRole('button', { name: 'Violet' })).toHaveAttribute('aria-pressed', 'true');
     await expectAccessible(page);
-    await expectNoHorizontalOverflow(page);
+    await look.getByRole('button', { name: 'Fermer' }).click();
+    await expect(page.locator('section.streak .flame-emoji')).toHaveText('💪');
+    // kept with the account
+    await page.reload();
+    await expect(page.locator('section.streak .flame-emoji')).toHaveText('💪');
     expect(errors).toEqual([]);
   });
 

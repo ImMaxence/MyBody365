@@ -10,7 +10,7 @@ import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 
-type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabled' | 'weeklyEnabled';
+type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabled';
 
 /**
  * Notifications: this device on or off (with a test), then what is sent, each line a switch saved at
@@ -95,14 +95,6 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
               <span class="small muted">{{ 'engage.notifications.friendsHint' | t }}</span>
             </span>
             <input type="checkbox" role="switch" class="switch" [checked]="p.friendsEnabled" (change)="toggle('friendsEnabled', $event)" />
-          </label>
-          <label class="pref">
-            <span class="list-icon"><app-icon name="calendar" /></span>
-            <span class="pref-body">
-              <span class="pref-title">{{ 'engage.notifications.weekly' | t }}</span>
-              <span class="small muted">{{ 'engage.notifications.weeklyHint' | t }}</span>
-            </span>
-            <input type="checkbox" role="switch" class="switch" [checked]="p.weeklyEnabled" (change)="toggle('weeklyEnabled', $event)" />
           </label>
           <label class="pref">
             <span class="list-icon"><app-icon name="sparkles" /></span>

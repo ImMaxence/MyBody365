@@ -76,7 +76,7 @@ test.describe('meals', () => {
     await page.goto('/app/meals/add?slot=DINNER');
     await page.getByRole('link', { name: /^Recettes/ }).click();
     await expect(page.getByRole('heading', { name: 'Recettes', level: 1 })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Importer une recette depuis un lien/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Importer un lien' })).toBeVisible();
 
     // a recipe from a site, written by hand: lines and calories per serving
     await page.goto('/app/meals/recipes/new');
@@ -229,6 +229,10 @@ test.describe('meals', () => {
     await otherPage.getByRole('link', { name: new RegExp(shared) }).click();
     await otherPage.getByRole('button', { name: 'J’aime', exact: true }).click();
     await expect(otherPage.locator('.score')).toHaveText('1');
+    // back to the list: as it was left (the search, not « Mes recettes » again)
+    await otherPage.goBack();
+    await expect(otherPage.getByRole('searchbox', { name: 'Chercher parmi toutes les recettes' })).toHaveValue(shared.replace('équipe', 'EQUIPE'));
+    await expect(otherPage.getByRole('link', { name: new RegExp(shared) })).toBeVisible();
     await other.close();
     expect(errors).toEqual([]);
   });

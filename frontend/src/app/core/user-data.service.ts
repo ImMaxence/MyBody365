@@ -5,6 +5,7 @@ import { TodoStore } from './support/support-api';
 import { TrackingStore } from './tracking/tracking.store';
 import { Outbox } from './offline/outbox';
 import { TimerRun } from './engage/timer-run';
+import { RecipesView } from './meals/recipes-view';
 
 /** Forgets everything loaded for the signed-in account (sign-out, account deleted). */
 @Injectable({ providedIn: 'root' })
@@ -15,6 +16,7 @@ export class UserDataService {
   private readonly todo = inject(TodoStore);
   private readonly outbox = inject(Outbox);
   private readonly timer = inject(TimerRun);
+  private readonly recipesView = inject(RecipesView);
 
   clear(): void {
     this.tracking.clear();
@@ -24,6 +26,7 @@ export class UserDataService {
     // signed out: what was noted offline is not sent for anyone else
     this.outbox.clear();
     this.timer.stop();
+    this.recipesView.clear();
     this.outbox.setOwner(null);
   }
 }

@@ -46,6 +46,8 @@ final class BackupFormat {
     static final java.util.Set<String> PROFILE_OPTIONAL = java.util.Set.of("job", "sessions_per_week", "macro_split", "adaptive_tdee");
 
     static final Table WATER = new Table("water_log", cols("day", Type.DATE, "glasses", Type.INT));
+    /** 1.8: one's milestones on the way to the goal */
+    static final Table MILESTONES = new Table("weight_milestone", cols("target_kg", Type.NUM, "reward", Type.TEXT, "reached_on", Type.DATE));
 
     static final Table TIMERS = new Table("timer_preset", cols("name", Type.TEXT, "work_s", Type.INT, "rest_s", Type.INT, "rounds", Type.INT,
             "created_at", Type.TIMESTAMP));

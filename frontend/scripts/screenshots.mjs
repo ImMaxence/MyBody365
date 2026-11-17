@@ -83,6 +83,10 @@ await seed.close();
     const kg = Math.round((88.6 - 0.093 * (45 - i) + noise) * 10) / 10;
     await api(ctx, 'PUT', `/api/me/logs/${day(i)}`, { weightKg: kg, waistCm: i % 7 === 0 ? 96 - (45 - i) * 0.1 : null });
   }
+  // his milestones (1.8): the first two passed on the way, a reward for some
+  for (const [targetKg, reward] of [[87, 'Un resto entre amis'], [85, 'De nouvelles baskets'], [82, undefined], [80, 'Un week-end à la mer']]) {
+    await api(ctx, 'POST', '/api/me/milestones', { targetKg, reward });
+  }
   const pending = await api(ctx, 'GET', '/api/admin/access-requests');
   const ines = pending.find((r) => r.name === 'Inès');
   if (ines) await api(ctx, 'POST', `/api/admin/access-requests/${ines.id}/approve`);

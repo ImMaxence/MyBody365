@@ -5,6 +5,7 @@ import type { Recipe, RecipeType } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MealsApi } from '../../core/meals/meals-api';
+import { RecipesView } from '../../core/meals/recipes-view';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 import { NutriscoreComponent } from '../../shared/nutriscore.component';
@@ -37,16 +38,10 @@ function plain(s: string): string {
         <h1 class="title small-title">{{ 'meals.recipe.listTitle' | t }}</h1>
       </header>
 
+      <!-- the two ways to add a recipe, side by side at the top -->
       <div class="add">
-        <a routerLink="/app/meals/recipes/new" [queryParams]="{ import: '' }" class="import-cta">
-          <span class="import-ico"><app-icon name="link" [size]="22" /></span>
-          <span class="import-copy">
-            <b>{{ 'meals.recipe.import.listCta' | t }}</b>
-            <span class="small">{{ 'meals.recipe.import.listCtaSub' | t }}</span>
-          </span>
-          <app-icon name="chevronRight" />
-        </a>
-        <a routerLink="/app/meals/recipes/new" class="btn btn-secondary btn-block"><app-icon name="plus" [size]="18" /> {{ 'meals.recipe.new' | t }}</a>
+        <a routerLink="/app/meals/recipes/new" [queryParams]="{ import: '' }" class="btn btn-secondary btn-s"><app-icon name="link" [size]="18" /> {{ 'meals.recipe.importShort' | t }}</a>
+        <a routerLink="/app/meals/recipes/new" class="btn btn-secondary btn-s"><app-icon name="plus" [size]="18" /> {{ 'meals.recipe.new' | t }}</a>
       </div>
 
       <!-- one search for every recipe (mine, my friends', the community), a moment after the last key -->
@@ -169,43 +164,12 @@ function plain(s: string): string {
   styles: `
     .add {
       display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: var(--space-2);
     }
-    /* the import, put forward: a link is all it takes */
-    .import-cta {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      padding: var(--space-4);
-      border-radius: var(--radius-l);
-      background: var(--flame-deep);
-      color: #fff;
-      text-decoration: none;
-      box-shadow:
-        0 10px 28px -12px var(--accent-glow),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-      transition: transform var(--dur-1) var(--ease-out);
-    }
-    .import-cta:active {
-      transform: scale(0.98);
-    }
-    .import-ico {
-      display: grid;
-      place-items: center;
-      width: 46px;
-      height: 46px;
-      flex: none;
-      border-radius: 14px;
-      background: rgb(255 255 255 / 0.2);
-    }
-    .import-copy {
-      display: grid;
-      gap: 2px;
-      flex: 1;
+    .add .btn {
       min-width: 0;
-    }
-    .import-copy b {
-      font-size: 1.05rem;
+      white-space: nowrap;
     }
     /* another filter loads: the list stays, a touch dimmed only if it takes a while */
     .cards.stale {
@@ -373,12 +337,14 @@ export class RecipesPage {
   protected readonly i18n = inject(I18nService);
   protected readonly types = RECIPE_TYPES;
   protected readonly emoji = TYPE_EMOJI;
-  protected readonly tab = signal<'mine' | 'friends' | 'community'>('mine');
-  protected readonly type = signal<RecipeType | null>(null);
-  protected readonly sort = signal<'top' | 'new'>('top');
+  /** the tab, the filters and the search outlive the screen (back from a recipe: as left) */
+  private readonly view = inject(RecipesView);
+  protected readonly tab = this.view.tab;
+  protected readonly type = this.view.type;
+  protected readonly sort = this.view.sort;
   /** what is typed in the community search, and what is searched (a moment after the last key) */
-  protected readonly term = signal('');
-  protected readonly query = signal('');
+  protected readonly term = this.view.term;
+  protected readonly query = this.view.query;
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
   /** the community comes 30 at a time */
   protected readonly more = signal(false);
@@ -441,7 +407,7 @@ export class RecipesPage {
   /** the first list is still not there after a moment: placeholders, never for a quick one */
   protected readonly slow = signal(false);
   /** the lists already seen: back to a tab or a filter, it shows at once (and is refreshed behind) */
-  private readonly seen = new Map<string, Recipe[]>();
+  private readonly seen = this.view.seen;
   private seq = 0;
 
   constructor() {

@@ -21,15 +21,19 @@ public record AccountDto(
         boolean onboarded,
         /** the body profile (height, weight, goal) has been filled in */
         boolean profileComplete,
-        boolean admin) {
+        boolean admin,
+        /** the streak's icon and colour (1.8): « flame » and « orange » unless chosen */
+        String streakIcon,
+        String streakColor) {
 
     public AccountDto withUsername(String u) {
-        return new AccountDto(id, email, displayName, u, avatarUrl, ownAvatar, discoverable, waterGoal, role, locale, onboarded, profileComplete, admin);
+        return new AccountDto(id, email, displayName, u, avatarUrl, ownAvatar, discoverable, waterGoal, role, locale, onboarded, profileComplete, admin,
+                streakIcon, streakColor);
     }
 
     public static AccountDto of(AppUser user, boolean admin, boolean profileComplete) {
         return new AccountDto(user.getId(), user.getEmail(), user.getDisplayName(), user.getUsername(), user.getPictureUrl(),
                 user.getAvatarVersion() != null, user.isDiscoverable(), user.getWaterGoal(),
-                admin ? "ADMIN" : "USER", user.getLocale(), user.isOnboarded(), profileComplete, admin);
+                admin ? "ADMIN" : "USER", user.getLocale(), user.isOnboarded(), profileComplete, admin, user.getStreakIcon(), user.getStreakColor());
     }
 }

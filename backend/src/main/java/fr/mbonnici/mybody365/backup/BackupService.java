@@ -62,7 +62,12 @@ public class BackupService {
 
     public record Preview(String token, String exportedAt, String appVersion, boolean profile, Map<String, Change> changes) {}
 
-    public record Result(int logs, int photos, int meals, int foods, int recipes, int workouts, int water, int timers) {}
+    public record Result(int logs, int photos, int meals, int foods, int recipes, int workouts, int water, int timers, int milestones) {}
+
+    /** a weight as a key: « 80.0 » whether it came as 80, 80.0 or a BigDecimal */
+    private static String kg(Object v) {
+        return v instanceof Number n ? String.valueOf(Math.round(n.doubleValue() * 10) / 10.0) : String.valueOf(v);
+    }
 
     /** what a backup file holds, read and checked */
     record Parsed(Map<String, Object> manifest, Map<String, Object> data, Set<String> files, long filesBytes) {}
@@ -113,6 +118,7 @@ public class BackupService {
         data.put("workouts", rows(BackupFormat.WORKOUTS, "user_id = ? order by day", userId));
         data.put("water", rows(BackupFormat.WATER, "user_id = ? order by day", userId));
         data.put("timers", rows(BackupFormat.TIMERS, "user_id = ? order by created_at", userId));
+        data.put("milestones", rows(BackupFormat.MILESTONES, "user_id = ? order by target_kg", userId));
         List<Map<String, Object>> prefs = rows(BackupFormat.PREFS, "user_id = ?", userId);
         data.put("notifications", prefs.isEmpty() ? null : prefs.getFirst());
 
@@ -257,6 +263,8 @@ public class BackupService {
                 keyed(list(data, "water"), r -> str(r.get("day"))), r -> String.valueOf(r.get("glasses"))));
         out.put("timers", compare(keyed(rows(BackupFormat.TIMERS, "user_id = ?", userId), r -> lower(r.get("name"))),
                 keyed(list(data, "timers"), r -> lower(r.get("name"))), r -> r.get("work_s") + "/" + r.get("rest_s") + "/" + r.get("rounds")));
+        out.put("milestones", compare(keyed(rows(BackupFormat.MILESTONES, "user_id = ?", userId), r -> kg(r.get("target_kg"))),
+                keyed(list(data, "milestones"), r -> kg(r.get("target_kg"))), r -> String.valueOf(r.get("reward"))));
         return out;
     }
 
@@ -403,6 +411,7 @@ public class BackupService {
             jdbc.update("delete from body_log where user_id = ?", userId);
             jdbc.update("delete from water_log where user_id = ?", userId);
             jdbc.update("delete from timer_preset where user_id = ?", userId);
+            jdbc.update("delete from weight_milestone where user_id = ?", userId);
         }
         try (ZipFile zip = new ZipFile(zipPath.toFile())) {
             Map<String, UUID> foodIds = new HashMap<>();
@@ -621,6 +630,25 @@ public class BackupService {
                 insert("timer_preset", v, Map.of("id", UUID.randomUUID(), "user_id", userId));
                 timers++;
             }
+            // milestones (1.8): the same weight replaced, ten at most; a backup made before has none
+            int milestones = 0;
+            for (Map<String, Object> w : list(p.data(), "milestones")) {
+                Map<String, Object> v = typed(BackupFormat.MILESTONES, w);
+                if (!(v.get("target_kg") instanceof Number t) || t.doubleValue() < 30 || t.doubleValue() > 300) {
+                    continue;
+                }
+                double kg = Math.round(t.doubleValue() * 10) / 10.0;
+                v.put("target_kg", java.math.BigDecimal.valueOf(kg));
+                Object reward = v.get("reward");
+                v.put("reward", reward instanceof String r && !r.isBlank() ? (r.length() > 80 ? r.substring(0, 80) : r.strip()) : null);
+                jdbc.update("delete from weight_milestone where user_id = ? and target_kg = ?", userId, v.get("target_kg"));
+                Integer count = jdbc.queryForObject("select count(*) from weight_milestone where user_id = ?", Integer.class, userId);
+                if (count != null && count >= 10) {
+                    continue;
+                }
+                insert("weight_milestone", v, Map.of("id", UUID.randomUUID(), "user_id", userId));
+                milestones++;
+            }
             Object profile = p.data().get("profile");
             if (profile instanceof Map<?, ?> pm) {
                 @SuppressWarnings("unchecked")
@@ -645,7 +673,7 @@ public class BackupService {
                     insert("notification_pref", v, Map.of("user_id", userId));
                 }
             }
-            return new Result(logs, photos, meals, foods, recipes, workouts, water, timers);
+            return new Result(logs, photos, meals, foods, recipes, workouts, water, timers, milestones);
         } catch (IOException e) {
             throw ApiException.badRequest("backup_invalid");
         }

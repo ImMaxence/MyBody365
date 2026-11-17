@@ -144,6 +144,7 @@ export const enMeals: Widen<typeof frMeals> = {
     types: { BREAKFAST: 'Breakfast', LUNCH: 'Lunch', DINNER: 'Dinner', SNACK: 'Snack', DESSERT: 'Dessert', DRINK: 'Drink' },
     typesHint: 'One meal or several: it shows under each of the filters',
     gradeHint: 'Estimated from the ingredients',
+    importShort: 'Import a link',
     search: 'Search every recipe',
     searchPlaceholder: 'Search a recipe: stew, pancakes…',
     more: 'Show more recipes',
@@ -188,8 +189,6 @@ export const enMeals: Widen<typeof frMeals> = {
     import: {
       cta: 'Import from a recipe site',
       ctaSub: 'Paste the link: name, servings, ingredients and steps are filled in for you',
-      listCta: 'Import a recipe from a link',
-      listCtaSub: 'Ingredients, calories and Nutri-Score worked out for you',
       title: 'Import a recipe',
       text: 'Paste the link of a recipe found on a website. Its ingredients are recognised, the calories and the Nutri-Score computed: you check it, and it joins your recipes',
       label: 'Recipe link',

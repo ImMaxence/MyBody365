@@ -115,6 +115,31 @@ test.describe('tracking', () => {
     await expectAccessible(page);
     await bmiSheet.getByRole('button', { name: 'Fermer' }).click();
 
+    // milestones of one's own: proposed between the start (75 kg) and the goal (70 kg)
+    const milestones = page.getByRole('region', { name: 'Mes paliers' });
+    await milestones.getByRole('button', { name: 'Proposer 73, 71 kg' }).click();
+    await expect(page.getByText('2 paliers ajoutés')).toBeVisible();
+    await expect(milestones.getByText('Encore 1,8 kg')).toBeVisible();
+    // a reward for the first one
+    await milestones.getByRole('button', { name: 'Modifier le palier de 73 kg' }).click();
+    const edit = page.getByRole('dialog', { name: 'Modifier le palier' });
+    await edit.getByLabel('Ta récompense (facultatif)').fill('Un resto');
+    await edit.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(milestones.getByText('🎁 Un resto')).toBeVisible();
+    await expectAccessible(page);
+    // a weigh-in that passes it: celebrated, with the reward
+    await tab(page, 'Aujourd’hui').click();
+    await page.getByRole('button', { name: /Pesée du jour/ }).click();
+    const again = page.locator('dialog[open]');
+    await again.getByRole('textbox', { name: 'Pesée du jour' }).fill('72,9');
+    await again.getByRole('textbox', { name: 'Pesée du jour' }).press('Tab');
+    await again.getByRole('button', { name: 'Enregistrer' }).click();
+    const party = page.getByRole('dialog', { name: 'Palier atteint !' });
+    await expect(party).toContainText('73 kg');
+    await expect(party).toContainText('Ta récompense : Un resto');
+    await party.getByRole('button', { name: 'Continuer' }).click();
+    await expect(party).toBeHidden();
+
     // the calorie target, in plain words
     await tab(page, 'Repas').click();
     await expect(page.getByText(/kcal par jour pour perdre .* kg par semaine/)).toBeVisible();

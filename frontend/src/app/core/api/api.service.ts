@@ -22,6 +22,8 @@ import type {
   StorageUsage,
   Providers,
   SecurityInfo,
+  Milestone,
+  MilestoneInput,
 } from './models';
 
 /** The stable code of an API error ("link_used", "rate_limited"…), "offline" or "generic". */
@@ -96,8 +98,25 @@ export class ApiService {
     return firstValueFrom(this.http.put<{ day: string; glasses: number; goal?: number }>(`/api/me/water/${day}`, { glasses }));
   }
 
+  // ── milestones (1.8) ───────────────────────────────────────────────────────
+  milestones(): Promise<Milestone[]> {
+    return this.get('/api/me/milestones');
+  }
+
+  addMilestone(input: MilestoneInput): Promise<Milestone[]> {
+    return this.post('/api/me/milestones', input);
+  }
+
+  updateMilestone(id: string, input: MilestoneInput): Promise<Milestone[]> {
+    return firstValueFrom(this.http.put<Milestone[]>(`/api/me/milestones/${id}`, input));
+  }
+
+  deleteMilestone(id: string): Promise<Milestone[]> {
+    return firstValueFrom(this.http.delete<Milestone[]>(`/api/me/milestones/${id}`));
+  }
+
   /** waterGoal 0 turns the water tracker off */
-  updateMe(patch: { displayName?: string; locale?: 'fr' | 'en'; discoverable?: boolean; waterGoal?: number }): Promise<Account> {
+  updateMe(patch: { displayName?: string; locale?: 'fr' | 'en'; discoverable?: boolean; waterGoal?: number; streakIcon?: string; streakColor?: string }): Promise<Account> {
     return firstValueFrom(this.http.patch<Account>('/api/me', patch));
   }
 

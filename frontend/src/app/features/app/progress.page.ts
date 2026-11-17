@@ -8,6 +8,7 @@ import { WeighSheetComponent } from './weigh-sheet.component';
 import { WeightChartComponent } from './weight-chart.component';
 import { SegDirective } from '../../shared/seg.directive';
 import { MonthlyForecastComponent } from './monthly-forecast.component';
+import { MilestonesCardComponent } from './milestones-card.component';
 import { BmiSheetComponent } from './bmi-sheet.component';
 import { bmiBand, waistClass } from '../../core/tracking/bmi';
 
@@ -18,7 +19,7 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
 @Component({
   selector: 'app-progress',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [BmiSheetComponent, MonthlyForecastComponent, SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
+  imports: [MilestonesCardComponent, BmiSheetComponent, MonthlyForecastComponent, SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
   template: `
     <main class="page">
       <header class="page-head"><h1 class="title">{{ 'progress.title' | t }}</h1></header>
@@ -84,6 +85,8 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
           @if (forecast(); as f) {
             <app-monthly-forecast [fromKg]="f.from" [goalKg]="f.goal" [kgPerWeek]="f.pace" [basis]="f.basis" />
           }
+
+          <app-milestones-card />
 
           <h2 class="section-title">{{ 'progress.history' | t }}</h2>
           <div class="list">

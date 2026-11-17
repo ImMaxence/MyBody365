@@ -2,6 +2,21 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.8.0] - 2026-11-17
+
+Ta série à ton image, des paliers pour t'encourager, et des recettes qui gardent tes filtres
+
+### Ajouté
+- Mes paliers, sur la page Progrès : des étapes sur le chemin de ton objectif, avec une récompense si tu veux (un resto, des baskets…). L'app en propose quelques-uns d'un tap, la pesée qui en passe un le fête, et il reste atteint même si le poids remonte
+- Ta série à ton image : une vraie flamme par défaut, ou une autre icône parmi 14 (bras musclé, éclair, étoile, trophée, fusée…) et une couleur parmi 8, gardées avec ton compte
+
+### Modifié
+- Recettes : « Importer un lien » et « Nouvelle recette » côte à côte tout en haut, en deux boutons simples
+- Recettes : l'onglet, le type de repas, le tri et la recherche restent comme tu les as laissés quand tu reviens d'une recette
+
+### Retiré
+- La page « Ta semaine » et son bilan du dimanche
+
 ## [1.7.1] - 2026-11-17
 
 L'audit de sécurité de la 1.7 et ses corrections, une recherche dans toutes les recettes, une invitation qui marche du premier coup sur iPhone et la mise à jour d'Open Food Facts réparée

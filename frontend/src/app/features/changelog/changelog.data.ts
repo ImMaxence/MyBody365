@@ -7,6 +7,57 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.8.0",
+    "date": "2026-11-17",
+    "summary": [
+      {
+        "t": "Ta série à ton image, des paliers pour t'encourager, et des recettes qui gardent tes filtres"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "Mes paliers, sur la page Progrès : des étapes sur le chemin de ton objectif, avec une récompense si tu veux (un resto, des baskets…). L'app en propose quelques-uns d'un tap, la pesée qui en passe un le fête, et il reste atteint même si le poids remonte"
+            }
+          ],
+          [
+            {
+              "t": "Ta série à ton image : une vraie flamme par défaut, ou une autre icône parmi 14 (bras musclé, éclair, étoile, trophée, fusée…) et une couleur parmi 8, gardées avec ton compte"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "Recettes : « Importer un lien » et « Nouvelle recette » côte à côte tout en haut, en deux boutons simples"
+            }
+          ],
+          [
+            {
+              "t": "Recettes : l'onglet, le type de repas, le tri et la recherche restent comme tu les as laissés quand tu reviens d'une recette"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Retiré",
+        "items": [
+          [
+            {
+              "t": "La page « Ta semaine » et son bilan du dimanche"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.7.1",
     "date": "2026-11-17",
     "summary": [
