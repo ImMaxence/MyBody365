@@ -107,10 +107,12 @@ public class RecipeService {
     private final QuotaService quota;
     private final AppProperties props;
     private final FriendService friends;
+    private final RecipeNews news;
 
     public RecipeService(JdbcTemplate jdbc, FoodService foods, ObjectStorage storage, ImageProcessor images, QuotaService quota,
-            AppProperties props, FriendService friends) {
+            AppProperties props, FriendService friends, RecipeNews news) {
         this.friends = friends;
+        this.news = news;
         this.jdbc = jdbc;
         this.foods = foods;
         this.storage = storage;
@@ -211,6 +213,7 @@ public class RecipeService {
         jdbc.update("insert into recipe (id, owner_id, name, type, servings) values (?, ?, ?, ?, ?)", id, userId, in.name().strip(),
                 in.type().name(), in.servings());
         write(id, userId, in);
+        news.saved(userId, id);
         return dto(row(id), userId, true);
     }
 
@@ -218,6 +221,7 @@ public class RecipeService {
     public RecipeDto update(UUID userId, UUID id, RecipeInput in) {
         own(userId, id);
         write(id, userId, in);
+        news.saved(userId, id);
         return dto(row(id), userId, true);
     }
 

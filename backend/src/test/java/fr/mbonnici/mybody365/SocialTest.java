@@ -192,7 +192,7 @@ class SocialTest extends AbstractIntegrationTest {
     void anOwnPictureIsSquareReplacedAndSeenByFriendsOnly() throws Exception {
         String first = JsonPath.read(uploadAvatar(lea, png(900, 600)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.ownAvatar").value(true))
-                .andExpect(jsonPath("$.avatarUrl", startsWith("/api/users/" + lea.getId() + "/avatar?v=1"))).andReturn().getResponse()
+                .andExpect(jsonPath("$.avatarUrl", startsWith("/api/users/" + lea.getId() + "/avatar?v="))).andReturn().getResponse()
                 .getContentAsString(), "$.avatarUrl");
         byte[] stored = mvc.perform(get(first).with(as(lea))).andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
         BufferedImage square = ImageIO.read(new java.io.ByteArrayInputStream(stored));
@@ -211,7 +211,7 @@ class SocialTest extends AbstractIntegrationTest {
 
         // a new one replaces the old one, which is gone
         String second = JsonPath.read(uploadAvatar(lea, png(400, 400)).andReturn().getResponse().getContentAsString(), "$.avatarUrl");
-        assertThat(second).endsWith("?v=2");
+        assertThat(version(second)).isNotEqualTo(version(first));
         mvc.perform(get(first).with(as(lea))).andExpect(status().isNotFound());
         mvc.perform(get(second).with(as(lea))).andExpect(status().isOk());
 
@@ -220,20 +220,35 @@ class SocialTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.ownAvatar").value(false));
         mvc.perform(get(second).with(as(lea))).andExpect(status().isNotFound());
         mvc.perform(get("/api/me/storage").with(as(lea))).andExpect(jsonPath("$.usedBytes").value(0));
+
+        // a new picture after a removal never takes an address used before (the phone would show the old one, kept a year)
+        String third = JsonPath.read(uploadAvatar(lea, png(300, 300)).andReturn().getResponse().getContentAsString(), "$.avatarUrl");
+        assertThat(version(third)).isNotEqualTo(version(second)).isNotEqualTo(version(first));
+        mvc.perform(get(third).with(as(lea))).andExpect(status().isOk());
+    }
+
+    private static int version(String avatarUrl) {
+        return Integer.parseInt(avatarUrl.substring(avatarUrl.indexOf("?v=") + 3));
     }
 
     @org.springframework.beans.factory.annotation.Autowired
-    fr.mbonnici.mybody365.user.GooglePictureImporter googlePictures;
+    fr.mbonnici.mybody365.user.AvatarCleanup avatarCleanup;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    fr.mbonnici.mybody365.storage.ObjectStorage storage;
 
     @Test
-    void onlyGooglePicturesAreFetched() throws Exception {
-        // anything but https://*.googleusercontent.com is never requested: the address is dropped, the initial shows
-        for (String url : new String[] {"http://lh3.googleusercontent.com/a/x", "https://evil.example.com/me.png",
-                "https://googleusercontent.com.evil.io/a", "https://169.254.169.254/latest"}) {
-            jdbc.update("update app_user set avatar_url = ?, avatar_version = null where id = ?", url, lea.getId());
-            assertThat(googlePictures.importPending(5)).isZero();
-            assertThat(jdbc.queryForObject("select avatar_url from app_user where id = ?", String.class, lea.getId())).isNull();
-        }
+    void theGooglePicturesAreGoneTheInitialShows() throws Exception {
+        // a Google address is never shown
+        jdbc.update("update app_user set avatar_url = 'https://lh3.googleusercontent.com/a/x', avatar_version = null where id = ?", lea.getId());
         mvc.perform(get("/api/auth/me").with(as(lea))).andExpect(jsonPath("$.account.avatarUrl").doesNotExist());
+
+        // the copies V16 put aside leave the bucket
+        String key = "u/" + lea.getId() + "/avatar_1";
+        storage.put(key, new byte[] {1, 2, 3}, "image/webp");
+        jdbc.update("insert into avatar_cleanup (user_id, version) values (?, 1)", lea.getId());
+        assertThat(avatarCleanup.clean(10)).isEqualTo(1);
+        assertThat(storage.get(key)).isNull();
+        assertThat(jdbc.queryForObject("select count(*) from avatar_cleanup", Integer.class)).isZero();
     }
 }

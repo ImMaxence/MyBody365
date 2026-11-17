@@ -2,6 +2,26 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.6.0] - 2026-11-17
+
+Des recettes importées d'un lien avec leurs calories, les boissons de tous les jours, tes amis prévenus de tes nouvelles recettes, et un profil rangé
+
+### Ajouté
+- Import de recettes : chaque ingrédient est reconnu dans la table Ciqual avec son poids (« 180 g Chocolat noir » devient le chocolat noir à pâtisser, 180 g ; « 2 œufs » en fait 100 g). Les calories et le Nutri-Score se calculent comme pour toute recette, la ligne d'origine reste écrite en petit pour vérifier, et ce qui n'est pas reconnu se cherche en un geste ou se laisse de côté
+- Les recettes de Les créations de Yona, le site de recettes du créateur de l'app, arrivent avec leur photo, leurs parties (la pâte, la garniture…) numérotées comme sur le site, et leurs valeurs ramenées à la part
+- Boissons de tous les jours, à côté du burger et du kebab : café (de l'expresso au latte), thé, chai, infusion, matcha, chocolat chaud. Tu choisis le lait (entier, demi-écrémé, écrémé, avoine, soja, amande), le sucre, un sirop, de la chantilly ou du miel, et la boisson arrive avec son Nutri-Score sur le barème des boissons
+- Quand toi ou un ami partagez une nouvelle recette avec vos amis, ils reçoivent une notification qui l'ouvre. Une fois par recette, une par heure au plus, et jamais si les notifications des amis sont coupées
+- Un bouton Recettes dans « Ajouter un repas » : la recette choisie s'ajoute au repas d'où tu viens
+
+### Modifié
+- Recettes : l'import depuis un lien est mis en avant en haut de la page
+- Profil plus clair : les verres d'eau et l'apparence avec la langue ont chacun leur page
+- Plus de photo de profil Google : la première lettre de ton prénom tant que tu ne choisis pas ta photo. Les photos Google déjà copiées sont effacées
+
+### Corrigé
+- Recettes : plus de cartes blanches qui clignotent à l'arrivée ou à chaque filtre. La liste reste affichée pendant le chargement du filtre suivant, et un onglet déjà vu revient tout de suite
+- Une nouvelle photo de profil s'affiche bien : après une photo retirée, la suivante reprenait son adresse et le téléphone montrait l'ancienne
+
 ## [1.5.0] - 2026-11-17
 
 Le Nutri-Score des repas au snack, une caméra au bon cadrage, des tiroirs qu'on baisse au doigt, et plus de flou sous l'heure

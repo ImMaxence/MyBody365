@@ -36,7 +36,7 @@ public class PushService {
     private static final List<String> PUSH_HOSTS = List.of("fcm.googleapis.com", "googleapis.com", "push.services.mozilla.com",
             "push.apple.com", "notify.windows.com");
 
-    public enum Kind { TEST, DAILY_WEIGH, DAILY_PHOTO, GYM, NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED, WATER, UPDATE, FEEDBACK }
+    public enum Kind { TEST, DAILY_WEIGH, DAILY_PHOTO, GYM, NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED, WATER, UPDATE, FEEDBACK, FRIEND_RECIPE }
 
     public record Subscription(String endpoint, String p256dh, String auth) {}
 
@@ -193,6 +193,8 @@ public class PushService {
             case NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED -> "/app/friends";
             case UPDATE -> "/changelog";
             case FEEDBACK -> "/app/admin/feedback";
+            // the recipe itself (an address of the app only)
+            case FRIEND_RECIPE -> args.getOrDefault("path", "").startsWith("/app/meals/recipes/") ? args.get("path") : "/app/meals/recipes";
             default -> "/app";
         };
         return Map.of("notification", Map.of(
@@ -241,6 +243,11 @@ public class PushService {
                     default -> en ? "a message ✉️" : "un message ✉️";
                 };
                 yield new String[] {(en ? name + " sent " : name + " a envoyé ") + what, args.getOrDefault("text", "")};
+            }
+            case FRIEND_RECIPE -> {
+                String recipe = args.getOrDefault("recipe", "");
+                yield en ? new String[] {name + " shared a recipe 🍳", recipe + ", now in your friends’ recipes"}
+                        : new String[] {name + " a partagé une recette 🍳", recipe + ", à découvrir dans les recettes de tes amis"};
             }
             case UPDATE -> en ? new String[] {"MyBody365 " + args.getOrDefault("version", "") + " is here ✨",
                     "Open the app to discover what’s new"}

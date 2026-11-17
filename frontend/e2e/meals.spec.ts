@@ -33,6 +33,24 @@ test.describe('meals', () => {
     await expect(page.getByRole('button', { name: /Frites \(Moyenne\)/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Coca-Cola 33 cl/ })).toBeVisible();
 
+    // an everyday drink: a cappuccino with oat milk and a sugar, one line with its Nutri-Score
+    await page.goto('/app/meals/add?slot=BREAKFAST');
+    await page.getByRole('group', { name: 'Boissons' }).getByRole('button', { name: /Café/ }).click();
+    const cup = page.getByRole('dialog', { name: 'Café' });
+    await cup.getByRole('radio', { name: /Cappuccino/ }).click();
+    await cup.getByRole('radio', { name: 'Avoine' }).click();
+    await cup.getByRole('radio', { name: /^1 sucre/ }).click();
+    await expect(cup.getByText(/≈ 76 kcal/)).toBeVisible();
+    await expectAccessible(page);
+    await cup.getByRole('button', { name: /Ajouter au petit-déjeuner/ }).click();
+    await expect(page.getByRole('button', { name: /Cappuccino · lait d’avoine, 1 sucre/ })).toBeVisible();
+
+    // the recipes, from the add screen: the import by link comes first
+    await page.goto('/app/meals/add?slot=DINNER');
+    await page.getByRole('link', { name: /^Recettes/ }).click();
+    await expect(page.getByRole('heading', { name: 'Recettes', level: 1 })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Importer une recette depuis un lien/ })).toBeVisible();
+
     // a recipe from a site, written by hand: lines and calories per serving
     await page.goto('/app/meals/recipes/new');
     await page.getByLabel('Nom de la recette').fill('Bruschetta maison');

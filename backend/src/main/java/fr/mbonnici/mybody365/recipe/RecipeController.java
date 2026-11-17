@@ -83,8 +83,7 @@ public class RecipeController {
     /** a draft read from a recipe site (nothing saved): the app fills its form with it */
     @PostMapping("/api/me/recipes/import")
     public RecipeImporter.Draft importRecipe(@RequestBody Map<String, String> body, Authentication auth) {
-        users.current(auth);
-        return importer.read(body.get("url"));
+        return importer.read(body.get("url"), users.current(auth).getId());
     }
 
     /** the recipes my friends show to their friends (or to everyone) */

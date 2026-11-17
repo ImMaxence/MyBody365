@@ -3,9 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ApiService, errorCode } from '../../core/api/api.service';
 import { SessionStore } from '../../core/auth/session.store';
-import { I18nService, Lang } from '../../core/i18n/i18n.service';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { ThemeMode, ThemeService } from '../../core/theme/theme.service';
+import { ThemeService } from '../../core/theme/theme.service';
 import { TrackingStore } from '../../core/tracking/tracking.store';
 import { UserDataService } from '../../core/user-data.service';
 import { prepareImage } from '../../core/photos/image-tools';
@@ -14,18 +14,16 @@ import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
 import { CURRENT_VERSION } from '../changelog/changelog.version';
 import { SegDirective } from '../../shared/seg.directive';
-import { FlagComponent } from '../../shared/flag.component';
 import { normalizeUsername } from '../../core/friends/friends-api';
 import { PushPromptComponent } from '../../shared/push-prompt.component';
 import { FeedbackKind, SupportApi, TodoStore } from '../../core/support/support-api';
 import { SITE } from '../../core/site';
 import { AvatarImgComponent } from '../../shared/avatar-img.component';
-import { defaultWaterGoal } from './water-row.component';
 
 @Component({
   selector: 'app-account',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AvatarImgComponent, PushPromptComponent, SegDirective, FlagComponent, FormsModule, RouterLink, TranslatePipe, IconComponent],
+  imports: [AvatarImgComponent, PushPromptComponent, SegDirective, FormsModule, RouterLink, TranslatePipe, IconComponent],
   template: `
     <main class="page">
       <header class="page-head"><h1 class="title">{{ 'account.title' | t }}</h1></header>
@@ -57,39 +55,6 @@ import { defaultWaterGoal } from './water-row.component';
 
       <app-push-prompt />
 
-      <h2 class="section-title">{{ 'account.appearance' | t }}</h2>
-      <div class="seg" role="group" [attr.aria-label]="'theme.label' | t">
-        @for (m of modes; track m.mode) {
-          <button type="button" [attr.aria-pressed]="theme.mode() === m.mode" (click)="theme.set(m.mode, $any($event.currentTarget))">
-            <app-icon [name]="m.icon" /> {{ 'theme.' + m.mode | t }}
-          </button>
-        }
-      </div>
-
-      <h2 class="section-title">{{ 'account.language' | t }}</h2>
-      <div class="seg" role="group" [attr.aria-label]="'account.language' | t">
-        <button type="button" lang="fr" [attr.aria-pressed]="i18n.lang() === 'fr'" (click)="setLang('fr')"><app-flag lang="fr" /> Français</button>
-        <button type="button" lang="en" [attr.aria-pressed]="i18n.lang() === 'en'" (click)="setLang('en')"><app-flag lang="en" /> English</button>
-      </div>
-
-      <h2 class="section-title">{{ 'water.settings' | t }}</h2>
-      <div class="water-set">
-        <label class="check">
-          <input type="checkbox" name="water" [checked]="!!account()?.waterGoal" [disabled]="busy()" (change)="toggleWater($any($event.target).checked)" />
-          <span><b>{{ 'water.toggle' | t }}</b><span class="small muted">{{ 'water.toggleHint' | t }}</span></span>
-        </label>
-        @if (account()?.waterGoal; as g) {
-          <div class="water-goal card">
-            <span class="small"><b>{{ 'water.goal' | t }}</b><br /><span class="muted">{{ 'water.goalValue' | t: { n: g, l: i18n.number(g * 0.25, 2) } }}</span></span>
-            <div class="mini-stepper">
-              <button type="button" class="icon-btn" [disabled]="g <= 1 || busy()" [attr.aria-label]="'water.goalLess' | t" (click)="setWaterGoal(g - 1)"><app-icon name="minus" [size]="18" /></button>
-              <span class="num">{{ g }}</span>
-              <button type="button" class="icon-btn" [disabled]="g >= 30 || busy()" [attr.aria-label]="'water.goalMore' | t" (click)="setWaterGoal(g + 1)"><app-icon name="plus" [size]="18" /></button>
-            </div>
-          </div>
-        }
-      </div>
-
       <div class="list">
         <a routerLink="/app/account/goal" class="list-item">
           <span class="list-icon goal-ico"><app-icon name="target" /></span>
@@ -101,11 +66,27 @@ import { defaultWaterGoal } from './water-row.component';
           </span>
           <app-icon name="chevronRight" />
         </a>
+        <a routerLink="/app/account/water" class="list-item">
+          <span class="list-icon water-ico"><app-icon name="droplet" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'water.title' | t }}</span>
+            <span class="list-sub">{{ waterSub() }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </a>
         <a routerLink="/app/account/notifications" class="list-item">
           <span class="list-icon"><app-icon name="bell" /></span>
           <span class="list-body">
             <span class="list-title">{{ 'engage.notifications.title' | t }}</span>
             <span class="list-sub">{{ 'engage.notifications.sub' | t }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </a>
+        <a routerLink="/app/account/settings" class="list-item">
+          <span class="list-icon"><app-icon name="contrast" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'account.settings' | t }}</span>
+            <span class="list-sub">{{ settingsSub() }}</span>
           </span>
           <app-icon name="chevronRight" />
         </a>
@@ -428,34 +409,9 @@ import { defaultWaterGoal } from './water-row.component';
     .danger-text {
       color: var(--danger);
     }
-    .water-set {
-      display: grid;
-      gap: var(--space-2);
-    }
-    .water-goal {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-3);
-      padding: var(--space-3) var(--space-4);
-      animation: hint-in 300ms var(--ease-out) both;
-    }
-    .mini-stepper {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-      font-size: 1.2rem;
-      font-weight: 750;
-    }
-    .mini-stepper .num {
-      min-width: 2ch;
-      text-align: center;
-    }
-    @keyframes hint-in {
-      from {
-        opacity: 0;
-        transform: translateY(-6px);
-      }
+    .list-icon.water-ico {
+      background: var(--cool-soft);
+      color: var(--cool);
     }
   `,
 })
@@ -488,11 +444,13 @@ export class AccountPage {
 
   protected readonly account = this.session.account;
   protected readonly prefix = computed(() => (this.i18n.lang() === 'en' ? '/en' : ''));
-  protected readonly modes: { mode: ThemeMode; icon: string }[] = [
-    { mode: 'system', icon: 'contrast' },
-    { mode: 'light', icon: 'sun' },
-    { mode: 'dark', icon: 'moon' },
-  ];
+  /** « 8 verres, soit 2 L » or « Désactivé » */
+  protected readonly waterSub = computed(() => {
+    const g = this.account()?.waterGoal;
+    return g ? this.i18n.t('water.goalValue', { n: g, l: this.i18n.number(g * 0.25, 2) }) : this.i18n.t('water.off');
+  });
+  /** « Auto · Français » */
+  protected readonly settingsSub = computed(() => `${this.i18n.t('theme.' + this.theme.mode())} · ${this.i18n.lang() === 'en' ? 'English' : 'Français'}`);
   protected readonly version = CURRENT_VERSION;
 
   constructor() {
@@ -599,21 +557,11 @@ export class AccountPage {
     }
   }
 
-  /** on: a goal from the weight (about 33 ml per kg, 6 to 12 glasses); off: no goal */
-  protected async toggleWater(on: boolean): Promise<void> {
-    const s = this.tracking.summary();
-    await this.patch({ waterGoal: on ? defaultWaterGoal(s?.current?.weightKg ?? s?.profile.startWeightKg) : 0 });
-  }
-
-  protected setWaterGoal(n: number): Promise<void> {
-    return this.patch({ waterGoal: n });
-  }
-
   protected setDiscoverable(on: boolean): Promise<void> {
     return this.patch({ discoverable: on });
   }
 
-  private async patch(p: { waterGoal?: number; discoverable?: boolean }): Promise<void> {
+  private async patch(p: { discoverable?: boolean }): Promise<void> {
     this.busy.set(true);
     try {
       this.session.setAccount(await this.api.updateMe(p));
@@ -632,15 +580,6 @@ export class AccountPage {
       this.toast.show(this.i18n.t('account.usernameCopied'));
     } catch {
       /* no clipboard: the username stays on screen */
-    }
-  }
-
-  protected async setLang(lang: Lang): Promise<void> {
-    this.i18n.set(lang, true);
-    try {
-      this.session.setAccount(await this.api.updateMe({ locale: lang }));
-    } catch {
-      /* kept on this device anyway */
     }
   }
 

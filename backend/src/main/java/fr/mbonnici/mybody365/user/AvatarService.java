@@ -7,6 +7,7 @@ import fr.mbonnici.mybody365.media.ImageProcessor.Processed;
 import fr.mbonnici.mybody365.storage.ObjectStorage;
 import fr.mbonnici.mybody365.storage.QuotaService;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 /**
  * A profile picture of one's own: decoded and drawn again like every picture (no metadata left), cropped
  * to a square, stored once in the bucket under u/{id}/avatar_{version}. A new one replaces the old one,
- * which is deleted; without one, the Google picture is shown.
+ * which is deleted; without one, the first letter of the name is shown (never the Google picture).
  */
 @Service
 public class AvatarService {
@@ -36,6 +37,19 @@ public class AvatarService {
         this.props = props;
     }
 
+    /**
+     * A version never used before, even after the picture was removed: the browsers keep a picture for a year
+     * under its address (?v=…), and a removed then new picture with the old number showed the old one. Drawn at
+     * random among two billion: never the same twice in practice, and never the current one.
+     */
+    static int nextVersion(Integer old) {
+        int v;
+        do {
+            v = ThreadLocalRandom.current().nextInt(2, Integer.MAX_VALUE);
+        } while (old != null && v == old);
+        return v;
+    }
+
     static String key(UUID userId, int version) {
         return ObjectStorage.userPrefix(userId) + "avatar_" + version;
     }
@@ -51,7 +65,7 @@ public class AvatarService {
         Long oldBytes = user.getAvatarBytes();
         quota.check(user.getId(), img.full().length, oldBytes == null ? 0 : oldBytes);
         Integer old = user.getAvatarVersion();
-        int version = old == null ? 1 : old + 1;
+        int version = nextVersion(old);
         storage.put(key(user.getId(), version), img.full(), img.contentType());
         user.setAvatarVersion(version);
         user.setAvatarBytes((long) img.full().length);
@@ -67,7 +81,7 @@ public class AvatarService {
         return user;
     }
 
-    /** back to the initial (the Google picture, once imported, is not shown again) */
+    /** back to the initial */
     public AppUser remove(AppUser user) {
         Integer old = user.getAvatarVersion();
         if (old == null) {

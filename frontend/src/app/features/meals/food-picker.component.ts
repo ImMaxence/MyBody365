@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { HOT_DRINKS } from '../../core/meals/hot-drinks';
 import { errorCode } from '../../core/api/api.service';
 import type { Food, RecentItem, Recipe } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -42,18 +43,36 @@ export type Picked = { kind: 'FOOD'; food: Food } | { kind: 'RECIPE'; recipe: Re
 
     @if (words() < 2) {
       @if (withExtras()) {
-        <button type="button" class="card list-row quick" (click)="quick.emit('')">
-          <span class="list-icon quick-ico"><app-icon name="zap" /></span>
-          <span class="list-body">
-            <span class="list-title">{{ 'meals.quick.cta' | t }}</span>
-            <span class="list-sub">{{ 'meals.quick.ctaSub' | t }}</span>
-          </span>
-          <app-icon name="chevronRight" />
-        </button>
+        <div class="shortcuts">
+          <button type="button" class="card list-row quick" (click)="quick.emit('')">
+            <span class="list-icon quick-ico"><app-icon name="zap" /></span>
+            <span class="list-body">
+              <span class="list-title">{{ 'meals.quick.cta' | t }}</span>
+              <span class="list-sub">{{ 'meals.quick.ctaSub' | t }}</span>
+            </span>
+            <app-icon name="chevronRight" />
+          </button>
+          @if (recipesLink()) {
+            <a class="card list-row quick" [routerLink]="recipesLink()" [queryParams]="recipesParams()">
+              <span class="list-icon recipes-ico"><app-icon name="book" /></span>
+              <span class="list-body">
+                <span class="list-title">{{ 'meals.search.recipesCta' | t }}</span>
+                <span class="list-sub">{{ 'meals.search.recipesCtaSub' | t }}</span>
+              </span>
+              <app-icon name="chevronRight" />
+            </a>
+          }
+        </div>
         <h2 class="section-title">{{ 'meals.quick.restaurant' | t }}</h2>
         <div class="slide-chips" role="group" [attr.aria-label]="'meals.quick.restaurant' | t">
           @for (c of restaurant; track c.q) {
             <button type="button" (click)="dish.emit(c.key)"><span aria-hidden="true">{{ c.emoji }}</span> {{ 'meals.quick.dishes.' + c.key | t }}</button>
+          }
+        </div>
+        <h2 class="section-title">{{ 'meals.drinks.title' | t }}</h2>
+        <div class="slide-chips" role="group" [attr.aria-label]="'meals.drinks.title' | t">
+          @for (c of hotDrinks; track c.key) {
+            <button type="button" (click)="drink.emit(c.key)"><span aria-hidden="true">{{ c.emoji }}</span> {{ 'meals.drinks.names.' + c.key | t }}</button>
           }
         </div>
       }
@@ -195,6 +214,19 @@ export type Picked = { kind: 'FOOD'; food: Food } | { kind: 'RECIPE'; recipe: Re
       background: var(--accent-soft) !important;
       color: var(--accent-text) !important;
     }
+    .recipes-ico {
+      background: var(--cool-soft) !important;
+      color: var(--cool) !important;
+    }
+    .shortcuts {
+      display: grid;
+      gap: var(--space-2);
+      margin: var(--space-3) 0 var(--space-2);
+    }
+    .shortcuts .quick {
+      margin: 0;
+      text-decoration: none;
+    }
     .slide-chips {
       margin-bottom: var(--space-2);
     }
@@ -282,9 +314,17 @@ export class FoodPickerComponent {
   readonly quick = output<string>();
   /** a fast-food or restaurant dish to estimate (core/meals/fast-food.ts) */
   readonly dish = output<string>();
+  /** an everyday drink to estimate (core/meals/hot-drinks.ts) */
+  readonly drink = output<string>();
+  /** the recipes page (with the meal it adds to) */
+  readonly recipesLink = input<string | null>(null);
+  readonly recipesParams = input<Record<string, string>>({});
+  protected readonly hotDrinks = HOT_DRINKS.map((d) => ({ key: d.key, emoji: d.emoji }));
   protected readonly restaurant = DISHES.map((d) => ({ key: d.key, q: d.key, emoji: d.emoji }));
 
-  protected readonly query = signal('');
+  /** what the box starts with (an ingredient of an imported recipe to find) */
+  readonly start = input('');
+  protected readonly query = linkedSignal(() => this.start());
   protected readonly local = signal<Food[] | null>(null);
   protected readonly off = signal<Food[]>([]);
   protected readonly offState = signal<'idle' | 'loading' | 'error'>('idle');

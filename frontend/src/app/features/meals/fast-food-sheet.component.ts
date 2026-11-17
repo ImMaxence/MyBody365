@@ -21,111 +21,8 @@ export interface EstimatedItem {
   nutriscore?: Grade;
 }
 
-/**
- * A meal at the snack bar or the restaurant, by estimate: the format, fries with it, a sauce, a drink.
- * The total updates at each choice; each item is then added on its own line (handy in the statistics).
- */
-@Component({
-  selector: 'app-fast-food-sheet',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NutriscoreComponent, TranslatePipe, IconComponent],
-  template: `
-    <dialog class="sheet" #dialog [attr.aria-label]="d() ? ('meals.quick.dishes.' + d()!.key | t) : ''">
-      <div class="sheet-grip"></div>
-      @if (d(); as dish) {
-        <div class="stack">
-          <div>
-            <h2 class="h3"><span aria-hidden="true">{{ dish.emoji }}</span> {{ 'meals.quick.dishes.' + dish.key | t }}</h2>
-            <p class="small muted">{{ 'meals.estimate.text' | t }}</p>
-          </div>
-
-          <h3 class="section-title">{{ 'meals.estimate.format' | t }}</h3>
-          <div class="opts" role="radiogroup" [attr.aria-label]="'meals.estimate.format' | t">
-            @for (f of dish.formats; track f.key) {
-              <button type="button" class="opt" role="radio" [attr.aria-checked]="format() === f.key" (click)="format.set(f.key)">
-                <span class="opt-name">{{ 'meals.estimate.formats.' + dish.key + '.' + f.key | t }}</span>
-                <span class="opt-foot">
-                  <span class="opt-kcal num">≈ {{ i18n.number(f.kcal) }} kcal</span>
-                  @if (grade(f); as g) {
-                    <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
-                  }
-                </span>
-              </button>
-            }
-          </div>
-
-          @if (dish.fries) {
-            <h3 class="section-title">{{ 'meals.estimate.fries' | t }}</h3>
-            <div class="chips" role="radiogroup" [attr.aria-label]="'meals.estimate.fries' | t">
-              @for (f of friesOptions; track f.key) {
-                <button type="button" class="chip-opt" role="radio" [attr.aria-checked]="fries() === f.key" (click)="fries.set(f.key)">
-                  {{ 'meals.estimate.friesSizes.' + f.key | t }}
-                  @if (f.kcal) {
-                    <small class="num">{{ i18n.number(f.kcal) }}</small>
-                  }
-                  @if (grade(f); as g) {
-                    <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
-                  }
-                </button>
-              }
-            </div>
-          }
-
-          @if (dish.extras.length) {
-            <h3 class="section-title">{{ 'meals.estimate.extras' | t }}</h3>
-            <div class="chips" role="group" [attr.aria-label]="'meals.estimate.extras' | t">
-              @for (x of dish.extras; track x.key) {
-                <button type="button" class="chip-opt" [attr.aria-pressed]="extras().includes(x.key)" (click)="toggle(x.key)">
-                  {{ 'meals.estimate.extraNames.' + x.key | t }} <small class="num">+{{ i18n.number(x.kcal) }}</small>
-                  @if (grade(x); as g) {
-                    <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
-                  }
-                </button>
-              }
-            </div>
-          }
-
-          <h3 class="section-title">{{ 'meals.estimate.drink' | t }}</h3>
-          <div class="chips" role="radiogroup" [attr.aria-label]="'meals.estimate.drink' | t">
-            @for (x of drinks; track x.key) {
-              <button type="button" class="chip-opt" role="radio" [attr.aria-checked]="drink() === x.key" (click)="drink.set(x.key)">
-                {{ 'meals.estimate.drinks.' + x.key | t }}
-                @if (x.kcal > 1) {
-                  <small class="num">{{ i18n.number(x.kcal) }}</small>
-                }
-                @if (grade(x); as g) {
-                  <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
-                }
-              </button>
-            }
-          </div>
-          <p class="tiny muted">{{ 'meals.estimate.otherDrink' | t }}</p>
-
-          <section class="total" aria-live="polite">
-            <div class="total-head">
-              <span class="small muted">{{ 'meals.estimate.total' | t }}</span>
-              <b class="num">≈ {{ i18n.number(result().total.kcal) }} kcal</b>
-            </div>
-            <p class="tiny muted num">
-              {{ 'meals.estimate.macros' | t: { p: i18n.number(result().total.proteinG), c: i18n.number(result().total.carbsG), f: i18n.number(result().total.fatG) } }}
-            </p>
-            @if (result().grade; as g) {
-              <div class="total-ns">
-                <span class="small">{{ 'meals.estimate.mealGrade' | t }}</span>
-                <app-nutriscore [grade]="g" [estimated]="true" />
-              </div>
-            }
-          </section>
-
-          <button type="button" class="btn btn-primary btn-block" [disabled]="busy()" (click)="add()">
-            <app-icon name="plus" /> {{ 'meals.estimate.add' | t: { slot: slotLower() } }}
-          </button>
-          <p class="tiny muted center">{{ 'meals.estimate.note' | t }}</p>
-        </div>
-      }
-    </dialog>
-  `,
-  styles: `
+/** the look of the estimate sheets (fast food, drinks): choices as cards and chips, the total */
+export const ESTIMATE_STYLES = `
     .opts {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -263,7 +160,113 @@ export interface EstimatedItem {
     .center {
       text-align: center;
     }
+  `;
+
+/**
+ * A meal at the snack bar or the restaurant, by estimate: the format, fries with it, a sauce, a drink.
+ * The total updates at each choice; each item is then added on its own line (handy in the statistics).
+ */
+@Component({
+  selector: 'app-fast-food-sheet',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [NutriscoreComponent, TranslatePipe, IconComponent],
+  template: `
+    <dialog class="sheet" #dialog [attr.aria-label]="d() ? ('meals.quick.dishes.' + d()!.key | t) : ''">
+      <div class="sheet-grip"></div>
+      @if (d(); as dish) {
+        <div class="stack">
+          <div>
+            <h2 class="h3"><span aria-hidden="true">{{ dish.emoji }}</span> {{ 'meals.quick.dishes.' + dish.key | t }}</h2>
+            <p class="small muted">{{ 'meals.estimate.text' | t }}</p>
+          </div>
+
+          <h3 class="section-title">{{ 'meals.estimate.format' | t }}</h3>
+          <div class="opts" role="radiogroup" [attr.aria-label]="'meals.estimate.format' | t">
+            @for (f of dish.formats; track f.key) {
+              <button type="button" class="opt" role="radio" [attr.aria-checked]="format() === f.key" (click)="format.set(f.key)">
+                <span class="opt-name">{{ 'meals.estimate.formats.' + dish.key + '.' + f.key | t }}</span>
+                <span class="opt-foot">
+                  <span class="opt-kcal num">≈ {{ i18n.number(f.kcal) }} kcal</span>
+                  @if (grade(f); as g) {
+                    <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
+                  }
+                </span>
+              </button>
+            }
+          </div>
+
+          @if (dish.fries) {
+            <h3 class="section-title">{{ 'meals.estimate.fries' | t }}</h3>
+            <div class="chips" role="radiogroup" [attr.aria-label]="'meals.estimate.fries' | t">
+              @for (f of friesOptions; track f.key) {
+                <button type="button" class="chip-opt" role="radio" [attr.aria-checked]="fries() === f.key" (click)="fries.set(f.key)">
+                  {{ 'meals.estimate.friesSizes.' + f.key | t }}
+                  @if (f.kcal) {
+                    <small class="num">{{ i18n.number(f.kcal) }}</small>
+                  }
+                  @if (grade(f); as g) {
+                    <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
+                  }
+                </button>
+              }
+            </div>
+          }
+
+          @if (dish.extras.length) {
+            <h3 class="section-title">{{ 'meals.estimate.extras' | t }}</h3>
+            <div class="chips" role="group" [attr.aria-label]="'meals.estimate.extras' | t">
+              @for (x of dish.extras; track x.key) {
+                <button type="button" class="chip-opt" [attr.aria-pressed]="extras().includes(x.key)" (click)="toggle(x.key)">
+                  {{ 'meals.estimate.extraNames.' + x.key | t }} <small class="num">+{{ i18n.number(x.kcal) }}</small>
+                  @if (grade(x); as g) {
+                    <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
+                  }
+                </button>
+              }
+            </div>
+          }
+
+          <h3 class="section-title">{{ 'meals.estimate.drink' | t }}</h3>
+          <div class="chips" role="radiogroup" [attr.aria-label]="'meals.estimate.drink' | t">
+            @for (x of drinks; track x.key) {
+              <button type="button" class="chip-opt" role="radio" [attr.aria-checked]="drink() === x.key" (click)="drink.set(x.key)">
+                {{ 'meals.estimate.drinks.' + x.key | t }}
+                @if (x.kcal > 1) {
+                  <small class="num">{{ i18n.number(x.kcal) }}</small>
+                }
+                @if (grade(x); as g) {
+                  <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
+                }
+              </button>
+            }
+          </div>
+          <p class="tiny muted">{{ 'meals.estimate.otherDrink' | t }}</p>
+
+          <section class="total" aria-live="polite">
+            <div class="total-head">
+              <span class="small muted">{{ 'meals.estimate.total' | t }}</span>
+              <b class="num">≈ {{ i18n.number(result().total.kcal) }} kcal</b>
+            </div>
+            <p class="tiny muted num">
+              {{ 'meals.estimate.macros' | t: { p: i18n.number(result().total.proteinG), c: i18n.number(result().total.carbsG), f: i18n.number(result().total.fatG) } }}
+            </p>
+            @if (result().grade; as g) {
+              <div class="total-ns">
+                <span class="small">{{ 'meals.estimate.mealGrade' | t }}</span>
+                <app-nutriscore [grade]="g" [estimated]="true" />
+              </div>
+            }
+          </section>
+
+          <button type="button" class="btn btn-primary btn-block" [disabled]="busy()" (click)="add()">
+            <app-icon name="plus" /> {{ 'meals.estimate.add' | t: { slot: slotLower() } }}
+          </button>
+          <p class="tiny muted center">{{ 'meals.estimate.note' | t }}</p>
+        </div>
+      }
+    </dialog>
   `,
+  styles: ESTIMATE_STYLES,
 })
 export class FastFoodSheetComponent {
   /** the meal it goes to, for the button */

@@ -46,7 +46,7 @@ export const frEngage = {
     waterHint: 'À 10 h, 13 h, 16 h et 19 h, seulement s’il te manque des verres à cette heure-là',
     waterOff: 'Active d’abord les verres d’eau, sur l’écran Aujourd’hui ou dans ton profil',
     friends: 'Tes amis',
-    friendsHint: 'Leurs coups de pouce et leurs demandes d’ami',
+    friendsHint: 'Leurs coups de pouce, leurs demandes d’ami et leurs nouvelles recettes',
     updates: 'Nouveautés de l’app',
     updatesHint: 'Un mot quand une nouvelle version arrive',
     auto: 'Chaque réglage est enregistré aussitôt',

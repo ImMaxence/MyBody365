@@ -1,7 +1,7 @@
 /**
  * The Nutri-Score of a food from its values per 100 g: the 2023 algorithm for general foods, as the server
  * computes it (backend nutrition/Nutriscore.java). Fruit and vegetables count as 0 %: the estimate errs on
- * the strict side. Drinks have their own scale and are not graded here.
+ * the strict side. Drinks have their own scale: drinkScore.
  */
 export type Grade = 'a' | 'b' | 'c' | 'd' | 'e';
 
@@ -31,6 +31,21 @@ export function nutriscore(p: Per100): Grade {
   // above 11 negative points, proteins no longer make up for the rest
   const score = negative - (negative >= 11 ? fiber : fiber + protein);
   return score <= 0 ? 'a' : score <= 2 ? 'b' : score <= 10 ? 'c' : score <= 18 ? 'd' : 'e';
+}
+
+/* the beverages' own scale (2023): stricter on energy and sugars, proteins always count, A for water only */
+const DRINK_ENERGY_KJ = [30, 90, 150, 210, 240, 270, 300, 330, 360, 390];
+const DRINK_SUGARS = [0.5, 2, 3.5, 5, 6, 7, 8, 9, 10, 11];
+const DRINK_PROTEIN = [1.2, 1.5, 1.8, 2.1, 2.4, 2.7, 3.0];
+
+/** the Nutri-Score of a drink from its values per 100 ml (a coffee, a tea, a latte…); water alone gets A */
+export function drinkScore(p: Per100 & { sweeteners?: boolean; water?: boolean }): Grade {
+  if (p.water) return 'a';
+  const negative =
+    points(p.kcal * 4.184, DRINK_ENERGY_KJ) + points(p.sugarsG, DRINK_SUGARS) + points(p.satFatG, SAT_FAT) + points(p.saltG, SALT) + (p.sweeteners ? 4 : 0);
+  const positive = (p.proteinG == null ? 0 : points(p.proteinG, DRINK_PROTEIN)) + (p.fiberG == null ? 0 : points(p.fiberG, FIBER));
+  const score = negative - positive;
+  return score <= 2 ? 'b' : score <= 6 ? 'c' : score <= 9 ? 'd' : 'e';
 }
 
 const ORDER: Grade[] = ['a', 'b', 'c', 'd', 'e'];

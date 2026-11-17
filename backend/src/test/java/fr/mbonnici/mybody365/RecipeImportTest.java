@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
+import fr.mbonnici.mybody365.nutrition.FoodStore;
+import fr.mbonnici.mybody365.nutrition.Nutrients;
 import fr.mbonnici.mybody365.tracking.TrackingService;
 import fr.mbonnici.mybody365.user.AppUser;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,5 +87,79 @@ class RecipeImportTest extends AbstractIntegrationTest {
         // a copy keeps the lines and the source
         mvc.perform(get("/api/recipes/" + id).with(as(lea))).andExpect(jsonPath("$.ingredientLines[1]").value("160 g Crème fraîche"));
         mvc.perform(post("/api/recipes/" + id + "/copy").with(as(hugo)).with(csrf())).andExpect(status().isNotFound()); // not friends
+    }
+
+    @Autowired
+    FoodStore foodStore;
+
+    private void ciqual(String code, String name, double kcal, double protein, double carbs, double sugars, double fat, double satFat,
+            double fiber, double salt) {
+        foodStore.insert(FoodStore.Source.CIQUAL, code, "2025_11_03", null, name, null, null, "test",
+                new Nutrients(kcal, protein, carbs, sugars, fat, satFat, fiber, salt), null, false, null);
+    }
+
+    @Test
+    void aRecipeOfLesCreationsDeYonaComesWithItsFoodsItsPhotoAndItsParts() throws Exception {
+        ciqual("9440", "Farine de blé tendre ou froment T45 (pour pâtisserie)", 343, 10, 72, 1, 1, 0.2, 3, 0);
+        ciqual("9999", "Farine de riz", 360, 6, 80, 0.1, 1, 0.3, 2, 0);
+        ciqual("16400", "Beurre à 80% MG minimum, doux", 745, 0.7, 0.8, 0.8, 82, 55, 0, 0.02);
+        ciqual("22000", "Oeuf cru", 140, 12.7, 0.3, 0.3, 9.8, 2.6, 0, 0.3);
+        ciqual("31016", "Sucre blanc", 400, 0, 100, 100, 0, 0, 0, 0);
+        ciqual("11058", "Sel blanc alimentaire, iodé, non fluoré (marin, ignigène ou gemme)", 0, 0, 0, 0, 0, 0, 0, 99.8);
+        ciqual("19410", "Crème 30% MG, épaisse, rayon frais", 292, 2.3, 3.1, 3, 30, 20, 0, 0.1);
+
+        String draft = json(post("/api/me/recipes/import"), lea,
+                "{\"url\":\"https://les-creations-de-yona.fr/recettes/tartes/tarte-normande\"}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Tarte Normande"))
+                .andExpect(jsonPath("$.type").value("DESSERT"))
+                .andExpect(jsonPath("$.servings").value(8))
+                // each part counts its steps, as on the site
+                .andExpect(jsonPath("$.instructions").value("La pâte\n1. Sablez la farine et le beurre.\n2. Ajoutez l'œuf, puis filmez.\n\n"
+                        + "La garniture\n1. Fouettez la crème et le sucre."))
+                // the site gives the whole recipe's values: per serving here
+                .andExpect(jsonPath("$.kcal").value(300.0))
+                .andExpect(jsonPath("$.fatG").value(15.0))
+                .andExpect(jsonPath("$.proteinG").value(6.0))
+                // each line with its food and its weight
+                .andExpect(jsonPath("$.matches.length()").value(7))
+                .andExpect(jsonPath("$.matches[0].food.name").value("Farine de blé tendre ou froment T45 (pour pâtisserie)"))
+                .andExpect(jsonPath("$.matches[0].grams").value(200.0))
+                .andExpect(jsonPath("$.matches[1].food.name").value("Beurre à 80% MG minimum, doux"))
+                .andExpect(jsonPath("$.matches[2].food.name").value("Oeuf cru"))
+                .andExpect(jsonPath("$.matches[2].grams").value(100.0))
+                .andExpect(jsonPath("$.matches[4].grams").value(2.0))
+                .andExpect(jsonPath("$.matches[5].food.name").value("Crème 30% MG, épaisse, rayon frais"))
+                .andExpect(jsonPath("$.matches[6].line").value("Calvados (facultatif)"))
+                .andExpect(jsonPath("$.matches[6].food").doesNotExist())
+                // the creator's own site: its photo comes along
+                .andExpect(jsonPath("$.photo").value(org.hamcrest.Matchers.startsWith("data:image/webp;base64,UklGR")))
+                .andExpect(jsonPath("$.sourceName").value("les-creations-de-yona.fr"))
+                .andReturn().getResponse().getContentAsString();
+        assertThat(pages.fetched.getLast().toString()).isEqualTo("https://les-creations-de-yona.fr/api/images/4599/1600.webp");
+
+        // saved with its foods: calories and Nutri-Score computed like any recipe
+        StringBuilder ingredients = new StringBuilder();
+        for (int i = 0; i < 6; i++) {
+            if (i > 0) {
+                ingredients.append(',');
+            }
+            ingredients.append("{\"foodId\":\"").append((String) JsonPath.read(draft, "$.matches[" + i + "].food.id")).append("\",\"grams\":")
+                    .append((Double) JsonPath.read(draft, "$.matches[" + i + "].grams")).append('}');
+        }
+        json(post("/api/me/recipes"), lea, """
+                {"name":"Tarte Normande","type":"DESSERT","servings":8,"ingredients":[%s],
+                 "sourceUrl":"https://les-creations-de-yona.fr/recettes/tartes/tarte-normande"}""".formatted(ingredients))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.manualNutrition").value(false))
+                .andExpect(jsonPath("$.perServing.kcal").value(closeTo(262.9, 1)))
+                .andExpect(jsonPath("$.nutriscore").exists())
+                .andExpect(jsonPath("$.sourceName").value("les-creations-de-yona.fr"));
+
+        // any other site's photo stays there
+        json(post("/api/me/recipes/import"), lea, "{\"url\":\"https://recettes.example/bruschetta\"}")
+                .andExpect(jsonPath("$.photo").doesNotExist())
+                .andExpect(jsonPath("$.matches[0].food").doesNotExist());
+        assertThat(pages.fetched.getLast().toString()).isEqualTo("https://recettes.example/bruschetta");
     }
 }

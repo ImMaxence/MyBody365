@@ -15,6 +15,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
@@ -25,10 +26,19 @@ public interface PageFetcher {
     /** the beginning of the page's HTML (the recipe data sits in its head) */
     String fetch(URI uri);
 
+    /** a photo: its type (image/webp…) and its bytes */
+    record Photo(String type, byte[] bytes) {}
+
+    Set<String> IMAGE_TYPES = Set.of("image/jpeg", "image/png", "image/webp", "image/avif");
+    int MAX_IMAGE_BYTES = 6 * 1024 * 1024;
+
+    /** the recipe's photo, with the same limits as a page (6 MB at most) */
+    Photo image(URI uri);
+
     /**
      * The server goes to an address a member typed: only public web servers on the usual ports, checked
      * again at each redirect, nothing on the private network (the database, the bucket, a cloud's
-     * metadata service…). At most 3 MB read, 10 seconds, no cookie, no detail about the member.
+     * metadata service…). At most 3 MB read (6 MB for a photo), 10 seconds, no cookie, no detail about the member.
      */
     @Component
     class Http implements PageFetcher {
@@ -47,12 +57,37 @@ public interface PageFetcher {
 
         @Override
         public String fetch(URI uri) {
+            Body page = get(uri, "text/html,application/xhtml+xml", MAX_BYTES);
+            if (!page.type().contains("html")) {
+                throw ApiException.badRequest("recipe_not_found");
+            }
+            Matcher m = CHARSET.matcher(page.type());
+            Charset charset = StandardCharsets.UTF_8;
+            if (m.find() && Charset.isSupported(m.group(1))) {
+                charset = Charset.forName(m.group(1));
+            }
+            return new String(page.bytes(), charset);
+        }
+
+        @Override
+        public Photo image(URI uri) {
+            Body img = get(uri, "image/avif,image/webp,image/jpeg,image/png", MAX_IMAGE_BYTES + 1);
+            String type = img.type().split(";")[0].strip();
+            if (!IMAGE_TYPES.contains(type) || img.bytes().length > MAX_IMAGE_BYTES) {
+                throw ApiException.badRequest("recipe_unreachable");
+            }
+            return new Photo(type, img.bytes());
+        }
+
+        private record Body(String type, byte[] bytes) {}
+
+        private Body get(URI uri, String accept, int maxBytes) {
             URI current = uri;
             for (int hop = 0; hop <= MAX_REDIRECTS; hop++) {
                 checkPublic(current);
                 HttpRequest req = HttpRequest.newBuilder(current).timeout(Duration.ofSeconds(10))
                         .header("User-Agent", userAgent)
-                        .header("Accept", "text/html,application/xhtml+xml")
+                        .header("Accept", accept)
                         .header("Accept-Language", "fr,en;q=0.8")
                         .GET().build();
                 HttpResponse<InputStream> res;
@@ -75,16 +110,7 @@ public interface PageFetcher {
                         throw ApiException.badRequest("recipe_unreachable");
                     }
                     String type = res.headers().firstValue("Content-Type").orElse("text/html").toLowerCase(Locale.ROOT);
-                    if (!type.contains("html")) {
-                        throw ApiException.badRequest("recipe_not_found");
-                    }
-                    byte[] bytes = body.readNBytes(MAX_BYTES);
-                    Matcher m = CHARSET.matcher(type);
-                    Charset charset = StandardCharsets.UTF_8;
-                    if (m.find() && Charset.isSupported(m.group(1))) {
-                        charset = Charset.forName(m.group(1));
-                    }
-                    return new String(bytes, charset);
+                    return new Body(type, body.readNBytes(maxBytes));
                 } catch (IOException e) {
                     throw ApiException.badRequest("recipe_unreachable");
                 }

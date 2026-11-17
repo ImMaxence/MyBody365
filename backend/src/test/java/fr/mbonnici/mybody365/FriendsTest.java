@@ -166,4 +166,63 @@ class FriendsTest extends AbstractIntegrationTest {
         mvc.perform(post("/api/admin/recipes/" + recipe + "/restore").with(as(admin)).with(csrf())).andExpect(status().isOk());
         mvc.perform(get("/api/recipes/" + recipe).with(as(hugo))).andExpect(status().isOk());
     }
+
+    private void device(AppUser who, String endpoint) throws Exception {
+        String key = WebPushCrypto.b64(WebPushCrypto.rawPublic((ECPublicKey) WebPushCrypto.newKeyPair().getPublic()));
+        mvc.perform(post("/api/me/push/subscriptions").with(as(who)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"endpoint\":\"" + endpoint + "\",\"keys\":{\"p256dh\":\"" + key + "\",\"auth\":\""
+                        + WebPushCrypto.b64(new byte[16]) + "\"}}")).andExpect(status().isOk());
+    }
+
+    private String recipe(String visibility, String name) {
+        return """
+                {"name":"%s","type":"SNACK","servings":2,"ingredients":[],"manual":{"kcal":200},"visibility":"%s"}"""
+                .formatted(name, visibility);
+    }
+
+    /** the notifications leave after the commit, on another thread */
+    private void awaitPushes(int n) throws InterruptedException {
+        for (int i = 0; i < 50 && pushes.sent.size() < n; i++) {
+            Thread.sleep(100);
+        }
+        Thread.sleep(200);
+        assertThat(pushes.sent).hasSize(n);
+    }
+
+    @Test
+    void aRecipeShownToFriendsIsAnnouncedToThemOnce() throws Exception {
+        befriend(lea, hugo);
+        befriend(lea, ines);
+        device(hugo, "https://web.push.apple.com/hugo");
+        device(ines, "https://web.push.apple.com/ines");
+        // Inès turned the friends' notifications off
+        jdbc.update("insert into notification_pref (user_id, friends_enabled) values (?, false) on conflict (user_id) do update set friends_enabled = false",
+                ines.getId());
+        pushes.sent.clear();
+
+        // private: nobody hears of it
+        String id = JsonPath.read(mvc.perform(post("/api/me/recipes").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(recipe("PRIVATE", "Bruschetta"))).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), "$.id");
+        awaitPushes(0);
+        // shown to friends: Hugo's phone rings, not Inès's
+        mvc.perform(put("/api/me/recipes/" + id).with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(recipe("FRIENDS", "Bruschetta"))).andExpect(status().isOk());
+        awaitPushes(1);
+        assertThat(pushes.sent.getFirst().endpoint().toString()).endsWith("/hugo");
+        // once per recipe
+        mvc.perform(put("/api/me/recipes/" + id).with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(recipe("PUBLIC", "Bruschetta maison"))).andExpect(status().isOk());
+        awaitPushes(1);
+        // and one an hour at most: the next one shows in the friends' tab only
+        mvc.perform(post("/api/me/recipes").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(recipe("FRIENDS", "Houmous"))).andExpect(status().isCreated());
+        awaitPushes(1);
+        mvc.perform(get("/api/recipes/friends").with(as(hugo))).andExpect(jsonPath("$.length()").value(2));
+
+        // an hour later, a new recipe is announced again
+        jdbc.update("update recipe set announced_at = announced_at - interval '2 hours'");
+        mvc.perform(post("/api/me/recipes").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(recipe("PUBLIC", "Tzatziki"))).andExpect(status().isCreated());
+        awaitPushes(2);
+    }
 }

@@ -81,6 +81,7 @@ test.describe('engagement', () => {
     await page.getByRole('button', { name: 'Activer', exact: true }).click();
     await expect(page.locator('app-water-row')).toContainText(/0 \/ \d+ verres/);
     await tab(page, 'Profil').click();
+    await page.getByRole('link', { name: /^Eau/ }).click();
     await expect(page.getByRole('checkbox', { name: /Verres d’eau/ })).toBeChecked();
   });
 
@@ -89,6 +90,8 @@ test.describe('engagement', () => {
     await signIn(page, 'new');
     await expect(page.locator('app-water-row')).toHaveCount(0);
     await tab(page, 'Profil').click();
+    // its own page, out of the profile
+    await page.getByRole('link', { name: /^Eau/ }).click();
     await page.getByRole('checkbox', { name: /Verres d’eau/ }).check();
     await expect(page.getByText(/verres, soit/)).toBeVisible();
     await expectAccessible(page);

@@ -231,13 +231,13 @@ public class AppUser {
         this.avatarBytes = avatarBytes;
     }
 
-    /** the picture to show: one's own (served by the API, with its version so browsers may keep it), else Google's */
+    /** the picture the member chose (served by the API, with its version so browsers may keep it); none: the initial */
     public String getPictureUrl() {
-        return pictureUrl(id, avatarVersion, avatarUrl);
+        return pictureUrl(id, avatarVersion);
     }
 
-    public static String pictureUrl(UUID id, Integer avatarVersion, String googleUrl) {
-        return avatarVersion != null ? "/api/users/" + id + "/avatar?v=" + avatarVersion : googleUrl;
+    public static String pictureUrl(UUID id, Integer avatarVersion) {
+        return avatarVersion != null ? "/api/users/" + id + "/avatar?v=" + avatarVersion : null;
     }
 
     public Integer getStorageQuotaMb() {

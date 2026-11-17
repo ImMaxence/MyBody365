@@ -48,7 +48,7 @@ export const enEngage: Widen<typeof frEngage> = {
     waterHint: 'At 10 am, 1 pm, 4 pm and 7 pm, only when you are behind on your glasses',
     waterOff: 'Turn on the glasses of water first, on the Today screen or in your profile',
     friends: 'Your friends',
-    friendsHint: 'Their nudges and friend requests',
+    friendsHint: 'Their nudges, friend requests and new recipes',
     updates: 'What’s new in the app',
     updatesHint: 'A word when a new version comes out',
     auto: 'Every setting is saved right away',

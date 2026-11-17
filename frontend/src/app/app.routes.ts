@@ -49,6 +49,8 @@ export const routes: Routes = [
           { path: 'account/goal', loadComponent: () => import('./features/app/goal.page').then((m) => m.GoalPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/security', loadComponent: () => import('./features/app/security.page').then((m) => m.SecurityPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/backup', loadComponent: () => import('./features/app/backup.page').then((m) => m.BackupPage), data: { depth: 1, back: '/app/account' } },
+          { path: 'account/water', loadComponent: () => import('./features/app/water-settings.page').then((m) => m.WaterSettingsPage), data: { depth: 1, back: '/app/account' } },
+          { path: 'account/settings', loadComponent: () => import('./features/app/app-settings.page').then((m) => m.AppSettingsPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/notifications', loadComponent: () => import('./features/app/notifications.page').then((m) => m.NotificationsPage), data: { depth: 1, back: '/app/account' } },
           { path: 'friends', loadComponent: () => import('./features/friends/friends.page').then((m) => m.FriendsPage), data: { depth: 1, back: '/app/account' } },
           { path: 'timer', loadComponent: () => import('./features/timer/timer.page').then((m) => m.TimerPage), data: { depth: 1, back: '/app' } },

@@ -428,6 +428,16 @@ export interface RecipeDraft {
   fatG?: number;
   sourceUrl: string;
   sourceName: string;
+  /** each ingredient line with the food it most probably is and its weight (when found) */
+  matches?: IngredientMatch[];
+  /** the recipe's photo, as a data: URL (only from the sites whose photos may be copied) */
+  photo?: string;
+}
+
+export interface IngredientMatch {
+  line: string;
+  grams?: number;
+  food?: Food;
 }
 
 export interface CiqualImport {

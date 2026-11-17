@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { Recipe, RecipeType } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -21,10 +21,19 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
       <header class="page-head">
         <app-back-button />
         <h1 class="title small-title">{{ 'meals.recipe.listTitle' | t }}</h1>
-        <span class="spacer"></span>
-        <a routerLink="/app/meals/recipes/new" [queryParams]="{ import: '' }" class="icon-btn" [attr.aria-label]="'meals.recipe.import.title' | t"><app-icon name="link" /></a>
-        <a routerLink="/app/meals/recipes/new" class="btn btn-primary btn-s"><app-icon name="plus" [size]="18" /> {{ 'meals.recipe.new' | t }}</a>
       </header>
+
+      <div class="add">
+        <a routerLink="/app/meals/recipes/new" [queryParams]="{ import: '' }" class="import-cta">
+          <span class="import-ico"><app-icon name="link" [size]="22" /></span>
+          <span class="import-copy">
+            <b>{{ 'meals.recipe.import.listCta' | t }}</b>
+            <span class="small">{{ 'meals.recipe.import.listCtaSub' | t }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </a>
+        <a routerLink="/app/meals/recipes/new" class="btn btn-secondary btn-block"><app-icon name="plus" [size]="18" /> {{ 'meals.recipe.new' | t }}</a>
+      </div>
 
       <div class="seg" role="group" [attr.aria-label]="'meals.recipe.listTitle' | t">
         <button type="button" [attr.aria-pressed]="tab() === 'mine'" (click)="tab.set('mine')">{{ 'meals.recipe.mine' | t }}</button>
@@ -51,9 +60,9 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
 
       @if (list(); as recipes) {
         @if (recipes.length) {
-          <div class="cards">
+          <div class="cards" [class.stale]="loading()" [attr.aria-busy]="loading()">
             @for (r of recipes; track r.id; let i = $index) {
-              <a class="rcard" [routerLink]="['/app/meals/recipes', r.id]" [style.--i]="i">
+              <a class="rcard" [routerLink]="['/app/meals/recipes', r.id]" [queryParams]="mealParams()" [style.--i]="i">
                 <span class="pic">
                   @if (r.thumbUrl) {
                     <img [src]="r.thumbUrl" alt="" loading="lazy" />
@@ -89,8 +98,9 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
             <p class="small">{{ 'meals.recipe.empty.' + tab() | t }}</p>
           </div>
         }
-      } @else {
-        <div class="cards">
+      } @else if (slow()) {
+        <!-- only when the first list takes a while: a fast one appears at once, without a flash -->
+        <div class="cards" aria-busy="true">
           @for (i of [0, 1, 2, 3]; track i) {
             <div class="rcard skeleton" style="height: 210px"></div>
           }
@@ -99,8 +109,50 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
     </main>
   `,
   styles: `
-    .spacer {
+    .add {
+      display: grid;
+      gap: var(--space-2);
+    }
+    /* the import, put forward: a link is all it takes */
+    .import-cta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      border-radius: var(--radius-l);
+      background: var(--flame-deep);
+      color: #fff;
+      text-decoration: none;
+      box-shadow:
+        0 10px 28px -12px var(--accent-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      transition: transform var(--dur-1) var(--ease-out);
+    }
+    .import-cta:active {
+      transform: scale(0.98);
+    }
+    .import-ico {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      flex: none;
+      border-radius: 14px;
+      background: rgb(255 255 255 / 0.2);
+    }
+    .import-copy {
+      display: grid;
+      gap: 2px;
       flex: 1;
+      min-width: 0;
+    }
+    .import-copy b {
+      font-size: 1.05rem;
+    }
+    /* another filter loads: the list stays, a touch dimmed only if it takes a while */
+    .cards.stale {
+      opacity: 0.55;
+      transition: opacity 160ms ease 220ms;
     }
     .filters {
       display: grid;
@@ -198,6 +250,10 @@ export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH
   `,
 })
 export class RecipesPage {
+  /** opened from « Ajouter au déjeuner »: the recipes are added to that meal */
+  readonly slotParam = input<string | undefined>(undefined, { alias: 'slot' });
+  readonly dayParam = input<string | undefined>(undefined, { alias: 'day' });
+  protected readonly mealParams = computed(() => (this.slotParam() ? { slot: this.slotParam(), day: this.dayParam() ?? null } : {}));
   private readonly api = inject(MealsApi);
   protected readonly i18n = inject(I18nService);
   protected readonly types = RECIPE_TYPES;
@@ -206,15 +262,38 @@ export class RecipesPage {
   protected readonly type = signal<RecipeType | null>(null);
   protected readonly sort = signal<'top' | 'new'>('top');
   protected readonly list = signal<Recipe[] | null>(null);
+  protected readonly loading = signal(false);
+  /** the first list is still not there after a moment: placeholders, never for a quick one */
+  protected readonly slow = signal(false);
+  /** the lists already seen: back to a tab or a filter, it shows at once (and is refreshed behind) */
+  private readonly seen = new Map<string, Recipe[]>();
+  private seq = 0;
 
   constructor() {
     effect(() => {
       const tab = this.tab();
-      const type = this.type();
+      const type = tab === 'mine' ? null : this.type();
       const sort = this.sort();
-      this.list.set(null);
+      const key = [tab, type, tab === 'community' ? sort : ''].join('|');
+      const n = ++this.seq;
+      const known = this.seen.get(key);
+      if (known) this.list.set(known);
+      this.loading.set(!known);
+      // read without tracking: the list it sets must not start it again
+      const slow = untracked(this.list) === null ? setTimeout(() => n === this.seq && this.slow.set(true), 450) : null;
       const load = tab === 'mine' ? this.api.myRecipes() : tab === 'friends' ? this.api.friendsRecipes(type) : this.api.community(type, sort);
-      load.then((r) => this.list.set(r)).catch(() => this.list.set([]));
+      load
+        .then((r) => {
+          this.seen.set(key, r);
+          if (n === this.seq) this.list.set(r);
+        })
+        .catch(() => n === this.seq && this.list.set(this.list() ?? []))
+        .finally(() => {
+          if (slow) clearTimeout(slow);
+          if (n !== this.seq) return;
+          this.loading.set(false);
+          this.slow.set(false);
+        });
     });
   }
 }

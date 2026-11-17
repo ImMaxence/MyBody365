@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, effect, inject, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
 import type { Recipe, Slot } from '../../core/api/models';
@@ -278,6 +278,13 @@ import { TYPE_EMOJI } from './recipes.page';
 })
 export class RecipePage {
   readonly id = input.required<string>();
+  /** opened from « Ajouter au déjeuner »: the recipe goes to that meal (else the one of the hour, today) */
+  readonly slotParam = input<string | undefined>(undefined, { alias: 'slot' });
+  readonly dayParam = input<string | undefined>(undefined, { alias: 'day' });
+  private readonly slot = computed<Slot>(() =>
+    (['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'] as string[]).includes(this.slotParam() ?? '') ? (this.slotParam() as Slot) : slotNow(),
+  );
+  private readonly day = computed(() => (this.dayParam() && /^\d{4}-\d{2}-\d{2}$/.test(this.dayParam()!) ? this.dayParam()! : localDay()));
   private readonly api = inject(MealsApi);
   private readonly meals = inject(MealsStore);
   private readonly toast = inject(ToastService);
@@ -316,7 +323,7 @@ export class RecipePage {
   }
 
   protected openAdd(r: Recipe): void {
-    const slot: Slot = slotNow();
+    const slot: Slot = this.slot();
     this.sheet().open(
       { name: r.name, detail: this.i18n.t('meals.addTo.' + slot), unit: 'serving', base: r.perServing, nutriscore: r.nutriscore, estimated: true },
       this.i18n.t('meals.addTo.' + slot),
@@ -328,7 +335,7 @@ export class RecipePage {
     if (!r) return;
     this.sheet().busy.set(true);
     try {
-      await this.meals.add({ day: localDay(), slot: slotNow(), recipeId: r.id, servings });
+      await this.meals.add({ day: this.day(), slot: this.slot(), recipeId: r.id, servings });
       this.sheet().close();
       this.toast.show(this.i18n.t('meals.search.added', { name: r.name }));
     } catch (e) {

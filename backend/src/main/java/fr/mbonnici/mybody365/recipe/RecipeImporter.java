@@ -7,7 +7,10 @@ import java.net.URISyntaxException;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Base64;
 import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
@@ -17,14 +20,33 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * A recipe read from a recipe site: the schema.org "Recipe" data most sites publish for search engines
  * (name, servings, ingredients, steps, sometimes the calories). Nothing is saved here: the member gets a
- * draft, checks it, enters the calories per serving and saves it as a recipe of their own, with the link
- * to the source. The site's photo stays on the site.
+ * draft, checks it and saves it as a recipe of their own, with the link to the source. Each ingredient comes
+ * with the Ciqual food it most probably is ({@link IngredientMatcher}): the calories and the Nutri-Score are then
+ * computed. The site's photo stays on the site, except on the sites whose photos may be copied (the creator's own).
  */
 @Service
 public class RecipeImporter {
 
     public record Draft(String name, Type type, Integer servings, List<String> ingredients, String instructions, Double kcal,
-            Double proteinG, Double carbsG, Double fatG, String sourceUrl, String sourceName) {}
+            Double proteinG, Double carbsG, Double fatG, String sourceUrl, String sourceName,
+            /** each ingredient line with its food and weight, when found */
+            List<IngredientMatcher.Match> matches,
+            /** the photo, as a data: URL (the sites whose photos may be copied only) */
+            String photo) {
+
+        Draft with(List<IngredientMatcher.Match> m, String p) {
+            return new Draft(name, type, servings, ingredients, instructions, kcal, proteinG, carbsG, fatG, sourceUrl, sourceName, m, p);
+        }
+    }
+
+    /** a draft and the address of its photo */
+    record Read(Draft draft, URI photo) {}
+
+    /**
+     * The sites whose photos come along with the recipe: the creator's own recipe site (les-creations-de-yona.fr),
+     * whose photos the creator may copy. Any other site's photo stays on the site.
+     */
+    static final Set<String> PHOTO_SITES = Set.of("les-creations-de-yona.fr");
 
     static final int MAX_LINES = 80;
     private static final Pattern LD_JSON = Pattern.compile(
@@ -35,19 +57,34 @@ public class RecipeImporter {
 
     private final PageFetcher fetcher;
     private final JsonMapper json;
+    private final IngredientMatcher matcher;
 
-    public RecipeImporter(PageFetcher fetcher, JsonMapper json) {
+    public RecipeImporter(PageFetcher fetcher, JsonMapper json, IngredientMatcher matcher) {
         this.fetcher = fetcher;
         this.json = json;
+        this.matcher = matcher;
     }
 
-    public Draft read(String url) {
+    public Draft read(String url, UUID viewer) {
         URI uri = parse(url);
-        Draft d = parse(fetcher.fetch(uri), uri);
-        if (d == null) {
+        Read r = parse(fetcher.fetch(uri), uri);
+        if (r == null) {
             throw ApiException.badRequest("recipe_not_found");
         }
-        return d;
+        return r.draft().with(matcher.match(viewer, r.draft().ingredients()), photo(r.photo()));
+    }
+
+    /** a data: URL, or null when the photo cannot be had (the recipe comes without it) */
+    private String photo(URI uri) {
+        if (uri == null) {
+            return null;
+        }
+        try {
+            PageFetcher.Photo p = fetcher.image(uri);
+            return "data:" + p.type() + ";base64," + Base64.getEncoder().encodeToString(p.bytes());
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     static URI parse(String url) {
@@ -68,7 +105,7 @@ public class RecipeImporter {
     }
 
     /** the first Recipe of the page's JSON-LD blocks; null when there is none */
-    Draft parse(String html, URI source) {
+    Read parse(String html, URI source) {
         Matcher m = LD_JSON.matcher(html);
         while (m.find()) {
             String block = m.group(1).strip().replace("<![CDATA[", "").replace("]]>", "");
@@ -80,7 +117,8 @@ public class RecipeImporter {
             }
             JsonNode recipe = find(root, 0);
             if (recipe != null) {
-                return draft(recipe, source);
+                Draft d = draft(recipe, source);
+                return d == null ? null : new Read(d, photoOf(recipe.get("image"), source));
             }
         }
         return null;
@@ -130,6 +168,28 @@ public class RecipeImporter {
                 || type.asString().endsWith(":Recipe"));
     }
 
+    /** "…/1600.webp", ["…"], {"url": "…"}: the first photo, on a site whose photos may be copied, over https */
+    static URI photoOf(JsonNode image, URI source) {
+        String host = source.getHost().toLowerCase(Locale.ROOT).replaceFirst("^www\\.", "");
+        if (image == null || !PHOTO_SITES.contains(host)) {
+            return null;
+        }
+        JsonNode first = image.isArray() ? (image.isEmpty() ? null : image.get(0)) : image;
+        if (first != null && first.isObject()) {
+            first = first.has("contentUrl") ? first.get("contentUrl") : first.get("url");
+        }
+        if (first == null || !first.isString()) {
+            return null;
+        }
+        try {
+            URI u = source.resolve(first.asString().strip());
+            String h = u.getHost() == null ? "" : u.getHost().toLowerCase(Locale.ROOT).replaceFirst("^www\\.", "");
+            return "https".equalsIgnoreCase(u.getScheme()) && PHOTO_SITES.contains(h) ? u : null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     private static Draft draft(JsonNode r, URI source) {
         String name = cut(text(r.get("name")), 120);
         List<String> ingredients = new ArrayList<>();
@@ -148,17 +208,25 @@ public class RecipeImporter {
         StringBuilder instructions = new StringBuilder();
         int n = 0;
         for (String s : steps) {
-            String line = s.startsWith("## ") ? s.substring(3) : (++n) + ". " + s;
-            if (instructions.length() + line.length() + 1 > 4000) {
+            // each part counts its steps from 1, as on the site, after a blank line
+            boolean part = s.startsWith("## ");
+            if (part) {
+                n = 0;
+            }
+            String line = part ? s.substring(3) : (++n) + ". " + s;
+            if (instructions.length() + line.length() + 2 > 4000) {
                 break;
             }
             if (!instructions.isEmpty()) {
-                instructions.append('\n');
+                instructions.append(part ? "\n\n" : "\n");
             }
             instructions.append(line);
         }
         JsonNode nutrition = r.get("nutrition");
-        Double kcal = nutrition == null ? null : number(nutrition.get("calories"));
+        Integer servings = servings(r.get("recipeYield"));
+        // the values of the whole recipe (« la recette entière »), not of a serving: shared out
+        double share = nutrition != null && servings != null && wholeRecipe(text(nutrition.get("servingSize"))) ? servings : 1;
+        Double kcal = nutrition == null ? null : per(number(nutrition.get("calories")), share);
         if (kcal != null && (kcal < 1 || kcal > 5000)) {
             kcal = null;
         }
@@ -166,11 +234,20 @@ public class RecipeImporter {
         if (name.isEmpty() && ingredients.isEmpty()) {
             return null;
         }
-        return new Draft(name.isEmpty() ? host : name, type(r, name), servings(r.get("recipeYield")), ingredients,
+        return new Draft(name.isEmpty() ? host : name, type(r, name), servings, ingredients,
                 instructions.isEmpty() ? null : instructions.toString(), kcal,
-                nutrition == null ? null : grams(nutrition.get("proteinContent")),
-                nutrition == null ? null : grams(nutrition.get("carbohydrateContent")),
-                nutrition == null ? null : grams(nutrition.get("fatContent")), source.toString(), host);
+                nutrition == null ? null : grams(per(number(nutrition.get("proteinContent")), share)),
+                nutrition == null ? null : grams(per(number(nutrition.get("carbohydrateContent")), share)),
+                nutrition == null ? null : grams(per(number(nutrition.get("fatContent")), share)), source.toString(), host, List.of(), null);
+    }
+
+    private static boolean wholeRecipe(String servingSize) {
+        String s = fold(servingSize);
+        return s.contains("recette entiere") || s.contains("toute la recette") || s.contains("whole recipe") || s.contains("entire recipe");
+    }
+
+    private static Double per(Double v, double share) {
+        return v == null ? null : Math.round(v / share * 10) / 10.0;
     }
 
     /** text, HowToStep, HowToSection (its name as a heading, then its steps) */
@@ -271,8 +348,7 @@ public class RecipeImporter {
         return m.find() ? Double.parseDouble(m.group(1).replace(',', '.')) : null;
     }
 
-    private static Double grams(JsonNode n) {
-        Double v = number(n);
+    private static Double grams(Double v) {
         return v == null || v < 0 || v > 500 ? null : Math.round(v * 10) / 10.0;
     }
 

@@ -10,7 +10,7 @@ test('the profile: a picture of my own and a new username', async ({ page }) => 
   const sheet = page.getByRole('dialog', { name: 'Photo de profil' });
   await sheet.locator('input[type=file]').setInputFiles({ name: 'me.png', mimeType: 'image/png', buffer: makePng(600, 400) });
   await expect(page.getByText('Photo de profil mise à jour')).toBeVisible();
-  await expect(page.locator('.avatar-btn img')).toHaveAttribute('src', /\/api\/users\/.+\/avatar\?v=1/);
+  await expect(page.locator('.avatar-btn img')).toHaveAttribute('src', /\/api\/users\/.+\/avatar\?v=\d+/);
   const src = await page.locator('.avatar-btn img').getAttribute('src');
   expect((await page.request.get(src!)).status()).toBe(200);
 
@@ -94,6 +94,9 @@ test.describe('the app', () => {
   test('profile: theme, language, sign-out', async ({ page }) => {
     await signIn(page, 'user');
     await tab(page, 'Profil').click();
+    // the app's settings have their own page
+    await page.getByRole('link', { name: /Apparence et langue/ }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Apparence et langue');
     await page.getByRole('button', { name: 'Sombre' }).click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await page.getByRole('button', { name: 'Clair' }).click();
@@ -102,8 +105,10 @@ test.describe('the app', () => {
     await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.+/);
 
     await page.getByRole('button', { name: 'English' }).click();
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Profile');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Appearance and language');
     await page.getByRole('button', { name: 'Français' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Apparence et langue');
+    await page.getByRole('button', { name: /Retour/ }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Profil');
 
     await page.getByRole('link', { name: /Connexion et sécurité/ }).click();

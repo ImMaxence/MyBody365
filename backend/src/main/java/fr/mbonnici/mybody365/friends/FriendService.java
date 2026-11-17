@@ -131,13 +131,13 @@ public class FriendService implements PhotoAccessRule {
         if (u == null) {
             throw ApiException.notFound();
         }
-        Map<String, Object> row = jdbc.queryForList("select id, display_name, username, avatar_url, avatar_version from app_user"
+        Map<String, Object> row = jdbc.queryForList("select id, display_name, username, avatar_version from app_user"
                 + " where username = ? and status = 'ACTIVE'", u).stream().findFirst().orElseThrow(ApiException::notFound);
         UUID id = (UUID) row.get("id");
         Relation rel = relation(viewerId, id);
         // the picture once there is a link between us (a friend, or a request they sent me)
         String picture = rel == Relation.SELF || rel == Relation.FRIEND || rel == Relation.RECEIVED
-                ? AppUser.pictureUrl(id, (Integer) row.get("avatar_version"), (String) row.get("avatar_url")) : null;
+                ? AppUser.pictureUrl(id, (Integer) row.get("avatar_version")) : null;
         return new MemberDto(id, firstName((String) row.get("display_name")), (String) row.get("username"), picture, rel);
     }
 
@@ -153,7 +153,7 @@ public class FriendService implements PhotoAccessRule {
         // "_" is a wildcard for LIKE: escaped, like the escape character itself
         String prefix = u.replace("\\", "\\\\").replace("_", "\\_") + "%";
         List<Map<String, Object>> rows = jdbc.queryForList("""
-                select id, display_name, username, avatar_url, avatar_version from app_user
+                select id, display_name, username, avatar_version from app_user
                 where username like ? escape '\\' and status = 'ACTIVE' and discoverable and id <> ?
                 order by username limit 6""", prefix, viewerId);
         List<MemberDto> out = new ArrayList<>();
@@ -161,7 +161,7 @@ public class FriendService implements PhotoAccessRule {
             UUID id = (UUID) row.get("id");
             Relation rel = relation(viewerId, id);
             String picture = rel == Relation.FRIEND || rel == Relation.RECEIVED
-                    ? AppUser.pictureUrl(id, (Integer) row.get("avatar_version"), (String) row.get("avatar_url")) : null;
+                    ? AppUser.pictureUrl(id, (Integer) row.get("avatar_version")) : null;
             out.add(new MemberDto(id, firstName((String) row.get("display_name")), (String) row.get("username"), picture, rel));
         }
         return out;
@@ -214,7 +214,7 @@ public class FriendService implements PhotoAccessRule {
 
     public Requests requests(UUID userId) {
         String sql = """
-                select u.id, u.display_name, u.username, u.avatar_url, u.avatar_version, r.created_at
+                select u.id, u.display_name, u.username, u.avatar_version, r.created_at
                 from friend_request r join app_user u on u.id = r.%s
                 where r.%s = ? and u.status = 'ACTIVE' order by r.created_at desc""";
         // the picture of who asked me; not of who I asked (they have not said yes)
@@ -222,7 +222,7 @@ public class FriendService implements PhotoAccessRule {
             UUID id = rs.getObject("id", UUID.class);
             Integer version = rs.getObject("avatar_version", Integer.class);
             return new RequestDto(id, firstName(rs.getString("display_name")), rs.getString("username"),
-                    AppUser.pictureUrl(id, version, rs.getString("avatar_url")), rs.getTimestamp("created_at").toInstant());
+                    AppUser.pictureUrl(id, version), rs.getTimestamp("created_at").toInstant());
         }, userId);
         List<RequestDto> sent = jdbc.query(sql.formatted("to_id", "from_id"), (rs, i) -> new RequestDto(rs.getObject("id", UUID.class),
                 firstName(rs.getString("display_name")), rs.getString("username"), null, rs.getTimestamp("created_at").toInstant()), userId);
@@ -273,7 +273,7 @@ public class FriendService implements PhotoAccessRule {
     public List<FriendDto> list(UUID userId) {
         LocalDate today = TrackingService.today();
         List<Map<String, Object>> rows = jdbc.queryForList("""
-                select u.id, u.display_name, u.username, u.avatar_url, u.avatar_version, f.created_at,
+                select u.id, u.display_name, u.username, u.avatar_version, f.created_at,
                   (select count(*) from photo_share s join photo p on p.id = s.photo_id where s.friend_id = ? and p.user_id = u.id) as shared,
                   exists (select 1 from friend_nudge n where n.from_id = ? and n.to_id = u.id and n.day = ?) as nudged
                 from friendship f join app_user u on u.id = case when f.user_a = ? then f.user_b else f.user_a end
@@ -287,7 +287,7 @@ public class FriendService implements PhotoAccessRule {
                     today.minusDays(800)));
             Streaks.Result s = Streaks.compute(done, today);
             out.add(new FriendDto(id, firstName((String) r.get("display_name")), (String) r.get("username"),
-                    AppUser.pictureUrl(id, (Integer) r.get("avatar_version"), (String) r.get("avatar_url")), s.days(), s.todayDone(),
+                    AppUser.pictureUrl(id, (Integer) r.get("avatar_version")), s.days(), s.todayDone(),
                     ((Timestamp) r.get("created_at")).toInstant(), ((Number) r.get("shared")).intValue(), (Boolean) r.get("nudged")));
         }
         return out;

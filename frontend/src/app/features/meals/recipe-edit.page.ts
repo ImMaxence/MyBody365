@@ -26,6 +26,8 @@ interface Line {
   grams: number;
   /** per 100 g, for the live totals (unknown for ingredients loaded from a saved recipe: kcal only) */
   per100: Nutrients;
+  /** the line as the imported recipe wrote it, to check the food found for it */
+  from?: string;
 }
 
 /**
@@ -119,11 +121,19 @@ interface Line {
             <p class="tiny muted">{{ 'meals.recipe.mode.hint' | t }}</p>
           </div>
         } @else {
+        @if (fromImport()) {
+          <p class="small muted import-hint"><app-icon name="info" [size]="16" /> {{ 'meals.recipe.import.checkHint' | t }}</p>
+        }
         @if (lines().length) {
           <ul class="lines" role="list">
             @for (l of lines(); track $index; let i = $index) {
               <li class="line">
-                <span class="line-name">{{ l.name }}</span>
+                <span class="line-name">
+                  {{ l.name }}
+                  @if (l.from) {
+                    <small class="line-from">{{ l.from }}</small>
+                  }
+                </span>
                 <input class="input grams" type="text" inputmode="decimal" [name]="'g' + i" [ngModel]="l.grams" (ngModelChange)="setGrams(i, $event)"
                   [attr.aria-label]="'meals.recipe.ingredientGrams' | t: { name: l.name }" />
                 <span class="unit">g</span>
@@ -132,6 +142,20 @@ interface Line {
             }
           </ul>
           <p class="totals small"><b class="num">{{ i18n.number(perServing().kcal) }} kcal</b> {{ 'meals.perServing' | t }}</p>
+        }
+        @if (unmatched().length) {
+          <div class="unmatched card">
+            <p class="small"><b>{{ 'meals.recipe.import.missingTitle' | t: { n: unmatched().length } }}</b><br /><span class="muted">{{ 'meals.recipe.import.missingText' | t }}</span></p>
+            <ul role="list">
+              @for (u of unmatched(); track u) {
+                <li>
+                  <span class="small">{{ u }}</span>
+                  <button type="button" class="icon-btn mini" [attr.aria-label]="'meals.recipe.import.findIt' | t: { line: u }" (click)="openPicker(u)"><app-icon name="search" [size]="16" /></button>
+                  <button type="button" class="icon-btn mini" [attr.aria-label]="'meals.recipe.import.skipIt' | t: { line: u }" (click)="skip(u)"><app-icon name="x" [size]="16" /></button>
+                </li>
+              }
+            </ul>
+          </div>
         }
         <button type="button" class="btn btn-secondary" (click)="openPicker()"><app-icon name="plus" /> {{ 'meals.recipe.addIngredient' | t }}</button>
         }
@@ -180,7 +204,7 @@ interface Line {
         <div class="sheet-grip"></div>
         <h2 class="h3">{{ 'meals.recipe.pickTitle' | t }}</h2>
         @if (pickerOpen()) {
-          <app-food-picker [withExtras]="false" (picked)="addLine($event)" />
+          <app-food-picker [withExtras]="false" [start]="pickerQuery()" (picked)="addLine($event)" />
         }
       </dialog>
     </main>
@@ -385,6 +409,45 @@ interface Line {
     .picker {
       min-height: 70dvh;
     }
+    .line-name {
+      display: grid;
+      gap: 1px;
+    }
+    .line-from {
+      color: var(--fg-2);
+      font-size: var(--fs-xs, 0.75rem);
+      line-height: 1.3;
+    }
+    .import-hint {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .unmatched {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-4);
+    }
+    .unmatched ul {
+      display: grid;
+      gap: 2px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .unmatched li {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .unmatched li .small {
+      flex: 1;
+      min-width: 0;
+    }
+    .icon-btn.mini {
+      width: 32px;
+      height: 32px;
+    }
     .picker .h3 {
       margin-bottom: var(--space-3);
     }
@@ -406,6 +469,12 @@ export class RecipeEditPage {
   protected readonly mode = signal<'computed' | 'manual'>('computed');
   protected readonly source = signal<{ url: string; name: string } | null>(null);
   protected readonly importing = signal(false);
+  /** the lines of an imported recipe whose food was not found: the member picks it, or leaves it out */
+  protected readonly unmatched = signal<string[]>([]);
+  protected readonly fromImport = computed(() => this.mode() === 'computed' && this.lines().some((l) => l.from));
+  /** what the food picker starts with (an unmatched line), and which line it is for */
+  protected readonly pickerQuery = signal('');
+  private pickingFor: string | null = null;
   protected importUrl = '';
   protected ingredientText = '';
   protected kcal = '';
@@ -487,7 +556,11 @@ export class RecipeEditPage {
     this.importDialog().nativeElement.showModal();
   }
 
-  /** the draft fills the form; the calories are checked (or entered) by the member */
+  /**
+   * The draft fills the form. Its ingredients come with their foods (found in the Ciqual table): the calories
+   * and the Nutri-Score are then computed, the member checks each line. When the site gives the calories and
+   * some lines were not found, its calories are kept instead (entered by hand, the lines as written).
+   */
   protected async runImport(): Promise<void> {
     const url = this.importUrl.trim();
     if (!url) return;
@@ -498,15 +571,38 @@ export class RecipeEditPage {
       this.type.set(d.type);
       if (d.servings) this.servings.set(d.servings);
       this.notes = d.instructions ?? this.notes;
-      this.mode.set('manual');
       this.ingredientText = d.ingredients.join('\n');
       this.kcal = d.kcal != null ? String(Math.round(d.kcal)) : '';
       this.macros = { proteinG: this.num(d.proteinG), carbsG: this.num(d.carbsG), fatG: this.num(d.fatG) };
       this.source.set({ url: d.sourceUrl, name: d.sourceName });
+      const found = (d.matches ?? []).filter((m) => m.food && m.grams);
+      const missing = (d.matches ?? []).filter((m) => !(m.food && m.grams)).map((m) => m.line);
+      const computedMode = found.length > 0 && (d.kcal == null || missing.length === 0);
+      if (computedMode) {
+        this.mode.set('computed');
+        this.lines.set(
+          found.map((m) => ({
+            foodId: m.food!.id,
+            name: m.food!.brand ? `${m.food!.name} · ${m.food!.brand}` : m.food!.name,
+            grams: m.grams!,
+            per100: m.food!.per100,
+            from: m.line,
+          })),
+        );
+        this.unmatched.set(missing);
+      } else {
+        this.mode.set('manual');
+        this.unmatched.set([]);
+      }
+      if (d.photo && !this.image && !this.preview()) await this.usePhoto(d.photo);
       closeSheet(this.importDialog().nativeElement);
-      this.toast.show(this.i18n.t(d.kcal != null ? 'meals.recipe.import.doneKcal' : 'meals.recipe.import.done'));
+      this.toast.show(
+        computedMode
+          ? this.i18n.t('meals.recipe.import.doneFound', { n: found.length, total: d.ingredients.length })
+          : this.i18n.t(d.kcal != null ? 'meals.recipe.import.doneKcal' : 'meals.recipe.import.done'),
+      );
       // the calories are the member's part: straight to the field when the site gave none
-      if (d.kcal == null) setTimeout(() => document.getElementById('r-kcal')?.focus(), 450);
+      if (!computedMode && d.kcal == null) setTimeout(() => document.getElementById('r-kcal')?.focus(), 450);
     } catch (e) {
       this.toast.error(this.i18n.error(errorCode(e)));
     } finally {
@@ -514,7 +610,26 @@ export class RecipeEditPage {
     }
   }
 
-  protected openPicker(): void {
+  /** the photo of the recipe site (the creator's own), redrawn like a picked one */
+  private async usePhoto(dataUrl: string): Promise<void> {
+    try {
+      const [head, b64] = dataUrl.split(',', 2);
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      const type = /data:([^;]+)/.exec(head)?.[1] ?? 'image/jpeg';
+      this.image = await prepareImage(new Blob([bytes], { type }), 1200);
+      this.imageRemoved = false;
+      if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
+      this.objectUrl = URL.createObjectURL(this.image);
+      this.preview.set(this.objectUrl);
+    } catch {
+      /* no photo then: the member may add one */
+    }
+  }
+
+  /** an ingredient to find (a line of the imported recipe), or any */
+  protected openPicker(line?: string): void {
+    this.pickingFor = line ?? null;
+    this.pickerQuery.set(line ? searchable(line) : '');
     this.pickerOpen.set(true);
     this.pickerDialog().nativeElement.showModal();
   }
@@ -522,9 +637,16 @@ export class RecipeEditPage {
   protected addLine(p: Picked): void {
     if (p.kind !== 'FOOD') return;
     const f = p.food;
-    this.lines.update((l) => [...l, { foodId: f.id, name: f.brand ? `${f.name} · ${f.brand}` : f.name, grams: f.servingG ?? 100, per100: f.per100 }]);
+    const line = this.pickingFor;
+    const grams = (line && gramsOf(line)) || f.servingG || 100;
+    this.lines.update((l) => [...l, { foodId: f.id, name: f.brand ? `${f.name} · ${f.brand}` : f.name, grams, per100: f.per100, from: line ?? undefined }]);
+    if (line) this.skip(line);
     this.pickerDialog().nativeElement.close();
     this.pickerOpen.set(false);
+  }
+
+  protected skip(line: string): void {
+    this.unmatched.update((u) => u.filter((x) => x !== line));
   }
 
   protected setGrams(i: number, value: string | number): void {
@@ -608,4 +730,24 @@ export class RecipeEditPage {
       this.busy.set(false);
     }
   }
+}
+
+/** « 200 g Farine (T55) » → « Farine »: what to look for */
+function searchable(line: string): string {
+  return line
+    .replace(/\([^)]*\)?/g, ' ')
+    .replace(/^\s*[\d.,/½¼¾]+\s*(kg|g|gr|mg|ml|cl|dl|l|c\.?\s*à\s*(s|c|soupe|café)\.?|cuill[eè]res?\s+à\s+(soupe|café)|pinc[eé]es?)?\.?\s+/i, '')
+    .replace(/^(de |d['’]\s*|des |du )/i, '')
+    .replace(/[,:;].*$/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** « 200 g … » → 200, « 1,5 kg … » → 1500, « 20 cl … » → 200; null when the line gives no weight */
+function gramsOf(line: string): number | null {
+  const m = /^\s*(\d+(?:[.,]\d+)?)\s*(kg|g|gr|ml|cl|dl|l)\b/i.exec(line);
+  if (!m) return null;
+  const n = Number(m[1].replace(',', '.'));
+  const unit: Record<string, number> = { kg: 1000, g: 1, gr: 1, ml: 1, cl: 10, dl: 100, l: 1000 };
+  return Math.round(n * (unit[m[2].toLowerCase()] ?? 1) * 10) / 10;
 }
