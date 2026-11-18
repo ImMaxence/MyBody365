@@ -962,7 +962,7 @@ export const en: Dictionary = {
         {
           h: 'Report content',
           p: [
-            'In the application, the “Report” button of a community recipe or of a photo shared with you sends the content to the administrators, without telling the person concerned who reported it.',
+            'In the application, the “Report” button of a recipe (from the community or a friend) or of a photo shared with you sends the content to the administrators, without telling the person concerned who reported it.',
             'For any other report, write to {email} or use the form of {contactSite}, stating the content concerned and the reason for the report.',
           ],
         },
@@ -985,8 +985,8 @@ export const en: Dictionary = {
           h: 'Data processed',
           p: [
             'Account: email address, first name, username, profile picture (the one you upload, redrawn and without metadata, the old one being deleted when you change it; never Google’s), language, role, sign-in dates, sign-in methods (Google identifier, passkeys: public keys only).',
-            'Tracking: weight, measurements, goal, meals, foods you created, recipes, workouts recorded before version 1.0, saved timers, glasses of water (if you turn that tracking on), progress photos. These are health data under article 9 of the GDPR: they are only processed with your explicit consent, given when the account is created. Every photo is drawn again and re-saved by the server: no metadata of the original file is kept, not even the GPS position.',
-            'Friends: your list of friends, the friend requests sent and received, the nudges, the photos and recipes you share and with whom, the reports you send. A member can only find you with your exact username.',
+            'Tracking: weight (and the evening weigh-in if you note it), measurements, goal and milestones, meals, foods you created, recipes, favourite foods and recipes, workouts noted before version 1.9, saved timers, glasses of water (if you turn that tracking on), progress photos. These are health data under article 9 of the GDPR: they are only processed with your explicit consent, given when the account is created. Every photo is drawn again and re-saved by the server: no metadata of the original file is kept, not even the GPS position.',
+            'Friends: your list of friends, the friend requests sent and received, the nudges, the photos and recipes you share and with whom, what you show them (your progress, a day of meals, a milestone reached) and their "Bravo", the challenges you start or join, the reports you send. A member can only find you with your exact username.',
             'Notifications: the technical address your browser provides for each device where you turn them on (Web Push subscription) and your reminder settings.',
             'Google Drive backups (if you turn them on): a token that only gives access to the files created by MyBody365, kept encrypted.',
             'Security: IP address and date of sign-ins, access requests and photo uploads, to fight abuse and answer any court order.',
@@ -996,7 +996,7 @@ export const en: Dictionary = {
           h: 'Who sees what',
           p: [
             'Your progress photos are visible to you only. Nobody else, administrators included, can access them in the application, except the photos you choose to share with a friend, until you stop sharing them.',
-            'Your friends see your first name, your username, your profile picture, the number of days of your flame and whether you have done your day, and the recipes you show them. Nothing else: not your weight, not your meals, not your photos, except those you share. A member who looks up your username only sees your first name; typing at least 3 letters, they may see you in the suggestions (first name and username), unless you turn that off in your profile.',
+            'Your friends see your first name, your username, your profile picture, the number of days of your flame and whether you have done your day, and the recipes you show them. The rest, only if you share it, when you tap: your progress (without your weights, unless you ask), a day of meals, a milestone reached (never its reward), a photo. In a challenge you joined, the other members see each day whether you did it (weigh-in, water goal, meals noted or photo of the day), never the figures themselves. Nothing else: not your weight, not your meals, not your photos. A member who looks up your username only sees your first name; typing at least 3 letters, they may see you in the suggestions (first name and username), unless you turn that off in your profile.',
             'Administrators see the list of accounts (address, first name, role, sign-in methods, last sign-ins, storage used), access requests and the recipes published in the community. A shared photo that has been reported becomes visible to the administrators, and to them only, while the report is handled.',
             'The publisher, who runs the server, technically has access to the storage; they undertake not to look at your content, except under a court order or after a report of manifestly unlawful content.',
           ],
@@ -1015,7 +1015,7 @@ export const en: Dictionary = {
           h: 'Retention',
           p: [
             'Your account data is kept as long as your account exists, then permanently deleted when it is deleted (backups included within 30 days).',
-            'Technical logs (IP, sign-ins, uploads) are kept for one year. Access requests and handled reports are deleted twelve months after being handled, nudges after thirty days. A backup sent for a restore is erased from the server as soon as it is restored, or after one hour.',
+            'Technical logs (IP, sign-ins, uploads) are kept for one year. Access requests and handled reports are deleted twelve months after being handled, nudges and what you show your friends (progress, day, milestone) after thirty days, challenges sixty days after their end. A backup sent for a restore is erased from the server as soon as it is restored, or after one hour.',
           ],
         },
         {
@@ -1052,7 +1052,8 @@ export const en: Dictionary = {
           h: 'Your content',
           p: [
             'You alone are responsible for the content you add (photos, meals, recipes, messages). Forbidden: any unlawful content, any image of another person without their consent, any image of a minor, any hateful, violent or sexually explicit content.',
-            'Recipes you publish in the community are visible to all users, can be rated, copied and removed by an administrator. A photo you share with a friend can be reported by them; an administrator may then delete it.',
+            'The community is published by the MyBody365 team: its recipes are visible to all users, who can rate and copy them. The recipes you show your friends are visible to them only, who can copy them; you can take them back at any time. A photo you share with a friend can be reported by them; an administrator may then delete it.',
+            'What you show your friends (your progress, a day, a milestone) and the challenges between friends are visible only to the friends concerned. Nothing is shared unless you ask, and you can take it back or leave a challenge at any time.',
             'Nudges between friends are limited to one a day per friend; do not overdo it.',
           ],
         },

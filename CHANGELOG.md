@@ -2,6 +2,15 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.9.2] - 2026-11-18
+
+Les pages légales à jour avec la 1.9
+
+### Modifié
+- Mentions légales : le code de MyBody365 n'est plus sous licence libre, tous droits réservés
+- Confidentialité : ce que tes amis peuvent voir quand tu le partages (ton avancée, une journée de repas, un palier, tes jours réussis dans un défi), les favoris et la pesée du soir parmi les données, et leurs durées de conservation (30 jours pour ce que tu montres à tes amis, 60 jours après leur fin pour les défis)
+- Conditions d'utilisation : la communauté est publiée par l'équipe, les recettes que tu montres à tes amis ne sont visibles que d'eux, et rien n'est partagé sans que tu l'aies demandé
+
 ## [1.9.1] - 2026-11-18
 
 Des vibrations à la pesée, une journée partagée qui tient dans l'écran et l'onglet Aujourd'hui sur la page Amis

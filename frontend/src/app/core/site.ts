@@ -11,7 +11,7 @@ export const SITE = {
     en: 'Self-hosted personal server in France, served through Cloudflare, Inc. (101 Townsend St, San Francisco, CA 94107, USA)',
   },
   /** to move forward whenever the legal texts change */
-  legalUpdated: '2026-11-16',
+  legalUpdated: '2026-11-18',
 } as const;
 
 export const LEGAL_DOCS = ['mentions', 'confidentialite', 'cgu'] as const;

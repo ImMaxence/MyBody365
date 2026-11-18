@@ -963,7 +963,7 @@ export const fr = {
         {
           h: 'Signaler un contenu',
           p: [
-            'Dans l’application, le bouton « Signaler » d’une recette de la communauté ou d’une photo partagée avec toi transmet le contenu aux administrateurs, sans révéler ton identité à la personne concernée.',
+            'Dans l’application, le bouton « Signaler » d’une recette (de la communauté ou d’un ami) ou d’une photo partagée avec toi transmet le contenu aux administrateurs, sans révéler ton identité à la personne concernée.',
             'Pour tout autre signalement, écris à {email} ou utilise le formulaire de {contactSite}, en précisant le contenu concerné et la raison du signalement.',
           ],
         },
@@ -986,8 +986,8 @@ export const fr = {
           h: 'Données traitées',
           p: [
             'Compte : adresse e-mail, prénom, nom d’utilisateur, photo de profil (celle que tu envoies, redessinée et sans métadonnées, l’ancienne étant effacée quand tu la changes ; jamais celle de Google), langue, rôle, dates de connexion, moyens de connexion (identifiant Google, passkeys : clés publiques uniquement).',
-            'Suivi : poids, mensurations, objectif, repas, aliments créés, recettes, séances enregistrées avant la version 1.0, chronos enregistrés, verres d’eau (si tu actives ce suivi), photos de progression. Ce sont des données de santé au sens de l’article 9 du RGPD : elles ne sont traitées qu’avec ton consentement explicite, donné à la création du compte. Chaque photo est redessinée et réenregistrée par le serveur : aucune métadonnée du fichier d’origine n’est conservée, pas même la position GPS.',
-            'Amis : la liste de tes amis, les demandes d’ami envoyées et reçues, les coups de pouce, les photos et recettes que tu partages et avec qui, les signalements que tu envoies. Un membre ne peut te trouver qu’avec ton nom d’utilisateur exact.',
+            'Suivi : poids (et pesée du soir si tu la notes), mensurations, objectif et paliers, repas, aliments créés, recettes, aliments et recettes favoris, séances notées avant la version 1.9, chronos enregistrés, verres d’eau (si tu actives ce suivi), photos de progression. Ce sont des données de santé au sens de l’article 9 du RGPD : elles ne sont traitées qu’avec ton consentement explicite, donné à la création du compte. Chaque photo est redessinée et réenregistrée par le serveur : aucune métadonnée du fichier d’origine n’est conservée, pas même la position GPS.',
+            'Amis : la liste de tes amis, les demandes d’ami envoyées et reçues, les coups de pouce, les photos et recettes que tu partages et avec qui, ce que tu leur montres (ton avancée, une journée de repas, un palier atteint) et leurs « Bravo », les défis que tu lances ou rejoins, les signalements que tu envoies. Un membre ne peut te trouver qu’avec ton nom d’utilisateur exact.',
             'Notifications : l’adresse technique fournie par ton navigateur pour chaque appareil où tu les actives (abonnement Web Push) et tes réglages de rappels.',
             'Sauvegardes Google Drive (si tu les actives) : un jeton qui ne donne accès qu’aux fichiers créés par MyBody365, conservé chiffré.',
             'Sécurité : adresse IP et date des connexions, des demandes d’accès et des envois de photos, pour lutter contre les abus et répondre à une éventuelle réquisition judiciaire.',
@@ -997,7 +997,7 @@ export const fr = {
           h: 'Qui voit quoi',
           p: [
             'Tes photos de progression ne sont visibles que par toi. Personne d’autre, administrateurs compris, n’y a accès dans l’application, sauf les photos que tu choisis de partager avec un ami, jusqu’à ce que tu retires ce partage.',
-            'Tes amis voient ton prénom, ton nom d’utilisateur, ta photo de profil, le nombre de jours de ta flamme et si tu as validé ta journée, ainsi que les recettes que tu leur montres. Rien d’autre : ni ton poids, ni tes repas, ni tes photos, sauf celles que tu partages. Un membre qui cherche ton nom d’utilisateur voit seulement ton prénom ; en tapant au moins 3 lettres, il peut te voir dans les suggestions (prénom et nom d’utilisateur), sauf si tu le désactives dans ton profil.',
+            'Tes amis voient ton prénom, ton nom d’utilisateur, ta photo de profil, le nombre de jours de ta flamme et si tu as validé ta journée, ainsi que les recettes que tu leur montres. Le reste, seulement si tu le partages, quand tu appuies : ton avancée (sans tes kilos, sauf si tu le demandes), une journée de repas, un palier atteint (jamais sa récompense), une photo. Dans un défi que tu as rejoint, les autres membres voient chaque jour si tu l’as réussi (pesée, objectif d’eau, repas notés ou photo du jour), jamais les chiffres eux-mêmes. Rien d’autre : ni ton poids, ni tes repas, ni tes photos. Un membre qui cherche ton nom d’utilisateur voit seulement ton prénom ; en tapant au moins 3 lettres, il peut te voir dans les suggestions (prénom et nom d’utilisateur), sauf si tu le désactives dans ton profil.',
             'Les administrateurs voient la liste des comptes (adresse, prénom, rôle, moyens de connexion, dernières connexions, espace de stockage utilisé), les demandes d’accès et les recettes publiées dans la communauté. Une photo partagée qui a été signalée devient visible des administrateurs, et d’eux seuls, le temps de traiter le signalement.',
             'L’éditeur, qui administre le serveur, a techniquement accès au stockage ; il s’engage à ne pas consulter tes contenus, sauf réquisition judiciaire ou signalement d’un contenu manifestement illicite.',
           ],
@@ -1016,7 +1016,7 @@ export const fr = {
           h: 'Durées de conservation',
           p: [
             'Les données de ton compte sont conservées tant que ton compte existe, puis supprimées définitivement à sa suppression (sauvegardes comprises sous 30 jours).',
-            'Les journaux techniques (IP, connexions, envois) sont conservés un an. Les demandes d’accès et les signalements traités sont supprimés douze mois après leur traitement, les coups de pouce après trente jours. Une sauvegarde envoyée pour restauration est effacée du serveur dès sa restauration, ou au bout d’une heure.',
+            'Les journaux techniques (IP, connexions, envois) sont conservés un an. Les demandes d’accès et les signalements traités sont supprimés douze mois après leur traitement, les coups de pouce et ce que tu montres à tes amis (avancée, journée, palier) après trente jours, les défis soixante jours après leur fin. Une sauvegarde envoyée pour restauration est effacée du serveur dès sa restauration, ou au bout d’une heure.',
           ],
         },
         {
@@ -1053,7 +1053,8 @@ export const fr = {
           h: 'Tes contenus',
           p: [
             'Tu es seul responsable des contenus que tu ajoutes (photos, repas, recettes, messages). Sont interdits : tout contenu illicite, toute image d’une autre personne sans son accord, toute image d’un mineur, tout contenu haineux, violent ou à caractère sexuel explicite.',
-            'Les recettes que tu publies dans la communauté sont visibles par tous les utilisateurs, peuvent être notées, copiées et retirées par un administrateur. Une photo que tu partages avec un ami peut être signalée par lui ; un administrateur peut alors la supprimer.',
+            'La communauté est publiée par l’équipe MyBody365 : ses recettes sont visibles par tous les utilisateurs, qui peuvent les noter et les copier. Les recettes que tu montres à tes amis ne sont visibles que par eux, qui peuvent les copier ; tu peux les reprendre à tout moment. Une photo que tu partages avec un ami peut être signalée par lui ; un administrateur peut alors la supprimer.',
+            'Ce que tu montres à tes amis (ton avancée, une journée, un palier) et les défis entre amis ne sont visibles que de tes amis concernés. Rien n’est partagé sans que tu l’aies demandé, et tu peux le retirer ou quitter un défi à tout moment.',
             'Les coups de pouce entre amis sont limités à un par jour et par ami ; n’en abuse pas.',
           ],
         },
