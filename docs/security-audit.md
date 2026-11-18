@@ -1,4 +1,4 @@
-# Audit de sécurité — MyBody365 (1.0.0, revu en 1.7.1)
+# Audit de sécurité — MyBody365 (1.0.0, revu en 1.7.1 et en 1.9.0)
 
 Date : 16 novembre 2026. Périmètre : le dépôt complet (back Spring Boot, front Angular, nginx, fichiers Docker Compose), dans sa version 1.0.0 : photos, repas, notifications, amis, sauvegardes, import de recettes, noms d'utilisateur et photos de profil compris.
 
@@ -38,6 +38,23 @@ Méthode : relecture du code de chaque point d'entrée, vérification des règle
 | Info | Le trafic entre le back et SeaweedFS n'est pas chiffré | Réseau Docker interne, le service de stockage n'est jamais publié |
 
 Aucune vulnérabilité connue dans les dépendances livrées du front (`npm audit --omit=dev` : 0). Côté back, toutes les bibliothèques ajoutées sont dans leur dernière version publiée (AWS SDK 2.46.7, TwelveMonkeys 3.12.0).
+
+## Revue de la 1.9 (18 novembre 2026)
+
+Périmètre : les points d'API ajoutés en 1.9 (visibilité d'une recette, favoris, partages aux amis et leurs « Bravo », sources des aliments, recherche Ciqual seule), la migration V23, le front des partages (aperçu, image) et les vibrations.
+
+Vérifié sans constat :
+- `PUT /api/me/recipes/{id}/visibility` : propriétaire seulement (404 sinon), valeur d'une énumération (400 sinon), « Communauté » refusée à un membre comme à la création et à la modification
+- Favoris : un aliment n'est ajouté que s'il est utilisable par le compte (Ciqual, Open Food Facts, ou le sien), une recette que s'il la voit ; la liste retire d'elle-même ce qu'il ne voit plus (recette remise en privé, ami retiré). 200 favoris au plus par compte, effacés avec le compte (clé étrangère en cascade)
+- Partages aux amis : le serveur fabrique lui-même l'instantané à partir des données du compte (aucun texte venu de l'app n'est publié tel quel, en dehors des noms de repas déjà saisis par le membre), lisible par ses amis seulement, effacé après 30 jours (tâche de rétention) ou à la suppression du compte. Les kilos n'y sont que si le membre le demande ; la notification ne contient ni chiffre ni nom de repas
+- « Bravo » : réservé aux amis de l'auteur (404 pour les autres et pour l'auteur), une fois par personne, l'auteur prévenu une seule fois par ami et seulement s'il accepte les notifications des amis
+- `GET /api/foods/sources` : des comptes et des dates, aucune donnée personnelle
+- Défis : créés avec des amis seulement (403 sinon), cinq en cours au plus par compte, lus et quittés par leurs membres seulement (404 pour les autres) ; le classement ne montre que des jours réussis ou non (jamais un poids, une quantité d'eau ou un repas). La notification d'invitation ne contient aucun chiffre personnel. Effacés 60 jours après leur fin ou avec le compte
+- Palier partagé : le serveur vérifie qu'il appartient au compte et qu'il est atteint ; la récompense n'est jamais copiée dans l'instantané
+- Pesée du soir : même règles que la pesée du jour (le compte de la session, 30 à 350 kg, sept jours en arrière au plus), sauvegardée avec les autres pesées
+- L'image partagée est dessinée sur le téléphone (canvas), rien n'est envoyé à un service tiers ; le partage passe par la feuille de partage du téléphone
+- Vibrations : l'interrupteur posé sur les boutons est caché aux lecteurs d'écran (`aria-hidden`, hors tabulation) et ne fait que transmettre le tap au bouton
+- Le logo de l'Anses (Ciqual) n'est pas repris : c'est un modèle déposé ; la page « Aliments bruts » cite la source en texte
 
 ## Revue de la 1.7 (17 novembre 2026)
 

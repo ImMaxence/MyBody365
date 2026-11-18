@@ -72,6 +72,22 @@ public class RecipeController {
         }
     }
 
+    /** who sees it, without the rest of the recipe (the community stays the admins') */
+    @PutMapping("/api/me/recipes/{id}/visibility")
+    public RecipeDto visibility(@PathVariable UUID id, @RequestBody Map<String, String> body, Authentication auth) {
+        AppUser me = users.current(auth);
+        RecipeService.Visibility v;
+        try {
+            v = RecipeService.Visibility.valueOf(String.valueOf(body.get("visibility")));
+        } catch (IllegalArgumentException e) {
+            throw ApiException.badRequest("validation_failed");
+        }
+        if (v == RecipeService.Visibility.PUBLIC && !users.isAdmin(me)) {
+            throw ApiException.badRequest("community_admins_only");
+        }
+        return recipes.setVisibility(me.getId(), id, v);
+    }
+
     @DeleteMapping("/api/me/recipes/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id, Authentication auth) {

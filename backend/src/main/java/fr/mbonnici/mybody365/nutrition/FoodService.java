@@ -83,6 +83,11 @@ public class FoodService {
         return foods.search(userId, SearchText.words(query), !offLocal.local(), 30).stream().map(f -> dto(f, userId)).toList();
     }
 
+    /** the account's foods and Ciqual, without any product (the page « Aliments bruts ») */
+    public List<FoodDto> searchCiqual(UUID userId, String query) {
+        return foods.search(userId, SearchText.words(query), false, 40).stream().map(f -> dto(f, userId)).toList();
+    }
+
     /**
      * The products of Open Food Facts: in the local copy once an admin imported it (nothing leaves the
      * server), live otherwise (every product found is kept, so it can be logged right away).

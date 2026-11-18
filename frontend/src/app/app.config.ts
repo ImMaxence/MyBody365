@@ -26,7 +26,8 @@ export const appConfig: ApplicationConfig = {
     provideRouter(
       routes,
       withComponentInputBinding(),
-      withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' }),
+      // anchors only: the scroll of each screen is kept by StackNavigation, which waits for the screen to be back
+      withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'disabled' }),
       // screens slide like a phone app (push / pop), tabs cross-fade
       withViewTransitions({ skipInitialTransition: true, onViewTransitionCreated }),
     ),

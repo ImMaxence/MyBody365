@@ -8,7 +8,7 @@ import { TrackingStore } from '../../core/tracking/tracking.store';
 import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
-import { defaultWaterGoal } from './water-row.component';
+import { defaultWaterGoal } from './water-card.component';
 
 /** The glasses of water: on or off, the goal of the day, the reminders. */
 @Component({

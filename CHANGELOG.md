@@ -2,6 +2,43 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.9.0] - 2026-11-18
+
+Une recherche qui trouve tout, l'apéro et la pâtisserie, 129 recettes du quotidien, des favoris, des défis entre amis et tes amis aux premières loges
+
+### Ajouté
+- Ajouter un repas : une seule recherche dans tout à la fois, les aliments bruts de la table Ciqual (et les tiens), les recettes (les tiennes, celles de tes amis et la communauté) et les produits industriels d'Open Food Facts, en trois groupes qu'un filtre réduit à un seul
+- Deux pages rien qu'à elles : « Produits industriels » (Open Food Facts, avec le scan du code-barres) et « Aliments bruts » (la table Ciqual de l'Anses, avec « Créer un aliment »). Chacune dit d'où viennent ses données et de quand elles datent
+- Favoris : un cœur sur un aliment (au moment de l'ajouter) ou sur une recette, et tes favoris tout en haut d'« Ajouter un repas » et de tes recettes
+- À l'apéro : bière, vin, bulles, cocktails (mojito, spritz, piña colada, margarita…), alcool fort sec ou avec un soda, cidre et sans alcool, au verre près. L'alcool est compté en verres standard avec le repère de Santé publique France, sans Nutri-Score (ses règles excluent l'alcool) ; les mocktails ont le leur
+- « Plaisir », une nouvelle catégorie de recettes pour la pâtisserie et les gourmandises : Paris-Brest, éclairs, fraisier, mille-feuille, galette des rois, croissants et pains au chocolat maison, kouign-amann… Les desserts gourmands de la communauté y sont aussi
+- 129 nouvelles recettes dans la communauté : les plats de tous les jours (cordon bleu pâtes, jambon-beurre, burger frites maison, steak haché purée, croque-madame, french tacos, pâtes au poulet et à la crème…), les sandwichs, les petits-déjeuners, 46 pâtisseries et 17 boissons (cocktails, mocktails, limonade, milkshakes). Chaque ingrédient est pesé dans la table Ciqual
+- Partager une recette avec tes amis d'un geste depuis sa page, sans passer par « Modifier », et leur en envoyer le lien
+- Partager ton avancée (page Progrès) ou ta journée de repas (page Repas) avec tes amis : un aperçu d'abord, tes kilos seulement si tu le veux, puis ils la voient dans « Nouvelles de tes amis » et peuvent t'envoyer un « Bravo ». Ou envoie-la en image, prête pour WhatsApp ou Instagram
+- Défis entre amis : une pesée par jour, ton objectif d'eau, tes repas notés ou la photo du jour, pendant 7, 14 ou 30 jours, avec les amis que tu invites. Chaque journée se valide toute seule avec ce que tu notes dans l'app, et le classement montre les jours réussis de chacun. Une invitation arrive en notification et sur Aujourd'hui
+- Partager un palier atteint avec tes amis : depuis la fête du palier ou la carte des paliers. Sa récompense reste à toi, et ton poids n'y est que si tu le veux
+- Pesée du soir, facultative : à partir de 17 h, une fois pesé le matin, pour voir ce que la journée ajoute. Ta courbe, ta flamme et ton objectif suivent toujours la pesée du matin
+- Photos : d'une photo ouverte, glisse à gauche ou à droite (ou touche les flèches) pour voir la précédente ou la suivante
+- Aujourd'hui : les nouveautés de tes amis comptées sur leur ligne, et une invitation à en ajouter tant que tu n'en as pas
+- Amis et profil : un tap sur une photo de profil l'ouvre en grand, comme sur Instagram
+- Photos : un bouton pour flouter toutes tes photos d'un coup (dans le bus, à côté de quelqu'un), retenu sur ton téléphone. Elles restent visibles par défaut
+- Des vibrations sur les verres d'eau et les boutons du minuteur, et sur ses 3, 2, 1 et chaque changement de phase. Sur iPhone, iOS ne laisse vibrer une page web qu'au moment d'un tap : les boutons vibrent, les changements de phase vibrent sur Android
+
+### Modifié
+- Ajouter un repas, plus clair : « Produits industriels », « Les recettes », « Aliments bruts » et « Tu n'as pas trouvé ? » (l'ajout rapide) les uns sous les autres, tout en haut
+- Les verres d'eau refaits : de grands verres à toucher, le prochain avec un « + », l'eau qui monte avec une vague et quelques bulles. Un tap sur un verre plein le vide. Ils s'affichent tout de suite, sans attendre le réseau
+- Photo du jour : la caméra de derrière par défaut, avec le même cadrage. Ton dernier choix de caméra est retenu
+- Une recette ouverte depuis un repas dit « Ajouter au déjeuner » (ou au dîner…) plutôt qu'« Ajouter à un repas », et une fois ajoutée tu reviens directement sur tes repas
+- Recette « À la main » : un message en rouge rappelle qu'elle n'aura ni Nutri-Score ni sucres, sel ou fibres, avec un bouton pour choisir les aliments
+- Équilibre de la journée : tant que la journée n'est pas finie, seule la qualité de ce que tu as mangé est notée (Nutri-Score, sucre, sel, gras saturés), et les calories si l'objectif est déjà dépassé. La note ne monte plus avec un paquet de chips le soir
+- MyBody365 n'est plus sous licence libre : le code reste visible, tous droits réservés
+
+### Retiré
+- Minuteur : « Noter sa séance » et la comparaison des séances sur la page Repas. Le minuteur reste un minuteur, ton sport est déjà compté dans ton objectif. Les séances notées avant restent dans tes sauvegardes
+
+### Corrigé
+- Retour depuis une recette (ou tout autre écran) : la page revient là où tu l'avais laissée au lieu de remonter tout en haut, avec les recettes de la communauté déjà ouvertes par « Voir plus »
+
 ## [1.8.0] - 2026-11-17
 
 Ta série à ton image, des paliers pour t'encourager, et des recettes qui gardent tes filtres

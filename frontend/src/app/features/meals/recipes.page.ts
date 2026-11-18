@@ -6,13 +6,14 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MealsApi } from '../../core/meals/meals-api';
 import { RecipesView } from '../../core/meals/recipes-view';
+import { FavoritesStore } from '../../core/meals/favorites.store';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 import { NutriscoreComponent } from '../../shared/nutriscore.component';
 import { SegDirective } from '../../shared/seg.directive';
 
-export const RECIPE_TYPES: RecipeType[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK', 'DESSERT', 'DRINK'];
-export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH: '🥗', DINNER: '🍲', SNACK: '🍎', DESSERT: '🍰', DRINK: '🥤' };
+export const RECIPE_TYPES: RecipeType[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK', 'DESSERT', 'TREAT', 'DRINK'];
+export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH: '🥗', DINNER: '🍲', SNACK: '🍎', DESSERT: '🍰', TREAT: '🧁', DRINK: '🍹' };
 
 /** My recipes, my friends' recipes, and the community's (best first or newest, by type). */
 /** a name as compared by the search: lower case, no accents, words separated by single spaces (as the server) */
@@ -100,6 +101,16 @@ function plain(s: string): string {
         </div>
       }
 
+      <!-- 1.9: the favourite recipes (mine, my friends', the community's) above my own -->
+      @if (tab() === 'mine' && favs().length) {
+        <h2 class="group-title"><span class="heart"><app-icon name="heart" [size]="13" /></span> {{ 'meals.favorites.title' | t }} <span class="muted num">{{ favs().length }}</span></h2>
+        <div class="cards">
+          @for (r of favs(); track r.id; let i = $index) {
+            <ng-container *ngTemplateOutlet="card; context: { $implicit: r, origin: r.mine ? 'mine' : r.shared ? 'community' : 'friends', i: i }" />
+          }
+        </div>
+        <h2 class="group-title">{{ 'meals.recipe.mine' | t }}</h2>
+      }
       @if (list(); as recipes) {
         @if (recipes.length) {
           <div class="cards" [class.stale]="loading()" [attr.aria-busy]="loading()">
@@ -179,6 +190,14 @@ function plain(s: string): string {
     .filters {
       display: grid;
       gap: var(--space-3);
+    }
+    .heart {
+      display: inline-flex;
+      color: #e5484d;
+      vertical-align: -1px;
+    }
+    .heart ::ng-deep svg {
+      fill: currentColor;
     }
     .group-title {
       margin: var(--space-2) 0 calc(var(--space-2) * -1);
@@ -325,6 +344,8 @@ export class RecipesPage {
   readonly dayParam = input<string | undefined>(undefined, { alias: 'day' });
   protected readonly mealParams = computed(() => (this.slotParam() ? { slot: this.slotParam(), day: this.dayParam() ?? null } : {}));
   private readonly api = inject(MealsApi);
+  private readonly favorites = inject(FavoritesStore);
+  protected readonly favs = computed(() => this.favorites.recipes() ?? []);
 
   protected emojiOf(r: Recipe): string {
     return TYPE_EMOJI[r.type];
@@ -397,6 +418,8 @@ export class RecipesPage {
       if (n !== this.seq) return;
       this.page++;
       this.list.update((l) => [...(l ?? []), ...next.filter((r) => !l?.some((x) => x.id === r.id))]);
+      // back from a recipe, the pages already opened are there again (and the screen where it was)
+      this.seen.set(this.key(), this.list() ?? []);
       this.more.set(next.length === 30);
     } finally {
       this.loadingMore.set(false);
@@ -410,7 +433,14 @@ export class RecipesPage {
   private readonly seen = this.view.seen;
   private seq = 0;
 
+  /** the list on screen, as kept in RecipesView.seen */
+  private key(): string {
+    const tab = this.tab();
+    return [tab, tab === 'mine' ? null : this.type(), tab === 'community' ? this.sort() : ''].join('|');
+  }
+
   constructor() {
+    void this.favorites.ensure();
     // a search: every source at once; cleared: back to the tabs
     effect(() => {
       const q = this.query();
@@ -421,21 +451,25 @@ export class RecipesPage {
       const type = tab === 'mine' ? null : this.type();
       const sort = this.sort();
       const key = [tab, type, tab === 'community' ? sort : ''].join('|');
-      this.page = 0;
       const n = ++this.seq;
       const known = this.seen.get(key);
+      // the pages of the community already opened stay (« Voir plus »): back from a recipe, nothing shrinks
+      this.page = known ? Math.max(0, Math.ceil(known.length / 30) - 1) : 0;
       if (known) this.list.set(known);
-      this.more.set(tab === 'community' && (known?.length ?? 0) === 30);
+      this.more.set(tab === 'community' && (known?.length ?? 0) > 0 && (known?.length ?? 0) % 30 === 0);
       this.loading.set(!known);
       // read without tracking: the list it sets must not start it again
       const slow = untracked(this.list) === null ? setTimeout(() => n === this.seq && this.slow.set(true), 450) : null;
       const load = tab === 'mine' ? this.api.myRecipes() : tab === 'friends' ? this.api.friendsRecipes(type) : this.api.community(type, sort);
       load
         .then((r) => {
-          this.seen.set(key, r);
+          // the first page again, and the next ones as they were
+          const kept = known && known.length > r.length ? [...r, ...known.filter((x) => !r.some((y) => y.id === x.id))] : r;
+          this.seen.set(key, kept);
           if (n !== this.seq) return;
-          this.list.set(r);
-          this.more.set(tab === 'community' && r.length === 30);
+          this.list.set(kept);
+          if (kept === r) this.page = 0;
+          this.more.set(tab === 'community' && kept.length > 0 && kept.length % 30 === 0);
         })
         .catch(() => n === this.seq && this.list.set(this.list() ?? []))
         .finally(() => {

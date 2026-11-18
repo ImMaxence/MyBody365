@@ -70,9 +70,12 @@ public final class TrackingDtos {
             Double chestCm,
             Double armCm,
             Double thighCm,
-            String note) {}
+            String note,
+            /** the optional evening weigh-in (1.9) */
+            Double eveningKg) {}
 
-    public record Current(Double weightKg, LocalDate day, Double trendKg, Double bmi, Double changeKg) {}
+    /** eveningKg: the evening weigh-in of that day, if any (1.9) */
+    public record Current(Double weightKg, LocalDate day, Double trendKg, Double bmi, Double changeKg, Double eveningKg) {}
 
     /**
      * tdee: the needs the target counts on; estimatedTdee: the formula's (Mifflin-St Jeor × activity);
@@ -101,9 +104,5 @@ public final class TrackingDtos {
      */
     public record Streak(int days, boolean todayDone, List<Day> week, int best, int freezes, List<Day> calendar) {}
 
-    /** the sessions of sport noted (the timer, or by hand): this week (from Monday), the last 28 days, ever */
-    public record Training(int thisWeek, int last28, double perWeek, boolean any) {}
-
-    public record Summary(ProfileDto profile, Current current, Energy energy, Goal goal, Streak streak, List<String> warnings,
-            Training training) {}
+    public record Summary(ProfileDto profile, Current current, Energy energy, Goal goal, Streak streak, List<String> warnings) {}
 }

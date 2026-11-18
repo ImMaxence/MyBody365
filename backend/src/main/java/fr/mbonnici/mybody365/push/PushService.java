@@ -37,6 +37,10 @@ public class PushService {
             "push.apple.com", "notify.windows.com");
 
     public enum Kind { TEST, DAILY_WEIGH, DAILY_PHOTO, GYM, NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED, WATER, UPDATE, FEEDBACK, FRIEND_RECIPE,
+        /** a friend shared their progress or their day (FriendPosts), a friend cheered one of mine */
+        FRIEND_POST, FRIEND_CHEER,
+        /** a friend's challenge to join (Challenges) */
+        FRIEND_CHALLENGE,
         /** a change of phase of the workout timer while the app is off screen (TimerAlerts) */
         TIMER }
 
@@ -194,7 +198,8 @@ public class PushService {
         String url = switch (kind) {
             case DAILY_PHOTO -> "/app/photos/camera";
             case GYM -> "/app/workouts";
-            case NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED -> "/app/friends";
+            case NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED, FRIEND_POST, FRIEND_CHEER -> "/app/friends";
+            case FRIEND_CHALLENGE -> "/app/challenges";
             case UPDATE -> "/changelog";
             case FEEDBACK -> "/app/admin/feedback";
             case TIMER -> "/app/timer";
@@ -249,6 +254,27 @@ public class PushService {
                 };
                 yield new String[] {(en ? name + " sent " : name + " a envoyé ") + what, args.getOrDefault("text", "")};
             }
+            case FRIEND_POST -> switch (args.getOrDefault("kind", "PROGRESS")) {
+                case "DAY" -> en ? new String[] {name + " shared their day 🍽️", "See what they ate and cheer them on"}
+                        : new String[] {name + " partage sa journée 🍽️", "Découvre ses repas du jour, un bravo fait toujours plaisir"};
+                case "MILESTONE" -> en ? new String[] {name + " passed a milestone 🏅", "One more step towards the goal: say bravo"}
+                        : new String[] {name + " a passé un palier 🏅", "Une étape de plus vers l’objectif : un bravo ?"};
+                default -> en ? new String[] {name + " shared their progress 📈", "Open MyBody365 to see it and cheer them on"}
+                        : new String[] {name + " partage son avancée 📈", "Ouvre MyBody365 pour la voir et l’encourager"};
+            };
+            case FRIEND_CHALLENGE -> {
+                String days = args.getOrDefault("days", "7");
+                String what = switch (args.getOrDefault("kind", "WEIGH")) {
+                    case "WATER" -> en ? "your water goal every day" : "ton objectif d’eau chaque jour";
+                    case "MEALS" -> en ? "your meals noted every day" : "tes repas notés chaque jour";
+                    case "PHOTO" -> en ? "the photo of the day" : "la photo du jour";
+                    default -> en ? "a weigh-in every day" : "une pesée chaque jour";
+                };
+                yield en ? new String[] {name + " challenges you 🏆", what.substring(0, 1).toUpperCase() + what.substring(1) + " for " + days + " days: are you in?"}
+                        : new String[] {name + " te lance un défi 🏆", what.substring(0, 1).toUpperCase() + what.substring(1) + " pendant " + days + " jours : tu relèves ?"};
+            }
+            case FRIEND_CHEER -> en ? new String[] {name + " cheered you on 👏", "Bravo for what you shared: keep going"}
+                    : new String[] {name + " t’encourage 👏", "Bravo pour ce que tu as partagé, continue comme ça"};
             case FRIEND_RECIPE -> {
                 String recipe = args.getOrDefault("recipe", "");
                 yield en ? new String[] {name + " shared a recipe 🍳", recipe + ", now in your friends’ recipes"}

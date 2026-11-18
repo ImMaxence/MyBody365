@@ -10,6 +10,7 @@ import { SegDirective } from '../../shared/seg.directive';
 import { MonthlyForecastComponent } from './monthly-forecast.component';
 import { MilestonesCardComponent } from './milestones-card.component';
 import { BmiSheetComponent } from './bmi-sheet.component';
+import { ShareSheetComponent } from '../../shared/share-sheet.component';
 import { bmiBand, waistClass } from '../../core/tracking/bmi';
 
 type Range = 'm1' | 'm3' | 'all';
@@ -19,10 +20,18 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
 @Component({
   selector: 'app-progress',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MilestonesCardComponent, BmiSheetComponent, MonthlyForecastComponent, SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
+  imports: [ShareSheetComponent, MilestonesCardComponent, BmiSheetComponent, MonthlyForecastComponent, SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
   template: `
     <main class="page">
-      <header class="page-head"><h1 class="title">{{ 'progress.title' | t }}</h1></header>
+      <header class="page-head">
+        <h1 class="title">{{ 'progress.title' | t }}</h1>
+        <span class="spacer"></span>
+        <!-- 1.9: the way to the goal, shown to the friends or sent as a picture -->
+        @if (summary()) {
+          <button type="button" class="btn btn-secondary btn-s share-btn" (click)="shareSheet.open('PROGRESS')"><app-icon name="share" [size]="18" /> {{ 'friends.posts.share.progressCta' | t }}</button>
+        }
+      </header>
+      <app-share-sheet #shareSheet />
 
       @if (logs(); as all) {
         @if (hasWeights()) {
@@ -86,7 +95,7 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
             <app-monthly-forecast [fromKg]="f.from" [goalKg]="f.goal" [kgPerWeek]="f.pace" [basis]="f.basis" />
           }
 
-          <app-milestones-card />
+          <app-milestones-card (share)="shareSheet.open('MILESTONE', '', $event)" />
 
           <h2 class="section-title">{{ 'progress.history' | t }}</h2>
           <div class="list">
@@ -127,6 +136,12 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
       [sex]="summary()?.profile?.sex ?? null" [age]="summary()?.profile?.age ?? null" [waistCm]="waist()?.cm ?? null" [bodyFatPct]="bodyFat()" />
   `,
   styles: `
+    .page-head .spacer {
+      flex: 1;
+    }
+    .share-btn {
+      flex: none;
+    }
     .chart-card {
       display: grid;
       gap: var(--space-4);

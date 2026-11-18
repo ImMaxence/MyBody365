@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectAccessible, expectNoHorizontalOverflow, openApp, tab, watchErrors } from './helpers';
+import { expectAccessible, expectNoHorizontalOverflow, openApp, signIn, tab, watchErrors } from './helpers';
 
 test.describe('tracking', () => {
   test('a new account: consents, profile, plan, then day 1 of the streak', async ({ page }) => {
@@ -172,6 +172,25 @@ test.describe('tracking', () => {
     // the meals now say what the target counts on: the sport is already in it
     await tab(page, 'Repas').click();
     await expect(page.getByText(/Calculé pour une journée debout et \d+ séances? de sport par semaine/)).toBeVisible();
+  });
+
+  test('an evening weigh-in, from 5 pm, for itself (1.9)', async ({ page }) => {
+    const evening = new Date();
+    evening.setHours(18, 30, 0, 0);
+    await page.clock.setFixedTime(evening);
+    await signIn(page, 'new');
+    await page.goto('/app');
+    // weighed this morning by the onboarding: the evening one is offered
+    await page.getByRole('button', { name: /^Pesée du soir/ }).click();
+    const sheet = page.getByRole('dialog', { name: 'Pesée du soir' });
+    await expect(sheet.getByText(/0,5 à 2 kg de plus/)).toBeVisible();
+    await expect(sheet.getByText(/kg depuis ce matin/)).toBeVisible();
+    await expectAccessible(page);
+    await sheet.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByText('Pesée du soir notée')).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Pesée du soir/ })).toContainText(/\+0,8 kg depuis ce matin/);
+    // the flame and the curve keep the morning one
+    await expect(page.getByRole('button', { name: /^Pesée du jour/ })).toContainText('75');
   });
 
   test('a goal under a healthy weight is refused', async ({ page }) => {

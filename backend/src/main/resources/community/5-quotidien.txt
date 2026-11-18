@@ -1,0 +1,689 @@
+# Recettes de la communauté, 1.9 : les plats de tous les jours des Français, ceux qu'on fait en semaine sans y penser
+# (cordon bleu pâtes, jambon-beurre, burger frites maison, steak haché purée…), les sandwichs, les assiettes du soir
+# et les petits-déjeuners. Même format que les autres fichiers :
+#   = Nom | TYPES | parts
+#   code_ciqual grammes   (poids cru pour toute la recette ; le texte après les grammes n'est qu'un repère)
+#   : une étape
+
+= Cordon bleu et pâtes | LUNCH,DINNER | 2
+25089 200 cordons bleus de volaille (2)
+9810 180 pâtes (coquillettes ou penne)
+16400 10 beurre
+12118 20 emmental râpé
+11058 2 sel
+: Cuire les pâtes dans une grande casserole d'eau salée
+: Dorer les cordons bleus à la poêle, 5 à 6 minutes de chaque côté à feu moyen
+: Égoutter les pâtes, ajouter le beurre et l'emmental, servir avec les cordons bleus
+
+= Jambon-beurre | LUNCH,SNACK | 1
+7001 125 demi-baguette
+16400 15 beurre doux
+28910 80 jambon cuit (2 tranches)
+: Couper la demi-baguette dans la longueur
+: Tartiner de beurre, garnir de jambon et refermer
+
+= Burger frites maison | LUNCH,DINNER | 2
+7259 140 pains à burger (2)
+6254 260 steaks hachés 15 % (2)
+12726 40 cheddar (2 tranches)
+20031 20 salade
+20385 80 tomate
+20034 30 oignon rouge
+11004 20 cornichons
+11008 20 ketchup
+11013 10 moutarde
+4008 500 pommes de terre
+17440 15 huile
+11058 4 sel
+: Couper les pommes de terre en frites, les sécher, les mélanger à l'huile et au sel
+: Cuire les frites 30 à 35 minutes au four à 220 °C en les retournant à mi-cuisson
+: Cuire les steaks à la poêle, poser le cheddar dessus la dernière minute
+: Toaster les pains, garnir de salade, tomate, oignon, cornichons, du steak et des sauces
+
+= Croque-madame | LUNCH,DINNER | 2
+7200 160 pain de mie (4 tranches)
+28910 80 jambon cuit (2 tranches)
+12118 60 emmental râpé
+16400 15 beurre
+22000 100 œufs (2)
+: Beurrer le pain, garnir de jambon et d'emmental et refermer
+: Dorer les croques au four à 200 °C, 10 minutes
+: Cuire les œufs au plat et en poser un sur chaque croque
+
+= Nuggets de poulet maison et frites | LUNCH,DINNER | 2
+36017 300 blancs de poulet
+22000 50 œuf
+9440 30 farine
+7500 60 chapelure
+17440 20 huile
+4044 400 frites pour le four
+11008 30 ketchup
+11058 3 sel
+: Couper le poulet en morceaux, les passer dans la farine, l'œuf battu puis la chapelure
+: Les poser sur une plaque avec l'huile et cuire 20 minutes à 200 °C en les retournant
+: Cuire les frites au four en même temps, saler et servir avec le ketchup
+
+= Steak haché purée | LUNCH,DINNER | 2
+6254 260 steaks hachés 15 % (2)
+4008 500 pommes de terre
+19033 150 lait
+16400 30 beurre
+11058 4 sel
+11048 0,5 muscade
+: Cuire les pommes de terre épluchées 20 minutes dans l'eau salée
+: Les écraser avec le lait chaud, le beurre, le sel et la muscade
+: Cuire les steaks à la poêle à feu vif, 2 à 4 minutes de chaque côté
+
+= Steak haché et pâtes | LUNCH,DINNER | 2
+6254 260 steaks hachés 15 % (2)
+9810 180 pâtes
+20260 150 coulis de tomate
+12118 20 emmental râpé
+11058 2 sel
+: Cuire les pâtes dans l'eau salée
+: Cuire les steaks à la poêle et réchauffer le coulis de tomate
+: Servir les pâtes avec la sauce, l'emmental et les steaks
+
+= Saucisses frites | LUNCH,DINNER | 2
+30110 300 saucisses de Toulouse (2)
+4044 400 frites pour le four
+11013 15 moutarde
+: Piquer les saucisses et les cuire à la poêle 15 à 20 minutes à feu moyen
+: Cuire les frites au four et servir avec la moutarde
+
+= Merguez frites | LUNCH,DINNER | 2
+30150 300 merguez (6)
+4044 400 frites pour le four
+11112 10 harissa
+: Griller les merguez au barbecue ou à la poêle, 10 minutes
+: Cuire les frites au four et servir avec un peu de harissa
+
+= Knacks et purée | LUNCH,DINNER | 2
+30742 200 saucisses de Strasbourg (4)
+4008 500 pommes de terre
+19033 150 lait
+16400 25 beurre
+11058 4 sel
+: Cuire les pommes de terre épluchées dans l'eau salée et les écraser avec le lait chaud et le beurre
+: Réchauffer les saucisses 5 minutes dans l'eau frémissante, sans la faire bouillir
+
+= Purée jambon | LUNCH,DINNER | 2
+4008 500 pommes de terre
+19033 150 lait
+16400 25 beurre
+28910 160 jambon cuit (4 tranches)
+11058 4 sel
+: Cuire les pommes de terre épluchées dans l'eau salée
+: Les écraser avec le lait chaud et le beurre, saler
+: Servir avec le jambon
+
+= Pâtes jambon et crème | LUNCH,DINNER | 2
+9810 180 pâtes
+28910 120 jambon cuit en dés
+19436 100 crème légère
+12118 30 emmental râpé
+11058 2 sel
+11015 1 poivre
+: Cuire les pâtes dans l'eau salée
+: Chauffer la crème avec le jambon, poivrer
+: Mélanger aux pâtes égouttées et servir avec l'emmental
+
+= Pâtes au poulet et à la crème | LUNCH,DINNER | 2
+9810 180 pâtes
+36017 250 blancs de poulet
+20056 150 champignons de Paris
+19436 150 crème légère
+17270 10 huile d'olive
+11058 3 sel
+11015 1 poivre
+: Cuire les pâtes dans l'eau salée
+: Dorer le poulet coupé en morceaux dans l'huile, ajouter les champignons émincés
+: Verser la crème, saler, poivrer, laisser réduire 3 minutes et mélanger aux pâtes
+
+= Pâtes aux lardons et à la crème | LUNCH,DINNER | 2
+9810 180 pâtes
+28720 125 lardons fumés
+20034 60 oignon
+19436 150 crème légère
+12118 20 emmental râpé
+11015 1 poivre
+: Cuire les pâtes
+: Faire revenir les lardons et l'oignon émincé, sans matière grasse
+: Ajouter la crème, poivrer et mélanger aux pâtes, servir avec l'emmental
+
+= Pâtes au beurre et au fromage | LUNCH,DINNER | 2
+9810 200 pâtes
+16400 20 beurre
+12118 50 emmental râpé
+11058 2 sel
+: Cuire les pâtes dans l'eau salée et les égoutter
+: Mélanger avec le beurre et l'emmental, servir aussitôt
+
+= Pâtes au thon et à la crème | LUNCH,DINNER | 2
+9810 180 pâtes
+26039 140 thon au naturel
+19436 120 crème légère
+20034 50 oignon
+2028 10 jus de citron
+11058 2 sel
+11015 1 poivre
+: Cuire les pâtes
+: Faire suer l'oignon émincé, ajouter la crème, le thon émietté et le citron
+: Poivrer et mélanger aux pâtes
+
+= Gnocchis lardons et crème | LUNCH,DINNER | 2
+26264 400 gnocchis
+28720 125 lardons fumés
+19436 120 crème légère
+12120 20 parmesan
+11015 1 poivre
+: Faire revenir les lardons, ajouter les gnocchis et les dorer 5 minutes
+: Verser la crème, poivrer et servir avec le parmesan
+
+= Raviolis à la tomate | LUNCH,DINNER | 2
+25182 400 raviolis au fromage frais
+20260 200 coulis de tomate
+11033 5 basilic
+12120 20 parmesan
+: Cuire les raviolis dans l'eau bouillante salée selon le paquet
+: Réchauffer le coulis, napper les raviolis et servir avec le basilic et le parmesan
+
+= Escalope de dinde et riz | LUNCH,DINNER | 2
+36304 260 escalopes de dinde (2)
+9100 150 riz
+17270 10 huile d'olive
+19436 80 crème légère
+11013 10 moutarde
+11058 3 sel
+: Cuire le riz dans l'eau salée
+: Dorer les escalopes dans l'huile, 4 minutes de chaque côté
+: Déglacer avec la crème et la moutarde et napper la viande
+
+= Poulet riz et haricots verts | LUNCH,DINNER | 2
+36017 280 blancs de poulet
+9100 140 riz
+20061 300 haricots verts
+17270 10 huile d'olive
+11060 2 herbes de Provence
+11058 3 sel
+: Cuire le riz et les haricots verts chacun dans l'eau salée
+: Dorer le poulet dans l'huile avec les herbes, 6 minutes de chaque côté
+: Servir le tout ensemble
+
+= Poulet pané et purée | LUNCH,DINNER | 2
+36017 260 blancs de poulet
+22000 50 œuf
+7500 50 chapelure
+9440 20 farine
+17440 20 huile
+4008 500 pommes de terre
+19033 150 lait
+16400 20 beurre
+11058 4 sel
+: Aplatir le poulet, le passer dans la farine, l'œuf battu puis la chapelure
+: Le dorer à la poêle dans l'huile, 4 à 5 minutes de chaque côté
+: Préparer la purée avec les pommes de terre cuites, le lait chaud et le beurre
+
+= Cuisses de poulet et pommes de terre au four | LUNCH,DINNER | 4
+36002 1000 cuisses de poulet (4)
+4008 800 pommes de terre
+20034 150 oignons
+11000 10 ail
+17270 20 huile d'olive
+11060 3 herbes de Provence
+11058 6 sel
+: Couper les pommes de terre en quartiers et les oignons en morceaux, les mélanger à l'huile, l'ail, les herbes et le sel
+: Poser les cuisses dessus et cuire 50 minutes au four à 200 °C
+
+= Steak et haricots verts | LUNCH,DINNER | 2
+6111 300 faux-filet ou steak
+20061 400 haricots verts
+16400 10 beurre
+11000 5 ail
+11058 3 sel
+11015 1 poivre
+: Cuire les haricots verts 10 minutes dans l'eau salée et les faire revenir au beurre avec l'ail
+: Cuire la viande à la poêle bien chaude, saler, poivrer
+
+= Côte de porc, pâtes au beurre | LUNCH,DINNER | 2
+28100 320 côtes de porc (2)
+9810 180 pâtes
+16400 15 beurre
+11058 3 sel
+11015 1 poivre
+: Cuire les côtes à la poêle, 5 à 6 minutes de chaque côté
+: Cuire les pâtes et les mélanger au beurre, saler, poivrer
+
+= Escalope de veau à la crème et tagliatelles | LUNCH,DINNER | 2
+6521 260 escalopes de veau (2)
+9821 180 tagliatelles
+20056 150 champignons de Paris
+19436 150 crème légère
+16400 10 beurre
+11058 3 sel
+: Cuire les tagliatelles
+: Dorer les escalopes au beurre et les réserver, faire revenir les champignons
+: Ajouter la crème, laisser réduire et remettre les escalopes 2 minutes
+
+= Saumon, riz et brocoli | LUNCH,DINNER | 2
+26036 260 pavés de saumon (2)
+9100 140 riz
+20057 300 brocoli
+2028 10 jus de citron
+11104 10 sauce soja
+11058 2 sel
+: Cuire le riz, cuire le brocoli 6 minutes à la vapeur
+: Cuire le saumon à la poêle côté peau, 4 minutes, puis 2 minutes de l'autre côté
+: Arroser de citron et de sauce soja
+
+= Poisson pané et riz | LUNCH,DINNER | 2
+26029 250 poisson pané (4 morceaux)
+9100 140 riz
+17440 10 huile
+2028 10 jus de citron
+11058 2 sel
+: Cuire le riz dans l'eau salée
+: Dorer le poisson pané dans l'huile ou au four selon le paquet
+: Servir avec un filet de citron
+
+= Cabillaud, purée et épinards | LUNCH,DINNER | 2
+26043 300 dos de cabillaud
+4008 400 pommes de terre
+19033 120 lait
+16400 20 beurre
+20059 300 épinards
+11058 4 sel
+: Cuire les pommes de terre et les écraser avec le lait chaud et la moitié du beurre
+: Faire tomber les épinards dans le reste du beurre
+: Cuire le cabillaud 12 minutes au four à 180 °C
+
+= Thon, riz et maïs | LUNCH,DINNER | 2
+26039 140 thon au naturel
+9100 140 riz
+20066 140 maïs
+20385 150 tomates
+11110 25 vinaigrette
+: Cuire le riz et le laisser tiédir
+: Mélanger avec le thon, le maïs et les tomates en dés, assaisonner
+
+= Crevettes sautées et riz | LUNCH,DINNER | 2
+10061 300 crevettes décortiquées
+9100 140 riz
+11000 10 ail
+17270 15 huile d'olive
+11014 5 persil
+2028 10 jus de citron
+11058 2 sel
+: Cuire le riz
+: Sauter les crevettes 3 minutes dans l'huile chaude avec l'ail
+: Ajouter le persil et le citron, servir avec le riz
+
+= Omelette jambon fromage | LUNCH,DINNER,BREAKFAST | 1
+22000 150 œufs (3)
+28910 40 jambon cuit en dés
+12118 25 emmental râpé
+16400 5 beurre
+11058 1 sel
+: Battre les œufs avec le sel
+: Les verser dans la poêle beurrée, ajouter le jambon et l'emmental
+: Plier l'omelette quand elle est encore baveuse
+
+= Omelette aux pommes de terre | LUNCH,DINNER | 2
+22000 300 œufs (6)
+4008 400 pommes de terre
+20034 100 oignon
+17270 30 huile d'olive
+11058 3 sel
+: Cuire doucement les pommes de terre en fines tranches et l'oignon dans l'huile, 20 minutes
+: Mélanger aux œufs battus et salés, remettre dans la poêle à feu doux
+: Retourner l'omelette avec une assiette et cuire encore 3 minutes
+
+= Œufs au plat, jambon et frites | LUNCH,DINNER | 2
+22000 200 œufs (4)
+28910 80 jambon cuit (2 tranches)
+4044 400 frites pour le four
+16400 10 beurre
+11058 2 sel
+: Cuire les frites au four
+: Cuire les œufs au plat dans le beurre et saler
+: Servir avec le jambon et les frites
+
+= Hot-dog maison | LUNCH,DINNER,SNACK | 2
+7259 120 pains à hot-dog (2)
+30134 140 saucisses de Francfort (2)
+20034 60 oignon
+11008 20 ketchup
+11013 15 moutarde
+12726 30 cheddar
+: Réchauffer les saucisses 5 minutes dans l'eau frémissante
+: Faire revenir l'oignon émincé à la poêle
+: Garnir les pains chauds de saucisse, d'oignon, de cheddar et des sauces
+
+= French tacos maison | LUNCH,DINNER | 2
+7815 140 grandes tortillas (2)
+36017 300 blancs de poulet
+4044 250 frites pour le four
+12726 60 cheddar
+19417 80 crème liquide
+11240 30 sauce algérienne
+11005 2 curry
+: Cuire les frites au four et le poulet coupé en dés à la poêle avec le curry
+: Chauffer la crème avec le cheddar pour faire la sauce fromagère
+: Garnir les tortillas de poulet, frites, sauce algérienne et sauce fromagère
+: Plier en carré et dorer 2 minutes de chaque côté à la poêle
+
+= Panini jambon mozzarella | LUNCH,SNACK | 2
+7001 250 pain à panini ou baguette
+28910 80 jambon cuit (2 tranches)
+19590 125 mozzarella
+20385 100 tomate
+11179 20 pesto
+: Ouvrir le pain, tartiner de pesto, garnir de jambon, tomate et mozzarella
+: Dorer au grill à panini ou dans une poêle avec un poids dessus, 5 minutes
+
+= Sandwich poulet crudités | LUNCH,SNACK | 1
+7001 125 demi-baguette
+28963 60 blanc de poulet en tranches
+20031 15 salade
+20385 50 tomate
+22000 50 œuf dur
+11054 15 mayonnaise
+: Couper la baguette, tartiner de mayonnaise
+: Garnir de salade, de poulet, de tomate et d'œuf dur en rondelles
+
+= Sandwich thon mayonnaise | LUNCH,SNACK | 1
+7001 125 demi-baguette
+26039 70 thon au naturel
+11054 20 mayonnaise
+20031 15 salade
+20385 50 tomate
+: Mélanger le thon émietté et la mayonnaise
+: Garnir la baguette de salade, de tomate et du thon
+
+= Sandwich jambon fromage | LUNCH,SNACK | 1
+7001 125 demi-baguette
+16400 10 beurre
+28910 40 jambon cuit
+12115 30 emmental
+: Beurrer la baguette et la garnir de jambon et d'emmental
+
+= Sandwich saucisson beurre | LUNCH,SNACK | 1
+7001 125 demi-baguette
+16400 10 beurre
+30300 40 saucisson sec
+11004 15 cornichons
+: Beurrer la baguette, garnir de tranches de saucisson et de cornichons
+
+= Club sandwich | LUNCH,SNACK | 1
+7200 120 pain de mie (3 tranches)
+28963 60 blanc de poulet
+28727 30 bacon
+22000 50 œuf dur
+20031 15 salade
+20385 50 tomate
+11054 15 mayonnaise
+: Toaster le pain, dorer le bacon à la poêle
+: Monter en deux étages : mayonnaise, salade, poulet, bacon, tomate, œuf
+: Couper en triangles
+
+= Bagel saumon fromage frais | LUNCH,BREAKFAST | 1
+7258 90 bagel
+12068 30 fromage frais
+26037 50 saumon fumé
+20019 30 concombre
+2028 5 jus de citron
+: Couper le bagel et le toaster
+: Tartiner de fromage frais, garnir de saumon et de concombre, un filet de citron
+
+= Wrap au poulet | LUNCH,SNACK | 2
+7815 140 tortillas (2)
+36017 200 blancs de poulet
+20031 30 salade
+20385 100 tomate
+12726 40 cheddar
+19593 60 yaourt nature
+11049 2 paprika
+: Cuire le poulet en lamelles avec le paprika
+: Garnir les tortillas de yaourt, salade, tomate, poulet et cheddar, puis rouler
+
+= Tartine chèvre miel | LUNCH,SNACK | 1
+7100 80 pain de campagne (2 tranches)
+12812 60 chèvre en bûche
+31008 10 miel
+15005 10 noix
+: Poser le chèvre sur le pain et passer 5 minutes sous le grill du four
+: Arroser de miel et parsemer de noix
+
+= Croque-monsieur au four | LUNCH,DINNER | 4
+7200 320 pain de mie (8 tranches)
+28910 160 jambon cuit (4 tranches)
+12118 120 emmental râpé
+19033 200 lait
+16400 20 beurre
+9440 20 farine
+11048 0,5 muscade
+: Faire une béchamel avec le beurre, la farine et le lait, saler, ajouter la muscade
+: Monter les croques avec le jambon, un peu de béchamel et d'emmental
+: Napper du reste de béchamel et d'emmental, cuire 15 minutes à 200 °C
+
+= Galette saucisse | LUNCH,SNACK | 2
+9540 120 farine de sarrasin
+18066 220 eau
+22000 25 œuf
+16402 15 beurre demi-sel
+30110 200 saucisses (2)
+11058 2 sel
+: Mélanger la farine, l'œuf, le sel et l'eau, laisser reposer 1 heure
+: Cuire les galettes fines dans le beurre et les saucisses à la poêle
+: Rouler chaque saucisse dans une galette
+
+= Feuilleté jambon fromage | LUNCH,DINNER | 4
+23424 230 pâte feuilletée
+28910 120 jambon cuit
+12118 80 emmental râpé
+19410 60 crème fraîche
+22000 25 jaune d'œuf pour dorer
+: Étaler la pâte, la garnir à moitié de crème, de jambon et d'emmental
+: Replier, souder les bords, dorer au jaune d'œuf
+: Cuire 25 minutes à 200 °C
+
+= Tarte chèvre épinards | LUNCH,DINNER | 6
+23414 230 pâte brisée
+20059 300 épinards
+12812 150 chèvre en bûche
+22000 150 œufs (3)
+19436 200 crème légère
+11058 3 sel
+11048 0,5 muscade
+: Faire tomber les épinards à la poêle et bien les égoutter
+: Battre les œufs, la crème, le sel et la muscade
+: Garnir la pâte d'épinards et de rondelles de chèvre, verser l'appareil et cuire 35 minutes à 180 °C
+
+= Pizza jambon champignons maison | LUNCH,DINNER | 2
+37001 260 pâte à pizza
+20260 120 coulis de tomate
+28910 120 jambon cuit
+20056 120 champignons de Paris
+19590 125 mozzarella
+11060 2 herbes de Provence
+: Étaler la pâte, la garnir de coulis, de jambon, de champignons émincés et de mozzarella
+: Parsemer d'herbes et cuire 12 à 15 minutes à 240 °C
+
+= Gratin de pommes de terre au jambon | LUNCH,DINNER | 4
+4008 900 pommes de terre
+28910 200 jambon cuit
+19033 300 lait
+19436 200 crème légère
+12118 100 emmental râpé
+11000 5 ail
+11058 6 sel
+: Couper les pommes de terre en fines rondelles et le jambon en lanières
+: Les alterner dans un plat frotté d'ail, verser le lait et la crème salés
+: Couvrir d'emmental et cuire 1 heure à 180 °C
+
+= Poêlée de pommes de terre aux lardons | LUNCH,DINNER | 2
+4008 600 pommes de terre
+28720 125 lardons fumés
+20034 80 oignon
+17270 10 huile d'olive
+11014 5 persil
+11058 2 sel
+: Cuire les pommes de terre en dés 10 minutes dans l'eau salée et les égoutter
+: Les faire dorer avec les lardons et l'oignon dans l'huile, 15 minutes
+: Parsemer de persil
+
+= Pommes de terre au four et fromage blanc | LUNCH,DINNER | 2
+4008 600 grosses pommes de terre
+19501 200 fromage blanc
+11003 5 ciboulette
+20097 20 échalote
+11058 3 sel
+11015 1 poivre
+: Cuire les pommes de terre entières 1 heure au four à 200 °C, enveloppées de papier aluminium
+: Mélanger le fromage blanc, la ciboulette, l'échalote hachée, le sel et le poivre
+: Ouvrir les pommes de terre et les garnir de fromage blanc
+
+= Salade composée | LUNCH,DINNER | 2
+20031 100 salade
+20385 200 tomates
+22000 100 œufs durs (2)
+28910 80 jambon cuit
+12115 60 emmental
+20066 100 maïs
+11110 30 vinaigrette
+: Couper les tomates, les œufs, le jambon et l'emmental
+: Mélanger avec la salade et le maïs, assaisonner au moment de servir
+
+= Salade tomates mozzarella | LUNCH,DINNER | 2
+20385 400 tomates
+19590 250 mozzarella (2 boules)
+17270 20 huile d'olive
+11033 5 basilic
+11091 10 vinaigre balsamique
+11058 2 sel
+: Couper les tomates et la mozzarella en tranches, les alterner sur l'assiette
+: Arroser d'huile et de balsamique, saler et parsemer de basilic
+
+= Salade de pommes de terre | LUNCH,DINNER | 4
+4008 800 pommes de terre
+20097 40 échalotes
+11003 5 ciboulette
+11013 15 moutarde
+17130 40 huile de colza
+11018 15 vinaigre
+11058 4 sel
+: Cuire les pommes de terre dans leur peau, les éplucher tièdes et les couper
+: Mélanger avec la vinaigrette à la moutarde, l'échalote et la ciboulette
+
+= Salade de pâtes au thon | LUNCH,DINNER | 4
+9810 250 pâtes
+26039 200 thon au naturel
+20385 250 tomates
+20066 140 maïs
+20087 100 poivron rouge
+11054 40 mayonnaise
+11110 20 vinaigrette
+: Cuire les pâtes, les rafraîchir
+: Mélanger avec le thon, les légumes en dés, la mayonnaise et la vinaigrette
+
+= Riz sauté aux œufs et petits pois | LUNCH,DINNER | 2
+9100 150 riz
+22000 100 œufs (2)
+20072 150 petits pois
+28910 80 jambon en dés
+11104 20 sauce soja
+17440 15 huile
+: Cuire le riz la veille ou le laisser refroidir
+: Le faire sauter à l'huile avec les petits pois et le jambon
+: Ajouter les œufs battus, mélanger jusqu'à ce qu'ils prennent et assaisonner de sauce soja
+
+= Riz au poulet et curry | LUNCH,DINNER | 2
+9100 140 riz
+36017 280 blancs de poulet
+20034 80 oignon
+19436 120 crème légère
+11005 5 curry
+17440 10 huile
+11058 3 sel
+: Cuire le riz
+: Dorer le poulet en dés avec l'oignon dans l'huile, ajouter le curry
+: Verser la crème, saler et laisser mijoter 5 minutes
+
+= Pâtes aux légumes | LUNCH,DINNER | 2
+9810 180 pâtes
+20020 200 courgette
+20087 150 poivron rouge
+20172 150 tomates cerises
+17270 20 huile d'olive
+11000 5 ail
+12120 20 parmesan
+11058 3 sel
+: Cuire les pâtes
+: Faire revenir les légumes en dés dans l'huile avec l'ail, 10 minutes
+: Mélanger aux pâtes et servir avec le parmesan
+
+= Chili au riz | LUNCH,DINNER | 4
+6254 400 bœuf haché 15 %
+20524 400 haricots rouges cuits
+20137 400 tomates pelées
+20034 100 oignon
+20087 150 poivron rouge
+9100 250 riz
+11042 3 cumin
+11049 3 paprika
+11058 5 sel
+: Faire revenir l'oignon et le poivron, ajouter la viande et la dorer
+: Ajouter les tomates, les haricots et les épices, mijoter 30 minutes
+: Servir avec le riz cuit
+
+= Bol de céréales au lait | BREAKFAST | 1
+32031 40 céréales
+19033 200 lait
+: Verser les céréales dans un bol et ajouter le lait froid
+
+= Tartines beurre pâte à tartiner | BREAKFAST,SNACK | 1
+7001 60 baguette
+16400 5 beurre
+31032 20 pâte à tartiner
+: Couper la baguette en tartines et tartiner
+
+= Petit-déjeuner croissant et jus d'orange | BREAKFAST | 1
+7620 60 croissant
+2070 200 jus d'orange
+: Réchauffer le croissant 3 minutes au four et servir avec le jus d'orange
+
+= Œufs brouillés, bacon et toasts | BREAKFAST | 2
+22000 200 œufs (4)
+28727 60 bacon
+7200 80 pain de mie (2 tranches)
+16400 10 beurre
+11058 1 sel
+: Dorer le bacon à la poêle et toaster le pain
+: Cuire les œufs battus à feu doux dans le beurre en remuant sans cesse, saler
+
+= Fromage blanc et fruits rouges | BREAKFAST,SNACK,DESSERT | 1
+19501 150 fromage blanc
+13015 60 framboises
+13028 40 myrtilles
+31008 10 miel
+: Verser le fromage blanc dans un bol, ajouter les fruits et le miel
+
+= Tartines de confiture et beurre de cacahuète | BREAKFAST,SNACK | 1
+7110 60 pain complet (2 tranches)
+15202 15 beurre de cacahuète
+31024 15 confiture de fraise
+: Toaster le pain et tartiner de beurre de cacahuète puis de confiture
+
+= Yaourt granola et banane | BREAKFAST,SNACK | 1
+19593 125 yaourt nature
+32140 30 flocons d'avoine
+13005 100 banane
+31008 10 miel
+15000 10 amandes
+: Griller les flocons et les amandes 3 minutes à la poêle avec le miel
+: Les verser sur le yaourt avec la banane en rondelles
+
+= Compote et biscuits | SNACK,DESSERT | 1
+13038 100 compote de pomme
+24049 25 biscuits sablés au beurre (2)
+: Servir la compote avec les biscuits

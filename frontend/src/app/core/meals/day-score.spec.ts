@@ -28,11 +28,27 @@ describe('day score', () => {
   });
 
   it('leaves out what is not known and does not judge a day in progress for being under', () => {
-    const s = dayScore(day({ kcal: 900, proteinG: 56, carbsG: 101, fatG: 30 }, [entry(900)], today), today)!;
-    expect(s.ongoing).toBe(true);
-    expect(s.parts.map((p) => p.key)).toEqual(['macros']);
-    expect(s.score).toBe(10);
+    const s = dayScore(day({ kcal: 900, proteinG: 56, carbsG: 101, fatG: 30 }, [entry(900)]), today)!;
+    expect(s.ongoing).toBe(false);
+    expect(s.parts.map((p) => p.key)).toEqual(['kcal', 'macros']);
+    // today: neither the calories under the target nor the macros of a single meal, nothing else known
+    expect(dayScore(day({ kcal: 900, proteinG: 56, carbsG: 101, fatG: 30 }, [entry(900)], today), today)).toBeNull();
     expect(dayScore(day({}, []), today)).toBeNull();
+  });
+
+  it('never goes up today with crisps that reach the target (1.9)', () => {
+    // a balanced lunch rated B, rich in protein
+    const lunch = dayScore(day({ kcal: 1300, proteinG: 110, carbsG: 120, fatG: 40, sugarsG: 12, saltG: 2, satFatG: 9 }, [entry(1300, 'b')], today), today)!;
+    // then a big bag of crisps rated D: the target is reached, the fat « balances » the macros
+    const crisps = dayScore(
+      day({ kcal: 2000, proteinG: 118, carbsG: 190, fatG: 85, sugarsG: 15, saltG: 3.5, satFatG: 14 }, [entry(1300, 'b'), entry(700, 'd')], today),
+      today,
+    )!;
+    expect(lunch.parts.map((p) => p.key)).toEqual(['quality', 'nutrients']);
+    expect(crisps.score).toBeLessThan(lunch.score);
+    // well over the target, today already: the calories count
+    const over = dayScore(day({ kcal: 2600, sugarsG: 20, saltG: 3, satFatG: 15 }, [entry(2600, 'b')], today), today)!;
+    expect(over.parts.map((p) => p.key)).toContain('kcal');
   });
 });
 

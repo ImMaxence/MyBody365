@@ -55,6 +55,91 @@ export function normalizeUsername(text: string): string | null {
   return /^[a-z0-9._]{3,20}$/.test(u) ? u : null;
 }
 
+/** when the friends' news were last looked at, on this phone (the Today screen counts the newer ones) */
+export const POSTS_SEEN_KEY = 'mb.postsSeen';
+
+/** what a member shows their friends (1.9), a snapshot made by the server when shared */
+export type PostKind = 'PROGRESS' | 'DAY' | 'MILESTONE';
+
+export interface ProgressData {
+  weights: boolean;
+  startKg?: number | null;
+  currentKg?: number | null;
+  goalKg?: number | null;
+  changeKg: number;
+  losing: boolean;
+  progressPct: number;
+  reached: boolean;
+  streak: number;
+  days: number;
+}
+
+export interface DayData {
+  kcal: number;
+  targetKcal?: number | null;
+  proteinG?: number | null;
+  carbsG?: number | null;
+  fatG?: number | null;
+  lines: { slot: string; name: string; kcal: number; nutriscore?: string | null }[];
+  more: number;
+}
+
+/** a milestone reached (its reward stays private) */
+export interface MilestoneData {
+  weights: boolean;
+  targetKg?: number | null;
+  changeKg: number;
+  losing: boolean;
+  reachedOn: string;
+  reached: number;
+  total: number;
+  streak: number;
+}
+
+export interface Post {
+  /** null: a preview, nothing saved */
+  id: string | null;
+  kind: PostKind;
+  day: string;
+  createdAt: string;
+  author: { id: string; name: string; avatarUrl?: string };
+  mine: boolean;
+  data: ProgressData | DayData | MilestoneData;
+  cheers: number;
+  cheered: boolean;
+}
+
+/** a challenge between friends (1.9): something to do every day, read from what the app keeps */
+export type ChallengeKind = 'WEIGH' | 'WATER' | 'MEALS' | 'PHOTO';
+export const CHALLENGE_EMOJI: Record<ChallengeKind, string> = { WEIGH: '⚖️', WATER: '💧', MEALS: '🍽️', PHOTO: '📸' };
+
+export interface ChallengeMember {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  status: 'INVITED' | 'JOINED' | 'DECLINED';
+  me: boolean;
+  /** days done so far, one flag a day from the start */
+  done: number;
+  days: boolean[];
+  /** among the joined ones (ties share it); 0 for the invited */
+  rank: number;
+}
+
+export interface Challenge {
+  id: string;
+  kind: ChallengeKind;
+  startDay: string;
+  endDay: string;
+  length: number;
+  elapsed: number;
+  ended: boolean;
+  owner: boolean;
+  ownerName: string;
+  myStatus: 'INVITED' | 'JOINED' | 'DECLINED' | null;
+  members: ChallengeMember[];
+}
+
 export interface FriendsView {
   friends: Friend[];
   sharedWithMe: SharedPhoto[];
@@ -155,6 +240,47 @@ export class FriendsApi {
 
   unshare(photoId: string, friendId: string): Promise<void> {
     return firstValueFrom(this.http.delete<void>(`/api/me/photos/${photoId}/shares/${friendId}`));
+  }
+
+  // ── shared with friends (1.9) ──────────────────────────────────────────────
+  /** what my friends would see (preview), or shown to them for real */
+  sharePost(kind: PostKind, opts: { weights?: boolean; day?: string; preview?: boolean; milestoneId?: string }): Promise<Post> {
+    return firstValueFrom(this.http.post<Post>('/api/me/posts', { kind, ...opts }));
+  }
+
+  myPosts(): Promise<Post[]> {
+    return firstValueFrom(this.http.get<Post[]>('/api/me/posts'));
+  }
+
+  unsharePost(id: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`/api/me/posts/${id}`));
+  }
+
+  friendsPosts(): Promise<Post[]> {
+    return firstValueFrom(this.http.get<Post[]>('/api/friends/posts'));
+  }
+
+  cheer(id: string, on: boolean): Promise<Post> {
+    const url = `/api/friends/posts/${id}/cheer`;
+    return firstValueFrom(on ? this.http.put<Post>(url, null) : this.http.delete<Post>(url));
+  }
+
+  // ── challenges (1.9) ─────────────────────────────────────────────────────
+  challenges(): Promise<Challenge[]> {
+    return firstValueFrom(this.http.get<Challenge[]>('/api/me/challenges'));
+  }
+
+  createChallenge(kind: ChallengeKind, days: number, friends: string[]): Promise<Challenge> {
+    return firstValueFrom(this.http.post<Challenge>('/api/me/challenges', { kind, days, friends }));
+  }
+
+  respondChallenge(id: string, join: boolean): Promise<Challenge> {
+    return firstValueFrom(this.http.post<Challenge>(`/api/me/challenges/${id}/${join ? 'join' : 'decline'}`, null));
+  }
+
+  /** the owner stops it for everyone, a member leaves it */
+  leaveChallenge(id: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`/api/me/challenges/${id}`));
   }
 
   report(type: 'RECIPE' | 'PHOTO', targetId: string, reason: ReportReason, comment: string): Promise<void> {

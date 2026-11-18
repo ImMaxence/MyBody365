@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRe
 import { errorCode } from '../../core/api/api.service';
 import type { Pose } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { readPref, writePref } from '../../core/ui/device-prefs';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { StackNavigation } from '../../core/nav/stack-navigation';
 import { prepareImage } from '../../core/photos/image-tools';
@@ -17,6 +18,9 @@ const TIMERS = [0, 3, 10] as const;
  * The daily photo, full screen: the live camera with the last photo of the same pose as an overlay
  * (same framing every day), a self-timer to step back, then a preview before keeping it.
  */
+/** the camera last used on this phone */
+const FACING_KEY = 'mb.cameraFacing';
+
 @Component({
   selector: 'app-camera',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -375,7 +379,8 @@ export class CameraPage {
   protected readonly poses = POSES;
   protected readonly state = signal<State>('starting');
   protected readonly pose = signal<Pose>('FRONT');
-  protected readonly facing = signal<'user' | 'environment'>('user');
+  /** the back camera unless the front one was chosen last time on this phone (1.9: the back one is the better one) */
+  protected readonly facing = signal<'user' | 'environment'>(readPref(FACING_KEY) === 'user' ? 'user' : 'environment');
   protected readonly timer = signal<(typeof TIMERS)[number]>(3);
   protected readonly ghostOn = signal(true);
   protected readonly countdown = signal(0);
@@ -436,6 +441,7 @@ export class CameraPage {
   protected flip(): void {
     this.swapped = false;
     this.facing.set(this.facing() === 'user' ? 'environment' : 'user');
+    writePref(FACING_KEY, this.facing());
     void this.start();
   }
 

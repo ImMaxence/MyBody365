@@ -106,6 +106,15 @@ interface Line {
         </div>
         @if (mode() === 'manual') {
           <div class="manual">
+            <!-- 1.9: by hand, the recipe has no Nutri-Score and half its nutrients: said in red, with the way back -->
+            <div class="manual-warn" role="note">
+              <app-icon name="alert" [size]="20" />
+              <div>
+                <p class="small"><b>{{ 'meals.recipe.mode.warnTitle' | t }}</b></p>
+                <p class="small">{{ 'meals.recipe.mode.warn' | t }}</p>
+                <button type="button" class="btn btn-s warn-btn" (click)="mode.set('computed')"><app-icon name="search" [size]="16" /> {{ 'meals.recipe.mode.useFoods' | t }}</button>
+              </div>
+            </div>
             <div class="field">
               <label class="label" for="r-lines">{{ 'meals.recipe.mode.lines' | t }}</label>
               <textarea class="textarea" id="r-lines" name="lines" rows="6" maxlength="8000" [placeholder]="'meals.recipe.mode.linesPlaceholder' | t" [(ngModel)]="ingredientText"></textarea>
@@ -388,6 +397,28 @@ interface Line {
       display: grid;
       gap: var(--space-3);
       animation: hint-in 300ms var(--ease-out) both;
+    }
+    .manual-warn {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: var(--radius-m);
+      background: var(--danger-soft);
+      border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+      color: var(--danger);
+    }
+    .manual-warn p {
+      margin: 0 0 4px;
+    }
+    .manual-warn app-icon {
+      flex: none;
+      margin-top: 1px;
+    }
+    .warn-btn {
+      margin-top: 6px;
+      background: var(--danger);
+      color: #fff;
     }
     .macro-row {
       display: grid;

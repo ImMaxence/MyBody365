@@ -206,7 +206,8 @@ export interface StreakDay {
 
 export interface Summary {
   profile: BodyProfile;
-  current: { weightKg?: number; day?: string; trendKg: number; bmi: number; changeKg?: number };
+  /** eveningKg: the optional evening weigh-in of that day (1.9) */
+  current: { weightKg?: number; day?: string; trendKg: number; bmi: number; changeKg?: number; eveningKg?: number };
   /**
    * tdee: what the target counts on; estimatedTdee: the formula's; realTdee: from the member's meals and weigh-ins
    * of the last 4 weeks (realDays: the days fully noted), when there are enough; adaptive: the target counts on it
@@ -233,7 +234,6 @@ export interface Summary {
   streak: { days: number; todayDone: boolean; week: StreakDay[]; best: number; freezes: number; calendar: StreakDay[] };
   warnings: string[];
   /** the sessions of sport noted (timer, or by hand) */
-  training: { thisWeek: number; last28: number; perWeek: number; any: boolean };
 }
 
 export interface LogInput {
@@ -250,6 +250,8 @@ export interface LogInput {
 export interface BodyLogEntry extends LogInput {
   day: string;
   trendKg?: number;
+  /** the optional evening weigh-in (1.9) */
+  eveningKg?: number;
 }
 
 // ── photos (0.3) ─────────────────────────────────────────────────────────────
@@ -423,7 +425,8 @@ export interface RecentItem {
   quick?: Nutrients;
 }
 
-export type RecipeType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'DESSERT' | 'DRINK';
+/** TREAT (1.9): « Plaisir », pastries and treats */
+export type RecipeType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'DESSERT' | 'TREAT' | 'DRINK';
 
 export interface Recipe {
   id: string;
@@ -521,6 +524,23 @@ export interface FoodsOverview {
   /** when the local copy of Open Food Facts was last imported (none: asked live) */
   offLocalAt?: string;
   offImports: OffImport[];
+}
+
+/** where the foods come from (the pages « Produits industriels » and « Aliments bruts ») */
+export interface FoodSources {
+  ciqualVersion?: string;
+  ciqualFoods: number;
+  /** when the Ciqual table was last imported or checked */
+  ciqualAt?: string;
+  /** the local copy of Open Food Facts (none: asked live) */
+  offLocalAt?: string;
+  offProducts: number;
+}
+
+/** favourite foods and recipes, the newest first */
+export interface Favorites {
+  foods: Food[];
+  recipes: Recipe[];
 }
 
 export interface OffImport {

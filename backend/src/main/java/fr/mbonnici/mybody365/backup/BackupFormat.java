@@ -53,7 +53,8 @@ final class BackupFormat {
             "created_at", Type.TIMESTAMP));
 
     static final Table LOGS = new Table("body_log", cols("day", Type.DATE, "weight_kg", Type.NUM, "body_fat_pct", Type.NUM, "waist_cm",
-            Type.NUM, "hips_cm", Type.NUM, "chest_cm", Type.NUM, "arm_cm", Type.NUM, "thigh_cm", Type.NUM, "note", Type.TEXT));
+            Type.NUM, "hips_cm", Type.NUM, "chest_cm", Type.NUM, "arm_cm", Type.NUM, "thigh_cm", Type.NUM, "note", Type.TEXT,
+            "evening_weight_kg", Type.NUM));
 
     static final Table FOODS = new Table("food", cols("id", Type.UUID, "name", Type.TEXT, "brand", Type.TEXT, "kcal", Type.NUM,
             "protein_g", Type.NUM, "carbs_g", Type.NUM, "sugars_g", Type.NUM, "fat_g", Type.NUM, "sat_fat_g", Type.NUM, "fiber_g", Type.NUM,

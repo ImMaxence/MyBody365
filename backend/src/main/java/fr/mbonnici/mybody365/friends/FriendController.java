@@ -29,11 +29,92 @@ public class FriendController {
     private final FriendService friends;
     private final ReportService reports;
     private final UserService users;
+    private final FriendPosts posts;
+    private final Challenges challenges;
 
-    public FriendController(FriendService friends, ReportService reports, UserService users) {
+    public FriendController(FriendService friends, ReportService reports, UserService users, FriendPosts posts, Challenges challenges) {
         this.friends = friends;
         this.reports = reports;
         this.users = users;
+        this.posts = posts;
+        this.challenges = challenges;
+    }
+
+    // ── challenges between friends (1.9) ─────────────────────────────────────
+
+    @GetMapping("/api/me/challenges")
+    public List<Challenges.ChallengeDto> myChallenges(Authentication auth) {
+        return challenges.mine(users.current(auth).getId());
+    }
+
+    @PostMapping("/api/me/challenges")
+    @org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.CREATED)
+    public Challenges.ChallengeDto createChallenge(@jakarta.validation.Valid @RequestBody Challenges.CreateInput body, Authentication auth) {
+        return challenges.create(users.current(auth).getId(), body);
+    }
+
+    @PostMapping("/api/me/challenges/{id}/join")
+    public Challenges.ChallengeDto joinChallenge(@PathVariable UUID id, Authentication auth) {
+        return challenges.respond(users.current(auth).getId(), id, true);
+    }
+
+    @PostMapping("/api/me/challenges/{id}/decline")
+    public Challenges.ChallengeDto declineChallenge(@PathVariable UUID id, Authentication auth) {
+        return challenges.respond(users.current(auth).getId(), id, false);
+    }
+
+    /** the owner calls it off, a member leaves it */
+    @DeleteMapping("/api/me/challenges/{id}")
+    @org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+    public void leaveChallenge(@PathVariable UUID id, Authentication auth) {
+        challenges.leave(users.current(auth).getId(), id);
+    }
+
+    // ── what one shows one's friends (1.9) ───────────────────────────────────
+
+    public record ShareInput(FriendPosts.Kind kind, Boolean weights, java.time.LocalDate day, Boolean preview, UUID milestoneId) {}
+
+    @PostMapping("/api/me/posts")
+    public FriendPosts.PostDto share(@RequestBody ShareInput body, Authentication auth) {
+        UUID me = users.current(auth).getId();
+        if (body == null || body.kind() == null) {
+            throw fr.mbonnici.mybody365.common.ApiException.badRequest("validation_failed");
+        }
+        boolean weights = Boolean.TRUE.equals(body.weights());
+        if (Boolean.TRUE.equals(body.preview())) {
+            return posts.preview(me, body.kind(), weights, body.day(), body.milestoneId());
+        }
+        return switch (body.kind()) {
+            case PROGRESS -> posts.shareProgress(me, weights);
+            case DAY -> posts.shareDay(me, body.day());
+            case MILESTONE -> posts.shareMilestone(me, body.milestoneId(), weights);
+        };
+    }
+
+    @GetMapping("/api/me/posts")
+    public List<FriendPosts.PostDto> myPosts(Authentication auth) {
+        return posts.mine(users.current(auth).getId());
+    }
+
+    @DeleteMapping("/api/me/posts/{id}")
+    @org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+    public void unshare(@PathVariable UUID id, Authentication auth) {
+        posts.delete(users.current(auth).getId(), id);
+    }
+
+    @GetMapping("/api/friends/posts")
+    public List<FriendPosts.PostDto> friendsPosts(Authentication auth) {
+        return posts.ofFriends(users.current(auth).getId());
+    }
+
+    @PutMapping("/api/friends/posts/{id}/cheer")
+    public FriendPosts.PostDto cheer(@PathVariable UUID id, Authentication auth) {
+        return posts.cheer(users.current(auth).getId(), id);
+    }
+
+    @DeleteMapping("/api/friends/posts/{id}/cheer")
+    public FriendPosts.PostDto uncheer(@PathVariable UUID id, Authentication auth) {
+        return posts.uncheer(users.current(auth).getId(), id);
     }
 
     @GetMapping("/api/me/friends")

@@ -7,6 +7,10 @@ import { formatBytes } from '../../core/photos/image-tools';
 import { POSES, PhotosStore } from '../../core/photos/photos.store';
 import { IconComponent } from '../../shared/icon.component';
 import { SegDirective } from '../../shared/seg.directive';
+import { readPref, writePref } from '../../core/ui/device-prefs';
+
+/** the photos blurred on this phone (1.9): a choice kept here only, visible by default */
+const BLUR_KEY = 'mb.photosBlurred';
 
 interface Month {
   key: string;
@@ -20,10 +24,15 @@ interface Month {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [SegDirective, RouterLink, TranslatePipe, IconComponent],
   template: `
-    <main class="page">
+    <main class="page" [class.blurred]="blurred()">
       <header class="page-head">
         <h1 class="title">{{ 'photos.title' | t }}</h1>
         <span class="spacer"></span>
+        <!-- blurred in public (the bus, a friend next to you): one tap, kept on this phone -->
+        <button type="button" class="icon-btn blur-btn" [class.on]="blurred()" [attr.aria-pressed]="blurred()"
+          [attr.aria-label]="(blurred() ? 'photos.blur.off' : 'photos.blur.on') | t" (click)="toggleBlur()">
+          <app-icon [name]="blurred() ? 'eyeOff' : 'eye'" />
+        </button>
         @if (canCompare()) {
           <a routerLink="/app/photos/compare" class="icon-btn" [attr.aria-label]="'photos.compare' | t"><app-icon name="columns" /></a>
           <a routerLink="/app/photos/timelapse" class="icon-btn" [attr.aria-label]="'photos.timelapse' | t"><app-icon name="film" /></a>
@@ -50,6 +59,9 @@ interface Month {
         </a>
       }
 
+      @if (blurred()) {
+        <p class="blur-note small muted"><app-icon name="eyeOff" [size]="15" /> {{ 'photos.blur.note' | t }}</p>
+      }
       @if (store.photos(); as all) {
         @if (all.length) {
           <div class="seg" role="group" [attr.aria-label]="'photos.title' | t">
@@ -103,6 +115,39 @@ interface Month {
   styles: `
     .spacer {
       flex: 1;
+    }
+    .blur-btn {
+      transition:
+        background-color var(--dur-2),
+        color var(--dur-2);
+    }
+    .blur-btn.on {
+      background: var(--accent-soft);
+      color: var(--accent-text);
+    }
+    /* blurred: still there (the grid keeps its shape), opened with a tap as usual */
+    .page .tile img,
+    .page .today img {
+      transition:
+        filter 320ms var(--ease-out),
+        transform var(--dur-3) var(--ease-out);
+    }
+    .blurred .tile img {
+      filter: blur(14px) saturate(0.6);
+      transform: scale(1.15);
+    }
+    .blurred .today img {
+      filter: blur(8px) saturate(0.6);
+      clip-path: inset(0 round 14px);
+    }
+    .blurred .tile:active img {
+      transform: scale(1.2);
+    }
+    .blur-note {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: calc(var(--space-2) * -1) 0 0;
     }
     .today {
       display: flex;
@@ -294,6 +339,15 @@ export class PhotosPage {
     const lang = this.i18n.lang();
     return this.i18n.t('photos.storage', { used: formatBytes(s.usedBytes, lang), quota: formatBytes(s.quotaBytes, lang) });
   });
+
+  /** blurred on this phone or not (visible by default) */
+  protected readonly blurred = signal(readPref(BLUR_KEY) === '1');
+
+  protected toggleBlur(): void {
+    const on = !this.blurred();
+    this.blurred.set(on);
+    writePref(BLUR_KEY, on ? '1' : null);
+  }
 
   constructor() {
     void this.store.load().catch(() => this.store.photos.set(this.store.photos() ?? []));

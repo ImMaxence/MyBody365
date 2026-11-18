@@ -163,6 +163,12 @@ export class ApiService {
     return firstValueFrom(this.http.put<Summary>(`/api/me/logs/${day}`, input));
   }
 
+  /** the optional evening weigh-in of a day; null takes it off (1.9) */
+  saveEvening(day: string, weightKg: number | null): Promise<Summary> {
+    const url = `/api/me/logs/${day}/evening`;
+    return firstValueFrom(weightKg == null ? this.http.delete<Summary>(url) : this.http.put<Summary>(url, { weightKg }));
+  }
+
   deleteLog(day: string): Promise<void> {
     return firstValueFrom(this.http.delete<void>(`/api/me/logs/${day}`));
   }

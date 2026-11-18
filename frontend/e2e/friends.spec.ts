@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { expectAccessible, signIn, watchErrors } from './helpers';
+import { expectAccessible, press, signIn, watchErrors } from './helpers';
 import { makePng } from './png';
 
 async function csrf(page: Page): Promise<string> {
@@ -129,5 +129,84 @@ test.describe('friends', () => {
     await expect(admin.getByText('Signalement traité')).toBeVisible();
     await adminCtx.close();
     expect((await page.request.get(photo.url)).status()).toBe(404);
+  });
+
+  test('a challenge between two friends, taken up from Today (1.9)', async ({ page, browser }) => {
+    const errors = watchErrors(page);
+    await signIn(page, 'new');
+    const url = await inviteUrl(page);
+    const other = await browser.newContext({ ...test.info().project.use });
+    const friend = await other.newPage();
+    await signIn(friend, 'new');
+    const res = await friend.request.post('/api/me/friends/accept', {
+      headers: { 'X-XSRF-TOKEN': await csrf(friend) },
+      data: { token: url.slice(url.indexOf('#') + 1) },
+    });
+    expect(res.status()).toBe(200);
+
+    // what, how long, with whom
+    await page.goto('/app/friends');
+    await page.getByRole('link', { name: /^Défis entre amis/ }).click();
+    await expect(page.getByRole('heading', { name: 'Défis', level: 1 })).toBeVisible();
+    await press(page.getByRole('button', { name: 'Lancer un défi' }));
+    const sheet = page.getByRole('dialog', { name: 'Nouveau défi' });
+    await sheet.getByRole('radio', { name: /Une pesée par jour/ }).click();
+    await sheet.getByRole('radio', { name: '14 jours' }).click();
+    await sheet.locator('.friend').first().click();
+    await expectAccessible(page);
+    await sheet.getByRole('button', { name: 'Lancer le défi' }).click();
+    await expect(page.getByText('Défi lancé, tes amis sont invités')).toBeVisible();
+    // the morning weigh-in of the onboarding already counts: day 1 done
+    const card = page.locator('section.ch').first();
+    await expect(card).toContainText('Jour 1 sur 14');
+    await expect(card.locator('.member.me .score')).toContainText('1/14');
+
+    // the friend: an invitation on Today, taken up
+    await friend.goto('/app');
+    await friend.getByRole('link', { name: /te lance un défi/ }).click();
+    await friend.getByRole('button', { name: 'Relever le défi' }).click();
+    await expect(friend.getByText('C’est parti, bon courage')).toBeVisible();
+    await expect(friend.locator('section.ch .member')).toHaveCount(2);
+    await expectAccessible(friend);
+    await other.close();
+    expect(errors).toEqual([]);
+  });
+
+  test('my progress shown to a friend, who cheers it (1.9)', async ({ page, browser }) => {
+    const errors = watchErrors(page);
+    await signIn(page, 'new');
+    const url = await inviteUrl(page);
+    const other = await browser.newContext({ ...test.info().project.use });
+    const friend = await other.newPage();
+    await signIn(friend, 'new');
+    const res = await friend.request.post('/api/me/friends/accept', {
+      headers: { 'X-XSRF-TOKEN': await csrf(friend) },
+      data: { token: url.slice(url.indexOf('#') + 1) },
+    });
+    expect(res.status()).toBe(200);
+
+    // the preview first (no weight unless asked), then to the friends
+    await page.goto('/app/progress');
+    await page.getByRole('button', { name: 'Partager', exact: true }).click();
+    const sheet = page.getByRole('dialog', { name: 'Partager mon avancée' });
+    await expect(sheet.getByText('Voici ce que tes amis verront')).toBeVisible();
+    await expect(sheet.locator('app-post-card')).toBeVisible();
+    await expect(sheet.getByText(/ kg$/).first()).toBeVisible();
+    await expectAccessible(page);
+    await sheet.getByRole('button', { name: 'Partager avec mes amis' }).click();
+    await expect(page.getByText('Partagé avec tes amis')).toBeVisible();
+
+    // the friend: a new one on Today, then in the news, « Bravo »
+    await friend.goto('/app');
+    await expect(friend.getByText('1 nouveauté de tes amis')).toBeVisible();
+    await friend.goto('/app/friends');
+    await expect(friend.getByRole('heading', { name: 'Nouvelles de tes amis' })).toBeVisible();
+    const bravo = friend.locator('app-post-card').getByRole('button', { name: /Bravo/ });
+    await press(bravo);
+    await expect(bravo).toHaveAttribute('aria-pressed', 'true');
+    await expect(bravo).toContainText('1');
+    await expectAccessible(friend);
+    await other.close();
+    expect(errors).toEqual([]);
   });
 });

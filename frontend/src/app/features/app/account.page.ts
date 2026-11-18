@@ -19,6 +19,7 @@ import { PushPromptComponent } from '../../shared/push-prompt.component';
 import { FeedbackKind, SupportApi, TodoStore } from '../../core/support/support-api';
 import { SITE } from '../../core/site';
 import { AvatarImgComponent } from '../../shared/avatar-img.component';
+import { AvatarZoom } from '../../shared/avatar-zoom';
 
 @Component({
   selector: 'app-account',
@@ -29,7 +30,7 @@ import { AvatarImgComponent } from '../../shared/avatar-img.component';
       <header class="page-head"><h1 class="title">{{ 'account.title' | t }}</h1></header>
 
       <section class="who card">
-        <button type="button" class="avatar big avatar-btn" [class.busy]="photoBusy()" [attr.aria-label]="'account.photoChange' | t" (click)="photoDialog.showModal()">
+        <button type="button" class="avatar big avatar-btn" [class.busy]="photoBusy()" [attr.aria-label]="(account()?.avatarUrl ? 'account.photoZoom' : 'account.photoChange') | t" (click)="avatarTap($any($event.currentTarget))">
           @for (s of [account()?.avatarUrl]; track s) {
             <app-avatar-img [src]="s" [name]="account()?.displayName" [size]="64" />
           }
@@ -426,6 +427,18 @@ export class AccountPage {
   private readonly router = inject(Router);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('deleteDialog');
   private readonly photoSheet = viewChild.required<ElementRef<HTMLDialogElement>>('photoDialog');
+  private readonly zoom = inject(AvatarZoom);
+
+  /** one's own picture opens big (with its « Changer » under it); without one, the choice of a picture */
+  protected avatarTap(button: HTMLElement): void {
+    const a = this.account();
+    const img = button.querySelector('img');
+    if (!a?.avatarUrl || !img) {
+      this.photoSheet().nativeElement.showModal();
+      return;
+    }
+    this.zoom.open(button, a.avatarUrl, a.displayName, { label: this.i18n.t('account.photoChange'), run: () => this.photoSheet().nativeElement.showModal() });
+  }
   private readonly usernameSheet = viewChild.required<ElementRef<HTMLDialogElement>>('usernameDialog');
   private readonly feedbackSheet = viewChild.required<ElementRef<HTMLDialogElement>>('feedbackDialog');
   protected readonly todo = inject(TodoStore);

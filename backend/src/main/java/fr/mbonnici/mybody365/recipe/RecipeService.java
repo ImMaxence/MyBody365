@@ -46,7 +46,8 @@ public class RecipeService {
     public static final int IMAGE_SIDE = 1200;
     public static final int THUMB_SIDE = 400;
 
-    public enum Type { BREAKFAST, LUNCH, DINNER, SNACK, DESSERT, DRINK }
+    /** TREAT (1.9): « Plaisir », the pastries and the treats */
+    public enum Type { BREAKFAST, LUNCH, DINNER, SNACK, DESSERT, TREAT, DRINK }
 
     /** who sees a recipe besides its owner: nobody, the friends, every member */
     public enum Visibility { PRIVATE, FRIENDS, PUBLIC }
@@ -68,7 +69,7 @@ public class RecipeService {
             /** where the recipe comes from (the page it was imported from) */
             @Size(max = 500) String sourceUrl,
             /** every meal it is for, the main one (type) counting anyway; null: the main one only */
-            @Size(max = 6) List<Type> types) {
+            @Size(max = 7) List<Type> types) {
 
         /** the main type first, then the others in the usual order, each once: "BREAKFAST,SNACK" */
         String allTypes() {
@@ -363,6 +364,22 @@ public class RecipeService {
                 perServing.sugarsG(), perServing.fatG(), perServing.satFatG(), perServing.fiberG(), perServing.saltG(), grams / in.servings(), grade,
                 in.resolved() == Visibility.PUBLIC, wasShared, id);
         jdbc.update("update recipe set manual_nutrition = false, ingredient_lines = null, source_url = ? where id = ?", source(in.sourceUrl()), id);
+    }
+
+    /**
+     * Who sees one of my recipes, changed on its own (1.9: « Partager avec mes amis » on the recipe, without opening the
+     * editor). Shown to the friends for the first time, it is announced to them like a new one.
+     */
+    @Transactional
+    public RecipeDto setVisibility(UUID userId, UUID id, Visibility visibility) {
+        own(userId, id);
+        boolean pub = visibility == Visibility.PUBLIC;
+        jdbc.update("""
+                update recipe set visibility = ?, shared = ?, updated_at = now(),
+                  shared_at = case when ? and not shared then now() else shared_at end
+                where id = ?""", visibility.name(), pub, pub, id);
+        news.saved(userId, id);
+        return dto(row(id), userId, true);
     }
 
     @Transactional

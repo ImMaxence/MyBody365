@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectAccessible, expectNoHorizontalOverflow, signIn, tab, watchErrors } from './helpers';
+import { expectAccessible, expectNoHorizontalOverflow, signIn, tab, watchErrors, press } from './helpers';
 
 test.describe('engagement', () => {
   test('the flame sheet: record, freezes and the last 28 days', async ({ page }) => {
@@ -47,8 +47,6 @@ test.describe('engagement', () => {
     const updates = page.getByRole('switch', { name: /Nouveautés de l’app/ });
     await expect(updates).toBeChecked();
     await updates.uncheck();
-    // the Sunday summary: on by default
-    await expect(page.getByRole('switch', { name: /Bilan du dimanche/ })).toBeChecked();
     // water reminders wait for the glasses of water
     await expect(page.getByRole('switch', { name: /Pense à boire/ })).toBeDisabled();
     await expectNoHorizontalOverflow(page);
@@ -66,7 +64,7 @@ test.describe('engagement', () => {
     await page.getByRole('button', { name: 'Tabata' }).click();
     await expect(page.getByRole('button', { name: 'Tabata' })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByText('Durée totale : 3:50')).toBeVisible();
-    await page.getByRole('button', { name: 'Plus : Tours' }).click();
+    await press(page.getByRole('button', { name: 'Plus : Tours' }));
     await expect(page.getByText('Durée totale : 4:20')).toBeVisible();
     // a value typed rather than stepped to: 45 s of effort
     await page.getByRole('button', { name: 'Saisir Effort : 0:20' }).click();
@@ -78,12 +76,12 @@ test.describe('engagement', () => {
     // what the timer is, and is not
     await expect(page.getByText(/n’ajoute pas de calories à manger/)).toBeVisible();
     await expectAccessible(page);
-    await page.getByRole('button', { name: 'Démarrer' }).click();
+    await press(page.getByRole('button', { name: 'Démarrer' }));
     const timer = page.getByRole('timer');
     await expect(timer).toHaveAttribute('aria-label', /^Prêt/);
-    await page.getByRole('button', { name: 'Pause' }).click();
+    await press(page.getByRole('button', { name: 'Pause' }));
     await expect(page.getByRole('button', { name: 'Reprendre' })).toBeVisible();
-    await page.getByRole('button', { name: 'Passer à la suite' }).click();
+    await press(page.getByRole('button', { name: 'Passer à la suite' }));
     await expect(timer).toHaveAttribute('aria-label', /^Effort/);
     await expect(page.getByText('Tour 1 sur 9', { exact: true })).toBeVisible();
     await expectNoHorizontalOverflow(page);
@@ -97,7 +95,7 @@ test.describe('engagement', () => {
     await expect(page.getByRole('heading', { name: 'Minuteur', level: 1 })).toBeVisible();
     await expect(timer).toHaveAttribute('aria-label', /^Effort/);
     await expect(page.getByRole('link', { name: /^Minuteur en cours/ })).toHaveCount(0);
-    await page.getByRole('button', { name: 'Arrêter' }).click();
+    await press(page.getByRole('button', { name: 'Arrêter' }));
     await expect(page.getByRole('button', { name: 'Démarrer' })).toBeVisible();
 
     // saved under a name of one's own, then deleted
@@ -118,21 +116,16 @@ test.describe('engagement', () => {
     await page.getByRole('button', { name: 'Supprimer « Gainage du soir »' }).click();
     await expect(page.getByRole('button', { name: 'Gainage du soir', exact: true })).toHaveCount(0);
 
-    // a session done without the timer, noted for the week, then taken back
-    await expect(page.getByText('Aucune séance notée cette semaine')).toBeVisible();
-    await page.getByRole('button', { name: 'J’ai fait ma séance aujourd’hui' }).click();
-    await expect(page.getByText('1 séance notée cette semaine')).toBeVisible();
-    await expect(page.getByText('Séance du jour notée')).toBeVisible();
-    await page.getByRole('button', { name: 'Annuler' }).click();
-    await expect(page.getByText('Aucune séance notée cette semaine')).toBeVisible();
+    // 1.9: the timer is a timer, nothing to note
+    await expect(page.getByText('Aucune séance notée cette semaine')).toHaveCount(0);
     expect(errors).toEqual([]);
   });
 
   test('glasses of water: turned on from Today', async ({ page }) => {
     await signIn(page, 'new');
-    await expect(page.locator('app-water-row')).toHaveCount(0);
+    await expect(page.locator('app-water-card')).toHaveCount(0);
     await page.getByRole('button', { name: 'Activer', exact: true }).click();
-    await expect(page.locator('app-water-row')).toContainText(/0 \/ \d+ verres/);
+    await expect(page.locator('app-water-card')).toContainText(/Encore \d+ verres pour ton objectif/);
     await tab(page, 'Profil').click();
     await page.getByRole('link', { name: /^Eau/ }).click();
     await expect(page.getByRole('checkbox', { name: /Verres d’eau/ })).toBeChecked();
@@ -141,7 +134,7 @@ test.describe('engagement', () => {
   test('glasses of water: off until turned on in the profile', async ({ page }) => {
     const errors = watchErrors(page);
     await signIn(page, 'new');
-    await expect(page.locator('app-water-row')).toHaveCount(0);
+    await expect(page.locator('app-water-card')).toHaveCount(0);
     await tab(page, 'Profil').click();
     // its own page, out of the profile
     await page.getByRole('link', { name: /^Eau/ }).click();
@@ -149,13 +142,20 @@ test.describe('engagement', () => {
     await expect(page.getByText(/verres, soit/)).toBeVisible();
     await expectAccessible(page);
     await tab(page, 'Aujourd’hui').click();
-    const row = page.locator('app-water-row');
-    await expect(row).toContainText(/0 \/ \d+ verres/);
-    await row.getByRole('button', { name: 'Ajouter un verre' }).click();
-    await row.getByRole('button', { name: 'Ajouter un verre' }).click();
-    await expect(row).toContainText(/2 \/ \d+ verres/);
+    // 1.9: big glasses, the next one with a « + »; a tap on a full one empties it
+    const card = page.locator('app-water-card');
+    await expect(card.getByRole('button', { name: 'Verre 1 : le boire' })).toBeVisible();
+    await press(card.getByRole('button', { name: 'Verre 1 : le boire' }));
+    await press(card.getByRole('button', { name: 'Verre 2 : le boire' }));
+    await press(card.getByRole('button', { name: 'Verre 3 : le boire' }));
+    await expect(card).toContainText(/0,75\s*\/\s*[\d,]+ L/);
+    await press(card.getByRole('button', { name: 'Verre 3, bu : le retirer' }));
+    await expect(card).toContainText(/0,5\s*\/\s*[\d,]+ L/);
+    await expectAccessible(page);
     await page.reload();
-    await expect(page.locator('app-water-row')).toContainText(/2 \/ \d+ verres/);
+    await expect(page.locator('app-water-card')).toContainText(/0,5\s*\/\s*[\d,]+ L/);
+    await press(page.locator('app-water-card').getByRole('button', { name: /^Retirer un verre/ }));
+    await expect(page.locator('app-water-card')).toContainText(/0,25\s*\/\s*[\d,]+ L/);
     expect(errors).toEqual([]);
   });
 });

@@ -14,6 +14,7 @@ export const frPhotos = {
   timelapse: 'Time-lapse',
   storage: 'Stockage : {used} sur {quota}',
   privateNote: 'Tes photos ne sont visibles que par toi, même pas par les administrateurs',
+  blur: { on: 'Flouter les photos', off: 'Afficher les photos', note: 'Photos floutées sur ce téléphone. Un tap en ouvre une' },
   count: '{n} photo(s)',
   open: 'Ouvrir la photo du {date}',
   camera: {
@@ -44,6 +45,9 @@ export const frPhotos = {
     deleted: 'Photo supprimée',
     download: 'Enregistrer',
     compareFirst: 'Comparer',
+    newer: 'Photo plus récente',
+    older: 'Photo plus ancienne',
+    position: '{n} sur {total}',
     share: 'Partager',
   },
   compareView: {

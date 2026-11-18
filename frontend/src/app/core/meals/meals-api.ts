@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type { CiqualImport, OffImport, Food, FoodInput, FoodsOverview, MealDay, MealDays, MealInput, MealStats, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, Slot } from '../api/models';
+import type { CiqualImport, Favorites, FoodSources, OffImport, Food, FoodInput, FoodsOverview, MealDay, MealDays, MealInput, MealStats, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, RecipeVisibility, Slot } from '../api/models';
 
 /** an ingredient of imported recipes the tables do not know (FOOD) or cannot weigh (WEIGHT) */
 /** the community's first recipes (written by the team, computed from Ciqual) */
@@ -27,8 +27,24 @@ export class MealsApi {
   private readonly http = inject(HttpClient);
 
   // ── foods ─────────────────────────────────────────────────────────────────
-  search(q: string, source: 'local' | 'off'): Promise<Food[]> {
+  /** local: mine, Ciqual and the products already known; ciqual: mine and Ciqual only; off: Open Food Facts */
+  search(q: string, source: 'local' | 'ciqual' | 'off'): Promise<Food[]> {
     return firstValueFrom(this.http.get<Food[]>('/api/foods/search', { params: { q, source } }));
+  }
+
+  /** the Ciqual table in use and the copy of Open Food Facts, with their dates */
+  sources(): Promise<FoodSources> {
+    return firstValueFrom(this.http.get<FoodSources>('/api/foods/sources'));
+  }
+
+  // ── favourites (1.9) ─────────────────────────────────────────────────────
+  favorites(): Promise<Favorites> {
+    return firstValueFrom(this.http.get<Favorites>('/api/me/favorites'));
+  }
+
+  setFavorite(kind: 'foods' | 'recipes', id: string, on: boolean): Promise<void> {
+    const url = `/api/me/favorites/${kind}/${id}`;
+    return firstValueFrom(on ? this.http.put<void>(url, null) : this.http.delete<void>(url));
   }
 
   barcode(code: string): Promise<Food> {
@@ -90,6 +106,11 @@ export class MealsApi {
   }
 
   // ── recipes ───────────────────────────────────────────────────────────────
+  /** who sees one of my recipes, without the rest of it */
+  setVisibility(id: string, visibility: RecipeVisibility): Promise<Recipe> {
+    return firstValueFrom(this.http.put<Recipe>(`/api/me/recipes/${id}/visibility`, { visibility }));
+  }
+
   myRecipes(): Promise<Recipe[]> {
     return firstValueFrom(this.http.get<Recipe[]>('/api/me/recipes'));
   }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, output, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { errorCode } from '../../core/api/api.service';
 import type { Milestone } from '../../core/api/models';
@@ -47,6 +47,12 @@ import { NumberStepperComponent } from '../../shared/number-stepper.component';
                   <span class="bar" aria-hidden="true"><i [style.width.%]="m.pct"></i></span>
                 }
               </span>
+              @if (m.reachedOn) {
+                <!-- 1.9: a milestone passed, shown to the friends -->
+                <button type="button" class="icon-btn share" [attr.aria-label]="'progress.milestones.shareOf' | t: { kg: kg(m.targetKg) }" (click)="share.emit(m.id)">
+                  <app-icon name="share" [size]="18" />
+                </button>
+              }
               <button type="button" class="icon-btn" [attr.aria-label]="'progress.milestones.editOf' | t: { kg: kg(m.targetKg) }" (click)="open(m)">
                 <app-icon name="pencil" [size]="18" />
               </button>
@@ -161,6 +167,8 @@ import { NumberStepperComponent } from '../../shared/number-stepper.component';
   `,
 })
 export class MilestonesCardComponent {
+  /** a milestone reached, to share with the friends (its id) */
+  readonly share = output<string>();
   protected readonly i18n = inject(I18nService);
   private readonly tracking = inject(TrackingStore);
   private readonly toast = inject(ToastService);

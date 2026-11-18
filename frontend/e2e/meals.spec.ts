@@ -8,7 +8,12 @@ test.describe('meals', () => {
     await page.goto('/app/meals/add?slot=LUNCH');
     await expect(page.getByRole('heading', { name: 'Au déjeuner' })).toBeVisible();
     await expect(page.getByRole('group', { name: 'Au restaurant, en fast-food' }).getByRole('button', { name: /Kebab/ })).toBeVisible();
-    await page.getByRole('button', { name: /^Ajout rapide Juste les calories/ }).click();
+    // 1.9: the ways in, one under the other
+    const ways = page.getByRole('navigation', { name: 'Où chercher' });
+    await expect(ways.getByRole('link', { name: /^Produits industriels/ })).toBeVisible();
+    await expect(ways.getByRole('link', { name: /^Les recettes/ })).toBeVisible();
+    await expect(ways.getByRole('link', { name: /^Aliments bruts/ })).toBeVisible();
+    await ways.getByRole('button', { name: /^Tu n’as pas trouvé \?/ }).click();
     const quick = page.getByRole('dialog', { name: 'Ajout rapide' });
     await quick.getByLabel('Ce que tu as mangé').fill('Menu burger frites');
     await expect(quick.getByRole('button', { name: 'Ajouter' })).toBeDisabled();
@@ -58,7 +63,7 @@ test.describe('meals', () => {
     // without network: the meal stays on the phone, shown as waiting, and goes once the network is back
     await page.goto('/app/meals/add?slot=SNACK');
     await page.context().setOffline(true);
-    await page.getByRole('button', { name: /Ajout rapide/ }).first().click();
+    await page.getByRole('button', { name: /Tu n’as pas trouvé/ }).first().click();
     const quickSheet = page.getByRole('dialog', { name: 'Ajout rapide' });
     await quickSheet.getByLabel('Ce que tu as mangé').fill('Pomme du métro');
     await quickSheet.getByLabel('Calories de la portion').fill('80');
@@ -72,16 +77,46 @@ test.describe('meals', () => {
     await page.reload();
     await expect(page.getByRole('button', { name: /Pomme du métro/ })).toBeVisible();
 
-    // the recipes, from the add screen: the import by link comes first
+    // a drink at the apéro: two beers, no Nutri-Score for alcohol, the standard drinks said
     await page.goto('/app/meals/add?slot=DINNER');
-    await page.getByRole('link', { name: /^Recettes/ }).click();
+    await page.getByRole('group', { name: 'À l’apéro' }).getByRole('button', { name: /Bière/ }).click();
+    const beer = page.getByRole('dialog', { name: 'Bière' });
+    await expect(beer.getByRole('radio', { name: /Bière blonde/ })).toHaveAttribute('aria-checked', 'true');
+    await beer.getByRole('radio', { name: '2 verres' }).click();
+    await expect(beer.getByText(/≈ 257 kcal/)).toBeVisible();
+    await expect(beer.getByText(/verre\(s\) standard/)).toBeVisible();
+    await expect(beer.getByText('Pas de Nutri-Score pour les boissons alcoolisées')).toBeVisible();
+    await expectAccessible(page);
+    await beer.getByRole('button', { name: /Ajouter au dîner/ }).click();
+    await expect(page.getByRole('button', { name: /Bière blonde, 33 cl × 2/ })).toBeVisible();
+
+    // the recipes, from the add screen: the import by link comes first
+    const xsrf = (await page.context().cookies()).find((c) => c.name === 'XSRF-TOKEN')?.value ?? '';
+    const made = await page.request.post('/api/me/recipes', {
+      headers: { 'X-XSRF-TOKEN': xsrf },
+      data: { name: 'Soupe du soir', type: 'DINNER', servings: 2, ingredients: [], manual: { kcal: 250 }, visibility: 'PRIVATE' },
+    });
+    expect(made.status()).toBe(201);
+    await page.goto('/app/meals');
+    await page.locator('section.slot').filter({ has: page.getByRole('heading', { name: 'Dîner', exact: true }) }).getByRole('link', { name: 'Ajouter' }).click();
+    await page.getByRole('link', { name: /^Les recettes/ }).click();
     await expect(page.getByRole('heading', { name: 'Recettes', level: 1 })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Importer un lien' })).toBeVisible();
+    // 1.9: « Ajouter au dîner », then back to the meals with it
+    await page.getByRole('button', { name: 'Mes recettes' }).click();
+    await page.getByRole('link', { name: /Soupe du soir/ }).click();
+    await page.getByRole('button', { name: 'Ajouter au dîner' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Ajouter au dîner' }).click();
+    await expect(page.getByRole('heading', { name: 'Repas', level: 1 })).toBeVisible();
+    await expect(page.locator('section.slot').filter({ has: page.getByRole('heading', { name: 'Dîner', exact: true }) })).toContainText('Soupe du soir');
 
     // a recipe from a site, written by hand: lines and calories per serving
     await page.goto('/app/meals/recipes/new');
     await page.getByLabel('Nom de la recette').fill('Bruschetta maison');
     await page.getByRole('radio', { name: /À la main/ }).click();
+    // 1.9: said in red, with the way back to the foods
+    await expect(page.getByText('À la main, ta recette sera incomplète')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Choisir les aliments' })).toBeVisible();
     await page.getByLabel('Ingrédients, un par ligne').fill('450 g de pain\n160 g de crème fraîche');
     await page.getByRole('button', { name: 'Enregistrer' }).click();
     await expect(page.getByText(/Indique les calories par part/)).toBeVisible();
@@ -113,8 +148,16 @@ test.describe('meals', () => {
     await page.locator('section.slot').filter({ has: page.getByRole('heading', { name: 'Déjeuner', exact: true }) }).getByRole('link', { name: 'Ajouter' }).click();
     await expect(page.getByRole('heading', { name: 'Au déjeuner' })).toBeVisible();
     const name = `Galette maison ${Date.now() % 100000}`;
-    await page.getByRole('searchbox', { name: 'Rechercher un aliment' }).fill(name);
+    // 1.9: one search for everything; creating a food is on the page of the raw foods
+    await page.getByRole('searchbox', { name: 'Rechercher un aliment, une recette, un produit' }).fill(name);
     await expect(page.getByText('Aucun aliment trouvé')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Produits industriels' })).toBeVisible();
+    await page.getByRole('searchbox').fill('');
+    await page.getByRole('link', { name: /^Aliments bruts/ }).click();
+    await expect(page.getByRole('heading', { name: 'Aliments bruts', level: 1 })).toBeVisible();
+    await expect(page.getByText(/La table Ciqual de l’Anses/)).toBeVisible();
+    await expect(page.getByText(/Table .* aliments/)).toBeVisible();
+    await expectAccessible(page);
     await page.getByRole('link', { name: /Créer un aliment/ }).click();
     await page.getByLabel('Nom', { exact: true }).fill(name);
     await page.getByLabel('Énergie (kcal)').fill('320');
@@ -129,7 +172,7 @@ test.describe('meals', () => {
     await expect(sheet.getByRole('heading', { name })).toBeVisible();
     await sheet.getByRole('button', { name: '150 g' }).click();
     await expect(sheet.getByText('480', { exact: true })).toBeVisible();
-    await sheet.getByRole('button', { name: 'Ajouter' }).click();
+    await sheet.getByRole('button', { name: 'Ajouter', exact: true }).click();
 
     // listed at lunch
     const entry = page.getByRole('button', { name: new RegExp(name) });

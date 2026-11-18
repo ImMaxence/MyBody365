@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 import { EstimatedItem, FastFoodSheetComponent } from './fast-food-sheet.component';
 import { DrinkSheetComponent } from './drink-sheet.component';
+import { AperoSheetComponent } from './apero-sheet.component';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
 import type { Food, Nutrients, RecentItem, Recipe, Slot } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -23,7 +25,7 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
 @Component({
   selector: 'app-meal-add',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FastFoodSheetComponent, DrinkSheetComponent, FormsModule, TranslatePipe, IconComponent, BackButtonComponent, FoodPickerComponent, QuantitySheetComponent],
+  imports: [FastFoodSheetComponent, DrinkSheetComponent, AperoSheetComponent, FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, FoodPickerComponent, QuantitySheetComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -34,16 +36,18 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
         [recent]="store.recent() ?? []"
         [recipes]="recipes()"
         scanLink="/app/meals/scan"
-        createLink="/app/meals/food/new"
         recipesLink="/app/meals/recipes"
         [recipesParams]="{ slot: slot(), day: day() }"
+        [sourceParams]="{ slot: slot(), day: day() }"
         (picked)="pick($event)"
         (quick)="openQuick({ name: $event })"
         (dish)="estimate.open($event)"
         (drink)="drinkSheet.open($event)"
+        (apero)="aperoSheet.open($event)"
       />
       <app-fast-food-sheet #estimate [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event)" />
       <app-drink-sheet #drinkSheet [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event, drinkSheet)" />
+      <app-apero-sheet #aperoSheet [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event, aperoSheet)" />
       <app-quantity-sheet (confirm)="add($event)" />
 
       <dialog class="sheet" #quickDialog [attr.aria-label]="'meals.quick.title' | t">
@@ -70,6 +74,7 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
             }
           </div>
           <p class="tiny muted hint"><app-icon name="info" [size]="14" /> {{ 'meals.quick.hint' | t }}</p>
+          <a class="small create-link" routerLink="/app/meals/food/new" (click)="closeQuick()">{{ 'meals.quick.orCreate' | t }}</a>
           <button type="submit" class="btn btn-primary btn-block" [disabled]="quickBusy() || !quickValid()"><app-icon name="plus" /> {{ 'meals.add' | t }}</button>
         </form>
       </dialog>
@@ -105,6 +110,11 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
       display: flex;
       align-items: flex-start;
       gap: 6px;
+    }
+    .create-link {
+      justify-self: center;
+      color: var(--accent-text);
+      font-weight: 650;
     }
   `,
 })
@@ -175,6 +185,10 @@ export class MealAddPage {
     setTimeout(() => document.getElementById(this.qName ? 'q-kcal' : 'q-name')?.focus(), 350);
   }
 
+  protected closeQuick(): void {
+    this.quickDialog().nativeElement.close();
+  }
+
   private static num(s: string): number | null {
     const n = Number(String(s).replace(',', '.').trim());
     return String(s).trim() && Number.isFinite(n) ? n : null;
@@ -213,7 +227,7 @@ export class MealAddPage {
 
   /** a meal at the snack bar, by estimate: each item on its own line (no line for a glass of water) */
   /** the items of an estimate (fast food, or a drink), each on its own line */
-  protected async addEstimate(items: EstimatedItem[], from?: DrinkSheetComponent): Promise<void> {
+  protected async addEstimate(items: EstimatedItem[], from?: DrinkSheetComponent | AperoSheetComponent): Promise<void> {
     const sheet = from ?? this.estimateSheet();
     const lines = items.filter((i) => i.kcal >= 1);
     if (!lines.length) return;
@@ -253,12 +267,13 @@ export class MealAddPage {
       nutriscore: f.nutriscore,
       estimated: f.nutriscoreEstimated,
       initial,
+      food: f,
     });
   }
 
   private openRecipe(r: Recipe, initial?: number): void {
     this.current = { kind: 'RECIPE', id: r.id, name: r.name, base: r.perServing };
-    this.sheet().open({ name: r.name, detail: this.i18n.t('meals.perServing'), unit: 'serving', base: r.perServing, nutriscore: r.nutriscore, estimated: true, initial });
+    this.sheet().open({ name: r.name, detail: this.i18n.t('meals.perServing'), unit: 'serving', base: r.perServing, nutriscore: r.nutriscore, estimated: true, initial, recipe: r });
   }
 
   protected async add(qty: number): Promise<void> {

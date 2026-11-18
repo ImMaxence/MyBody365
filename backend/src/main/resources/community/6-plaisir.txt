@@ -1,0 +1,520 @@
+# Recettes de la communauté, 1.9 : « Plaisir », la pâtisserie et les gourmandises françaises (les classiques des
+# boulangeries, les gâteaux de fête, les viennoiseries maison et les goûters). Même format que les autres fichiers.
+
+= Paris-Brest | TREAT,DESSERT | 8
+18066 125 eau
+19033 125 lait
+16400 200 beurre
+9440 150 farine
+22000 250 œufs (5)
+31016 100 sucre
+22002 60 jaunes d'œufs (3)
+9510 30 fécule de maïs
+19033 350 lait pour la crème
+15004 120 noisettes pour le praliné
+15000 30 amandes effilées
+11058 2 sel
+: Porter l'eau, le lait, 100 g de beurre et le sel à ébullition, ajouter la farine d'un coup et dessécher la pâte
+: Incorporer les œufs un à un, pocher une couronne, parsemer d'amandes et cuire 35 minutes à 180 °C
+: Caraméliser 60 g de sucre avec les noisettes, laisser refroidir et mixer en praliné
+: Cuire une crème avec le lait, les jaunes, le reste du sucre et la fécule, y fouetter le reste du beurre et le praliné
+: Couper la couronne et la garnir de crème à la poche
+
+= Éclairs au chocolat | TREAT,DESSERT | 10
+18066 125 eau
+19033 125 lait
+16400 100 beurre
+9440 150 farine
+22000 250 œufs (5)
+19033 500 lait pour la crème
+22002 100 jaunes d'œufs (5)
+31016 120 sucre
+9510 45 fécule de maïs
+31085 150 chocolat noir
+11058 2 sel
+: Faire la pâte à choux : eau, lait, beurre et sel à ébullition, la farine d'un coup, puis les œufs un à un
+: Pocher des bâtons de 12 cm et cuire 30 minutes à 180 °C
+: Cuire la crème pâtissière avec le lait, les jaunes, le sucre et la fécule, y faire fondre 80 g de chocolat
+: Garnir les éclairs par en dessous et les glacer avec le reste du chocolat fondu
+
+= Tarte aux fraises | TREAT,DESSERT | 8
+23444 230 pâte sablée
+19033 400 lait
+22002 80 jaunes d'œufs (4)
+31016 90 sucre
+9510 35 fécule de maïs
+11098 5 vanille
+13014 500 fraises
+31095 40 gelée de groseille
+: Cuire la pâte à blanc 20 minutes à 180 °C
+: Cuire la crème pâtissière vanillée et la laisser refroidir
+: Garnir le fond de crème, disposer les fraises et les lustrer de gelée tiède
+
+= Tarte au chocolat | TREAT,DESSERT | 8
+23444 230 pâte sablée
+31085 200 chocolat noir
+19417 200 crème liquide
+19033 100 lait
+22000 100 œufs (2)
+31016 30 sucre
+: Cuire la pâte à blanc 15 minutes à 180 °C
+: Verser la crème et le lait bouillants sur le chocolat, lisser, ajouter les œufs battus avec le sucre
+: Verser sur le fond et cuire 15 minutes à 150 °C, laisser prendre au frais
+
+= Tarte normande | TREAT,DESSERT | 8
+23414 230 pâte brisée
+13039 700 pommes
+22000 100 œufs (2)
+19410 150 crème fraîche
+31016 80 sucre
+9440 20 farine
+11025 2 cannelle
+: Garnir la pâte de quartiers de pommes et cuire 15 minutes à 200 °C
+: Battre les œufs, la crème, le sucre, la farine et la cannelle
+: Verser sur les pommes et cuire encore 25 minutes à 180 °C
+
+= Tarte amandine aux poires | TREAT,DESSERT | 8
+23444 230 pâte sablée
+13037 500 poires
+16400 100 beurre
+31016 100 sucre
+15041 100 amandes en poudre
+22000 100 œufs (2)
+9440 20 farine
+: Mélanger le beurre mou, le sucre, les amandes en poudre, les œufs et la farine
+: Étaler la crème sur la pâte, poser les poires en lamelles
+: Cuire 35 minutes à 180 °C
+
+= Tarte au citron | TREAT,DESSERT | 8
+23444 230 pâte sablée
+2028 150 jus de citron
+22000 200 œufs (4)
+31016 150 sucre
+16400 100 beurre
+9510 15 fécule de maïs
+: Cuire la pâte à blanc 20 minutes à 180 °C
+: Cuire au bain-marie le jus de citron, les œufs, le sucre et la fécule jusqu'à épaississement
+: Hors du feu, ajouter le beurre en morceaux, verser sur le fond et laisser prendre au frais
+
+= Mille-feuille | TREAT,DESSERT | 8
+23424 460 pâte feuilletée (2 rouleaux)
+19033 600 lait
+22002 120 jaunes d'œufs (6)
+31016 150 sucre
+9510 60 fécule de maïs
+11098 5 vanille
+31016 60 sucre pour le glaçage
+: Cuire les pâtes piquées entre deux plaques, 25 minutes à 190 °C, et les couper en trois bandes
+: Cuire la crème pâtissière vanillée et la laisser refroidir
+: Monter trois étages de feuilletage et de crème, glacer le dessus au sucre glace
+
+= Profiteroles | TREAT,DESSERT | 6
+18066 125 eau
+16400 60 beurre
+9440 75 farine
+22000 150 œufs (3)
+39527 450 glace vanille
+31085 150 chocolat noir
+19417 120 crème liquide
+11058 1 sel
+: Faire la pâte à choux, pocher des petits choux et cuire 25 minutes à 180 °C
+: Faire fondre le chocolat dans la crème chaude
+: Garnir les choux de glace et napper de sauce chocolat chaude
+
+= Chouquettes | TREAT,SNACK | 6
+18066 125 eau
+16400 60 beurre
+9440 75 farine
+22000 150 œufs (3)
+31016 50 sucre en grains
+11058 1 sel
+: Faire la pâte à choux, pocher de petites boules
+: Les couvrir de sucre en grains et cuire 20 minutes à 190 °C
+
+= Financiers | TREAT,SNACK | 12
+22001 120 blancs d'œufs (4)
+15041 70 amandes en poudre
+9440 50 farine
+31016 120 sucre
+16400 100 beurre
+: Faire cuire le beurre jusqu'à ce qu'il soit noisette
+: Mélanger les blancs, les amandes, la farine et le sucre, puis le beurre tiède
+: Remplir les moules et cuire 12 minutes à 200 °C
+
+= Cannelés | TREAT,SNACK | 12
+19016 500 lait entier
+16400 50 beurre
+11098 5 vanille
+22000 100 œufs (2)
+22002 40 jaunes d'œufs (2)
+31016 200 sucre
+9440 100 farine
+1004 50 rhum
+: Faire bouillir le lait avec le beurre et la vanille, laisser tiédir
+: Mélanger la farine et le sucre, ajouter les œufs, les jaunes, le lait puis le rhum
+: Laisser reposer 24 heures au frais, puis cuire 1 heure dans des moules beurrés à 220 °C puis 180 °C
+
+= Fraisier | TREAT,DESSERT | 8
+22000 200 œufs (4)
+31016 220 sucre
+9440 120 farine
+19033 400 lait
+22002 80 jaunes d'œufs (4)
+9510 40 fécule de maïs
+16400 150 beurre
+13014 500 fraises
+15201 100 pâte d'amande
+: Monter les œufs avec 120 g de sucre, incorporer la farine et cuire la génoise 25 minutes à 180 °C
+: Cuire une crème pâtissière avec le lait, les jaunes, le reste du sucre et la fécule, puis y fouetter le beurre
+: Couper la génoise en deux, poser les fraises coupées au bord, garnir de crème et de fraises
+: Refermer, couvrir de pâte d'amande étalée finement et laisser prendre au frais
+
+= Forêt-noire | TREAT,DESSERT | 10
+22000 250 œufs (5)
+31016 180 sucre
+9440 100 farine
+18100 30 cacao
+19417 500 crème liquide
+13008 400 cerises
+31085 80 chocolat noir en copeaux
+1001 30 kirsch
+: Monter les œufs avec 150 g de sucre, ajouter la farine et le cacao, cuire 30 minutes à 180 °C
+: Fouetter la crème avec le reste du sucre en chantilly
+: Couper le biscuit en trois, imbiber de kirsch, garnir de chantilly et de cerises
+: Couvrir de chantilly et de copeaux de chocolat
+
+= Galette des rois à la frangipane | TREAT,DESSERT | 8
+23424 460 pâte feuilletée (2 rouleaux)
+15041 125 amandes en poudre
+16400 100 beurre
+31016 100 sucre
+22000 100 œufs (2)
+22002 20 jaune d'œuf pour dorer
+1004 10 rhum
+: Mélanger le beurre mou, le sucre, les amandes, les œufs et le rhum
+: Étaler la frangipane sur une pâte, recouvrir de la seconde et souder les bords
+: Dorer au jaune, rayer le dessus et cuire 35 minutes à 190 °C
+
+= Kouign-amann | TREAT,SNACK | 8
+9440 250 farine
+18066 150 eau
+11010 10 levure de boulanger fraîche
+16402 200 beurre demi-sel
+31016 200 sucre
+: Pétrir la farine, l'eau et la levure, laisser lever 1 heure
+: Étaler la pâte, y enfermer le beurre et le sucre en trois tours, au frais entre chaque
+: Rouler, couper, poser dans des moules et cuire 30 minutes à 200 °C jusqu'à caramélisation
+
+= Croissants maison | TREAT,BREAKFAST | 12
+9440 500 farine
+19033 150 lait
+18066 100 eau
+31016 60 sucre
+11010 20 levure de boulanger fraîche
+16400 280 beurre
+22000 50 œuf pour dorer
+11058 10 sel
+: Pétrir la farine, le lait, l'eau, le sucre, la levure, le sel et 30 g de beurre, laisser reposer une nuit au frais
+: Enfermer le reste du beurre dans la pâte et donner trois tours en laissant reposer au frais entre chaque
+: Découper des triangles, les rouler, laisser pousser 2 heures
+: Dorer à l'œuf et cuire 18 minutes à 190 °C
+
+= Pains au chocolat maison | TREAT,BREAKFAST | 12
+9440 500 farine
+19033 150 lait
+18066 100 eau
+31016 60 sucre
+11010 20 levure de boulanger fraîche
+16400 280 beurre
+31085 120 chocolat noir (2 barres par pain)
+22000 50 œuf pour dorer
+11058 10 sel
+: Préparer la pâte feuilletée levée comme pour les croissants
+: Découper des rectangles, y rouler deux barres de chocolat et laisser pousser 2 heures
+: Dorer à l'œuf et cuire 18 minutes à 190 °C
+
+= Brioche tressée | TREAT,BREAKFAST | 10
+9440 500 farine
+22000 200 œufs (4)
+19033 100 lait
+31016 60 sucre
+16400 150 beurre
+11010 20 levure de boulanger fraîche
+11058 8 sel
+: Pétrir la farine, les œufs, le lait tiède, le sucre, la levure et le sel, puis incorporer le beurre mou
+: Laisser lever 2 heures, faire une tresse et laisser pousser encore 1 heure
+: Dorer et cuire 30 minutes à 180 °C
+
+= Beignets au sucre | TREAT,SNACK | 12
+9440 500 farine
+19033 250 lait
+22000 100 œufs (2)
+31016 60 sucre
+16400 60 beurre
+11010 20 levure de boulanger fraîche
+17440 150 huile absorbée à la friture
+31016 50 sucre pour rouler
+11058 5 sel
+: Pétrir la farine, le lait, les œufs, le sucre, la levure, le sel et le beurre, laisser lever 2 heures
+: Former des boules et les laisser pousser 45 minutes
+: Les frire 2 minutes de chaque côté à 170 °C et les rouler dans le sucre
+
+= Churros | TREAT,SNACK | 4
+18066 250 eau
+9440 150 farine
+16400 30 beurre
+31016 20 sucre
+17440 100 huile absorbée à la friture
+31016 40 sucre pour rouler
+11025 3 cannelle
+11058 2 sel
+: Porter l'eau, le beurre, le sucre et le sel à ébullition et y verser la farine d'un coup
+: Pousser la pâte à la poche cannelée dans l'huile chaude et frire jusqu'à ce qu'ils soient dorés
+: Les rouler dans le sucre mélangé à la cannelle
+
+= Muffins aux myrtilles | TREAT,SNACK,BREAKFAST | 12
+9440 280 farine
+31016 150 sucre
+22000 100 œufs (2)
+19033 200 lait
+17440 100 huile
+11046 11 levure chimique
+13028 200 myrtilles
+: Mélanger la farine, le sucre et la levure, puis les œufs, le lait et l'huile sans trop travailler
+: Ajouter les myrtilles, remplir les moules et cuire 22 minutes à 190 °C
+
+= Muffins au chocolat | TREAT,SNACK | 12
+9440 250 farine
+18100 30 cacao
+31016 150 sucre
+22000 100 œufs (2)
+19033 200 lait
+17440 100 huile
+31085 120 pépites de chocolat
+11046 11 levure chimique
+: Mélanger les ingrédients secs, puis ajouter les œufs, le lait et l'huile
+: Ajouter les pépites, remplir les moules et cuire 20 minutes à 190 °C
+
+= Cupcakes vanille | TREAT,SNACK | 12
+9440 200 farine
+31016 150 sucre
+16400 150 beurre
+22000 150 œufs (3)
+19033 80 lait
+11046 8 levure chimique
+11098 5 vanille
+19584 200 mascarpone
+19417 100 crème liquide
+31016 60 sucre pour le glaçage
+: Fouetter le beurre et le sucre, ajouter les œufs, la farine, la levure, le lait et la vanille
+: Cuire 20 minutes à 180 °C dans des caissettes
+: Fouetter le mascarpone, la crème et le sucre, décorer les gâteaux refroidis à la poche
+
+= Sablés bretons | TREAT,SNACK | 20
+9440 250 farine
+16402 200 beurre demi-sel
+31016 150 sucre
+22002 60 jaunes d'œufs (3)
+11046 8 levure chimique
+: Fouetter les jaunes et le sucre, ajouter le beurre mou, puis la farine et la levure
+: Étaler en 1 cm, découper, laisser durcir 1 heure au frais et cuire 15 minutes à 180 °C
+
+= Palmiers | TREAT,SNACK | 20
+23424 230 pâte feuilletée
+31016 80 sucre
+: Saupoudrer la pâte de sucre, rouler les deux bords vers le centre
+: Couper en tranches de 1 cm et cuire 15 minutes à 200 °C en les retournant à mi-cuisson
+
+= Meringues | TREAT,SNACK | 20
+22001 120 blancs d'œufs (4)
+31016 240 sucre
+: Monter les blancs en neige ferme en ajoutant le sucre petit à petit
+: Pocher de petits tas et cuire 1 h 30 à 100 °C
+
+= Pavlova aux fruits rouges | TREAT,DESSERT | 8
+22001 120 blancs d'œufs (4)
+31016 220 sucre
+9510 10 fécule de maïs
+19417 300 crème liquide
+13014 250 fraises
+13015 150 framboises
+13028 100 myrtilles
+: Monter les blancs avec 200 g de sucre, ajouter la fécule et former un disque
+: Cuire 1 h 30 à 110 °C et laisser refroidir dans le four
+: Garnir de chantilly sucrée et de fruits rouges
+
+= Cake au citron | TREAT,SNACK | 10
+9440 200 farine
+31016 180 sucre
+16400 150 beurre
+22000 200 œufs (4)
+2028 60 jus de citron
+11046 8 levure chimique
+31016 60 sucre pour le glaçage
+: Fouetter le beurre et le sucre, ajouter les œufs, le jus de citron, la farine et la levure
+: Cuire 45 minutes à 170 °C dans un moule à cake
+: Glacer de sucre délayé dans un peu de jus de citron
+
+= Marbré au chocolat | TREAT,SNACK | 10
+9440 200 farine
+31016 180 sucre
+16400 180 beurre
+22000 200 œufs (4)
+11046 8 levure chimique
+18100 25 cacao
+11098 5 vanille
+: Préparer une pâte avec le beurre, le sucre, les œufs, la farine et la levure, la partager en deux
+: Parfumer une moitié à la vanille et l'autre au cacao
+: Les alterner dans le moule, marbrer à la fourchette et cuire 50 minutes à 170 °C
+
+= Gâteau basque | TREAT,DESSERT | 10
+9440 300 farine
+16400 200 beurre
+31016 200 sucre
+22000 100 œufs (2)
+22002 60 jaunes d'œufs (3)
+15041 80 amandes en poudre
+19033 400 lait
+9510 40 fécule de maïs
+1004 15 rhum
+11046 6 levure chimique
+: Faire la pâte avec la farine, le beurre, 150 g de sucre, les œufs, les amandes et la levure
+: Cuire une crème avec le lait, les jaunes, le reste du sucre, la fécule et le rhum
+: Garnir un fond de pâte de crème, couvrir de pâte et cuire 45 minutes à 170 °C
+
+= Carrot cake | TREAT,DESSERT | 10
+20009 300 carottes râpées
+9440 220 farine
+31017 180 cassonade
+17440 150 huile
+22000 150 œufs (3)
+15005 80 noix
+11025 4 cannelle
+11046 8 levure chimique
+12068 200 fromage frais
+31016 60 sucre pour le glaçage
+: Mélanger les œufs, la cassonade et l'huile, puis la farine, la levure, la cannelle, les carottes et les noix
+: Cuire 45 minutes à 170 °C
+: Couvrir le gâteau refroidi du fromage frais fouetté avec le sucre
+
+= Gâteau de Savoie | TREAT,SNACK | 8
+22000 300 œufs (6)
+31016 200 sucre
+9440 80 farine
+9510 80 fécule de maïs
+11098 5 vanille
+: Fouetter les jaunes et le sucre, ajouter la farine, la fécule et la vanille
+: Incorporer les blancs montés en neige et cuire 40 minutes à 160 °C
+
+= Roulé à la confiture | TREAT,SNACK | 8
+22000 200 œufs (4)
+31016 100 sucre
+9440 100 farine
+31024 200 confiture de fraise
+: Monter les œufs et le sucre jusqu'à ce qu'ils blanchissent, ajouter la farine
+: Étaler sur une plaque et cuire 10 minutes à 200 °C
+: Retourner sur un torchon, tartiner de confiture et rouler
+
+= Bûche au chocolat | TREAT,DESSERT | 10
+22000 200 œufs (4)
+31016 140 sucre
+9440 100 farine
+31085 200 chocolat noir
+19417 300 crème liquide
+16400 50 beurre
+18100 10 cacao
+: Cuire un biscuit roulé avec les œufs, 100 g de sucre et la farine, 10 minutes à 200 °C
+: Faire une ganache avec le chocolat, la crème chaude et le beurre, la laisser épaissir
+: Garnir le biscuit de la moitié de la ganache, le rouler et le couvrir du reste, strier à la fourchette
+
+= Tarte au sucre | TREAT,DESSERT | 8
+9440 250 farine
+19033 80 lait
+22000 50 œuf
+16400 100 beurre
+11010 10 levure de boulanger fraîche
+31017 120 cassonade
+19410 60 crème fraîche
+11058 3 sel
+: Pétrir une pâte levée avec la farine, le lait tiède, l'œuf, 50 g de beurre, la levure et le sel, laisser lever 1 heure
+: L'étaler dans un moule, la couvrir de cassonade, de crème et du reste du beurre en noisettes
+: Cuire 20 minutes à 200 °C
+
+= Moelleux à la crème de marrons | TREAT,DESSERT | 8
+15013 500 crème de marrons
+16400 100 beurre
+22000 150 œufs (3)
+9440 50 farine
+: Mélanger la crème de marrons, le beurre fondu, les œufs et la farine
+: Cuire 30 minutes à 180 °C, le cœur doit rester fondant
+
+= Cookies au beurre de cacahuète | TREAT,SNACK | 16
+15202 200 beurre de cacahuète
+31017 150 cassonade
+22000 50 œuf
+9440 100 farine
+31085 100 pépites de chocolat
+11046 4 levure chimique
+: Mélanger le beurre de cacahuète, la cassonade et l'œuf, puis la farine, la levure et les pépites
+: Former des boules, les aplatir et cuire 10 minutes à 180 °C
+
+= Tiramisu aux fraises | TREAT,DESSERT | 6
+19584 250 mascarpone
+22000 150 œufs (3)
+31016 80 sucre
+24430 150 biscuits à la cuillère
+13014 400 fraises
+2070 150 jus d'orange
+: Fouetter les jaunes et le sucre, ajouter le mascarpone puis les blancs montés en neige
+: Tremper les biscuits dans le jus d'orange, alterner biscuits, fraises coupées et crème
+: Laisser prendre 4 heures au frais
+
+= Banoffee | TREAT,DESSERT | 8
+24009 200 biscuits spéculoos
+16400 80 beurre
+19027 400 lait concentré sucré
+13005 300 bananes
+19417 250 crème liquide
+18100 5 cacao
+: Mélanger les biscuits écrasés et le beurre fondu, tasser dans un moule
+: Cuire la boîte de lait concentré fermée 2 heures dans l'eau frémissante pour en faire un caramel, l'étaler sur le fond
+: Couvrir de bananes en rondelles et de chantilly, saupoudrer de cacao
+
+= Crêpes à la pâte à tartiner | TREAT,SNACK | 6
+9440 250 farine
+22000 150 œufs (3)
+19033 500 lait
+16400 30 beurre fondu
+31016 20 sucre
+31032 150 pâte à tartiner
+: Mélanger la farine, le sucre et les œufs, puis le lait peu à peu et le beurre fondu
+: Cuire les crêpes fines à la poêle et les tartiner de pâte à tartiner
+
+= Gaufres au sucre glace | TREAT,SNACK | 8
+9440 250 farine
+22000 150 œufs (3)
+19033 400 lait
+16400 80 beurre
+31016 40 sucre
+11046 8 levure chimique
+31016 30 sucre glace pour servir
+: Mélanger la farine, la levure, le sucre et les œufs, puis le lait et le beurre fondu
+: Cuire dans le gaufrier bien chaud et saupoudrer de sucre glace
+
+= Riz au lait caramel | TREAT,DESSERT | 6
+9100 150 riz rond
+19016 1000 lait entier
+31016 80 sucre
+11098 5 vanille
+31046 60 caramel
+: Cuire le riz dans le lait vanillé à feu très doux, 40 minutes, en remuant souvent
+: Ajouter le sucre, laisser refroidir et napper de caramel
+
+= Coupe glacée chocolat chantilly | TREAT,DESSERT | 2
+39527 250 glace vanille
+31085 50 chocolat noir
+19417 50 crème liquide
+19420 30 chantilly
+15000 15 amandes effilées
+: Faire fondre le chocolat dans la crème chaude
+: Mettre la glace en coupes, napper de chocolat et finir de chantilly et d'amandes

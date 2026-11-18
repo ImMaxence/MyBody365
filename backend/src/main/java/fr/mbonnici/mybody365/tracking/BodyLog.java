@@ -69,6 +69,10 @@ public class BodyLog {
 
     private String note;
 
+    /** 1.9: an optional evening weigh-in, for itself (the morning one makes the trend) */
+    @Column(precision = 5, scale = 2)
+    private BigDecimal eveningWeightKg;
+
     @Column(nullable = false)
     private Instant createdAt;
 
@@ -146,6 +150,14 @@ public class BodyLog {
 
     public BigDecimal getThighCm() {
         return thighCm;
+    }
+
+    public BigDecimal getEveningWeightKg() {
+        return eveningWeightKg;
+    }
+
+    public void setEveningWeightKg(BigDecimal eveningWeightKg) {
+        this.eveningWeightKg = eveningWeightKg;
     }
 
     public void setThighCm(BigDecimal thighCm) {

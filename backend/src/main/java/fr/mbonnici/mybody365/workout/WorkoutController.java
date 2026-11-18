@@ -31,7 +31,9 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Workout sessions. The programmes themselves live in the app (texts in both languages); the server
- * keeps what was done: which workout, the sets of each exercise, the weights, the duration.
+ * keeps what was done: which workout, the sets of each exercise, the weights, the duration. Since 1.9 the app no
+ * longer notes sessions (the timer is a timer, nothing more): the sessions noted before stay readable and go with the
+ * backups.
  */
 @RestController
 @RequestMapping("/api/me/workouts")

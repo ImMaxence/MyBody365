@@ -31,8 +31,11 @@ export const routes: Routes = [
           { path: '', loadComponent: () => import('./features/app/today.page').then((m) => m.TodayPage), data: { depth: 0 } },
           { path: 'meals', loadComponent: () => import('./features/meals/meals.page').then((m) => m.MealsPage), data: { depth: 0 } },
           { path: 'meals/add', loadComponent: () => import('./features/meals/meal-add.page').then((m) => m.MealAddPage), data: { depth: 1, back: '/app/meals' } },
-          { path: 'meals/scan', loadComponent: () => import('./features/meals/barcode-scan.page').then((m) => m.BarcodeScanPage), data: { depth: 2, back: '/app/meals/add' } },
-          { path: 'meals/food/new', loadComponent: () => import('./features/meals/food-edit.page').then((m) => m.FoodEditPage), data: { depth: 2, back: '/app/meals/add' } },
+          // one source at a time (1.9): Open Food Facts, and Ciqual with my own foods
+          { path: 'meals/products', loadComponent: () => import('./features/meals/food-source.page').then((m) => m.FoodSourcePage), data: { depth: 2, back: '/app/meals/add', source: 'off' } },
+          { path: 'meals/foods', loadComponent: () => import('./features/meals/food-source.page').then((m) => m.FoodSourcePage), data: { depth: 2, back: '/app/meals/add', source: 'ciqual' } },
+          { path: 'meals/scan', loadComponent: () => import('./features/meals/barcode-scan.page').then((m) => m.BarcodeScanPage), data: { depth: 3, back: '/app/meals/add' } },
+          { path: 'meals/food/new', loadComponent: () => import('./features/meals/food-edit.page').then((m) => m.FoodEditPage), data: { depth: 3, back: '/app/meals/add' } },
           { path: 'meals/food/:id', loadComponent: () => import('./features/meals/food-edit.page').then((m) => m.FoodEditPage), data: { depth: 2, back: '/app/meals' } },
           { path: 'meals/stats', loadComponent: () => import('./features/meals/meal-stats.page').then((m) => m.MealStatsPage), data: { depth: 1, back: '/app/meals' } },
           { path: 'meals/recipes', loadComponent: () => import('./features/meals/recipes.page').then((m) => m.RecipesPage), data: { depth: 1, back: '/app/meals' } },
@@ -52,6 +55,7 @@ export const routes: Routes = [
           { path: 'account/water', loadComponent: () => import('./features/app/water-settings.page').then((m) => m.WaterSettingsPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/settings', loadComponent: () => import('./features/app/app-settings.page').then((m) => m.AppSettingsPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/notifications', loadComponent: () => import('./features/app/notifications.page').then((m) => m.NotificationsPage), data: { depth: 1, back: '/app/account' } },
+          { path: 'challenges', loadComponent: () => import('./features/friends/challenges.page').then((m) => m.ChallengesPage), data: { depth: 2, back: '/app/friends' } },
           { path: 'friends', loadComponent: () => import('./features/friends/friends.page').then((m) => m.FriendsPage), data: { depth: 1, back: '/app/account' } },
           // « Ta semaine » went in 1.8: an old link (a notification) leads to Today
           { path: 'week', redirectTo: '' },

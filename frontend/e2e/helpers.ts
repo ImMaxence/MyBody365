@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 /** Opens the app in a browser tab (the install gate is lifted on localhost with ?browser=1). */
 export async function openApp(page: Page, path = '/app/login'): Promise<void> {
@@ -44,6 +44,17 @@ export async function completeOnboarding(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { name: 'Ton plan est prêt' })).toBeVisible();
   await page.getByRole('button', { name: /C’est parti/ }).click();
   await page.waitForURL(/\/app$/);
+}
+
+/**
+ * A button that vibrates (core/ui/haptics.ts): on iPhone (the WebKit run) a switch lies over it and takes the tap,
+ * then hands it to the button; elsewhere the switch is hidden and the button takes the tap itself.
+ */
+export async function press(button: Locator): Promise<void> {
+  await expect(button).toBeEnabled();
+  const overlay = button.locator('xpath=following-sibling::input[contains(@class, "haptic-switch")][1]');
+  if (await overlay.isVisible().catch(() => false)) await overlay.click();
+  else await button.click();
 }
 
 /** A link of the bottom tab bar. */

@@ -19,6 +19,11 @@ const GRADE: Record<string, number> = { a: 1, b: 2, c: 3, d: 4, e: 5 };
  * calories against the target (3), protein / carbs / fat against the member's split (25 / 45 / 30 % by default) (2), the Nutri-Score of
  * the foods weighted by their calories (3), fibre, sugars, salt and saturated fat (2). A part without the
  * data it needs is left out and the rest brought back to 10. Null when nothing was logged.
+ *
+ * Today, still going on (1.9): only what is already sure is judged, the quality of what was eaten (its Nutri-Score,
+ * sugars, salt, saturated fat), and the calories once over the target. The calories reached and the macros wait for
+ * the end of the day: judged on a single meal, they made the score go UP with a bag of crisps in the evening (the target
+ * reached gave 3 points, the fat of the crisps « balanced » a lunch rich in protein).
  */
 export function dayScore(day: MealDay, today: string, shares: { p: number; c: number; f: number } = { p: 25, c: 45, f: 30 }): DayScore | null {
   const t = day.totals;
@@ -29,7 +34,7 @@ export function dayScore(day: MealDay, today: string, shares: { p: number; c: nu
   // calories: within 10 % of the target is perfect
   if (day.targetKcal) {
     const r = t.kcal / day.targetKcal;
-    if (!(ongoing && r < 0.9)) {
+    if (!ongoing || r > 1.1) {
       const gap = Math.abs(r - 1);
       parts.push({ key: 'kcal', max: 3, points: gap <= 0.1 ? 3 : gap <= 0.2 ? 2 : gap <= 0.3 ? 1 : 0, values: { kcal: Math.round(t.kcal), target: day.targetKcal } });
     }
@@ -40,7 +45,7 @@ export function dayScore(day: MealDay, today: string, shares: { p: number; c: nu
   const c = (t.carbsG ?? 0) * 4;
   const f = (t.fatG ?? 0) * 9;
   const macroKcal = p + c + f;
-  if (macroKcal >= t.kcal * 0.3) {
+  if (!ongoing && macroKcal >= t.kcal * 0.3) {
     const sp = Math.round((p / macroKcal) * 100);
     const sc = Math.round((c / macroKcal) * 100);
     const sf = 100 - sp - sc;

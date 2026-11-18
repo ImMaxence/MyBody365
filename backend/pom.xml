@@ -11,14 +11,14 @@
 
   <groupId>fr.mbonnici</groupId>
   <artifactId>mybody365-backend</artifactId>
-  <version>1.8.0</version>
+  <version>1.9.0</version>
   <name>mybody365-backend</name>
   <description>API of MyBody365, a one-year body transformation tracker (PWA)</description>
 
   <licenses>
     <license>
-      <name>MIT License</name>
-      <url>https://opensource.org/license/mit</url>
+      <name>Proprietary, all rights reserved</name>
+      <url>https://github.com/ImMaxence/MyBody365/blob/main/LICENSE</url>
     </license>
   </licenses>
 

@@ -34,16 +34,6 @@ export interface NotificationSettings {
 }
 
 /** a timer saved under a name: effort and rest in seconds, rounds */
-/** a session of sport noted (by the timer, or by hand) */
-export interface WorkoutSession {
-  id: string;
-  day: string;
-  program: string;
-  workout: string;
-  durationMin?: number;
-  createdAt: string;
-}
-
 export interface SavedTimer {
   id: string;
   name: string;
@@ -88,22 +78,6 @@ export class EngageApi {
 
   deleteTimer(id: string): Promise<SavedTimer[]> {
     return firstValueFrom(this.http.delete<SavedTimer[]>(`/api/me/timers/${id}`));
-  }
-
-  /** the sessions noted, newest first */
-  workouts(): Promise<WorkoutSession[]> {
-    return firstValueFrom(this.http.get<WorkoutSession[]>('/api/me/workouts'));
-  }
-
-  /** a session of the day: from the timer (its minutes), or by hand */
-  noteWorkout(day: string, program: 'timer' | 'manual', durationMin?: number): Promise<WorkoutSession[]> {
-    return firstValueFrom(
-      this.http.post<WorkoutSession[]>('/api/me/workouts', { day, program, workout: 'session', durationMin: durationMin || null, exercises: [] }),
-    );
-  }
-
-  deleteWorkout(id: string): Promise<void> {
-    return firstValueFrom(this.http.delete<void>(`/api/me/workouts/${id}`));
   }
 
   /** the timer's coming changes of phase; keepalive: sent while the app leaves the screen */

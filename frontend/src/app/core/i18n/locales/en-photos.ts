@@ -17,6 +17,7 @@ export const enPhotos: Widen<typeof frPhotos> = {
   timelapse: 'Time-lapse',
   storage: 'Storage: {used} of {quota}',
   privateNote: 'Only you can see your photos, not even the administrators',
+  blur: { on: 'Blur the photos', off: 'Show the photos', note: 'Photos blurred on this phone. Tap one to open it' },
   count: '{n} photo(s)',
   open: 'Open the photo of {date}',
   camera: {
@@ -47,6 +48,9 @@ export const enPhotos: Widen<typeof frPhotos> = {
     deleted: 'Photo deleted',
     download: 'Save',
     compareFirst: 'Compare',
+    newer: 'Newer photo',
+    older: 'Older photo',
+    position: '{n} of {total}',
     share: 'Share',
   },
   compareView: {

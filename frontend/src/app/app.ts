@@ -6,6 +6,7 @@ import { filter } from 'rxjs';
 import { I18nService } from './core/i18n/i18n.service';
 import { RouterOutlet } from '@angular/router';
 import { InstallService } from './core/pwa/install.service';
+import { StackNavigation } from './core/nav/stack-navigation';
 import { ThemeService } from './core/theme/theme.service';
 import { installSheets } from './core/ui/sheets';
 import { ToastService } from './core/ui/toast.service';
@@ -37,6 +38,8 @@ export class App {
   private readonly install = inject(InstallService);
   private readonly i18n = inject(I18nService);
   private readonly document = inject(DOCUMENT);
+  // from the first screen: it keeps where each screen was scrolled to
+  private readonly stack = inject(StackNavigation);
 
   constructor() {
     // every bottom sheet closes by a click outside, a tap on its grip or a swipe down

@@ -895,3 +895,68 @@ app-admin router-outlet + * {
     animation: none;
   }
 }
+
+/* a button that vibrates on iPhone (core/ui/haptics.ts): a real switch lies over it, nearly invisible, and hands
+   the tap on to it. The box takes the button's place in the layout; pressed, the button shrinks as usual. */
+.haptic {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+}
+.haptic > .haptic-switch {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0.02;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.haptic > :disabled + .haptic-switch {
+  pointer-events: none;
+}
+.haptic:active > :is(button, a):not(:disabled) {
+  transform: scale(0.9);
+}
+.haptic.block {
+  display: grid;
+}
+
+/* a profile picture opened big (shared/avatar-zoom.ts): over a blurred, dimmed screen */
+.avatar-zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  backdrop-filter: blur(24px) saturate(1.2);
+  outline: none;
+  cursor: zoom-out;
+}
+.avatar-zoom-img {
+  width: min(78vw, 340px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--surface-3);
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.55);
+}
+.avatar-zoom-name {
+  margin: 0;
+  font-weight: 750;
+  font-size: 1.15rem;
+  color: var(--fg);
+}
+.avatar-zoom-action {
+  cursor: pointer;
+}
+.haptic > .haptic-switch[hidden] {
+  display: none;
+}

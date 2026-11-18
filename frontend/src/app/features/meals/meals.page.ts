@@ -1,3 +1,4 @@
+import { ShareSheetComponent } from '../../shared/share-sheet.component';
 import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
@@ -26,7 +27,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
 @Component({
   selector: 'app-meals',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [GuidesSheetComponent, TrendsCardComponent, DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, NutriscoreComponent, NumberStepperComponent],
+  imports: [ShareSheetComponent, GuidesSheetComponent, TrendsCardComponent, DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, NutriscoreComponent, NumberStepperComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -111,12 +112,6 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
                   </span>
                 </div>
               }
-              @if (realityNote(); as r) {
-                <p class="why small">
-                  <span class="why-ico warn"><app-icon name="alert" [size]="15" /></span>
-                  <span>{{ r }} <a routerLink="/app/account/goal" class="why-link">{{ 'meals.activity.adjust' | t }}</a></span>
-                </p>
-              }
             </div>
           }
         </section>
@@ -167,12 +162,19 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
           <app-icon name="info" [size]="14" />
           <span>{{ 'meals.guides.link' | t: { p: plan().proteinG, c: plan().carbsG, f: plan().fatG, fi: plan().fiberG } }}</span>
         </button>
+        <!-- 1.9: what was eaten, shown to the friends or sent as a picture -->
+        @if ((store.data()?.entries?.length ?? 0) > 0 && store.day() <= today()) {
+          <button type="button" class="btn btn-secondary btn-block share-day" (click)="shareSheet.open('DAY', store.day())">
+            <app-icon name="share" [size]="18" /> {{ (store.day() === today() ? 'friends.posts.share.dayCta' : 'friends.posts.share.dayCtaOther') | t }}
+          </button>
+        }
           </div>
       } @else {
         <div class="skeleton" style="height: 168px; border-radius: 24px"></div>
         <div class="skeleton" style="height: 110px; border-radius: 24px"></div>
       }
 
+      <app-share-sheet #shareSheet />
       <dialog class="sheet" #calDialog [attr.aria-label]="'meals.calendar.title' | t">
         <div class="sheet-grip"></div>
         <div class="stack">
@@ -254,6 +256,9 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
   styles: `
     .spacer {
       flex: 1;
+    }
+    .share-day {
+      margin-top: var(--space-2);
     }
     .shortcuts {
       display: grid;
@@ -591,10 +596,6 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       background: var(--cool-soft);
       color: var(--cool);
     }
-    .why-ico.warn {
-      background: color-mix(in srgb, var(--warning, #ee8100) 16%, transparent);
-      color: var(--warning-text, #a35400);
-    }
     .real-body {
       display: grid;
       gap: 4px;
@@ -912,15 +913,6 @@ export class MealsPage {
       this.busy.set(false);
     }
   }
-
-  /** the sessions noted fall well short of the ones the target counts on: say so (once some were noted) */
-  protected readonly realityNote = computed(() => {
-    const s = this.tracking.summary();
-    const planned = s?.profile.sessionsPerWeek ?? 0;
-    if (!s?.profile.job || !s.training?.any || planned < 2) return null;
-    if (s.training.perWeek >= planned - 1 || s.training.thisWeek >= planned) return null;
-    return this.i18n.t('meals.activity.reality', { done: this.i18n.number(s.training.perWeek, 1), planned });
-  });
 
   /** what stands out in the last 7 days (core/meals/trends.ts) */
   private readonly weekStats = signal<MealStats | null>(null);

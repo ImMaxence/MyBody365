@@ -6,6 +6,8 @@ import { TrackingStore } from './tracking/tracking.store';
 import { Outbox } from './offline/outbox';
 import { TimerRun } from './engage/timer-run';
 import { RecipesView } from './meals/recipes-view';
+import { WaterStore } from './tracking/water.store';
+import { FavoritesStore } from './meals/favorites.store';
 
 /** Forgets everything loaded for the signed-in account (sign-out, account deleted). */
 @Injectable({ providedIn: 'root' })
@@ -17,6 +19,8 @@ export class UserDataService {
   private readonly outbox = inject(Outbox);
   private readonly timer = inject(TimerRun);
   private readonly recipesView = inject(RecipesView);
+  private readonly water = inject(WaterStore);
+  private readonly favorites = inject(FavoritesStore);
 
   clear(): void {
     this.tracking.clear();
@@ -27,6 +31,8 @@ export class UserDataService {
     this.outbox.clear();
     this.timer.stop();
     this.recipesView.clear();
+    this.water.clear();
+    this.favorites.clear();
     this.outbox.setOwner(null);
   }
 }

@@ -95,6 +95,12 @@ export class TrackingStore {
   /** the last weigh-in was kept on the phone (no network): it counts once sent */
   readonly lastQueued = signal(false);
 
+  /** the evening weigh-in (1.9): for itself, the trend and the streak keep the morning one */
+  async saveEvening(day: string, weightKg: number | null): Promise<void> {
+    this.summary.set(await this.api.saveEvening(day, weightKg));
+    if (this.logs()) await this.loadLogs();
+  }
+
   async saveLog(day: string, input: LogInput): Promise<Summary | null> {
     try {
       // the milestones reached before: a weigh-in that reaches another one is celebrated

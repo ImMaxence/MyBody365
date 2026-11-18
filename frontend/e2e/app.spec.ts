@@ -10,6 +10,13 @@ test('the profile: a picture of my own and a new username', async ({ page }) => 
   const sheet = page.getByRole('dialog', { name: 'Photo de profil' });
   await sheet.locator('input[type=file]').setInputFiles({ name: 'me.png', mimeType: 'image/png', buffer: makePng(600, 400) });
   await expect(page.getByText('Photo de profil mise à jour')).toBeVisible();
+  // 1.9: with a picture, a tap opens it big (as on Instagram), « Changer » under it
+  await page.getByRole('button', { name: 'Voir ma photo de profil en grand' }).click();
+  const zoom = page.locator('.avatar-zoom');
+  await expect(zoom.locator('img')).toHaveAttribute('src', /\/avatar\?v=\d+/);
+  await expect(zoom.getByRole('button', { name: 'Changer la photo de profil' })).toBeVisible();
+  await zoom.click({ position: { x: 10, y: 10 } });
+  await expect(zoom).toHaveCount(0);
   await expect(page.locator('.avatar-btn img')).toHaveAttribute('src', /\/api\/users\/.+\/avatar\?v=\d+/);
   const src = await page.locator('.avatar-btn img').getAttribute('src');
   expect((await page.request.get(src!)).status()).toBe(200);

@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { errorCode } from '../../core/api/api.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Friend, FriendRequest, FriendRequests, FriendsApi, FriendsView, Member, SharedPhoto, inviteToken, normalizeUsername } from '../../core/friends/friends-api';
+import { Friend, FriendRequest, FriendRequests, FriendsApi, FriendsView, Member, Post, SharedPhoto, inviteToken, normalizeUsername, Challenge } from '../../core/friends/friends-api';
 import { SessionStore } from '../../core/auth/session.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -10,12 +10,17 @@ import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 import { ReportSheetComponent } from '../../shared/report-sheet.component';
+import { AvatarZoom } from '../../shared/avatar-zoom';
+import { PostCardComponent } from '../../shared/post-card.component';
+import { RouterLink } from '@angular/router';
+import { writePref } from '../../core/ui/device-prefs';
+import { POSTS_SEEN_KEY } from '../../core/friends/friends-api';
 
 /** Friends: add by username or invite (QR code or link), requests, flames, nudges, photos shared with me. */
 @Component({
   selector: 'app-friends',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, BackButtonComponent, ReportSheetComponent],
+  imports: [FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, ReportSheetComponent, PostCardComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -108,7 +113,7 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
           <div class="friends">
             @for (q of r.received; track q.id; let i = $index) {
               <div class="card friend request" [style.--i]="i">
-                <span class="ava" [style.--h]="hue(q.name)">
+                <span class="ava" [style.--h]="hue(q.name)" (click)="q.avatarUrl && !broken().has(q.avatarUrl) && zoomIn($any($event.currentTarget), q.avatarUrl, q.name)">
                   @if (q.avatarUrl && !broken().has(q.avatarUrl)) {
                     <img [src]="q.avatarUrl" (error)="markBroken(q.avatarUrl)" alt="" referrerpolicy="no-referrer" />
                   } @else {
@@ -130,7 +135,7 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
           <div class="friends">
             @for (q of r.sent; track q.id; let i = $index) {
               <div class="card friend request" [style.--i]="i">
-                <span class="ava" [style.--h]="hue(q.name)">{{ q.name.charAt(0).toUpperCase() }}</span>
+                <span class="ava" [style.--h]="hue(q.name)" (click)="q.avatarUrl && !broken().has(q.avatarUrl) && zoomIn($any($event.currentTarget), q.avatarUrl, q.name)">{{ q.name.charAt(0).toUpperCase() }}</span>
                 <span class="who-copy">
                   <span class="name">{{ q.name }}</span>
                   <span class="small muted">&#64;{{ q.username }} · {{ 'friends.search.sent' | t }}</span>
@@ -139,6 +144,40 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
               </div>
             }
           </div>
+        }
+      }
+
+      <!-- 1.9: challenges between friends -->
+      <a class="card list-row share-cta" routerLink="/app/challenges">
+        <span class="list-icon trophy-ico"><app-icon name="trophy" /></span>
+        <span class="list-body">
+          <span class="list-title">{{ 'friends.challenges.cta' | t }}</span>
+          <span class="list-sub">{{ challengesLine() }}</span>
+        </span>
+        @if (challengeInvites() > 0) {
+          <span class="count-badge" aria-hidden="true">{{ challengeInvites() }}</span>
+        }
+        <app-icon name="chevronRight" />
+      </a>
+
+      <!-- 1.9: what the friends showed (their progress, their day), with « Bravo » -->
+      @if (posts(); as list) {
+        @if (list.length) {
+          <h2 class="section-title">{{ 'friends.posts.title' | t }}</h2>
+          <div class="posts">
+            @for (p of list; track p.id) {
+              <app-post-card [post]="p" (cheer)="cheer($event)" />
+            }
+          </div>
+        } @else if (view()?.friends?.length) {
+          <a class="card list-row share-cta" routerLink="/app/progress">
+            <span class="list-icon"><app-icon name="share" /></span>
+            <span class="list-body">
+              <span class="list-title">{{ 'friends.posts.emptyTitle' | t }}</span>
+              <span class="list-sub">{{ 'friends.posts.empty' | t }}</span>
+            </span>
+            <app-icon name="chevronRight" />
+          </a>
         }
       }
 
@@ -157,7 +196,7 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
           <div class="friends">
             @for (f of v.friends; track f.id; let i = $index) {
               <div class="card friend" [style.--i]="i">
-                <button type="button" class="who" (click)="openFriend(f)">
+                <button type="button" class="who" (click)="openFriend(f, $event)">
                   <span class="ava" [style.--h]="hue(f.name)">
                     @if (f.avatarUrl && !broken().has(f.avatarUrl)) {
                       <img [src]="f.avatarUrl" (error)="markBroken(f.avatarUrl)" alt="" referrerpolicy="no-referrer" loading="lazy" />
@@ -258,13 +297,14 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
         @if (selected(); as f) {
           <div class="stack">
             <div class="who big">
-              <span class="ava" [style.--h]="hue(f.name)">
-                @if (f.avatarUrl && !broken().has(f.avatarUrl)) {
+              @if (f.avatarUrl && !broken().has(f.avatarUrl)) {
+                <button type="button" class="ava ava-zoom" [style.--h]="hue(f.name)" [attr.aria-label]="'friends.zoom' | t: { name: f.name }"
+                  (click)="zoomIn($any($event.currentTarget), f.avatarUrl, f.name)">
                   <img [src]="f.avatarUrl" (error)="markBroken(f.avatarUrl)" alt="" referrerpolicy="no-referrer" />
-                } @else {
-                  {{ f.name.charAt(0).toUpperCase() }}
-                }
-              </span>
+                </button>
+              } @else {
+                <span class="ava" [style.--h]="hue(f.name)">{{ f.name.charAt(0).toUpperCase() }}</span>
+              }
               <div>
                 <h2 class="h3">{{ f.name }}</h2>
                 <p class="small accent">&#64;{{ f.username }}</p>
@@ -297,6 +337,22 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: var(--space-3);
+    }
+    .posts {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .trophy-ico {
+      background: color-mix(in srgb, #f5b301 18%, transparent) !important;
+      color: #b07800 !important;
+    }
+    .share-cta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      color: inherit;
+      text-decoration: none;
     }
     .find {
       display: grid;
@@ -481,6 +537,10 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
     .who.big {
       flex: none;
     }
+    .ava-zoom {
+      padding: 0;
+      cursor: zoom-in;
+    }
     .ava {
       display: grid;
       place-items: center;
@@ -621,6 +681,7 @@ export class FriendsPage {
   private readonly api = inject(FriendsApi);
   private readonly toast = inject(ToastService);
   protected readonly i18n = inject(I18nService);
+  private readonly zoom = inject(AvatarZoom);
   private readonly inviteDialog = viewChild.required<ElementRef<HTMLDialogElement>>('inviteDialog');
   private readonly addDialog = viewChild.required<ElementRef<HTMLDialogElement>>('addDialog');
   private readonly friendDialog = viewChild.required<ElementRef<HTMLDialogElement>>('friendDialog');
@@ -630,6 +691,18 @@ export class FriendsPage {
 
   protected readonly session = inject(SessionStore);
   protected readonly view = signal<FriendsView | null>(null);
+  protected readonly posts = signal<Post[] | null>(null);
+  private readonly challenges = signal<Challenge[]>([]);
+  protected readonly challengeInvites = computed(() => this.challenges().filter((c) => c.myStatus === 'INVITED' && !c.ended).length);
+  /** « 2 en cours · 1 invitation », or what a challenge is */
+  protected readonly challengesLine = computed(() => {
+    const running = this.challenges().filter((c) => c.myStatus === 'JOINED' && !c.ended).length;
+    const parts = [
+      running ? this.i18n.t('friends.challenges.running', { n: running }) : '',
+      this.challengeInvites() ? this.i18n.t('friends.challenges.invited', { n: this.challengeInvites() }) : '',
+    ].filter(Boolean);
+    return parts.length ? parts.join(' · ') : this.i18n.t('friends.challenges.ctaSub');
+  });
   protected readonly requests = signal<FriendRequests | null>(null);
   /** pictures that could not be loaded: the initial instead */
   protected readonly broken = signal<Set<string>>(new Set());
@@ -657,9 +730,25 @@ export class FriendsPage {
   }
 
   private async load(): Promise<void> {
-    const [view, requests] = await Promise.allSettled([this.api.list(), this.api.requests()]);
+    const [view, requests, posts, challenges] = await Promise.allSettled([this.api.list(), this.api.requests(), this.api.friendsPosts(),
+      this.api.challenges()]);
+    this.challenges.set(challenges.status === 'fulfilled' ? challenges.value : []);
     this.view.set(view.status === 'fulfilled' ? view.value : { friends: [], sharedWithMe: [] });
     this.requests.set(requests.status === 'fulfilled' ? requests.value : { received: [], sent: [] });
+    this.posts.set(posts.status === 'fulfilled' ? posts.value : []);
+    // seen: the Today screen no longer counts them as new
+    writePref(POSTS_SEEN_KEY, new Date().toISOString());
+  }
+
+  /** « Bravo » on a friend's post, or taken back */
+  protected async cheer(p: Post): Promise<void> {
+    if (!p.id) return;
+    try {
+      const next = await this.api.cheer(p.id, !p.cheered);
+      this.posts.update((list) => (list ?? []).map((x) => (x.id === next.id ? next : x)));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    }
   }
 
   protected markBroken(src: string): void {
@@ -926,9 +1015,19 @@ export class FriendsPage {
     }
   }
 
-  protected openFriend(f: Friend): void {
+  /** a tap on the picture opens it big (as on Instagram), anywhere else on the line opens the friend */
+  protected openFriend(f: Friend, e?: Event): void {
+    const ava = (e?.target as Element | null)?.closest('.ava');
+    if (ava && f.avatarUrl && !this.broken().has(f.avatarUrl)) {
+      this.zoomIn(ava, f.avatarUrl, f.name);
+      return;
+    }
     this.selected.set(f);
     this.friendDialog().nativeElement.showModal();
+  }
+
+  protected zoomIn(from: Element, src: string, name: string): void {
+    this.zoom.open(from, src, name);
   }
 
   protected async remove(f: Friend): Promise<void> {

@@ -12,16 +12,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-/** The community's first recipes (resources/community): 200 of them, every one complete and within the API's limits. */
+/** The community's recipes (resources/community): 200 in 1.7, 129 more in 1.9, every one complete and within the API's limits. */
 class CommunityRecipesFilesTest {
 
     @Test
-    void theFilesHold200CompleteRecipes() throws Exception {
+    void theFilesHoldTheirCompleteRecipes() throws Exception {
         List<CommunityRecipes.Seed> all = new ArrayList<>();
         for (Resource f : new PathMatchingResourcePatternResolver().getResources("classpath:community/*.txt")) {
             all.addAll(CommunityRecipes.parse(f.getContentAsString(StandardCharsets.UTF_8)));
         }
-        assertThat(all).hasSize(200);
+        assertThat(all).hasSize(329);
         Set<String> keys = new HashSet<>();
         for (CommunityRecipes.Seed s : all) {
             assertThat(keys.add(s.key())).as("one key per recipe: " + s.name()).isTrue();
@@ -37,6 +37,11 @@ class CommunityRecipesFilesTest {
         // what the French cook and like most is there
         assertThat(all).extracting(CommunityRecipes.Seed::name).contains("Bœuf bourguignon", "Blanquette de veau", "Couscous royal",
                 "Quiche lorraine", "Gratin dauphinois", "Crêpes", "Mousse au chocolat", "Ratatouille");
+        // 1.9: the everyday dishes, the pastries (« Plaisir ») and the drinks
+        assertThat(all).extracting(CommunityRecipes.Seed::name).contains("Cordon bleu et pâtes", "Jambon-beurre", "Burger frites maison",
+                "Steak haché purée", "Paris-Brest", "Éclairs au chocolat", "Mojito", "Virgin mojito");
+        assertThat(all.stream().filter(s -> s.types().contains(RecipeService.Type.TREAT)).count()).isGreaterThanOrEqualTo(45);
+        assertThat(all.stream().filter(s -> s.types().contains(RecipeService.Type.DRINK)).count()).isGreaterThanOrEqualTo(15);
     }
 
     @Test

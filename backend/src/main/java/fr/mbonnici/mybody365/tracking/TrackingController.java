@@ -88,6 +88,27 @@ public class TrackingController {
         return tracking.summary(user.getId());
     }
 
+    public record EveningInput(@jakarta.validation.constraints.NotNull @jakarta.validation.constraints.DecimalMin("30") @jakarta.validation.constraints.DecimalMax("350")
+            java.math.BigDecimal weightKg) {}
+
+    /** the optional evening weigh-in of a day (1.9) */
+    @PutMapping("/logs/{day}/evening")
+    public Summary saveEvening(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day, @Valid @RequestBody EveningInput body,
+            Authentication auth) {
+        AppUser user = users.current(auth);
+        requireProfile(user);
+        tracking.saveEvening(user.getId(), day, body.weightKg());
+        return tracking.summary(user.getId());
+    }
+
+    @DeleteMapping("/logs/{day}/evening")
+    public Summary deleteEvening(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day, Authentication auth) {
+        AppUser user = users.current(auth);
+        requireProfile(user);
+        tracking.saveEvening(user.getId(), day, null);
+        return tracking.summary(user.getId());
+    }
+
     @DeleteMapping("/logs/{day}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteLog(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day, Authentication auth) {

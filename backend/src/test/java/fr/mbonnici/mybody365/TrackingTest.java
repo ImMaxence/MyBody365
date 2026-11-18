@@ -70,18 +70,8 @@ class TrackingTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.profile.macroSplit").value("LOW_CARB"));
         putJson("/api/me/profile/macros", "{\"split\":\"KETO\"}").andExpect(status().isBadRequest());
 
-        // the sessions noted (the timer, or by hand): this week, the last 28 days
-        mvc.perform(get("/api/me/summary").with(as(lea))).andExpect(jsonPath("$.training.any").value(false));
-        for (int ago : new int[] {0, 9, 20, 40}) {
-            mvc.perform(post("/api/me/workouts").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
-                    {"day":"%s","program":"timer","workout":"session","durationMin":30,"exercises":[]}""".formatted(today.minusDays(ago))))
-                    .andExpect(status().isCreated());
-        }
-        mvc.perform(get("/api/me/summary").with(as(lea)))
-                .andExpect(jsonPath("$.training.any").value(true))
-                .andExpect(jsonPath("$.training.thisWeek").value(1))
-                .andExpect(jsonPath("$.training.last28").value(3))
-                .andExpect(jsonPath("$.training.perWeek").value(0.8));
+        // the sessions are no longer noted (1.9): the summary says nothing of them
+        mvc.perform(get("/api/me/summary").with(as(lea))).andExpect(jsonPath("$.training").doesNotExist());
     }
 
     @Test

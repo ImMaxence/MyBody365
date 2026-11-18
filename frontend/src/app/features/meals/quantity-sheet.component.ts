@@ -1,5 +1,9 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, output, signal, viewChild } from '@angular/core';
-import type { Grade, Nutrients } from '../../core/api/models';
+import type { Food, Grade, Nutrients, Recipe } from '../../core/api/models';
+import { errorCode } from '../../core/api/api.service';
+import { FavoritesStore } from '../../core/meals/favorites.store';
+import { HapticDirective } from '../../core/ui/haptics';
+import { ToastService } from '../../core/ui/toast.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { scaled } from '../../core/meals/meals.store';
@@ -18,13 +22,16 @@ export interface QuantityTarget {
   nutriscore?: Grade;
   estimated?: boolean;
   initial?: number;
+  /** the food or the recipe itself: a heart to keep it in the favourites (1.9) */
+  food?: Food;
+  recipe?: Recipe;
 }
 
 /** The amount of a food or recipe, with the nutrients updating as it changes. */
 @Component({
   selector: 'app-quantity-sheet',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, NumberStepperComponent, NutriscoreComponent],
+  imports: [TranslatePipe, IconComponent, NumberStepperComponent, NutriscoreComponent, HapticDirective],
   template: `
     <dialog class="sheet" #dlg (close)="target.set(null)">
       <div class="sheet-grip"></div>
@@ -39,6 +46,14 @@ export interface QuantityTarget {
             </div>
             @if (t.nutriscore) {
               <app-nutriscore [grade]="t.nutriscore" [estimated]="!!t.estimated" size="full" />
+            }
+            @if (t.food || t.recipe) {
+              <span class="haptic">
+                <button type="button" class="icon-btn fav" [class.on]="favorite()" [attr.aria-pressed]="favorite()"
+                  [attr.aria-label]="(favorite() ? 'meals.favorites.remove' : 'meals.favorites.add') | t" (click)="toggleFavorite(t)">
+                  <app-icon name="heart" />
+                </button><input appHaptic="success" />
+              </span>
             }
           </div>
           @if (t.unit === 'g') {
@@ -82,6 +97,22 @@ export interface QuantityTarget {
     .head-copy {
       flex: 1;
       min-width: 0;
+    }
+    .fav {
+      color: var(--fg-3);
+      transition: color var(--dur-2);
+    }
+    .fav.on {
+      color: #e5484d;
+    }
+    .fav.on ::ng-deep svg {
+      fill: currentColor;
+      animation: heart 420ms var(--ease-out);
+    }
+    @keyframes heart {
+      40% {
+        transform: scale(1.3);
+      }
     }
     .presets {
       display: flex;
@@ -136,7 +167,22 @@ export interface QuantityTarget {
 })
 export class QuantitySheetComponent {
   protected readonly i18n = inject(I18nService);
+  private readonly favorites = inject(FavoritesStore);
+  private readonly toast = inject(ToastService);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dlg');
+  protected readonly favorite = computed(() => {
+    const t = this.target();
+    return t?.food ? this.favorites.isFood(t.food.id) : t?.recipe ? this.favorites.isRecipe(t.recipe.id) : false;
+  });
+
+  protected async toggleFavorite(t: QuantityTarget): Promise<void> {
+    try {
+      const on = t.food ? await this.favorites.toggleFood(t.food) : await this.favorites.toggleRecipe(t.recipe!);
+      this.toast.show(this.i18n.t(on ? 'meals.favorites.added' : 'meals.favorites.removed', { name: t.name }));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    }
+  }
   readonly confirm = output<number>();
 
   protected readonly presets = [50, 100, 150, 200];
@@ -156,6 +202,7 @@ export class QuantitySheetComponent {
     this.confirmLabel.set(confirmLabel);
     this.qty.set(t.initial ?? (t.unit === 'g' ? (t.servingG ?? 100) : 1));
     this.busy.set(false);
+    if (t.food || t.recipe) void this.favorites.ensure();
     this.dialog().nativeElement.showModal();
   }
 

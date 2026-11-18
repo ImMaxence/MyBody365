@@ -12,7 +12,6 @@ import fr.mbonnici.mybody365.tracking.TrackingDtos.ProfileDto;
 import fr.mbonnici.mybody365.tracking.TrackingDtos.ProfileInput;
 import fr.mbonnici.mybody365.tracking.TrackingDtos.Streak;
 import fr.mbonnici.mybody365.tracking.TrackingDtos.Summary;
-import fr.mbonnici.mybody365.tracking.TrackingDtos.Training;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
@@ -21,7 +20,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -139,6 +137,28 @@ public class TrackingService {
         return logs.save(log);
     }
 
+    /**
+     * The evening weigh-in of a day (1.9), next to the morning one: only for itself, the trend, the streak and the
+     * targets keep the morning one (weighed at the same time each day, the honest comparison). Null takes it off.
+     */
+    @Transactional
+    public void saveEvening(UUID userId, LocalDate day, BigDecimal kg) {
+        LocalDate today = today();
+        if (day.isAfter(today.plusDays(1)) || day.isBefore(today.minusDays(7))) {
+            throw ApiException.badRequest("invalid_day");
+        }
+        BodyLog log = logs.findById(new BodyLog.Key(userId, day)).orElse(null);
+        if (log == null) {
+            if (kg == null) {
+                return;
+            }
+            log = new BodyLog(userId, day);
+        }
+        log.setEveningWeightKg(scale2(kg));
+        log.touch();
+        logs.save(log);
+    }
+
     @Transactional
     public void deleteLog(UUID userId, LocalDate day) {
         logs.deleteById(new BodyLog.Key(userId, day));
@@ -156,7 +176,7 @@ public class TrackingService {
                 trendKg = round2(trend.get(t++));
             }
             out.add(new LogDto(l.getDay(), d(l.getWeightKg()), trendKg, d(l.getBodyFatPct()), d(l.getWaistCm()),
-                    d(l.getHipsCm()), d(l.getChestCm()), d(l.getArmCm()), d(l.getThighCm()), l.getNote()));
+                    d(l.getHipsCm()), d(l.getChestCm()), d(l.getArmCm()), d(l.getThighCm()), l.getNote(), d(l.getEveningWeightKg())));
         }
         return out;
     }
@@ -177,8 +197,11 @@ public class TrackingService {
         double weight = last == null ? start : last.weightKg();
         double trendNow = trend.isEmpty() ? start : trend.getLast();
 
-        Current current = new Current(last == null ? null : weight, last == null ? null : last.day(), round2(trendNow),
-                round1(BodyMath.bmi(weight, height)), last == null ? null : round2(weight - start));
+        LocalDate lastDay = last == null ? null : last.day();
+        Double evening = lastDay == null ? null
+                : all.stream().filter(l -> l.getDay().equals(lastDay)).findFirst().map(l -> d(l.getEveningWeightKg())).orElse(null);
+        Current current = new Current(last == null ? null : weight, lastDay, round2(trendNow),
+                round1(BodyMath.bmi(weight, height)), last == null ? null : round2(weight - start), evening);
 
         double bmr = BodyMath.bmr(p.getSex(), weight, height, age);
         double estimated = bmr * p.activityFactor();
@@ -212,7 +235,7 @@ public class TrackingService {
         ProfileDto profile = new ProfileDto(p.getSex(), p.getBirthDate(), age, height, p.getActivityLevel(), p.getJob(),
                 p.getSessionsPerWeek(), round2(p.activityFactor()), p.getMacroSplit(), p.isAdaptiveTdee(), start, p.getStartDate(), goalKg, rate,
                 round1(BodyMath.minHealthyWeight(height)));
-        return new Summary(profile, current, energy, goal, streak(all, today), warnings, training(userId, today));
+        return new Summary(profile, current, energy, goal, streak(all, today), warnings);
     }
 
     /** the real needs (kcal a day) and the days they come from */
@@ -273,17 +296,6 @@ public class TrackingService {
         p.setAdaptiveTdee(on);
         p.touch();
         profiles.save(p);
-    }
-
-    /** the sessions noted, to compare with the ones the calorie target counts on */
-    private Training training(UUID userId, LocalDate today) {
-        LocalDate monday = today.minusDays(today.getDayOfWeek().getValue() - 1L);
-        Map<String, Object> r = jdbc.queryForMap("""
-                select count(*) filter (where day >= ?) week, count(*) filter (where day > ?) last28, count(*) total
-                from workout_session where user_id = ? and day <= ?""", monday, today.minusDays(28), userId, today);
-        int last28 = ((Number) r.get("last28")).intValue();
-        return new Training(((Number) r.get("week")).intValue(), last28, Math.round(last28 / 4.0 * 10) / 10.0,
-                ((Number) r.get("total")).longValue() > 0);
     }
 
     /** the split of the macros the member chose */

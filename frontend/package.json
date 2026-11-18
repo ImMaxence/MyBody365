@@ -1,9 +1,9 @@
 {
   "name": "mybody365",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "private": true,
   "description": "MyBody365 — mobile-only PWA for a one-year body transformation (Angular 22)",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "scripts": {
     "ng": "ng",
     "prestart": "node scripts/changelog.mjs",

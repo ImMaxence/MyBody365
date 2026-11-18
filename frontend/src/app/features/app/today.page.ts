@@ -1,19 +1,22 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { NumberStepperComponent } from '../../shared/number-stepper.component';
+import { closeSheet } from '../../core/ui/sheets';
 import { RouterLink } from '@angular/router';
 import { ApiService, errorCode } from '../../core/api/api.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { AvatarImgComponent } from '../../shared/avatar-img.component';
-import { defaultWaterGoal } from './water-row.component';
+import { WaterCardComponent, defaultWaterGoal } from './water-card.component';
 import { SessionStore } from '../../core/auth/session.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { Friend, FriendsApi } from '../../core/friends/friends-api';
+import { CHALLENGE_EMOJI, Challenge, Friend, FriendsApi, POSTS_SEEN_KEY } from '../../core/friends/friends-api';
+import { challengeDay, challengeStanding } from '../../core/friends/challenge-text';
+import { readPref } from '../../core/ui/device-prefs';
 import { MealsStore } from '../../core/meals/meals.store';
 import { PhotosStore } from '../../core/photos/photos.store';
 import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
 import { IconComponent } from '../../shared/icon.component';
 import { WeighSheetComponent } from './weigh-sheet.component';
-import { WaterRowComponent } from './water-row.component';
 import { PushPromptComponent } from '../../shared/push-prompt.component';
 import { STREAK_COLORS, STREAK_ICONS, streakEmoji, streakTint } from '../../core/engage/streak-style';
 
@@ -40,7 +43,7 @@ function writeFlag(key: string): void {
 @Component({
   selector: 'app-today',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AvatarImgComponent, PushPromptComponent, WaterRowComponent, RouterLink, TranslatePipe, IconComponent, WeighSheetComponent],
+  imports: [NumberStepperComponent, AvatarImgComponent, PushPromptComponent, WaterCardComponent, RouterLink, TranslatePipe, IconComponent, WeighSheetComponent],
   template: `
     <main class="page">
       <header class="head">
@@ -178,6 +181,26 @@ function writeFlag(key: string): void {
 
       <app-push-prompt [dismissable]="true" />
 
+      <dialog class="sheet" #eveningDialog [attr.aria-label]="'today.evening.title' | t">
+        <div class="sheet-grip"></div>
+        <div class="stack">
+          <div>
+            <h2 class="h3">{{ 'today.evening.title' | t }}</h2>
+            <p class="small muted">{{ 'today.evening.text' | t }}</p>
+          </div>
+          <app-number-stepper [(value)]="eveningValue" [step]="0.1" [min]="30" [max]="350" [decimals]="1" unit="kg" [label]="'today.evening.label' | t" />
+          @if (eveningDiff(); as d) {
+            <p class="small evening-diff num">{{ d }}</p>
+          }
+          <button type="button" class="btn btn-primary btn-block" [disabled]="eveningBusy()" (click)="saveEvening(eveningValue())">
+            <app-icon name="check" /> {{ 'today.evening.save' | t }}
+          </button>
+          @if (eveningKg() != null) {
+            <button type="button" class="btn btn-ghost btn-block" [disabled]="eveningBusy()" (click)="saveEvening(null)">{{ 'today.evening.remove' | t }}</button>
+          }
+        </div>
+      </dialog>
+
       <h2 class="section-title">{{ 'today.todo' | t }}</h2>
       <div class="list">
         <button type="button" class="list-item task" [class.done]="weighedIn()" (click)="weigh()">
@@ -194,9 +217,18 @@ function writeFlag(key: string): void {
           </span>
           <app-icon [name]="weighedIn() ? 'pencil' : 'plus'" />
         </button>
-        @if (account()?.waterGoal; as goal) {
-          <app-water-row [goal]="goal" />
-        } @else if (!waterInviteHidden()) {
+        <!-- 1.9: an optional evening weigh-in, from 5 pm once the morning one is done -->
+        @if (eveningShown()) {
+          <button type="button" class="list-item task evening" [class.done]="eveningKg() != null" (click)="openEvening()">
+            <span class="list-icon"><app-icon [name]="eveningKg() != null ? 'check' : 'moon'" /></span>
+            <span class="list-body">
+              <span class="list-title">{{ 'today.evening.title' | t }}</span>
+              <span class="list-sub">{{ eveningLine() }}</span>
+            </span>
+            <app-icon [name]="eveningKg() != null ? 'pencil' : 'plus'" />
+          </button>
+        }
+        @if (!account()?.waterGoal && !waterInviteHidden()) {
           <div class="list-item water-invite">
             <span class="list-icon water-ico"><app-icon name="droplet" /></span>
             <span class="list-body">
@@ -215,8 +247,24 @@ function writeFlag(key: string): void {
             <span class="list-title">{{ 'friends.title' | t }}</span>
             <span class="list-sub">{{ friendsLine() }}</span>
           </span>
+          @if (newPosts() > 0) {
+            <span class="count-badge news" aria-hidden="true">{{ newPosts() }}</span>
+          }
           <app-icon name="chevronRight" />
         </a>
+        @if (challenge(); as c) {
+          <a class="list-item task" routerLink="/app/challenges">
+            <span class="list-icon trophy-ico"><span aria-hidden="true">{{ challengeEmoji[c.kind] }}</span></span>
+            <span class="list-body">
+              <span class="list-title">{{ 'friends.challenges.kinds.' + c.kind + '.title' | t }}</span>
+              <span class="list-sub">{{ challengeLine() }}</span>
+            </span>
+            @if (c.myStatus === 'INVITED') {
+              <span class="count-badge news" aria-hidden="true">1</span>
+            }
+            <app-icon name="chevronRight" />
+          </a>
+        }
         <a class="list-item task" routerLink="/app/timer">
           <span class="list-icon"><app-icon name="timer" /></span>
           <span class="list-body">
@@ -226,6 +274,10 @@ function writeFlag(key: string): void {
           <app-icon name="chevronRight" />
         </a>
       </div>
+
+      @if (account()?.waterGoal; as goal) {
+        <app-water-card [goal]="goal" />
+      }
 
       @if (summary(); as s) {
         <a routerLink="/app/progress" class="goal card">
@@ -262,6 +314,15 @@ function writeFlag(key: string): void {
     <app-weigh-sheet />
   `,
   styles: `
+    .evening-diff {
+      margin: 0;
+      text-align: center;
+      color: var(--fg-2);
+    }
+    .trophy-ico {
+      background: color-mix(in srgb, #f5b301 18%, transparent) !important;
+      font-size: 1.15rem;
+    }
     .head {
       display: flex;
       align-items: flex-end;
@@ -702,9 +763,73 @@ export class TodayPage {
   private readonly meals = inject(MealsStore);
   private readonly friendsApi = inject(FriendsApi);
   protected readonly friends = signal<Friend[] | null>(null);
+  // ── the evening weigh-in (1.9) ──────────────────────────────────────────
+  private readonly eveningDialog = viewChild.required<ElementRef<HTMLDialogElement>>('eveningDialog');
+  protected readonly eveningBusy = signal(false);
+  protected readonly eveningValue = signal(70);
+  /** today's, when the morning weigh-in of today carries one */
+  protected readonly eveningKg = computed(() => {
+    const c = this.summary()?.current;
+    return c?.day === localDay() ? (c.eveningKg ?? null) : null;
+  });
+  /** from 5 pm, once weighed in this morning (or once noted) */
+  protected readonly eveningShown = computed(() => this.weighedIn() && (this.eveningKg() != null || new Date().getHours() >= 17));
+  /** « +0,9 kg depuis ce matin », the evening one against the morning one */
+  private diffText(evening: number): string {
+    const morning = this.summary()?.current?.weightKg;
+    if (morning == null) return '';
+    const d = Math.round((evening - morning) * 10) / 10;
+    return this.i18n.t('today.evening.diff', { d: `${d > 0 ? '+' : d < 0 ? '−' : ''}${this.i18n.number(Math.abs(d), 1)}` });
+  }
+  protected readonly eveningLine = computed(() => {
+    const kg = this.eveningKg();
+    if (kg == null) return this.i18n.t('today.evening.hint');
+    const diff = this.diffText(kg);
+    return `${this.i18n.number(kg, 1)} kg${diff ? ' · ' + diff : ''}`;
+  });
+  protected readonly eveningDiff = computed(() => this.diffText(this.eveningValue()));
+
+  protected openEvening(): void {
+    const c = this.summary()?.current;
+    this.eveningValue.set(this.eveningKg() ?? Math.round(((c?.weightKg ?? 70) + 0.8) * 10) / 10);
+    this.eveningDialog().nativeElement.showModal();
+  }
+
+  protected async saveEvening(kg: number | null): Promise<void> {
+    this.eveningBusy.set(true);
+    try {
+      await this.tracking.saveEvening(localDay(), kg);
+      closeSheet(this.eveningDialog().nativeElement);
+      this.toast.show(this.i18n.t(kg == null ? 'today.evening.removed' : 'today.evening.saved'));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.eveningBusy.set(false);
+    }
+  }
+
+  /** the challenge to show on Today: an invitation first, else one going on */
+  protected readonly challenges = signal<Challenge[]>([]);
+  protected readonly challengeEmoji = CHALLENGE_EMOJI;
+  protected readonly challenge = computed(() => {
+    const live = this.challenges().filter((c) => !c.ended);
+    return live.find((c) => c.myStatus === 'INVITED') ?? live.find((c) => c.myStatus === 'JOINED') ?? null;
+  });
+  protected readonly challengeLine = computed(() => {
+    const c = this.challenge();
+    if (!c) return '';
+    if (c.myStatus === 'INVITED') return this.i18n.t('friends.challenges.todayInvite', { name: c.ownerName });
+    const me = c.members.find((m) => m.me);
+    const parts = [challengeDay(c, this.i18n), me ? this.i18n.t('friends.challenges.score', { done: me.done, total: c.length }) : '', challengeStanding(c, this.i18n)];
+    return parts.filter(Boolean).join(' · ');
+  });
+  /** what the friends shared since the friends' screen was last opened on this phone */
+  protected readonly newPosts = signal(0);
   protected readonly friendsLine = computed(() => {
     const f = this.friends();
-    if (!f || !f.length) return this.i18n.t('friends.sub');
+    if (f && !f.length) return this.i18n.t('friends.inviteNudge');
+    if (!f) return this.i18n.t('friends.sub');
+    if (this.newPosts() > 0) return this.i18n.t(this.newPosts() === 1 ? 'friends.posts.newsOne' : 'friends.posts.newsMany', { n: this.newPosts() });
     const done = f.filter((x) => x.todayDone).length;
     return (
       this.i18n.t(f.length === 1 ? 'today.friendsOne' : 'today.friendsMany', { n: f.length }) +
@@ -797,6 +922,18 @@ export class TodayPage {
     void this.friendsApi
       .list()
       .then((v) => this.friends.set(v.friends))
+      .catch(() => undefined);
+    void this.friendsApi
+      .challenges()
+      .then((c) => this.challenges.set(c))
+      .catch(() => undefined);
+    // the friends' news newer than the last visit of their screen
+    void this.friendsApi
+      .friendsPosts()
+      .then((posts) => {
+        const seen = Date.parse(readPref(POSTS_SEEN_KEY) ?? '') || 0;
+        this.newPosts.set(posts.filter((p) => Date.parse(p.createdAt) > seen).length);
+      })
       .catch(() => undefined);
     if (this.session.isAdmin()) {
       this.api

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * The retention periods of the privacy policy, applied every night: handled access requests and reports
- * after twelve months, the admin log (with its IP addresses) after one year, nudges after thirty days.
+ * after twelve months, the admin log (with its IP addresses) after one year, nudges and posts to friends after thirty days.
  */
 @Component
 public class RetentionJob {
@@ -29,7 +29,11 @@ public class RetentionJob {
         int nudges = jdbc.update("delete from friend_nudge where day < current_date - 30");
         int errors = jdbc.update("delete from error_log where archived_at < now() - interval '90 days'");
         int feedback = jdbc.update("delete from feedback where archived_at < now() - interval '12 months'");
-        if (requests + reports + audit + nudges + errors + feedback > 0) {
+        // what one showed one's friends (1.9): a month
+        int posts = jdbc.update("delete from friend_post where created_at < now() - interval '30 days'");
+        // the challenges between friends: 60 days after their end
+        posts += jdbc.update("delete from challenge where end_day < current_date - 60");
+        if (requests + reports + audit + nudges + errors + feedback + posts > 0) {
             log.info("Retention: {} access request(s), {} report(s), {} log line(s), {} nudge(s), {} error(s), {} feedback deleted", requests,
                     reports, audit, nudges, errors, feedback);
         }

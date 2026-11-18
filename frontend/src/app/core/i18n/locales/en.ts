@@ -42,6 +42,11 @@ export const en: Dictionary = {
 
   errors: {
     milestones_full: 'Ten milestones at most: delete one to add another',
+    too_many_challenges: 'You already have 5 challenges going on: wait for one to end',
+    challenge_ended: 'This challenge is over',
+    milestone_not_reached: 'This milestone is not reached yet',
+    nothing_to_share: 'Nothing noted that day',
+    favorites_full: '200 favourites at most: remove one to add another',
     milestone_exists: 'You already have a milestone at this weight',
     team_account: 'This is the MyBody365 team account: no one can sign in with it, decline this request',
     community_admins_only: 'The community is published by the MyBody365 team. Share it with your friends instead',
@@ -386,6 +391,17 @@ export const en: Dictionary = {
   },
 
   today: {
+    evening: {
+      title: 'Evening weigh-in',
+      hint: 'Optional, to see what the day adds',
+      text: 'In the evening you often weigh 0.5 to 2 kg more than on waking up (water, meals): that is normal. Your curve, your flame and your goal follow the morning weigh-in',
+      label: 'Weight tonight',
+      diff: '{d} kg since this morning',
+      save: 'Save',
+      remove: 'Remove the evening weigh-in',
+      saved: 'Evening weigh-in noted',
+      removed: 'Evening weigh-in removed',
+    },
     greetingMorning: 'Good morning {name}',
     greetingDay: 'Hi {name}',
     greetingEvening: 'Good evening {name}',
@@ -522,6 +538,8 @@ export const en: Dictionary = {
       addOwn: 'My own',
       edit: 'Edit the milestone',
       editOf: 'Edit the {kg} kg milestone',
+      shareOf: 'Share the {kg} kg milestone with my friends',
+      share: 'Share it with my friends',
       empty: 'Steps on the way to your goal, with a reward if you like: a restaurant, new trainers, a day just for you',
       suggest: 'Suggest {list}',
       added: '{n} milestones added',
@@ -616,6 +634,7 @@ export const en: Dictionary = {
     changelogSub: 'Version {v}',
     photo: 'Profile picture',
     photoChange: 'Change the profile picture',
+    photoZoom: 'See my profile picture big',
     photoChoose: 'Choose a photo',
     photoRemove: 'Remove my picture',
     photoNote: 'Cropped square and saved again without its hidden data (place, device). Only your friends see it',
@@ -734,9 +753,16 @@ export const en: Dictionary = {
   },
   water: {
     title: 'Water',
-    count: '{n} / {goal} glasses · {l} L',
     less: 'Remove a glass',
-    more: 'Add a glass',
+    lessShort: 'One glass',
+    glasses: 'Your glasses of water today',
+    glassFull: 'Glass {n}, drunk: remove it',
+    glassEmpty: 'Glass {n}: drink it',
+    size: 'One glass = 25 cl',
+    loading: 'Your glasses are coming…',
+    left: '{n} more glasses to your goal',
+    leftOne: 'One more glass to your goal',
+    done: 'Goal reached, well done',
     reached: 'Water goal reached, well done',
     toggle: 'Glasses of water',
     toggleHint: 'A 25 cl glass to tick on the Today screen. Off by default',
@@ -913,7 +939,7 @@ export const en: Dictionary = {
         {
           h: 'Intellectual property',
           p: [
-            'The source code of MyBody365 is published under the MIT licence. The name, logo and texts of the site remain the property of their author. Photos, meals, recipes and other content added by users remain their property.',
+            'The source code, name, logo, design and texts of MyBody365 are the exclusive property of their author, all rights reserved: the code can be read, but any copy, reuse or operation, free or paid, needs their written permission. Photos, meals, recipes and other content added by users remain their property.',
           ],
         },
         {

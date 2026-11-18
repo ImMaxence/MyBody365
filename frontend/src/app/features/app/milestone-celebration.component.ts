@@ -4,12 +4,14 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TrackingStore } from '../../core/tracking/tracking.store';
 import { closeSheet } from '../../core/ui/sheets';
+import { ShareSheetComponent } from '../../shared/share-sheet.component';
+import { IconComponent } from '../../shared/icon.component';
 
 /** A milestone reached by the weigh-in just noted (1.8): a moment of joy, with the reward one promised oneself. */
 @Component({
   selector: 'app-milestone-celebration',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe],
+  imports: [RouterLink, TranslatePipe, ShareSheetComponent, IconComponent],
   template: `
     <dialog class="sheet" #dlg [attr.aria-label]="'progress.milestones.celebrateTitle' | t" (close)="tracking.celebrate.set(null)">
       <div class="sheet-grip"></div>
@@ -23,11 +25,14 @@ import { closeSheet } from '../../core/ui/sheets';
           } @else {
             <p class="small muted">{{ 'progress.milestones.celebrateText' | t }}</p>
           }
-          <a class="btn btn-primary btn-block" routerLink="/app/progress" (click)="close()">{{ 'progress.milestones.seeAll' | t }}</a>
+          <!-- 1.9: the friends hear of it -->
+          <button type="button" class="btn btn-primary btn-block" (click)="shareIt(m.id)"><app-icon name="share" [size]="18" /> {{ 'progress.milestones.share' | t }}</button>
+          <a class="btn btn-secondary btn-block" routerLink="/app/progress" (click)="close()">{{ 'progress.milestones.seeAll' | t }}</a>
           <button type="button" class="btn btn-ghost btn-block" (click)="close()">{{ 'progress.milestones.keepGoing' | t }}</button>
         </div>
       }
     </dialog>
+    <app-share-sheet #share />
   `,
   styles: `
     .party {
@@ -90,5 +95,13 @@ export class MilestoneCelebrationComponent {
 
   protected close(): void {
     closeSheet(this.dlg().nativeElement);
+  }
+
+  private readonly share = viewChild.required(ShareSheetComponent);
+
+  /** the joy closes, the share sheet opens on this milestone */
+  protected shareIt(id: string): void {
+    this.close();
+    this.share().open('MILESTONE', '', id);
   }
 }

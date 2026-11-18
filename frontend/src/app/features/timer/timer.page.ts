@@ -4,14 +4,13 @@ import { PushSetup } from '../../core/engage/push-setup.service';
 import { TimerRun, TimerSettings } from '../../core/engage/timer-run';
 import { FormsModule } from '@angular/forms';
 import { errorCode } from '../../core/api/api.service';
-import { EngageApi, SavedTimer, WorkoutSession } from '../../core/engage/engage-api';
-import { weekOf } from '../../core/meals/meals.store';
-import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
+import { EngageApi, SavedTimer } from '../../core/engage/engage-api';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { closeSheet } from '../../core/ui/sheets';
 import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
+import { HapticDirective } from '../../core/ui/haptics';
 import { IconComponent } from '../../shared/icon.component';
 
 type Settings = TimerSettings;
@@ -50,7 +49,7 @@ function same(a: Settings, b: Settings): boolean {
 @Component({
   selector: 'app-timer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent],
+  imports: [FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HapticDirective],
   template: `
     <main class="page">
       <header class="page-head">
@@ -75,9 +74,9 @@ function same(a: Settings, b: Settings): boolean {
               <div class="row">
                 <span class="row-label"><app-icon [name]="f.icon" [size]="18" /> {{ 'engage.timer.' + f.key | t }}</span>
                 <div class="stepper">
-                  <button type="button" class="step" [disabled]="value(f.key) <= f.min" [attr.aria-label]="'engage.timer.less' | t: { what: ('engage.timer.' + f.key | t) }" (click)="change(f.key, -1)">
+                  <span class="haptic"><button type="button" class="step" [disabled]="value(f.key) <= f.min" [attr.aria-label]="'engage.timer.less' | t: { what: ('engage.timer.' + f.key | t) }" (click)="change(f.key, -1)">
                     <app-icon name="minus" [size]="18" [stroke]="2.4" />
-                  </button>
+                  </button><input appHaptic="soft" /></span>
                   <span class="val-wrap" aria-live="polite">
                     @for (v of [value(f.key)]; track v) {
                       <!-- a tap to type the value, the buttons around for small steps -->
@@ -86,16 +85,16 @@ function same(a: Settings, b: Settings): boolean {
                       </button>
                     }
                   </span>
-                  <button type="button" class="step" [disabled]="value(f.key) >= f.max" [attr.aria-label]="'engage.timer.more' | t: { what: ('engage.timer.' + f.key | t) }" (click)="change(f.key, 1)">
+                  <span class="haptic"><button type="button" class="step" [disabled]="value(f.key) >= f.max" [attr.aria-label]="'engage.timer.more' | t: { what: ('engage.timer.' + f.key | t) }" (click)="change(f.key, 1)">
                     <app-icon name="plus" [size]="18" [stroke]="2.4" />
-                  </button>
+                  </button><input appHaptic="soft" /></span>
                 </div>
               </div>
             }
           </div>
           <p class="total small muted num">{{ 'engage.timer.total' | t: { time: clockOf(totalSeconds()) } }}</p>
           <p class="disclaimer tiny muted">{{ 'engage.timer.disclaimer' | t }}</p>
-          <button type="button" class="btn btn-primary btn-block go" (click)="start()"><app-icon name="play" /> {{ 'engage.timer.start' | t }}</button>
+          <span class="haptic block"><button type="button" class="btn btn-primary btn-block go" (click)="start()"><app-icon name="play" /> {{ 'engage.timer.start' | t }}</button><input appHaptic="success" /></span>
           <div class="keep">
             @if (selectedSaved(); as s) {
               <button type="button" class="btn btn-ghost btn-s danger" (click)="remove(s)"><app-icon name="trash" [size]="16" /> {{ 'engage.timer.delete' | t: { name: s.name } }}</button>
@@ -104,24 +103,6 @@ function same(a: Settings, b: Settings): boolean {
             }
           </div>
 
-          <!-- the sessions of the week, compared with the ones the calorie target counts on -->
-          <section class="card week">
-            <p class="week-head">
-              <b>{{ (weekCount() === 0 ? 'engage.timer.weekNone' : weekCount() === 1 ? 'engage.timer.weekOne' : 'engage.timer.weekMany') | t: { n: weekCount() } }}</b>
-              @if (planned(); as n) {
-                <span class="small muted">{{ 'engage.timer.planned' | t: { n: n } }}</span>
-              }
-            </p>
-            <p class="tiny muted">{{ 'engage.timer.weekHint' | t }}</p>
-            @if (todayNoted(); as tn) {
-              <div class="noted small">
-                <app-icon name="check" [size]="16" /> <span>{{ 'engage.timer.notedToday' | t }}</span>
-                <button type="button" class="btn btn-ghost btn-s" [disabled]="busy()" (click)="undo(tn)">{{ 'engage.timer.undo' | t }}</button>
-              </div>
-            } @else {
-              <button type="button" class="btn btn-secondary btn-block" [disabled]="busy()" (click)="note('manual')"><app-icon name="plus" /> {{ 'engage.timer.noteManual' | t }}</button>
-            }
-          </section>
         </section>
       } @else {
         <section class="run" [attr.data-phase]="state() === 'done' ? 'done' : phase()">
@@ -157,20 +138,15 @@ function same(a: Settings, b: Settings): boolean {
               }
             </p>
             <div class="controls">
-              <button type="button" class="ctl" [attr.aria-label]="'engage.timer.stop' | t" (click)="stop()"><app-icon name="x" [size]="22" /></button>
-              <button type="button" class="ctl main" [attr.aria-label]="(state() === 'paused' ? 'engage.timer.resume' : 'engage.timer.pause') | t" (click)="toggle()">
+              <span class="haptic"><button type="button" class="ctl" [attr.aria-label]="'engage.timer.stop' | t" (click)="stop()"><app-icon name="x" [size]="22" /></button><input appHaptic /></span>
+              <span class="haptic"><button type="button" class="ctl main" [attr.aria-label]="(state() === 'paused' ? 'engage.timer.resume' : 'engage.timer.pause') | t" (click)="toggle()">
                 <app-icon [name]="state() === 'paused' ? 'play' : 'pause'" [size]="30" />
-              </button>
-              <button type="button" class="ctl" [attr.aria-label]="'engage.timer.skip' | t" (click)="next()"><app-icon name="chevronRight" [size]="24" /></button>
+              </button><input appHaptic /></span>
+              <span class="haptic"><button type="button" class="ctl" [attr.aria-label]="'engage.timer.skip' | t" (click)="next()"><app-icon name="chevronRight" [size]="24" /></button><input appHaptic /></span>
             </div>
           } @else {
             <div class="controls done">
-              @if (todayNoted()) {
-                <p class="noted small"><app-icon name="check" [size]="16" /> {{ 'engage.timer.notedToday' | t }}</p>
-              } @else {
-                <button type="button" class="btn btn-primary" [disabled]="busy()" (click)="note('timer', runMinutes())"><app-icon name="check" /> {{ 'engage.timer.noteRun' | t }}</button>
-              }
-              <button type="button" class="btn btn-secondary" (click)="again()"><app-icon name="repeat" /> {{ 'engage.timer.again' | t }}</button>
+              <button type="button" class="btn btn-primary" (click)="again()"><app-icon name="repeat" /> {{ 'engage.timer.again' | t }}</button>
               <button type="button" class="btn btn-ghost" (click)="stop()">{{ 'engage.timer.close' | t }}</button>
             </div>
           }
@@ -467,34 +443,6 @@ function same(a: Settings, b: Settings): boolean {
       flex-wrap: wrap;
       gap: var(--space-3);
     }
-    .week {
-      display: grid;
-      gap: var(--space-2);
-      margin-top: var(--space-4);
-      padding: var(--space-4);
-    }
-    .week-head {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 6px;
-      margin: 0;
-    }
-    .noted {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin: 0;
-      color: var(--success-text, var(--fg));
-      font-weight: 650;
-    }
-    .week .noted {
-      justify-content: flex-start;
-    }
-    .week .noted .btn {
-      margin-left: auto;
-    }
     .ctl {
       display: grid;
       place-items: center;
@@ -556,19 +504,6 @@ export class TimerPage {
   ];
 
   protected readonly settings = signal<Settings>(this.load());
-  private readonly tracking = inject(TrackingStore);
-  /** the sessions noted (newest first): this week's, today's */
-  protected readonly sessions = signal<WorkoutSession[]>([]);
-  protected readonly weekCount = computed(() => {
-    const today = localDay();
-    const monday = weekOf(today)[0];
-    return this.sessions().filter((x) => x.day >= monday && x.day <= today).length;
-  });
-  protected readonly todayNoted = computed(() => this.sessions().find((x) => x.day === localDay()) ?? null);
-  /** the sessions a week the calorie target counts on (the profile's answer) */
-  protected readonly planned = computed(() => this.tracking.summary()?.profile.sessionsPerWeek || null);
-  /** the run's length in minutes, for the session noted */
-  protected readonly runMinutes = computed(() => Math.max(1, Math.round(this.run.totalSeconds() / 60)));
   protected readonly saved = signal<SavedTimer[]>([]);
   protected readonly state = this.run.state;
   protected readonly busy = signal(false);
@@ -605,11 +540,6 @@ export class TimerPage {
       .timers()
       .then((t) => this.saved.set(t))
       .catch(() => undefined);
-    void this.api
-      .workouts()
-      .then((w) => this.sessions.set(w))
-      .catch(() => undefined);
-    if (!this.tracking.summary()) void this.tracking.load().catch(() => undefined);
     // the ring, frame by frame, while there is a run on this screen
     effect(() => {
       if (this.run.state() !== 'idle') untracked(() => this.paint());
@@ -719,33 +649,6 @@ export class TimerPage {
       this.toast.show(this.i18n.t('engage.timer.deleted', { name: t.name }));
     } catch (e) {
       this.toast.error(this.i18n.error(errorCode(e)));
-    }
-  }
-
-  /** a session of the day, by the timer or by hand; the calorie target's comparison follows */
-  protected async note(program: 'timer' | 'manual', minutes?: number): Promise<void> {
-    this.busy.set(true);
-    try {
-      this.sessions.set(await this.api.noteWorkout(localDay(), program, minutes));
-      this.toast.show(this.i18n.t('engage.timer.noted'));
-      void this.tracking.load().catch(() => undefined);
-    } catch (e) {
-      this.toast.error(this.i18n.error(errorCode(e)));
-    } finally {
-      this.busy.set(false);
-    }
-  }
-
-  protected async undo(session: WorkoutSession): Promise<void> {
-    this.busy.set(true);
-    try {
-      await this.api.deleteWorkout(session.id);
-      this.sessions.update((list) => list.filter((x) => x.id !== session.id));
-      void this.tracking.load().catch(() => undefined);
-    } catch (e) {
-      this.toast.error(this.i18n.error(errorCode(e)));
-    } finally {
-      this.busy.set(false);
     }
   }
 

@@ -43,6 +43,11 @@ export const fr = {
 
   errors: {
     milestones_full: 'Dix paliers au plus : supprimes-en un pour en ajouter un autre',
+    too_many_challenges: 'Tu as déjà 5 défis en cours : attends qu’un se termine',
+    challenge_ended: 'Ce défi est terminé',
+    milestone_not_reached: 'Ce palier n’est pas encore atteint',
+    nothing_to_share: 'Rien de noté ce jour-là',
+    favorites_full: '200 favoris au plus : retires-en un pour en ajouter un autre',
     milestone_exists: 'Tu as déjà un palier à ce poids',
     team_account: 'C’est le compte de l’équipe MyBody365 : personne ne peut s’y connecter, refuse cette demande',
     community_admins_only: 'La communauté est publiée par l’équipe MyBody365. Partage-la plutôt avec tes amis',
@@ -387,6 +392,17 @@ export const fr = {
   },
 
   today: {
+    evening: {
+      title: 'Pesée du soir',
+      hint: 'Facultatif, pour voir ce que la journée ajoute',
+      text: 'Le soir, on pèse souvent 0,5 à 2 kg de plus qu’au réveil (l’eau, les repas) : c’est normal. Ta courbe, ta flamme et ton objectif suivent la pesée du matin',
+      label: 'Poids ce soir',
+      diff: '{d} kg depuis ce matin',
+      save: 'Enregistrer',
+      remove: 'Retirer la pesée du soir',
+      saved: 'Pesée du soir notée',
+      removed: 'Pesée du soir retirée',
+    },
     greetingMorning: 'Bonjour {name}',
     greetingDay: 'Salut {name}',
     greetingEvening: 'Bonsoir {name}',
@@ -523,6 +539,8 @@ export const fr = {
       addOwn: 'Le mien',
       edit: 'Modifier le palier',
       editOf: 'Modifier le palier de {kg} kg',
+      shareOf: 'Partager le palier de {kg} kg avec mes amis',
+      share: 'Le partager avec mes amis',
       empty: 'Des étapes sur le chemin de ton objectif, avec une récompense si tu veux : un resto, des baskets, une journée rien qu’à toi',
       suggest: 'Proposer {list}',
       added: '{n} paliers ajoutés',
@@ -617,6 +635,7 @@ export const fr = {
     changelogSub: 'Version {v}',
     photo: 'Photo de profil',
     photoChange: 'Changer la photo de profil',
+    photoZoom: 'Voir ma photo de profil en grand',
     photoChoose: 'Choisir une photo',
     photoRemove: 'Retirer ma photo',
     photoNote: 'Recadrée en carré et réenregistrée sans ses données cachées (lieu, appareil). Seuls tes amis la voient',
@@ -735,9 +754,16 @@ export const fr = {
   },
   water: {
     title: 'Eau',
-    count: '{n} / {goal} verres · {l} L',
     less: 'Retirer un verre',
-    more: 'Ajouter un verre',
+    lessShort: 'Un verre',
+    glasses: 'Tes verres d’eau du jour',
+    glassFull: 'Verre {n}, bu : le retirer',
+    glassEmpty: 'Verre {n} : le boire',
+    size: 'Un verre = 25 cl',
+    loading: 'Tes verres arrivent…',
+    left: 'Encore {n} verres pour ton objectif',
+    leftOne: 'Encore un verre pour ton objectif',
+    done: 'Objectif atteint, bien joué',
     reached: 'Objectif d’eau atteint, bien joué',
     toggle: 'Verres d’eau',
     toggleHint: 'Un verre de 25 cl à cocher sur l’écran Aujourd’hui. Désactivé par défaut',
@@ -914,7 +940,7 @@ export const fr = {
         {
           h: 'Propriété intellectuelle',
           p: [
-            'Le code source de MyBody365 est publié sous licence MIT. Le nom, le logo et les textes du site restent la propriété de leur auteur. Les photos, repas, recettes et autres contenus ajoutés par les utilisateurs restent leur propriété.',
+            'Le code source, le nom, le logo, le design et les textes de MyBody365 sont la propriété exclusive de leur auteur, tous droits réservés : le code est visible pour être consulté, mais toute copie, réutilisation ou exploitation, gratuite ou payante, demande son accord écrit. Les photos, repas, recettes et autres contenus ajoutés par les utilisateurs restent leur propriété.',
           ],
         },
         {

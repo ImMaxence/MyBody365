@@ -1,5 +1,6 @@
 import { DOCUMENT, Injectable, computed, inject, signal } from '@angular/core';
 import { I18nService } from '../i18n/i18n.service';
+import { haptic } from '../ui/haptics';
 import { EngageApi, TimerAlert } from './engage-api';
 
 export type TimerPhase = 'prep' | 'work' | 'rest';
@@ -196,6 +197,8 @@ export class TimerRun {
     if (live && whole <= 3 && whole !== this.lastBeep) {
       this.lastBeep = whole;
       this.beep(660, 0.09);
+      // 3, 2, 1: a small tap each, to feel it coming with the phone in the pocket
+      if (whole > 0) haptic('soft');
     }
   }
 
@@ -214,7 +217,7 @@ export class TimerRun {
     if (!live) return;
     this.beep(880, 0.2);
     setTimeout(() => this.beep(1320, 0.35), 220);
-    this.doc.defaultView?.navigator.vibrate?.([200, 80, 200, 80, 400]);
+    haptic('done');
   }
 
   private halt(releaseScreen = true): void {
@@ -230,7 +233,7 @@ export class TimerRun {
   private cue(i: number): void {
     const work = this.plan[i]?.phase === 'work';
     this.beep(work ? 990 : 520, 0.28);
-    this.doc.defaultView?.navigator.vibrate?.(work ? [120, 60, 120] : 200);
+    haptic(work ? 'work' : 'rest');
   }
 
   private offScreen(): void {

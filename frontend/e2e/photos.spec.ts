@@ -28,6 +28,14 @@ test.describe('photos', () => {
     await expect(page.getByText(/Stockage : .* sur 2 Go/)).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
+    // 1.9: blurred on this phone with one tap, still blurred after a reload, visible again with another
+    await page.getByRole('button', { name: 'Flouter les photos' }).click();
+    await expect(page.getByText(/Photos floutées sur ce téléphone/)).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole('button', { name: 'Afficher les photos' })).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: 'Afficher les photos' }).click();
+    await expect(page.getByText(/Photos floutées sur ce téléphone/)).toHaveCount(0);
+
     // the viewer, then the deletion
     await tab(page, 'Photos').click();
     await tile.click();
@@ -75,6 +83,17 @@ test.describe('photos', () => {
       });
       expect(res.status()).toBe(201);
     }
+    // 1.9: from one photo to the other without going back to the grid
+    await page.goto('/app/photos');
+    await page.getByRole('link', { name: /Ouvrir la photo du/ }).first().click();
+    await expect(page.getByText('1 sur 2')).toBeVisible();
+    await page.getByRole('button', { name: 'Photo plus ancienne' }).click();
+    await expect(page.getByText('2 sur 2')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Photo plus ancienne' })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Photo plus récente' }).click();
+    await expect(page.getByText('1 sur 2')).toBeVisible();
+    await expectAccessible(page);
+
     await page.goto('/app/photos');
     await page.getByRole('link', { name: 'Comparer' }).click();
     await expect(page.getByRole('heading', { name: 'Avant / après' })).toBeVisible();

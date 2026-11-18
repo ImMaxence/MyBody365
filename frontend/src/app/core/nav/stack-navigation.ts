@@ -1,5 +1,6 @@
-import { DOCUMENT, Injectable, inject } from '@angular/core';
-import { ActivatedRouteSnapshot, NavigationCancel, NavigationEnd, NavigationError, Router, ViewTransitionInfo } from '@angular/router';
+import { DOCUMENT, Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { ActivatedRouteSnapshot, NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, ViewTransitionInfo } from '@angular/router';
 
 /**
  * Native-app navigation: every screen of the app has a depth in route data (`depth`: 0 for the tab
@@ -89,6 +90,18 @@ export class StackNavigation {
   private readonly doc = inject(DOCUMENT);
   /** the next navigation shows no screen transition */
   private silent = false;
+  /** where each screen of the history was scrolled to (by navigation id), and where the one coming back goes */
+  private readonly positions = new Map<number, number>();
+  private lastId = 0;
+  private restoreTo: number | null = null;
+  private restoring: (() => void) | null = null;
+  /**
+   * The screens of the history as this session went through them (navigation id, path) and where it stands: enough
+   * to go back several screens at once, never past the first one of the session.
+   */
+  private trail: { id: number; path: string }[] = [];
+  private at = -1;
+  private next: { how: 'push' | 'replace' | 'pop'; to: number } = { how: 'push', to: 0 };
 
   constructor() {
     // the browser animated this step back itself (its own swipe): no second animation on top
@@ -97,8 +110,65 @@ export class StackNavigation {
     });
     // a navigation that never happened does not keep the flag for the next one
     this.router.events.subscribe((e) => {
+      if (e instanceof NavigationStart) this.leaving(e);
+      if (e instanceof NavigationEnd) this.arrived(e);
       if (e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError) this.silent = false;
     });
+  }
+
+  // ── scroll ─────────────────────────────────────────────────────────────────
+  //
+  // Back to a screen, it is where it was left (1.9). The router's own restoration (withInMemoryScrolling) scrolled
+  // before the screen was there again: during the screen transition, or before its list came from the cache or the
+  // network. The page was then too short and the screen came back at its top (a long list of recipes). Here the
+  // position is tried again frame after frame, for a second at most, until the page is tall enough; a touch or the
+  // wheel stops it (the person scrolls by themselves). A new screen starts at its top, an anchor is the router's.
+
+  /** the scroll is the browser's only (no window to scroll while prerendering) */
+  private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  private leaving(e: NavigationStart): void {
+    const restored = e.navigationTrigger === 'popstate' ? e.restoredState?.navigationId : undefined;
+    this.next =
+      restored != null
+        ? { how: 'pop', to: restored }
+        : { how: this.router.currentNavigation()?.extras.replaceUrl ? 'replace' : 'push', to: 0 };
+    const win = this.doc.defaultView;
+    if (!win || !this.browser) return;
+    this.restoring?.();
+    this.positions.set(this.lastId, win.scrollY);
+    const back = e.navigationTrigger === 'popstate' ? e.restoredState?.navigationId : undefined;
+    this.restoreTo = back != null ? (this.positions.get(back) ?? 0) : null;
+  }
+
+  private arrived(e: NavigationEnd): void {
+    const win = this.doc.defaultView;
+    this.lastId = e.id;
+    this.follow(e.id, e.urlAfterRedirects.split(/[?#]/)[0]);
+    if (!win || !this.browser) return;
+    const y = this.restoreTo;
+    this.restoreTo = null;
+    if (y == null) {
+      if (!this.router.parseUrl(e.urlAfterRedirects).fragment) win.scrollTo(0, 0);
+      return;
+    }
+    let tries = 0;
+    let frame = 0;
+    const stop = () => {
+      win.cancelAnimationFrame(frame);
+      win.removeEventListener('touchstart', stop);
+      win.removeEventListener('wheel', stop);
+      this.restoring = null;
+    };
+    this.restoring = stop;
+    win.addEventListener('touchstart', stop, { passive: true });
+    win.addEventListener('wheel', stop, { passive: true });
+    const step = () => {
+      win.scrollTo(0, y);
+      if (Math.abs(win.scrollY - y) <= 1 || ++tries > 60) stop();
+      else frame = win.requestAnimationFrame(step);
+    };
+    step();
   }
 
   /** depth of the current screen (0: a tab) */
@@ -130,6 +200,44 @@ export class StackNavigation {
     }
     void this.router.navigateByUrl(parent);
     return 'opened';
+  }
+
+  /** the trail of the session, kept as the navigations go */
+  private follow(id: number, path: string): void {
+    const { how, to } = this.next;
+    this.next = { how: 'push', to: 0 };
+    if (how === 'pop') {
+      const i = this.trail.findIndex((x) => x.id === to);
+      if (i >= 0) {
+        this.at = i;
+        // the router gives the entry it came back to a new id
+        this.trail[i] = { id, path };
+        return;
+      }
+      this.trail = [{ id, path }];
+      this.at = 0;
+      return;
+    }
+    if (how === 'replace' && this.at >= 0) {
+      this.trail[this.at] = { id, path };
+      return;
+    }
+    this.trail = [...this.trail.slice(0, this.at + 1), { id, path }];
+    this.at = this.trail.length - 1;
+  }
+
+  /**
+   * Back to an earlier screen of the session, however far (a recipe added from « Ajouter un repas » → Recettes →
+   * the recipe: back to the meals, past the screens in between). When it is not in this session's history, it opens.
+   */
+  backTo(path: string): void {
+    for (let i = this.at - 1; i >= 0; i--) {
+      if (this.trail[i].path === path) {
+        this.doc.defaultView?.history.go(i - this.at);
+        return;
+      }
+    }
+    void this.router.navigateByUrl(path);
   }
 
   /** undoes `back` without any animation (a swipe let go too early) */

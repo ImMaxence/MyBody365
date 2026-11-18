@@ -13,6 +13,8 @@ import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 import { NutriscoreComponent } from '../../shared/nutriscore.component';
 import { ReportSheetComponent } from '../../shared/report-sheet.component';
+import { FavoritesStore } from '../../core/meals/favorites.store';
+import { HapticDirective } from '../../core/ui/haptics';
 import { QuantitySheetComponent } from './quantity-sheet.component';
 import { TYPE_EMOJI } from './recipes.page';
 
@@ -20,7 +22,7 @@ import { TYPE_EMOJI } from './recipes.page';
 @Component({
   selector: 'app-recipe',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, NutriscoreComponent, QuantitySheetComponent, ReportSheetComponent],
+  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, NutriscoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective],
   template: `
     <main class="page">
       <header class="page-head">
@@ -97,7 +99,34 @@ import { TYPE_EMOJI } from './recipes.page';
           </dl>
         </section>
 
-        <button type="button" class="btn btn-primary btn-block" (click)="openAdd(r)"><app-icon name="plus" /> {{ 'meals.recipe.addToMeal' | t }}</button>
+        <div class="main-actions">
+          <button type="button" class="btn btn-primary grow" (click)="openAdd(r)"><app-icon name="plus" /> {{ addLabel() }}</button>
+          <span class="haptic">
+            <button type="button" class="btn btn-secondary fav" [class.on]="favorite()" [attr.aria-pressed]="favorite()"
+              [attr.aria-label]="(favorite() ? 'meals.favorites.remove' : 'meals.favorites.add') | t" (click)="toggleFavorite(r)">
+              <app-icon name="heart" />
+            </button><input appHaptic="success" />
+          </span>
+        </div>
+
+        <!-- 1.9: shown to the friends in one tap, without opening the editor -->
+        @if (r.mine && r.visibility !== 'PUBLIC') {
+          <section class="card share" [class.on]="r.visibility === 'FRIENDS'">
+            <span class="share-ico"><app-icon name="users" /></span>
+            <div class="share-copy">
+              <b class="small">{{ (r.visibility === 'FRIENDS' ? 'meals.recipe.shareFriends.on' : 'meals.recipe.shareFriends.title') | t }}</b>
+              <span class="tiny muted">{{ (r.visibility === 'FRIENDS' ? 'meals.recipe.shareFriends.onHint' : 'meals.recipe.shareFriends.hint') | t }}</span>
+            </div>
+            @if (r.visibility === 'FRIENDS') {
+              <button type="button" class="btn btn-ghost btn-s" [disabled]="busy()" (click)="setShared(r, false)">{{ 'meals.recipe.shareFriends.stop' | t }}</button>
+            } @else {
+              <button type="button" class="btn btn-primary btn-s" [disabled]="busy()" (click)="setShared(r, true)"><app-icon name="share" [size]="16" /> {{ 'meals.recipe.shareFriends.cta' | t }}</button>
+            }
+          </section>
+        }
+        @if (r.visibility !== 'PRIVATE' && canShare) {
+          <button type="button" class="btn btn-ghost btn-block send" (click)="sendLink(r)"><app-icon name="send" [size]="18" /> {{ 'meals.recipe.shareFriends.send' | t }}</button>
+        }
 
         <h2 class="section-title">{{ 'meals.recipe.ingredients' | t }} · {{ 'meals.servings' | t: { n: r.servings } }}</h2>
         <ul class="ingredients card" role="list">
@@ -302,6 +331,59 @@ import { TYPE_EMOJI } from './recipes.page';
       grid-template-columns: 1fr 1fr;
       gap: var(--space-3);
     }
+    .main-actions {
+      display: flex;
+      gap: var(--space-2);
+    }
+    .main-actions .grow {
+      flex: 1;
+      min-width: 0;
+    }
+    .fav {
+      width: 52px;
+      padding: 0;
+      color: var(--fg-2);
+    }
+    .fav.on {
+      color: #e5484d;
+    }
+    .fav.on ::ng-deep svg {
+      fill: currentColor;
+      animation: heart 420ms var(--ease-out);
+    }
+    @keyframes heart {
+      40% {
+        transform: scale(1.3);
+      }
+    }
+    .share {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      transition: border-color var(--dur-2);
+    }
+    .share.on {
+      border-color: color-mix(in srgb, var(--cool) 40%, var(--line));
+    }
+    .share-ico {
+      display: grid;
+      place-items: center;
+      flex: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--cool-soft);
+      color: var(--cool);
+    }
+    .share-copy {
+      display: grid;
+      flex: 1;
+      min-width: 0;
+    }
+    .send {
+      margin-top: calc(var(--space-2) * -1);
+    }
     .actions .wide {
       grid-column: 1 / -1;
     }
@@ -328,16 +410,58 @@ export class RecipePage {
   private readonly stack = inject(StackNavigation);
   private readonly router = inject(Router);
   protected readonly i18n = inject(I18nService);
+  /** « Ajouter au déjeuner » when opened from that meal, « Ajouter à un repas » otherwise */
+  protected readonly addLabel = computed(() => {
+    if (!this.slotParam()) return this.i18n.t('meals.recipe.addToMeal');
+    const to = this.i18n.t('meals.addTo.' + this.slot());
+    return this.i18n.t('meals.estimate.add', { slot: to.charAt(0).toLowerCase() + to.slice(1) });
+  });
   private readonly sheet = viewChild.required(QuantitySheetComponent);
   protected readonly reportSheet = viewChild.required(ReportSheetComponent);
   private readonly confirmDialog = viewChild<ElementRef<HTMLDialogElement>>('confirm');
 
   protected readonly emoji = TYPE_EMOJI;
+  private readonly favorites = inject(FavoritesStore);
+  protected readonly canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
   protected readonly recipe = signal<Recipe | null>(null);
+  protected readonly favorite = computed(() => this.favorites.isRecipe(this.recipe()?.id));
+
+  protected async toggleFavorite(r: Recipe): Promise<void> {
+    try {
+      const on = await this.favorites.toggleRecipe(r);
+      this.toast.show(this.i18n.t(on ? 'meals.favorites.added' : 'meals.favorites.removed', { name: r.name }));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    }
+  }
+
+  /** shown to my friends (they are told the first time), or back to me only */
+  protected async setShared(r: Recipe, on: boolean): Promise<void> {
+    this.busy.set(true);
+    try {
+      this.recipe.set(await this.api.setVisibility(r.id, on ? 'FRIENDS' : 'PRIVATE'));
+      this.toast.show(this.i18n.t(on ? 'meals.recipe.shareFriends.done' : 'meals.recipe.shareFriends.stopped'));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  /** its address, to send a friend (it opens in their app) */
+  protected async sendLink(r: Recipe): Promise<void> {
+    const url = `${location.origin}/app/meals/recipes/${r.id}`;
+    try {
+      await navigator.share({ title: r.name, text: this.i18n.t('meals.recipe.shareFriends.text', { name: r.name }), url });
+    } catch {
+      /* closed: nothing */
+    }
+  }
   protected readonly missing = signal(false);
   protected readonly busy = signal(false);
 
   constructor() {
+    void this.favorites.ensure();
     effect(() => {
       const id = this.id();
       this.api
@@ -367,8 +491,8 @@ export class RecipePage {
   protected openAdd(r: Recipe): void {
     const slot: Slot = this.slot();
     this.sheet().open(
-      { name: r.name, detail: this.i18n.t('meals.addTo.' + slot), unit: 'serving', base: r.perServing, nutriscore: r.nutriscore, estimated: true },
-      this.i18n.t('meals.addTo.' + slot),
+      { name: r.name, detail: this.i18n.t('meals.addTo.' + slot), unit: 'serving', base: r.perServing, nutriscore: r.nutriscore, estimated: true, recipe: r },
+      this.slotParam() ? this.addLabel() : this.i18n.t('meals.addTo.' + slot),
     );
   }
 
@@ -380,6 +504,9 @@ export class RecipePage {
       await this.meals.add({ day: this.day(), slot: this.slot(), recipeId: r.id, servings }, { name: r.name, nutrients: scaled(r.perServing, servings) });
       this.sheet().close();
       this.toast.show(this.i18n.t(this.meals.lastQueued() ? 'offline.queued' : 'meals.search.added', { name: r.name }));
+      // added: the recipe is done with, back to the meals (past Recettes and « Ajouter un repas »)
+      this.meals.day.set(this.day());
+      this.stack.backTo('/app/meals');
     } catch (e) {
       this.sheet().busy.set(false);
       this.toast.error(this.i18n.error(errorCode(e)));
