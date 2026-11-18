@@ -182,6 +182,7 @@ export const enMeals: Widen<typeof frMeals> = {
     save: 'Save',
     saved: 'Recipe saved',
     delete: 'Delete the recipe',
+    deleteShort: 'Delete',
     deleteConfirm: 'Delete this recipe? Meals already logged with it do not change',
     deleted: 'Recipe deleted',
     edit: 'Edit',

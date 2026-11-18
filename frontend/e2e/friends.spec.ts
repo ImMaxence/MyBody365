@@ -146,6 +146,8 @@ test.describe('friends', () => {
 
     // what, how long, with whom
     await page.goto('/app/friends');
+    // opened from Today: its tab stays lit
+    await expect(page.getByRole('navigation', { name: 'Navigation principale' }).getByRole('link', { name: 'Aujourd’hui' })).toHaveAttribute('aria-current', 'page');
     await page.getByRole('link', { name: /^Défis entre amis/ }).click();
     await expect(page.getByRole('heading', { name: 'Défis', level: 1 })).toBeVisible();
     await press(page.getByRole('button', { name: 'Lancer un défi' }));

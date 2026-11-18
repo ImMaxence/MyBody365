@@ -7,6 +7,57 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.9.1",
+    "date": "2026-11-18",
+    "summary": [
+      {
+        "t": "Des vibrations à la pesée, une journée partagée qui tient dans l'écran et l'onglet Aujourd'hui sur la page Amis"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "Une vibration quand tu enregistres ta pesée du jour ou du soir, comme pour les verres d'eau"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "Partager sa journée ou son avancée : la fiche dit clairement que rien n'est partagé tout seul, seulement ce que tu montres quand tu appuies"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Une journée partagée (dans « Nouvelles de tes amis » et dans la fiche de partage) dépassait de l'écran quand un repas avait un nom long : la carte tient dans l'écran, le nom se termine par « … » et les calories restent visibles"
+            }
+          ],
+          [
+            {
+              "t": "Page d'une recette : elle ne dépasse plus de quelques pixels sur les côtés (le bouton « Supprimer » plus court, le partage avec tes amis rangé sur deux lignes)"
+            }
+          ],
+          [
+            {
+              "t": "Sur la page Amis (et ses défis), l'onglet Aujourd'hui reste allumé, puisqu'on y arrive depuis Aujourd'hui, et le retour y ramène"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.9.0",
     "date": "2026-11-18",
     "summary": [

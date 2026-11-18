@@ -344,8 +344,8 @@ export class ShellComponent {
     if (path.startsWith('/app/progress')) return 3;
     if (path.startsWith('/app/photos')) return 2;
     if (path.startsWith('/app/meals')) return 1;
-    // Today, and the screen opened from it (the timer)
-    return path === '/app' || path === '/app/' || /^\/app\/timer(\/|$)/.test(path) ? 0 : -1;
+    // Today, and the screens opened from it (the timer, the friends and their challenges)
+    return path === '/app' || path === '/app/' || /^\/app\/(timer|friends|challenges)(\/|$)/.test(path) ? 0 : -1;
   });
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);

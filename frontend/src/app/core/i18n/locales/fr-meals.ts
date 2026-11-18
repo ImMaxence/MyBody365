@@ -179,6 +179,7 @@ export const frMeals = {
     save: 'Enregistrer',
     saved: 'Recette enregistrée',
     delete: 'Supprimer la recette',
+    deleteShort: 'Supprimer',
     deleteConfirm: 'Supprimer cette recette ? Les repas déjà notés avec ne changent pas',
     deleted: 'Recette supprimée',
     edit: 'Modifier',

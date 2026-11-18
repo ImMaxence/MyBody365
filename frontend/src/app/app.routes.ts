@@ -56,7 +56,7 @@ export const routes: Routes = [
           { path: 'account/settings', loadComponent: () => import('./features/app/app-settings.page').then((m) => m.AppSettingsPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/notifications', loadComponent: () => import('./features/app/notifications.page').then((m) => m.NotificationsPage), data: { depth: 1, back: '/app/account' } },
           { path: 'challenges', loadComponent: () => import('./features/friends/challenges.page').then((m) => m.ChallengesPage), data: { depth: 2, back: '/app/friends' } },
-          { path: 'friends', loadComponent: () => import('./features/friends/friends.page').then((m) => m.FriendsPage), data: { depth: 1, back: '/app/account' } },
+          { path: 'friends', loadComponent: () => import('./features/friends/friends.page').then((m) => m.FriendsPage), data: { depth: 1, back: '/app' } },
           // « Ta semaine » went in 1.8: an old link (a notification) leads to Today
           { path: 'week', redirectTo: '' },
           { path: 'timer', loadComponent: () => import('./features/timer/timer.page').then((m) => m.TimerPage), data: { depth: 1, back: '/app' } },

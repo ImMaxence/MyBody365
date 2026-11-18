@@ -118,10 +118,18 @@ const SLOT_EMOJI: Record<string, string> = { BREAKFAST: '🥣', LUNCH: '🥗', D
     </article>
   `,
   styles: `
+    :host {
+      display: block;
+      min-width: 0;
+    }
     .post {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: var(--space-3);
       padding: var(--space-4);
+    }
+    .day-head > * {
+      min-width: 0;
     }
     .post.progress {
       background:
@@ -218,6 +226,8 @@ const SLOT_EMOJI: Record<string, string> = { BREAKFAST: '🥣', LUNCH: '🥗', D
     }
     .lines {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      min-width: 0;
       gap: 6px;
       margin: 0;
       padding: 0;
@@ -225,6 +235,7 @@ const SLOT_EMOJI: Record<string, string> = { BREAKFAST: '🥣', LUNCH: '🥗', D
     }
     .lines li {
       display: flex;
+      min-width: 0;
       align-items: center;
       gap: 8px;
       font-size: var(--fs-s);

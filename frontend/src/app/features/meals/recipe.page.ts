@@ -145,7 +145,7 @@ import { TYPE_EMOJI } from './recipes.page';
         <div class="actions">
           @if (r.mine) {
             <a class="btn btn-secondary" [routerLink]="['/app/meals/recipes', r.id, 'edit']"><app-icon name="pencil" /> {{ 'meals.recipe.edit' | t }}</a>
-            <button type="button" class="btn btn-ghost danger" (click)="confirm.showModal()"><app-icon name="trash" /> {{ 'meals.recipe.delete' | t }}</button>
+            <button type="button" class="btn btn-ghost danger" (click)="confirm.showModal()"><app-icon name="trash" /> {{ 'meals.recipe.deleteShort' | t }}</button>
           } @else {
             <button type="button" class="btn btn-secondary wide" [disabled]="busy()" (click)="copy(r)"><app-icon name="copy" /> {{ 'meals.recipe.copy' | t }}</button>
             <button type="button" class="btn btn-ghost wide report" (click)="reportSheet().open('RECIPE', r.id)"><app-icon name="flag" [size]="18" /> {{ 'friends.report.title' | t }}</button>
@@ -328,8 +328,11 @@ import { TYPE_EMOJI } from './recipes.page';
     }
     .actions {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--space-3);
+    }
+    .actions .btn {
+      min-width: 0;
     }
     .main-actions {
       display: flex;
@@ -357,11 +360,16 @@ import { TYPE_EMOJI } from './recipes.page';
       }
     }
     .share {
-      display: flex;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
       align-items: center;
-      gap: var(--space-3);
+      gap: var(--space-2) var(--space-3);
       padding: var(--space-3) var(--space-4);
       transition: border-color var(--dur-2);
+    }
+    .share .btn {
+      grid-column: 1 / -1;
+      justify-self: stretch;
     }
     .share.on {
       border-color: color-mix(in srgb, var(--cool) 40%, var(--line));

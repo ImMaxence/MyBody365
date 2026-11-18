@@ -91,7 +91,7 @@ export const enFriends: Widen<typeof frFriends> = {
       image: 'Send as a picture',
       imageText: 'My progress on MyBody365',
       noFriends: 'Add a friend first to show them. You can already send it as a picture',
-      note: 'Your friends only, for 30 days. Nothing shows on their lock screen',
+      note: 'Nothing is shared by itself: only this, when you tap. Your friends only, for 30 days, nothing on their lock screen',
       done: 'Shared with your friends',
       removed: 'Taken back from your friends',
       downloaded: 'Picture saved',

@@ -88,7 +88,7 @@ export const frFriends = {
       image: 'Envoyer en image',
       imageText: 'Mon avancée sur MyBody365',
       noFriends: 'Ajoute d’abord un ami pour lui montrer. Tu peux déjà l’envoyer en image',
-      note: 'Tes amis seulement, pendant 30 jours. Rien ne s’affiche sur leur écran verrouillé',
+      note: 'Rien n’est partagé tout seul : seulement ceci, quand tu appuies. Tes amis seulement, pendant 30 jours, rien sur leur écran verrouillé',
       done: 'Partagé avec tes amis',
       removed: 'Retiré de chez tes amis',
       downloaded: 'Image enregistrée',

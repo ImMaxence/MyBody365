@@ -2,6 +2,21 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.9.1] - 2026-11-18
+
+Des vibrations à la pesée, une journée partagée qui tient dans l'écran et l'onglet Aujourd'hui sur la page Amis
+
+### Ajouté
+- Une vibration quand tu enregistres ta pesée du jour ou du soir, comme pour les verres d'eau
+
+### Modifié
+- Partager sa journée ou son avancée : la fiche dit clairement que rien n'est partagé tout seul, seulement ce que tu montres quand tu appuies
+
+### Corrigé
+- Une journée partagée (dans « Nouvelles de tes amis » et dans la fiche de partage) dépassait de l'écran quand un repas avait un nom long : la carte tient dans l'écran, le nom se termine par « … » et les calories restent visibles
+- Page d'une recette : elle ne dépasse plus de quelques pixels sur les côtés (le bouton « Supprimer » plus court, le partage avec tes amis rangé sur deux lignes)
+- Sur la page Amis (et ses défis), l'onglet Aujourd'hui reste allumé, puisqu'on y arrive depuis Aujourd'hui, et le retour y ramène
+
 ## [1.9.0] - 2026-11-18
 
 Une recherche qui trouve tout, l'apéro et la pâtisserie, 129 recettes du quotidien, des favoris, des défis entre amis et tes amis aux premières loges

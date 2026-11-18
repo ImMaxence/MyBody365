@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { closeSheet } from '../../core/ui/sheets';
+import { HapticDirective } from '../../core/ui/haptics';
 import { RouterLink } from '@angular/router';
 import { ApiService, errorCode } from '../../core/api/api.service';
 import { ToastService } from '../../core/ui/toast.service';
@@ -43,7 +44,7 @@ function writeFlag(key: string): void {
 @Component({
   selector: 'app-today',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NumberStepperComponent, AvatarImgComponent, PushPromptComponent, WaterCardComponent, RouterLink, TranslatePipe, IconComponent, WeighSheetComponent],
+  imports: [HapticDirective, NumberStepperComponent, AvatarImgComponent, PushPromptComponent, WaterCardComponent, RouterLink, TranslatePipe, IconComponent, WeighSheetComponent],
   template: `
     <main class="page">
       <header class="head">
@@ -192,9 +193,11 @@ function writeFlag(key: string): void {
           @if (eveningDiff(); as d) {
             <p class="small evening-diff num">{{ d }}</p>
           }
-          <button type="button" class="btn btn-primary btn-block" [disabled]="eveningBusy()" (click)="saveEvening(eveningValue())">
-            <app-icon name="check" /> {{ 'today.evening.save' | t }}
-          </button>
+          <span class="haptic block">
+            <button type="button" class="btn btn-primary btn-block" [disabled]="eveningBusy()" (click)="saveEvening(eveningValue())">
+              <app-icon name="check" /> {{ 'today.evening.save' | t }}
+            </button><input appHaptic="success" />
+          </span>
           @if (eveningKg() != null) {
             <button type="button" class="btn btn-ghost btn-block" [disabled]="eveningBusy()" (click)="saveEvening(null)">{{ 'today.evening.remove' | t }}</button>
           }

@@ -8,6 +8,7 @@ import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
 import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
+import { HapticDirective } from '../../core/ui/haptics';
 
 const MEASURES = ['bodyFatPct', 'waistCm', 'hipsCm', 'chestCm', 'armCm', 'thighCm'] as const;
 type Measure = (typeof MEASURES)[number];
@@ -24,7 +25,7 @@ const LABEL: Record<Measure, string> = {
 @Component({
   selector: 'app-weigh-sheet',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslatePipe, IconComponent, NumberStepperComponent],
+  imports: [FormsModule, TranslatePipe, IconComponent, NumberStepperComponent, HapticDirective],
   template: `
     <dialog class="sheet" #dlg (close)="closed()">
       <div class="sheet-grip"></div>
@@ -53,7 +54,7 @@ const LABEL: Record<Measure, string> = {
             }
           </div>
         }
-        <button type="submit" class="btn btn-primary btn-block" [disabled]="busy()"><app-icon name="check" /> {{ 'weigh.save' | t }}</button>
+        <span class="haptic block"><button type="submit" class="btn btn-primary btn-block" [disabled]="busy()"><app-icon name="check" /> {{ 'weigh.save' | t }}</button><input appHaptic="success" /></span>
         @if (existing()) {
           <button type="button" class="btn btn-ghost btn-block danger" (click)="remove()"><app-icon name="trash" /> {{ 'weigh.delete' | t }}</button>
         }

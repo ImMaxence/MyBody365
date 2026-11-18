@@ -179,6 +179,7 @@ const MEDALS = ['🥇', '🥈', '🥉'];
   styles: `
     .ch {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: var(--space-3);
       padding: var(--space-4);
     }
