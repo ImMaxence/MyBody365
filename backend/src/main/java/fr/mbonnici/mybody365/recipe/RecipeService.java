@@ -102,7 +102,9 @@ public class RecipeService {
             String author, Nutrients perServing, Double servingG, String nutriscore, int score, Integer myVote, String imageUrl,
             String thumbUrl, List<IngredientDto> ingredients, Instant createdAt,
             /** the calories were entered by the owner (null in lists) */
-            Boolean manualNutrition, List<String> ingredientLines, String sourceUrl, String sourceName) {}
+            Boolean manualNutrition, List<String> ingredientLines, String sourceUrl, String sourceName,
+            /** 1.11: a free photo (Wikimedia Commons): who took it, its licence, its page (null in lists) */
+            String imageCredit, String imageLicense, String imageSource) {}
 
     /** a recipe as stored */
     public record RecipeRow(UUID id, UUID ownerId, String ownerName, String name, Type type, List<Type> types, int servings, String notes, boolean shared,
@@ -176,8 +178,15 @@ public class RecipeService {
         Boolean manual = null;
         List<String> lines = null;
         String source = null;
+        String credit = null;
+        String license = null;
+        String imageSource = null;
         if (withIngredients) {
-            Map<String, Object> extra = jdbc.queryForMap("select manual_nutrition, ingredient_lines, source_url from recipe where id = ?", r.id());
+            Map<String, Object> extra = jdbc.queryForMap(
+                    "select manual_nutrition, ingredient_lines, source_url, image_credit, image_license, image_source from recipe where id = ?", r.id());
+            credit = (String) extra.get("image_credit");
+            license = (String) extra.get("image_license");
+            imageSource = (String) extra.get("image_source");
             manual = (Boolean) extra.get("manual_nutrition");
             String text = (String) extra.get("ingredient_lines");
             lines = text == null ? List.of() : List.of(text.split("\n"));
@@ -190,7 +199,8 @@ public class RecipeService {
                 mine,
                 firstName(r.ownerName()), r.perServing().rounded(), r.servingG(), r.nutriscore(), r.score(), myVote,
                 r.imageFormat() == null ? null : base + "full" + v, r.imageFormat() == null ? null : base + "thumb" + v, ingredients,
-                r.createdAt(), manual, lines, source, source == null ? null : sourceName(source));
+                r.createdAt(), manual, lines, source, source == null ? null : sourceName(source), r.imageFormat() == null ? null : credit,
+                r.imageFormat() == null ? null : license, r.imageFormat() == null ? null : imageSource);
     }
 
     private List<IngredientDto> ingredients(UUID recipeId) {
@@ -416,8 +426,11 @@ public class RecipeService {
                         c.createdAt());
                 storage.put(withImage.imageKey(false), full, contentType(r.imageFormat()));
                 storage.put(withImage.imageKey(true), thumb, contentType(r.imageFormat()));
-                jdbc.update("update recipe set image_format = ?, image_bytes = ?, image_version = 1 where id = ?", r.imageFormat(),
-                        full.length + thumb.length, copy);
+                // the photo goes with its credit
+                jdbc.update("""
+                        update recipe set image_format = ?, image_bytes = ?, image_version = 1,
+                          (image_credit, image_license, image_source) = (select image_credit, image_license, image_source from recipe where id = ?)
+                        where id = ?""", r.imageFormat(), full.length + thumb.length, id, copy);
             }
         }
         return dto(row(copy), userId, true);
@@ -440,16 +453,42 @@ public class RecipeService {
                 r.visibility(), r.hidden(), img.format(), size, version, r.perServing(), r.servingG(), r.nutriscore(), r.score(), r.createdAt());
         storage.put(next.imageKey(false), img.full(), img.contentType());
         storage.put(next.imageKey(true), img.thumb(), img.contentType());
-        jdbc.update("update recipe set image_format = ?, image_bytes = ?, image_version = ?, updated_at = now() where id = ?", img.format(),
-                size, version, id);
+        jdbc.update("""
+                update recipe set image_format = ?, image_bytes = ?, image_version = ?, image_credit = null, image_license = null,
+                  image_source = null, updated_at = now() where id = ?""", img.format(), size, version, id);
         removeImage(r);
         return dto(row(id), userId, true);
+    }
+
+    /**
+     * 1.11: the free photo of a community recipe (Wikimedia Commons), redrawn like any picture, with its credit; the team
+     * account has no quota to keep
+     */
+    @Transactional
+    public void setCommunityImage(UUID id, byte[] file, String credit, String license, String source) {
+        RecipeRow r = row(id);
+        Processed img = images.process(file, IMAGE_SIDE, THUMB_SIDE);
+        long size = img.full().length + img.thumb().length;
+        int version = r.imageVersion() + 1;
+        RecipeRow next = new RecipeRow(r.id(), r.ownerId(), r.ownerName(), r.name(), r.type(), r.types(), r.servings(), r.notes(), r.shared(),
+                r.visibility(), r.hidden(), img.format(), size, version, r.perServing(), r.servingG(), r.nutriscore(), r.score(), r.createdAt());
+        storage.put(next.imageKey(false), img.full(), img.contentType());
+        storage.put(next.imageKey(true), img.thumb(), img.contentType());
+        jdbc.update("""
+                update recipe set image_format = ?, image_bytes = ?, image_version = ?, image_credit = ?, image_license = ?, image_source = ?
+                where id = ?""", img.format(), size, version, cut(credit, 200), cut(license, 60), cut(source, 500), id);
+        removeImage(r);
+    }
+
+    private static String cut(String s, int max) {
+        return s == null ? null : s.length() > max ? s.substring(0, max) : s;
     }
 
     @Transactional
     public RecipeDto deleteImage(UUID userId, UUID id) {
         RecipeRow r = own(userId, id);
-        jdbc.update("update recipe set image_format = null, image_bytes = null where id = ?", id);
+        jdbc.update("update recipe set image_format = null, image_bytes = null, image_credit = null, image_license = null, image_source = null"
+                + " where id = ?", id);
         removeImage(r);
         return dto(row(id), userId, true);
     }

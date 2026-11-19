@@ -19,8 +19,8 @@ import org.springframework.stereotype.Component;
 /**
  * Every minute (Paris time): the daily reminder of whoever set it for now and has not weighed in (or
  * taken the photo) yet, each one at most once a day; and at 10:00, 13:00, 16:00 and 19:00, "drink some
- * water" for whoever turned it on and is behind on their glasses; on Sunday at 19:00, the summary of the
- * week for whoever was active in it. (The gym reminders went with the workout programs in 1.0.)
+ * water" for whoever turned it on and is behind on their glasses; and, for whoever asked for it (1.11), the photo of
+ * the day at its own time if not taken yet. (The gym reminders went with the workout programs in 1.0.)
  */
 @Component
 public class ReminderScheduler {
@@ -54,8 +54,9 @@ public class ReminderScheduler {
             log.warn("Water reminders failed: {}", e.getMessage());
         }
         try {
+            photo(today, minute);
         } catch (RuntimeException e) {
-            log.warn("Weekly summaries failed: {}", e.getMessage());
+            log.warn("Photo reminders failed: {}", e.getMessage());
         }
     }
 
@@ -105,10 +106,31 @@ public class ReminderScheduler {
             boolean photo = exists("select 1 from photo where user_id = ? and day = ?", user, today);
             if (!weighed) {
                 push.notify(user, Kind.DAILY_WEIGH, Map.of("days", Integer.toString(streak(user, today))));
-            } else if (!photo) {
+            } else if (!photo && !photoReminder(user)) {
                 push.notify(user, Kind.DAILY_PHOTO, Map.of());
             }
         }
+    }
+
+    /** 1.11: the photo of the day has its own reminder, at its own time, only if not taken yet; at most once a day */
+    private void photo(LocalDate today, LocalTime minute) {
+        List<UUID> due = jdbc.queryForList("""
+                select p.user_id from notification_pref p
+                where p.photo_enabled and p.photo_time = ? and (p.last_photo is null or p.last_photo < ?)
+                  and exists (select 1 from push_subscription s where s.user_id = p.user_id)""", UUID.class, minute, today);
+        for (UUID user : due) {
+            // claimed first: two instances never send it twice
+            int claimed = jdbc.update("update notification_pref set last_photo = ? where user_id = ? and (last_photo is null or last_photo < ?)",
+                    today, user, today);
+            if (claimed == 1 && !exists("select 1 from photo where user_id = ? and day = ?", user, today)) {
+                push.notify(user, Kind.DAILY_PHOTO, Map.of());
+            }
+        }
+    }
+
+    /** the photo has its own reminder: the daily one says nothing of it */
+    private boolean photoReminder(UUID user) {
+        return exists("select 1 from notification_pref where user_id = ? and photo_enabled", user);
     }
 
 

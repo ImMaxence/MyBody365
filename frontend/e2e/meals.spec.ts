@@ -130,6 +130,8 @@ test.describe('meals', () => {
   });
 
   test('a food of my own, logged at lunch, then a recipe shared with the community', async ({ page, browser }) => {
+    // three accounts, the community and the lookalikes: longer than one screen's test
+    test.setTimeout(90_000);
     const errors = watchErrors(page);
     await signIn(page, 'new');
     await tab(page, 'Repas').click();
@@ -166,6 +168,10 @@ test.describe('meals', () => {
     await page.getByLabel('dont saturés (g)').fill('5');
     await page.getByLabel('Sel (g)').fill('1,1');
     await page.getByRole('button', { name: 'Enregistrer' }).click();
+    // 1.11: a product that reads alike may be pointed out first: mine anyway
+    const foodLooks = page.getByRole('dialog', { name: 'Il existe peut-être déjà' });
+    await expect(foodLooks.or(page.getByRole('dialog').getByRole('heading', { name }))).toBeVisible();
+    if (await foodLooks.isVisible()) await foodLooks.getByRole('button', { name: 'Créer mon aliment quand même' }).click();
 
     // back on the add screen, the amount sheet opens for it
     const sheet = page.getByRole('dialog');
@@ -302,5 +308,69 @@ test.describe('meals', () => {
     await expect(otherPage.getByText('250 g de tomates')).toBeVisible();
     await other.close();
     expect(errors).toEqual([]);
+  });
+
+  test('a recipe on the shopping list by aisle, then what to cook with what I have (1.11)', async ({ page }) => {
+    const errors = watchErrors(page);
+    await signIn(page, 'new');
+    const xsrf = (await page.context().cookies()).find((c) => c.name === 'XSRF-TOKEN')?.value ?? '';
+    await page.request.delete('/api/me/shopping', { headers: { 'X-XSRF-TOKEN': xsrf } });
+    // a community recipe, for 6
+    await page.goto('/app/meals/recipes');
+    await page.getByRole('searchbox', { name: 'Chercher parmi toutes les recettes' }).fill('ratatouille');
+    await page.getByRole('link', { name: /Ratatouille/ }).first().click();
+    await page.getByRole('button', { name: 'Ajouter à ma liste de courses' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Ajouter à ma liste de courses' });
+    await sheet.getByRole('button', { name: '+' }).click();
+    await sheet.getByRole('button', { name: 'Ajouter à ma liste' }).click();
+    await expect(page.getByText('Ingrédients ajoutés à ta liste de courses')).toBeVisible();
+    await page.getByRole('button', { name: 'Voir' }).click();
+    // by aisle, the vegetables first; ticked in the basket, a line typed by hand
+    await expect(page.getByRole('heading', { name: 'Liste de courses', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Fruits et légumes/ })).toBeVisible();
+    const first = page.getByRole('checkbox').first();
+    await first.click();
+    await expect(first).toHaveAttribute('aria-checked', 'true');
+    await page.getByRole('textbox', { name: 'Ajouter un article' }).fill('Papier toilette');
+    await page.getByRole('button', { name: 'Ajouter un article' }).click();
+    await expect(page.getByRole('heading', { name: /Autres/ })).toBeVisible();
+    await expectAccessible(page);
+    await expectNoHorizontalOverflow(page);
+    await page.getByRole('button', { name: 'Retirer les articles cochés (1)' }).click();
+    await expect(page.getByText('Articles cochés retirés')).toBeVisible();
+    // the meals tab says how many lines are left
+    await tab(page, 'Repas').click();
+    await expect(page.getByRole('link', { name: /Liste de courses, \d+ article/ })).toBeVisible();
+
+    // what to cook with courgettes: the recipes that use them, what else they need
+    await page.goto('/app/meals/recipes');
+    await page.getByRole('link', { name: /Que faire avec ce que j’ai/ }).click();
+    await expect(page.getByRole('heading', { name: 'Avec ce que j’ai', level: 1 })).toBeVisible();
+    await page.getByRole('searchbox', { name: 'Chercher un ingrédient' }).fill('courg');
+    await page.getByRole('button', { name: 'Courgette', exact: true }).click();
+    await expect(page.getByRole('heading', { name: /^\d+ recettes?$/ })).toBeVisible();
+    await expect(page.getByText('Avec tout ce que tu as choisi').first()).toBeVisible();
+    await expectAccessible(page);
+    // back from a recipe: the courgette is still chosen
+    await page.locator('a.found').first().click();
+    await expect(page.getByRole('button', { name: 'Ajouter à ma liste de courses' })).toBeVisible();
+    await page.goBack();
+    await expect(page.getByRole('button', { name: 'Retirer Courgette' })).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
+  test('a food of my own that already exists is pointed out (1.11)', async ({ page }) => {
+    await signIn(page, 'new');
+    await page.goto('/app/meals/add?slot=LUNCH');
+    await page.goto('/app/meals/food/new');
+    await page.getByLabel('Nom', { exact: true }).fill('Courgette');
+    await page.getByLabel('Énergie (kcal)').fill('17');
+    await page.getByRole('button', { name: 'Enregistrer' }).click();
+    const looks = page.getByRole('dialog', { name: 'Il existe peut-être déjà' });
+    await expect(looks.getByRole('button', { name: /Courgette/ }).first()).toBeVisible();
+    await expectAccessible(page);
+    // that one: it opens on the add screen, ready for its amount
+    await looks.getByRole('button', { name: /Courgette/ }).first().click();
+    await expect(page.getByRole('dialog').filter({ hasText: /Courgette/ })).toBeVisible();
   });
 });

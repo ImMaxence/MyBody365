@@ -85,6 +85,15 @@ public class FoodController {
         return foods.mine(users.current(auth).getId());
     }
 
+    /** 1.11: a food about to be created, nothing saved: the ones that may be the same */
+    public record FoodQuery(@jakarta.validation.constraints.Size(max = 200) String name, @jakarta.validation.constraints.Size(max = 160) String brand,
+            @jakarta.validation.constraints.DecimalMin("0") @jakarta.validation.constraints.DecimalMax("1000") Double kcal) {}
+
+    @PostMapping("/api/me/foods/lookalikes")
+    public List<FoodDto> lookalikes(@jakarta.validation.Valid @RequestBody FoodQuery body, Authentication auth) {
+        return foods.lookalikes(users.current(auth).getId(), body.name(), body.brand(), body.kcal());
+    }
+
     @PostMapping("/api/me/foods")
     @ResponseStatus(HttpStatus.CREATED)
     public FoodDto create(@Valid @RequestBody FoodInput body, Authentication auth) {

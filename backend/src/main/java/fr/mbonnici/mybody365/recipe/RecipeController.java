@@ -36,10 +36,12 @@ public class RecipeController {
     private final UserService users;
     private final RecipeImporter importer;
     private final RecipeLookalikes lookalikes;
+    private final RecipeFinder finder;
 
-    public RecipeController(RecipeService recipes, UserService users, RecipeImporter importer, RecipeLookalikes lookalikes) {
+    public RecipeController(RecipeService recipes, UserService users, RecipeImporter importer, RecipeLookalikes lookalikes, RecipeFinder finder) {
         this.importer = importer;
         this.lookalikes = lookalikes;
+        this.finder = finder;
         this.recipes = recipes;
         this.users = users;
     }
@@ -123,6 +125,18 @@ public class RecipeController {
     @PostMapping("/api/me/recipes/import")
     public RecipeImporter.Draft importRecipe(@RequestBody Map<String, String> body, Authentication auth) {
         return importer.read(body.get("url"), users.current(auth).getId());
+    }
+
+    /** 1.11, « Que faire avec ce que j'ai ? »: the ingredients one can choose, the most used first */
+    @GetMapping("/api/recipes/ingredients")
+    public List<RecipeFinder.Family> ingredients(Authentication auth) {
+        return finder.families(users.current(auth).getId());
+    }
+
+    /** the recipes with these ingredients (?k=poulet&k=courgette): all of them first, then the fewest missing */
+    @GetMapping("/api/recipes/with")
+    public List<RecipeFinder.Found> with(@RequestParam(name = "k", required = false) List<String> keys, Authentication auth) {
+        return finder.find(users.current(auth).getId(), keys == null ? List.of() : keys);
     }
 
     /** the recipes my friends show to their friends (or to everyone) */

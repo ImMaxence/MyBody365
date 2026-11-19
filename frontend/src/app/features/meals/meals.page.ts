@@ -19,6 +19,7 @@ import { KcalRingComponent } from '../../shared/kcal-ring.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { NutriscoreComponent } from '../../shared/nutriscore.component';
 import { DayScoreComponent } from './day-score.component';
+import { ShoppingStore } from '../../core/meals/shopping.store';
 
 const SLOT_ICON: Record<Slot, string> = { BREAKFAST: 'sun', LUNCH: 'utensils', DINNER: 'moon', SNACK: 'leaf' };
 const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'check', over: 'arrowUp', under: 'arrowDown', ongoing: null, logged: null };
@@ -34,8 +35,15 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
         <h1 class="title">{{ 'meals.title' | t }}</h1>
       </header>
       <nav class="shortcuts" [attr.aria-label]="'meals.title' | t">
-        <a routerLink="/app/meals/stats" class="btn btn-secondary btn-s"><app-icon name="bars" [size]="18" /> {{ 'meals.stats.title' | t }}</a>
-        <a routerLink="/app/meals/recipes" class="btn btn-secondary btn-s"><app-icon name="book" [size]="18" /> {{ 'meals.recipes' | t }}</a>
+        <a routerLink="/app/meals/stats" class="btn btn-secondary tile"><app-icon name="bars" [size]="20" /> {{ 'meals.stats.title' | t }}</a>
+        <a routerLink="/app/meals/recipes" class="btn btn-secondary tile"><app-icon name="book" [size]="20" /> {{ 'meals.recipes' | t }}</a>
+        <!-- 1.11: the shopping list, with the lines left to buy -->
+        <a routerLink="/app/meals/shopping" class="btn btn-secondary tile" [attr.aria-label]="shoppingLabel()">
+          <app-icon name="cart" [size]="20" /> {{ 'shopping.short' | t }}
+          @if (shopping.left() > 0) {
+            <b class="badge num" aria-hidden="true">{{ shopping.left() }}</b>
+          }
+        </a>
       </nav>
 
       <nav class="days" [attr.aria-label]="'meals.title' | t">
@@ -262,9 +270,36 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
     }
     .shortcuts {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: var(--space-2);
       margin-top: calc(-1 * var(--space-2));
+    }
+    /* three side by side: the icon above its word, so that each fits a phone */
+    .tile {
+      position: relative;
+      flex-direction: column;
+      gap: 4px;
+      height: auto;
+      min-height: 64px;
+      padding: 10px 6px;
+      font-size: var(--fs-s);
+      white-space: normal;
+      text-align: center;
+      line-height: 1.15;
+    }
+    .badge {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 10px;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-size: 11px;
+      line-height: 20px;
+      font-weight: 700;
     }
     .days {
       display: grid;
@@ -769,6 +804,10 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
 })
 export class MealsPage {
   protected readonly store = inject(MealsStore);
+  protected readonly shopping = inject(ShoppingStore);
+  protected readonly shoppingLabel = computed(() =>
+    this.shopping.left() > 0 ? this.i18n.t('shopping.shortLeft', { n: this.shopping.left() }) : this.i18n.t('shopping.title'),
+  );
   private readonly tracking = inject(TrackingStore);
   protected readonly i18n = inject(I18nService);
   protected readonly Math = Math;
@@ -919,6 +958,7 @@ export class MealsPage {
   protected readonly weekTrends = computed(() => trends(this.weekStats(), this.plan()));
 
   constructor() {
+    void this.shopping.load().catch(() => undefined);
     void this.store.load().catch(() => undefined);
     if (!this.tracking.summary()) void this.tracking.load();
     this.mealsApi

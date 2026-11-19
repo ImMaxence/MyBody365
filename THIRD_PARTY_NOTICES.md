@@ -82,3 +82,11 @@ The server uses (Maven, licences in their jars):
   (<https://ciqual.anses.fr>, dataset doi:10.57745/RDMHWY). Imported by an administrator; older versions are kept.
 - **Nutri-Score** is a trademark of Santé publique France. Grades that do not come from Open Food Facts are estimated
   by MyBody365 with the 2023 algorithm for general foods.
+
+## Photos of the community recipes: Wikimedia Commons
+
+Since 1.11, the community recipes have photos chosen on [Wikimedia Commons](https://commons.wikimedia.org), each under
+a free licence (CC0, public domain, CC BY or CC BY-SA). The repository holds no picture: the list of photos, with the
+author, the licence and the page of each one, is `backend/src/main/resources/community/images.tsv`, and the server
+downloads each photo once. In the app, every photo shows its author and its licence, with a link to its page on
+Wikimedia Commons; a copy of a recipe keeps that credit, and so does a backup.

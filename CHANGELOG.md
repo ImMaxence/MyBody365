@@ -2,6 +2,26 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.11.0] - 2026-11-19
+
+Une liste de courses rangée par rayon, des idées de recettes avec ce que tu as, les recettes de la communauté en photo et un rappel pour la photo du jour
+
+### Ajouté
+- Liste de courses : depuis la page d'une recette, « Ajouter à ma liste de courses » pour le nombre de parts que tu veux. Le même ingrédient de plusieurs recettes est additionné, et la liste est rangée dans l'ordre des rayons du supermarché (fruits et légumes d'abord, les surgelés à la fin) pour ne pas faire quatre fois le tour du magasin. Les œufs sont comptés, les liquides en ml, le sel et les épices sans quantité
+- Liste de courses : tes propres articles (café, papier toilette…), une coche pour ce qui est dans le panier, une barre qui avance, et le partage de ce qu'il reste à acheter, rangé par rayon. Sur l'écran Repas, le nombre d'articles qu'il reste
+- « Que faire avec ce que j'ai ? », sur la page des recettes : choisis jusqu'à 6 ingrédients, et voici les recettes qui les utilisent, d'abord celles qui ont tout, puis celles où il manque le moins de choses. Ce qui manque est dit, sans compter le sel, l'huile, la farine, le sucre et les épices
+- Les recettes de la communauté ont leur photo, des photos libres de Wikimedia Commons choisies une à une. Leur auteur et leur licence sont écrits sur la photo, avec un lien vers sa page, et une recette copiée les garde
+- Créer un aliment : avant de l'enregistrer, MyBody365 regarde s'il existe déjà (dans tes aliments, la table Ciqual ou les produits), d'après son nom et ses calories. Un tap l'ajoute tout de suite, ou tu crées le tien quand même
+- Notifications : un rappel pour la photo du jour, à l'heure de ton choix, seulement si tu ne l'as pas encore prise. Désactivé tant que tu ne l'allumes pas
+
+### Modifié
+- Repas : les raccourcis Statistiques, Recettes et Courses côte à côte, l'icône au-dessus du mot
+- Mentions légales et confidentialité : d'où viennent les photos des recettes de la communauté et comment elles sont téléchargées
+
+### Corrigé
+- Sur iPhone, la barre d'onglets pouvait rester au milieu de l'écran après avoir fermé le clavier ou en revenant dans l'app : elle reprend sa place en bas, et s'efface le temps que le clavier est ouvert
+- Photo ouverte : la date tient sur une seule ligne, quelle que soit la largeur de l'écran
+
 ## [1.10.0] - 2026-11-19
 
 Des recettes en double évitées, 200 de plus dans la communauté, la pesée du soir toujours en vue et la photo du jour depuis ta galerie

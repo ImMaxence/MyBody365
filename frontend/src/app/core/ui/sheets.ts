@@ -58,13 +58,42 @@ function followKeyboard(doc: Document, view: Window): void {
   const vv = view.visualViewport;
   if (!vv) return;
   const root = doc.documentElement;
+  let open = false;
   const update = () => {
     const kb = Math.max(0, Math.round(view.innerHeight - vv.height - vv.offsetTop));
+    // 1.11.1: iOS, as an installed app, sometimes keeps the page as short as it was with the keyboard once the keyboard
+    // is gone (or back from the background): what is fixed at the bottom (the tab bar, the toasts) then floats in the
+    // middle of the screen. The gap between what is seen and that short page is measured, the fixed bars go down by it.
+    const stuck = Math.round(vv.offsetTop + vv.height - view.innerHeight);
     root.style.setProperty('--kb', `${kb}px`);
     root.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
+    root.style.setProperty('--vv-stuck', `${stuck > 2 ? stuck : 0}px`);
+    // the keyboard up: the tab bar steps aside (it would float above the keyboard, or under the finger)
+    const nowOpen = kb > 120;
+    root.classList.toggle('keyboard-open', nowOpen);
+    if (open && !nowOpen) unstick();
+    open = nowOpen;
   };
+  /** a one-pixel scroll there and back: WebKit lays out what is fixed again, at the real bottom */
+  const unstick = () =>
+    setTimeout(() => {
+      const x = view.scrollX;
+      const y = view.scrollY;
+      view.scrollTo(x, y > 0 ? y - 1 : y + 1);
+      view.scrollTo(x, y);
+      update();
+    }, 80);
   vv.addEventListener('resize', update);
   vv.addEventListener('scroll', update);
+  view.addEventListener('resize', update);
+  view.addEventListener('pageshow', update);
+  // the keyboard closes a moment after the field loses the focus
+  doc.addEventListener('focusout', () => setTimeout(update, 350));
+  doc.addEventListener('visibilitychange', () => {
+    if (doc.visibilityState !== 'visible') return;
+    update();
+    unstick();
+  });
   update();
 }
 

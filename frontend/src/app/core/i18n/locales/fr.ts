@@ -2,7 +2,7 @@ import { frAdminFoods, frAdminModeration } from './fr-admin';
 import { frBackup } from './fr-backup';
 import { frEngage } from './fr-engage';
 import { frFriends } from './fr-friends';
-import { frMeals } from './fr-meals';
+import { frMeals, frShopping } from './fr-meals';
 import { frPhotos } from './fr-photos';
 import type { Widen } from './widen';
 
@@ -90,6 +90,7 @@ export const fr = {
     off_unavailable: 'Open Food Facts ne répond pas pour le moment. Réessaie ou saisis l’aliment à la main',
     import_running: 'Une mise à jour est déjà en cours',
     recipe_empty: 'Ajoute au moins un ingrédient',
+    shopping_full: 'Ta liste de courses est pleine : retire les articles cochés',
     invalid_quantity: 'Indique une quantité valide',
     already_voted: 'Tu as déjà voté pour cette recette',
     own_recipe: 'Tu ne peux pas voter pour ta propre recette',
@@ -602,6 +603,7 @@ export const fr = {
 
   photos: frPhotos,
   meals: frMeals,
+  shopping: frShopping,
   engage: frEngage,
   friends: frFriends,
   backup: frBackup,
@@ -953,7 +955,7 @@ export const fr = {
             'Icônes dessinées d’après Lucide (© Lucide Contributors, licence ISC, et © Cole Bemis pour les parties issues de Feather, licence MIT) ; les notices de licence complètes figurent dans le fichier THIRD_PARTY_NOTICES.md du code source. Le logo et les illustrations ont été dessinés pour MyBody365.',
             'La lecture des codes-barres et des QR codes utilise ZXing (© les auteurs de ZXing, licence Apache 2.0) ; les QR codes d’invitation sont dessinés avec node-qrcode (© Ryan Day, licence MIT).',
             'Le logo Google est une marque de Google LLC, utilisé uniquement pour désigner la connexion avec Google. Nutri-Score est une marque de Santé publique France, utilisée pour afficher le score des produits.',
-            'Les produits du commerce viennent d’Open Food Facts (© les contributeurs d’Open Food Facts, base de données sous licence Open Database License, contenus sous licence Database Contents License). Les aliments du quotidien viennent de la table de composition nutritionnelle Ciqual de l’Anses (Licence Ouverte Etalab 2.0) ; la version utilisée est indiquée dans l’application. Les Nutri-Score des aliments hors Open Food Facts sont estimés par MyBody365 à partir des nutriments.',
+            'Les produits du commerce viennent d’Open Food Facts (© les contributeurs d’Open Food Facts, base de données sous licence Open Database License, contenus sous licence Database Contents License). Les aliments du quotidien viennent de la table de composition nutritionnelle Ciqual de l’Anses (Licence Ouverte Etalab 2.0) ; la version utilisée est indiquée dans l’application. Les Nutri-Score des aliments hors Open Food Facts sont estimés par MyBody365 à partir des nutriments. Les photos des recettes de la communauté viennent de Wikimedia Commons, sous licences libres (CC0, CC BY ou CC BY-SA) : leur auteur et leur licence sont indiqués sur chaque photo, avec un lien vers sa page.',
           ],
         },
         {
@@ -1010,7 +1012,7 @@ export const fr = {
           p: [
             'Google LLC : connexion avec Google (si tu la choisis) et stockage chiffré des sauvegardes sur Google Drive.',
             'Cloudflare, Inc. : réseau de diffusion et protection du site ; le trafic transite par ses serveurs, y compris hors de l’Union européenne, dans le cadre des clauses contractuelles types.',
-            'Open Food Facts : les recherches d’aliments et de codes-barres sont faites depuis le serveur, sans aucune donnée personnelle. La table Ciqual est téléchargée depuis l’entrepôt de données de recherche data.gouv.fr par un administrateur.',
+            'Open Food Facts : les recherches d’aliments et de codes-barres sont faites depuis le serveur, sans aucune donnée personnelle. La table Ciqual est téléchargée depuis l’entrepôt de données de recherche data.gouv.fr par un administrateur. Les photos des recettes de la communauté sont téléchargées une fois depuis Wikimedia Commons par le serveur, sans aucune donnée personnelle.',
             'Sites de recettes : quand tu importes une recette, le serveur lit la page dont tu as collé le lien, sans transmettre aucune donnée te concernant ; le site voit seulement une visite du serveur MyBody365. Le lien est conservé sur ta recette.',
             'Services de notification des navigateurs et des téléphones (Google, Apple, Mozilla, Microsoft) : ils acheminent les notifications, dont le contenu est chiffré de bout en bout entre le serveur et ton appareil.',
           ],

@@ -178,6 +178,55 @@ public class FoodService {
 
     // ── the account's own foods ──────────────────────────────────────────────
 
+    /**
+     * 1.11: before a food of one's own is created, the ones that may be the same: close names (the brand counts too)
+     * and, when the calories are given, close calories. One's own first (« tu l'as déjà »), then Ciqual and the products.
+     */
+    public List<FoodDto> lookalikes(UUID userId, String name, String brand, Double kcal) {
+        String text = SearchText.normalize((name == null ? "" : name) + " " + (brand == null ? "" : brand));
+        List<String> words = SearchText.words(text);
+        if (words.isEmpty()) {
+            return List.of();
+        }
+        Map<UUID, Food> found = new java.util.LinkedHashMap<>();
+        foods.search(userId, words, true, 30).forEach(f -> found.putIfAbsent(f.id(), f));
+        foods.close(userId, text, 30).forEach(f -> found.putIfAbsent(f.id(), f));
+        record Scored(Food f, double score) {}
+        List<Scored> close = new java.util.ArrayList<>();
+        for (Food f : found.values()) {
+            double s = nameSimilarity(text, f.name() + " " + (f.brand() == null ? "" : f.brand()));
+            boolean kcalClose = kcal == null || Math.abs(f.per100().kcal() - kcal) <= Math.max(20, 0.15 * Math.max(kcal, f.per100().kcal()));
+            if (s >= 0.8 || (s >= 0.5 && kcalClose)) {
+                close.add(new Scored(f, s + (f.source() == Source.USER ? 1 : 0) + (kcal != null && kcalClose ? 0.2 : 0)));
+            }
+        }
+        close.sort(java.util.Comparator.comparingDouble(Scored::score).reversed());
+        return close.stream().limit(3).map(s -> dto(s.f(), userId)).toList();
+    }
+
+    /** the share of both texts' words found in the other one (a word may be the start of the other: « grec », « grecque ») */
+    static double nameSimilarity(String a, String b) {
+        List<String> x = significant(a);
+        List<String> y = significant(b);
+        if (x.isEmpty() || y.isEmpty()) {
+            return 0;
+        }
+        long found = x.stream().filter(w -> y.stream().anyMatch(v -> alike(w, v))).count()
+                + y.stream().filter(w -> x.stream().anyMatch(v -> alike(w, v))).count();
+        return found / (double) (x.size() + y.size());
+    }
+
+    private static List<String> significant(String text) {
+        java.util.Set<String> stop = java.util.Set.of("de", "du", "des", "la", "le", "les", "au", "aux", "en", "et", "ou", "un", "une", "a", "d", "l",
+                "avec", "sans", "pour", "cru", "crue", "crus", "crues", "cuit", "cuite", "nature", "preemballe", "preemballee", "aliment", "moyen");
+        return java.util.Arrays.stream(SearchText.normalize(text).split(" ")).filter(w -> w.length() >= 2 && !stop.contains(w)).distinct()
+                .toList();
+    }
+
+    private static boolean alike(String x, String y) {
+        return x.equals(y) || (x.length() >= 4 && y.length() >= 4 && (x.startsWith(y) || y.startsWith(x)));
+    }
+
     public List<FoodDto> mine(UUID userId) {
         return foods.ownedBy(userId).stream().map(f -> dto(f, userId)).toList();
     }

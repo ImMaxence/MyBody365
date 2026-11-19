@@ -68,11 +68,32 @@ public class CannedPages implements PageFetcher {
         return page;
     }
 
+    /** a real picture (the community photos are redrawn by the server) */
+    static byte[] jpeg() {
+        try {
+            java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(800, 600, java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D g = img.createGraphics();
+            g.setColor(new java.awt.Color(200, 80, 40));
+            g.fillRect(0, 0, 800, 600);
+            g.dispose();
+            java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+            javax.imageio.ImageIO.write(img, "jpeg", bos);
+            return bos.toByteArray();
+        } catch (java.io.IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+    }
+
     @Override
     public Photo image(URI uri) {
         fetched.add(uri);
-        if (!uri.toString().equals("https://les-creations-de-yona.fr/api/images/4599/1600.webp")) {
+        // 1.11: the community photos (Wikimedia Commons, simulated)
+        if (!uri.toString().equals("https://les-creations-de-yona.fr/api/images/4599/1600.webp")
+                && !uri.toString().startsWith("https://upload.wikimedia.org/test/")) {
             throw ApiException.badRequest("recipe_unreachable");
+        }
+        if (uri.toString().startsWith("https://upload.wikimedia.org/test/")) {
+            return new Photo("image/jpeg", jpeg());
         }
         return new Photo("image/webp", PHOTO);
     }

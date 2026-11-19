@@ -27,6 +27,18 @@ class RecipeLookalikesTest {
         assertThat(RecipeLookalikes.words("Mes pâtes à la carbonara maison")).containsExactlyInAnyOrder("pate", "carbonara");
     }
 
+    /** 1.11: how an ingredient reads in « Que faire avec ce que j'ai ? » */
+    @Test
+    void anIngredientReadsSimply() {
+        assertThat(RecipeFinder.label("Crème 30% MG, fluide, UHT")).isEqualTo("Crème");
+        assertThat(RecipeFinder.label("Emmental ou emmenthal, râpé")).isEqualTo("Emmental");
+        assertThat(RecipeFinder.label("Oeuf cru")).isEqualTo("Oeuf");
+        assertThat(RecipeFinder.label("Beurre à 80% MG minimum, doux")).isEqualTo("Beurre");
+        assertThat(RecipeFinder.label("Tomate sans précision, crue (aliment moyen)")).isEqualTo("Tomate");
+        assertThat(RecipeFinder.label("Pomme de terre, sans peau, crue")).isEqualTo("Pomme de terre");
+        assertThat(RecipeFinder.label("Jambon cuit, choix")).isEqualTo("Jambon");
+    }
+
     @Test
     void theSameDishIsFoundAndACakeIsNotAPancake() {
         Sketch carbonara = sketch("Pâtes à la carbonara", "Pâtes sèches, standard, crues", 400, "Lardon fumé, cru", 150, "Oeuf, jaune, cru", 80,

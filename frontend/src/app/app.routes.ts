@@ -39,6 +39,9 @@ export const routes: Routes = [
           { path: 'meals/food/:id', loadComponent: () => import('./features/meals/food-edit.page').then((m) => m.FoodEditPage), data: { depth: 2, back: '/app/meals' } },
           { path: 'meals/stats', loadComponent: () => import('./features/meals/meal-stats.page').then((m) => m.MealStatsPage), data: { depth: 1, back: '/app/meals' } },
           { path: 'meals/recipes', loadComponent: () => import('./features/meals/recipes.page').then((m) => m.RecipesPage), data: { depth: 1, back: '/app/meals' } },
+          // 1.11: what to cook with what I have, and the shopping list
+          { path: 'meals/recipes/with', loadComponent: () => import('./features/meals/recipes-with.page').then((m) => m.RecipesWithPage), data: { depth: 2, back: '/app/meals/recipes' } },
+          { path: 'meals/shopping', loadComponent: () => import('./features/meals/shopping.page').then((m) => m.ShoppingPage), data: { depth: 1, back: '/app/meals' } },
           { path: 'meals/recipes/new', loadComponent: () => import('./features/meals/recipe-edit.page').then((m) => m.RecipeEditPage), data: { depth: 2, back: '/app/meals/recipes' } },
           { path: 'meals/recipes/:id', loadComponent: () => import('./features/meals/recipe.page').then((m) => m.RecipePage), data: { depth: 2, back: '/app/meals/recipes' } },
           { path: 'meals/recipes/:id/edit', loadComponent: () => import('./features/meals/recipe-edit.page').then((m) => m.RecipeEditPage), data: { depth: 3, back: '/app/meals/recipes' } },

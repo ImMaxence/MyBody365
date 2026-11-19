@@ -2,7 +2,7 @@ import { enAdminFoods, enAdminModeration } from './en-admin';
 import { enBackup } from './en-backup';
 import { enEngage } from './en-engage';
 import { enFriends } from './en-friends';
-import { enMeals } from './en-meals';
+import { enMeals, enShopping } from './en-meals';
 import { enPhotos } from './en-photos';
 import type { Dictionary } from './fr';
 
@@ -89,6 +89,7 @@ export const en: Dictionary = {
     off_unavailable: 'Open Food Facts is not answering right now. Try again or enter the food by hand',
     import_running: 'An update is already running',
     recipe_empty: 'Add at least one ingredient',
+    shopping_full: 'Your shopping list is full: remove the ticked items',
     invalid_quantity: 'Enter a valid quantity',
     already_voted: 'You already voted for this recipe',
     own_recipe: 'You cannot vote for your own recipe',
@@ -601,6 +602,7 @@ export const en: Dictionary = {
 
   photos: enPhotos,
   meals: enMeals,
+  shopping: enShopping,
   engage: enEngage,
   friends: enFriends,
   backup: enBackup,
@@ -952,7 +954,7 @@ export const en: Dictionary = {
             'Icons drawn after Lucide (© Lucide Contributors, ISC licence, and © Cole Bemis for the parts from Feather, MIT licence); the full licence notices are in the THIRD_PARTY_NOTICES.md file of the source code. The logo and illustrations were drawn for MyBody365.',
             'Barcode and QR code reading uses ZXing (© the ZXing authors, Apache 2.0 licence); invitation QR codes are drawn with node-qrcode (© Ryan Day, MIT licence).',
             'The Google logo is a trademark of Google LLC, used only to designate signing in with Google. Nutri-Score is a trademark of Santé publique France, used to show the score of products.',
-            'Packaged products come from Open Food Facts (© Open Food Facts contributors, database under the Open Database License, contents under the Database Contents License). Everyday foods come from the Ciqual food composition table of Anses (Etalab Open Licence 2.0); the version in use is shown in the application. The Nutri-Score of foods outside Open Food Facts is estimated by MyBody365 from their nutrients.',
+            'Packaged products come from Open Food Facts (© Open Food Facts contributors, database under the Open Database License, contents under the Database Contents License). Everyday foods come from the Ciqual food composition table of Anses (Etalab Open Licence 2.0); the version in use is shown in the application. The Nutri-Score of foods outside Open Food Facts is estimated by MyBody365 from their nutrients. The photos of the community recipes come from Wikimedia Commons, under free licences (CC0, CC BY or CC BY-SA): their author and licence are shown on each photo, with a link to its page.',
           ],
         },
         {
@@ -1009,7 +1011,7 @@ export const en: Dictionary = {
           p: [
             'Google LLC: sign-in with Google (if you choose it) and encrypted storage of backups on Google Drive.',
             'Cloudflare, Inc.: content delivery and protection of the site; traffic goes through its servers, including outside the European Union, under standard contractual clauses.',
-            'Open Food Facts: food and barcode searches are made from the server, without any personal data. The Ciqual table is downloaded from the data.gouv.fr research data repository by an administrator.',
+            'Open Food Facts: food and barcode searches are made from the server, without any personal data. The Ciqual table is downloaded from the data.gouv.fr research data repository by an administrator. The photos of the community recipes are downloaded once from Wikimedia Commons by the server, without any personal data.',
             'Recipe sites: when you import a recipe, the server reads the page whose link you pasted, without passing on any data about you; the site only sees a visit from the MyBody365 server. The link is kept on your recipe.',
             'Notification services of browsers and phones (Google, Apple, Mozilla, Microsoft): they carry the notifications, whose content is end-to-end encrypted between the server and your device.',
           ],

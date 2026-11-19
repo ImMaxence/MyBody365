@@ -106,7 +106,7 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
       position: fixed;
       left: 0;
       right: 0;
-      bottom: calc(var(--tabbar-bottom) + var(--tabbar-h) + 10px);
+      bottom: calc(var(--tabbar-bottom) + var(--tabbar-h) + 10px - var(--vv-stuck, 0px));
       z-index: 96;
       display: flex;
       flex-direction: column;
@@ -202,7 +202,8 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
       view-transition-name: tabbar;
       position: fixed;
       left: 50%;
-      bottom: var(--tabbar-bottom);
+      /* --vv-stuck: iOS keeping the page as short as with the keyboard (core/ui/sheets.ts) */
+      bottom: calc(var(--tabbar-bottom) - var(--vv-stuck, 0px));
       z-index: 100;
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -219,6 +220,11 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
       box-shadow:
         0 18px 40px -18px rgba(0, 0, 0, 0.55),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+    /* the keyboard is up: out of the way */
+    :host-context(.keyboard-open) .tabbar {
+      opacity: 0;
+      pointer-events: none;
     }
     .indicator {
       position: absolute;

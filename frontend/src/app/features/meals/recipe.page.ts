@@ -16,13 +16,16 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
 import { FavoritesStore } from '../../core/meals/favorites.store';
 import { HapticDirective } from '../../core/ui/haptics';
 import { QuantitySheetComponent } from './quantity-sheet.component';
+import { NumberStepperComponent } from '../../shared/number-stepper.component';
+import { ShoppingStore } from '../../core/meals/shopping.store';
+import { closeSheet } from '../../core/ui/sheets';
 import { TYPE_EMOJI } from './recipes.page';
 
 /** A recipe: its picture, nutrients per serving, ingredients, votes, and what can be done with it. */
 @Component({
   selector: 'app-recipe',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, NutriscoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective],
+  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, NutriscoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective, NumberStepperComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -33,6 +36,14 @@ import { TYPE_EMOJI } from './recipes.page';
         <figure class="hero">
           @if (r.imageUrl) {
             <img [src]="r.imageUrl" alt="" />
+            <!-- 1.11: a free photo of Wikimedia Commons, credited as its licence asks -->
+            @if (r.imageSource) {
+              <figcaption class="credit">
+                <a [href]="r.imageSource" target="_blank" rel="noopener noreferrer nofollow">
+                  {{ 'meals.recipe.photoCredit' | t: { author: r.imageCredit || 'Wikimedia Commons', license: r.imageLicense ?? '' } }}
+                </a>
+              </figcaption>
+            }
           } @else {
             <span class="emoji" aria-hidden="true">{{ emoji[r.type] }}</span>
           }
@@ -137,6 +148,8 @@ import { TYPE_EMOJI } from './recipes.page';
             <li><span>{{ line }}</span></li>
           }
         </ul>
+        <!-- 1.11: its ingredients on the shopping list, for as many as wanted -->
+        <button type="button" class="btn btn-secondary btn-block" (click)="openShopping(r)"><app-icon name="cart" [size]="18" /> {{ 'shopping.addRecipe' | t }}</button>
         @if (r.notes) {
           <h2 class="section-title">{{ 'meals.recipe.notes' | t }}</h2>
           <p class="notes card">{{ r.notes }}</p>
@@ -166,6 +179,17 @@ import { TYPE_EMOJI } from './recipes.page';
       } @else {
         <div class="hero skeleton"></div>
       }
+      <dialog class="sheet" #shopSheet [attr.aria-label]="'shopping.addRecipe' | t">
+        <div class="sheet-grip"></div>
+        <div class="stack">
+          <div>
+            <h2 class="h3">{{ 'shopping.addRecipe' | t }}</h2>
+            <p class="small muted">{{ 'shopping.addRecipeText' | t }}</p>
+          </div>
+          <app-number-stepper [(value)]="shopServings" [step]="1" [min]="1" [max]="50" [decimals]="0" [label]="'shopping.servings' | t" />
+          <button type="button" class="btn btn-primary btn-block" [disabled]="busy()" (click)="addToShopping()"><app-icon name="cart" /> {{ 'shopping.addConfirm' | t }}</button>
+        </div>
+      </dialog>
       <app-quantity-sheet (confirm)="add($event)" />
       <app-report-sheet />
     </main>
@@ -192,6 +216,27 @@ import { TYPE_EMOJI } from './recipes.page';
     }
     .emoji {
       font-size: 4.5rem;
+    }
+    .credit {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      max-width: calc(100% - 16px);
+    }
+    .credit a {
+      display: block;
+      padding: 4px 9px;
+      border-radius: var(--radius-pill);
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     @keyframes zoom-in {
       from {
@@ -433,6 +478,34 @@ export class RecipePage {
   protected readonly canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
   protected readonly recipe = signal<Recipe | null>(null);
   protected readonly favorite = computed(() => this.favorites.isRecipe(this.recipe()?.id));
+
+  // ── 1.11: the ingredients on the shopping list ──────────────────────────
+  private readonly shopSheet = viewChild.required<ElementRef<HTMLDialogElement>>('shopSheet');
+  private readonly shopping = inject(ShoppingStore);
+  protected readonly shopServings = signal(2);
+
+  protected openShopping(r: Recipe): void {
+    this.shopServings.set(r.servings);
+    this.shopSheet().nativeElement.showModal();
+  }
+
+  protected async addToShopping(): Promise<void> {
+    const r = this.recipe();
+    if (!r) return;
+    this.busy.set(true);
+    try {
+      this.shopping.set(await this.api.addRecipeToShopping(r.id, this.shopServings()));
+      closeSheet(this.shopSheet().nativeElement);
+      this.toast.show(this.i18n.t('shopping.added'), 'info', 4200, {
+        label: this.i18n.t('shopping.see'),
+        run: () => void this.router.navigate(['/app/meals/shopping']),
+      });
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
 
   protected async toggleFavorite(r: Recipe): Promise<void> {
     try {

@@ -47,6 +47,25 @@ class CommunityRecipesFilesTest {
         assertThat(all.stream().filter(s -> s.types().contains(RecipeService.Type.DRINK)).count()).isGreaterThanOrEqualTo(15);
     }
 
+    /** 1.11: the photos of the community, one per recipe at most, each of a recipe of the files, under a free licence */
+    @Test
+    void thePhotosAreFreeAndForRecipesOfTheFiles() throws Exception {
+        Set<String> keys = new HashSet<>();
+        for (Resource f : new PathMatchingResourcePatternResolver().getResources("classpath:community/*.txt")) {
+            CommunityRecipes.parse(f.getContentAsString(StandardCharsets.UTF_8)).forEach(s -> keys.add(s.key()));
+        }
+        List<CommunityImages.Pick> picks = CommunityImages.all();
+        assertThat(picks).hasSizeGreaterThan(100);
+        Set<String> seen = new HashSet<>();
+        for (CommunityImages.Pick p : picks) {
+            assertThat(keys).as("a recipe of the files: " + p.key()).contains(p.key());
+            assertThat(seen.add(p.key())).as("one photo per recipe: " + p.key()).isTrue();
+            assertThat(p.license()).as(p.key()).matches("(?i)(CC0|Public domain|CC BY(-SA)? \\d(\\.\\d)?( [a-z]+)?)");
+            assertThat(p.url().getHost()).endsWith(".wikimedia.org");
+            assertThat(p.author() == null ? "" : p.author()).hasSizeLessThanOrEqualTo(200);
+        }
+    }
+
     @Test
     void aMalformedLineIsRefused() {
         assertThatThrownBy(() -> CommunityRecipes.parse("= Soupe | LUNCH | 2\nbeaucoup de carottes\n")).hasMessageContaining("line 2");

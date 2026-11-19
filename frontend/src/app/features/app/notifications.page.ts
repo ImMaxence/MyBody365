@@ -10,7 +10,7 @@ import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 
-type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabled';
+type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabled' | 'photoEnabled';
 
 /**
  * Notifications: this device on or off (with a test), then what is sent, each line a switch saved at
@@ -76,6 +76,24 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
               <label class="small time-label" for="n-daily">{{ 'engage.notifications.dailyTime' | t }}</label>
               <span class="input-icon time">
                 <input class="input" id="n-daily" type="time" step="300" [value]="p.dailyTime" (change)="setTime($event)" />
+                <span class="end"><app-icon name="clock" [size]="17" /></span>
+              </span>
+            </div>
+          }
+          <!-- 1.11: the photo of the day, at its own time, only if it is not taken yet -->
+          <label class="pref">
+            <span class="list-icon photo"><app-icon name="camera" /></span>
+            <span class="pref-body">
+              <span class="pref-title">{{ 'engage.notifications.photo' | t }}</span>
+              <span class="small muted">{{ 'engage.notifications.photoHint' | t }}</span>
+            </span>
+            <input type="checkbox" role="switch" class="switch" [checked]="p.photoEnabled" (change)="toggle('photoEnabled', $event)" />
+          </label>
+          @if (p.photoEnabled) {
+            <div class="pref time-row">
+              <label class="small time-label" for="n-photo">{{ 'engage.notifications.photoTime' | t }}</label>
+              <span class="input-icon time">
+                <input class="input" id="n-photo" type="time" step="300" [value]="p.photoTime" (change)="setPhotoTime($event)" />
                 <span class="end"><app-icon name="clock" [size]="17" /></span>
               </span>
             </div>
@@ -210,6 +228,10 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
     .list-icon.cool {
       background: var(--cool-soft);
       color: var(--cool);
+    }
+    .list-icon.photo {
+      background: var(--success-soft);
+      color: var(--success);
     }
     /* the time of the reminder, right under its switch */
     .pref.time-row {
@@ -374,6 +396,11 @@ export class NotificationsPage {
   protected setTime(e: Event): void {
     const value = (e.target as HTMLInputElement).value;
     if (/^\d{2}:\d{2}$/.test(value)) this.save({ dailyTime: value });
+  }
+
+  protected setPhotoTime(e: Event): void {
+    const value = (e.target as HTMLInputElement).value;
+    if (/^\d{2}:\d{2}$/.test(value)) this.save({ photoTime: value });
   }
 
   /** shown at once, saved in order; a failure puts the screen back as the server has it */

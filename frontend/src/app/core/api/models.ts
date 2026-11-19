@@ -454,6 +454,10 @@ export interface Recipe {
   myVote?: number;
   imageUrl?: string;
   thumbUrl?: string;
+  /** 1.11: a free photo (Wikimedia Commons): who took it, its licence, its page */
+  imageCredit?: string;
+  imageLicense?: string;
+  imageSource?: string;
   /** each line: its calories for the weight, its food's values per 100 g, whether it counts as fruit and vegetables */
   ingredients?: { foodId?: string; name: string; grams: number; kcal: number; per100?: Nutrients; fruitVeg?: boolean }[];
   createdAt: string;
@@ -481,6 +485,42 @@ export interface Lookalike {
   recipe: Recipe;
   origin: 'MINE' | 'FRIENDS' | 'COMMUNITY';
   common: number;
+}
+
+/** 1.11: the shopping list, by supermarket aisle (in the order they are walked) */
+export type Aisle = 'FRUITS_VEGETABLES' | 'BAKERY' | 'BUTCHER' | 'FISHMONGER' | 'DELI' | 'CHEESE' | 'DAIRY' | 'SAVORY' | 'SWEET' | 'DRINKS' | 'FROZEN' | 'OTHER';
+
+export interface ShoppingItem {
+  id: string;
+  name: string;
+  /** for all the recipes added; none: a line typed by hand */
+  grams?: number;
+  /** G: weighed, ML: a liquid, PIECE: eggs (pieces) */
+  unit: 'G' | 'ML' | 'PIECE';
+  pieces?: number;
+  aisle: Aisle;
+  checked: boolean;
+  recipes?: string;
+}
+
+export interface ShoppingList {
+  items: ShoppingItem[];
+  recipes: string[];
+}
+
+/** 1.11, « Que faire avec ce que j'ai ? »: an ingredient one can choose */
+export interface IngredientFamily {
+  key: string;
+  label: string;
+  recipes: number;
+}
+
+/** a recipe with some of the chosen ingredients: how many, and what else it needs */
+export interface FoundRecipe {
+  recipe: Recipe;
+  have: number;
+  missing: number;
+  missingLabels: string[];
 }
 
 /** a recipe read from a recipe site, nothing saved yet */

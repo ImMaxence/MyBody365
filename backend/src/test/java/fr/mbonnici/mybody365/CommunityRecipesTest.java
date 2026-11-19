@@ -149,6 +149,44 @@ class CommunityRecipesTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$[*].recipe.name", not(hasItem("Ratatouille"))));
     }
 
+    @Autowired
+    private fr.mbonnici.mybody365.recipe.CommunityImages images;
+
+    /** 1.11: a free photo for a community recipe, downloaded once, shown with its credit, which a copy keeps */
+    @Test
+    void theCommunityRecipesGetTheirCreditedPhotoOnce() throws Exception {
+        ciqual("90001", "Courgette, crue", "légumes", 17, 2, 0.1, 0.01);
+        ciqual("90002", "Huile d'olive", "huiles et graisses végétales", 899, 0, 15, 0);
+        community.seed(parse("""
+                = Ratatouille | LUNCH,DINNER | 2
+                90001 400 courgettes
+                90002 20 huile d'olive
+                : Cuire
+                """));
+        jdbc.update("delete from community_image");
+        var picks = fr.mbonnici.mybody365.recipe.CommunityImages.parse("""
+                # key, picture, page, author, licence
+                ratatouille\thttps://upload.wikimedia.org/test/ratatouille.jpg\thttps://commons.wikimedia.org/wiki/File:Ratatouille.jpg\tJane Doe\tCC BY-SA 4.0
+                gateau-absent\thttps://upload.wikimedia.org/test/gateau.jpg\thttps://commons.wikimedia.org/wiki/File:Gateau.jpg\t\tCC0
+                """);
+        assertThat(images.add(picks)).isEqualTo(1);
+        String id = jdbc.queryForObject("select recipe_id from community_seed where key = 'ratatouille'", UUID.class).toString();
+        mvc.perform(get("/api/recipes/" + id).with(as(lea))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.imageUrl").exists())
+                .andExpect(jsonPath("$.imageCredit").value("Jane Doe"))
+                .andExpect(jsonPath("$.imageLicense").value("CC BY-SA 4.0"))
+                .andExpect(jsonPath("$.imageSource").value("https://commons.wikimedia.org/wiki/File:Ratatouille.jpg"));
+        // once: removed by an admin, it never comes back
+        assertThat(images.add(picks)).isZero();
+        // copied, the photo keeps its credit
+        String copy = com.jayway.jsonpath.JsonPath.read(mvc.perform(post("/api/recipes/" + id + "/copy").with(as(lea)).with(csrf()))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), "$.id");
+        mvc.perform(get("/api/recipes/" + copy).with(as(lea))).andExpect(jsonPath("$.imageCredit").value("Jane Doe"));
+        // only pictures and pages of Wikimedia Commons are accepted in the file
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> fr.mbonnici.mybody365.recipe.CommunityImages.parse(
+                "x\thttps://evil.example/x.jpg\thttps://commons.wikimedia.org/wiki/File:X.jpg\ta\tCC0\n")).hasMessageContaining("Wikimedia");
+    }
+
     private String food(String code) {
         return jdbc.queryForObject("select id from food where source = 'CIQUAL' and source_code = ?", UUID.class, code).toString();
     }

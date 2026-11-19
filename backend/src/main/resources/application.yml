@@ -82,6 +82,8 @@ app:
   recovery-link-hours: 24
   # the community's first recipes (resources/community), added once their Ciqual foods are there
   community-seed: ${COMMUNITY_SEED:true}
+  # 1.11: their photos (Wikimedia Commons, resources/community/images.tsv), downloaded once by the server
+  community-images: ${COMMUNITY_IMAGES:true}
   rate-limit:
     enabled: true
     api-per-minute: ${RATE_LIMIT_API_PER_MINUTE:600}

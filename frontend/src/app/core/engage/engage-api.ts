@@ -16,6 +16,9 @@ export interface NotificationPrefs {
   updatesEnabled: boolean;
   /** the summary of the week, on Sunday evening */
   weeklyEnabled: boolean;
+  /** 1.11: the photo of the day at its own time, if not taken yet */
+  photoEnabled: boolean;
+  photoTime: string;
 }
 
 /** a change of phase of the workout timer, notified while the app is off screen */

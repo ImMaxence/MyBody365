@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { errorCode } from '../../core/api/api.service';
-import type { FoodInput } from '../../core/api/models';
+import type { Food, FoodInput } from '../../core/api/models';
+import { closeSheet } from '../../core/ui/sheets';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MealsApi } from '../../core/meals/meals-api';
@@ -63,6 +64,32 @@ const LABEL: Record<Field, string> = {
           <button type="button" class="btn btn-ghost btn-block danger" [disabled]="busy()" (click)="remove()"><app-icon name="trash" /> {{ 'meals.food.delete' | t }}</button>
         }
       </form>
+
+      <!-- 1.11: before a food of one's own is created, the ones that may be the same -->
+      <dialog class="sheet" #looksDialog [attr.aria-label]="'meals.food.lookalike.title' | t">
+        <div class="sheet-grip"></div>
+        <h2 class="h3">{{ 'meals.food.lookalike.title' | t }}</h2>
+        <p class="small muted">{{ 'meals.food.lookalike.text' | t }}</p>
+        <div class="list looks">
+          @for (f of lookalikes(); track f.id) {
+            <button type="button" class="list-item" (click)="use(f)">
+              <span class="list-icon"><app-icon [name]="f.mine ? 'user' : f.source === 'OFF' ? 'barcode' : 'leaf'" /></span>
+              <span class="list-body">
+                <span class="list-title">{{ f.name }}</span>
+                <span class="list-sub wrap">
+                  {{ (f.mine ? 'meals.food.lookalike.mine' : f.source === 'OFF' ? 'meals.food.lookalike.off' : 'meals.food.lookalike.ciqual') | t }}{{ f.brand ? ' · ' + f.brand : '' }}
+                  · {{ i18n.number(f.per100.kcal) }} kcal / 100 g
+                </span>
+              </span>
+              <app-icon name="chevronRight" />
+            </button>
+          }
+        </div>
+        <div class="looks-actions">
+          <button type="button" class="btn btn-secondary btn-block" (click)="createAnyway()"><app-icon name="plus" /> {{ 'meals.food.lookalike.create' | t }}</button>
+          <button type="button" class="btn btn-ghost btn-block" (click)="closeLooks()">{{ 'meals.food.lookalike.back' | t }}</button>
+        </div>
+      </dialog>
     </main>
   `,
   styles: `
@@ -76,6 +103,18 @@ const LABEL: Record<Field, string> = {
     }
     .danger {
       color: var(--danger);
+    }
+    .looks {
+      margin-top: var(--space-4);
+    }
+    .list-sub.wrap,
+    .looks .list-title {
+      white-space: normal;
+    }
+    .looks-actions {
+      display: grid;
+      gap: var(--space-2);
+      margin-top: var(--space-5);
     }
   `,
 })
@@ -135,6 +174,18 @@ export class FoodEditPage {
       this.toast.error(this.i18n.error('validation_failed'));
       return;
     }
+    // a new food: the ones that may be the same first, once (failing or offline, it is simply created)
+    if (!this.id() && !this.looked) {
+      this.looked = true;
+      this.busy.set(true);
+      const found = await this.api.foodLookalikes(input.name, input.brand ?? null, kcal).catch(() => [] as Food[]);
+      this.busy.set(false);
+      if (found.length) {
+        this.lookalikes.set(found);
+        this.looksDialog().nativeElement.showModal();
+        return;
+      }
+    }
     this.busy.set(true);
     try {
       const id = this.id();
@@ -148,6 +199,27 @@ export class FoodEditPage {
     } finally {
       this.busy.set(false);
     }
+  }
+
+  // ── the foods that may already exist (1.11) ──────────────────────────────
+  private readonly looksDialog = viewChild.required<ElementRef<HTMLDialogElement>>('looksDialog');
+  protected readonly lookalikes = signal<Food[]>([]);
+  private looked = false;
+
+  /** this one instead: it opens on the add screen, ready for its amount, as a new one would */
+  protected use(f: Food): void {
+    this.looksDialog().nativeElement.close();
+    this.store.pick.set({ kind: 'FOOD', id: f.id });
+    this.stack.back('/app/meals/add');
+  }
+
+  protected createAnyway(): void {
+    closeSheet(this.looksDialog().nativeElement);
+    void this.save();
+  }
+
+  protected closeLooks(): void {
+    closeSheet(this.looksDialog().nativeElement);
   }
 
   protected async remove(): Promise<void> {

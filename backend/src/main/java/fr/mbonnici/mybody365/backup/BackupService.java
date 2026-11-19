@@ -470,6 +470,17 @@ public class BackupService {
                 if (src != null && !(src.toString().startsWith("https://") || src.toString().startsWith("http://")) || (src != null && src.toString().length() > 500)) {
                     v.put("source_url", null);
                 }
+                // 1.11: the credit of a free photo, as short as the columns, its page an address
+                for (String[] c : new String[][] {{"image_credit", "200"}, {"image_license", "60"}, {"image_source", "500"}}) {
+                    Object t = v.get(c[0]);
+                    if (t != null && t.toString().length() > Integer.parseInt(c[1])) {
+                        v.put(c[0], t.toString().substring(0, Integer.parseInt(c[1])));
+                    }
+                }
+                Object page = v.get("image_source");
+                if (page != null && !page.toString().startsWith("https://")) {
+                    v.put("image_source", null);
+                }
                 v.put("shared", "PUBLIC".equals(vis));
                 if (mode == Mode.MERGE) {
                     for (Map<String, Object> old : jdbc.queryForList(

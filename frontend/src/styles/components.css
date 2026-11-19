@@ -683,7 +683,7 @@ dialog.sheet .sheet-grip:focus-visible {
 .toast-host {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--tabbar-h) + var(--tabbar-bottom) + 12px);
+  bottom: calc(var(--tabbar-h) + var(--tabbar-bottom) + 12px - var(--vv-stuck, 0px));
   z-index: 900;
   display: grid;
   gap: 8px;

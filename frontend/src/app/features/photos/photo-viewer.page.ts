@@ -110,8 +110,13 @@ import { IconComponent } from '../../shared/icon.component';
       gap: 2px;
       min-width: 0;
     }
+    /* « Dimanche 30 septembre » on one line, whatever the width: the size follows the screen */
     .head-copy .title {
       text-transform: capitalize;
+      font-size: clamp(1.2rem, 6.2vw, 1.9rem);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .frame {
       position: relative;

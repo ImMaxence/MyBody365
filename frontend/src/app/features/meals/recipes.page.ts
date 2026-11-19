@@ -45,6 +45,16 @@ function plain(s: string): string {
         <a routerLink="/app/meals/recipes/new" class="btn btn-secondary btn-s"><app-icon name="plus" [size]="18" /> {{ 'meals.recipe.new' | t }}</a>
       </div>
 
+      <!-- 1.11: the ingredients at hand, then what to cook with them -->
+      <a class="with card" routerLink="/app/meals/recipes/with">
+        <span class="with-ico"><app-icon name="basket" [size]="22" /></span>
+        <span class="with-copy">
+          <b>{{ 'meals.with.cta' | t }}</b>
+          <span class="small muted">{{ 'meals.with.ctaSub' | t }}</span>
+        </span>
+        <app-icon name="chevronRight" />
+      </a>
+
       <!-- one search for every recipe (mine, my friends', the community), a moment after the last key -->
       <label class="search">
         <app-icon name="search" [size]="20" />
@@ -206,6 +216,34 @@ function plain(s: string): string {
       letter-spacing: 0.02em;
       text-transform: uppercase;
       color: var(--fg-2);
+    }
+    .with {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 14px var(--space-4);
+      color: inherit;
+      text-decoration: none;
+      transition: transform var(--dur-2) var(--ease-out);
+    }
+    .with:active {
+      transform: scale(0.98);
+    }
+    .with-ico {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      flex: none;
+      border-radius: 14px;
+      background: var(--success-soft);
+      color: var(--success);
+    }
+    .with-copy {
+      flex: 1;
+      min-width: 0;
+      display: grid;
+      gap: 2px;
     }
     /* one pill: the magnifier and the field side by side (as in the food search) */
     .search {

@@ -94,6 +94,43 @@ class EngagementTest extends AbstractIntegrationTest {
                 .content("{\"endpoint\":\"https://fcm.googleapis.com/fcm/send/abc123\"}")).andExpect(jsonPath("$.devices").value(0));
     }
 
+    /** 1.11: the photo of the day at its own time, only when it is not taken, once a day; off by default */
+    @Test
+    void thePhotoOfTheDayHasItsOwnReminder() throws Exception {
+        mvc.perform(post("/api/me/push/subscriptions").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(subscription("https://fcm.googleapis.com/fcm/send/lea"))).andExpect(status().isOk());
+        mvc.perform(post("/api/me/push/subscriptions").with(as(hugo)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(subscription("https://fcm.googleapis.com/fcm/send/hugo"))).andExpect(status().isOk());
+        mvc.perform(get("/api/me/notifications").with(as(lea)))
+                .andExpect(jsonPath("$.prefs.photoEnabled").value(false)).andExpect(jsonPath("$.prefs.photoTime").value("19:00"));
+        for (var who : java.util.List.of(lea, hugo)) {
+            mvc.perform(put("/api/me/notifications").with(as(who)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
+                    {"dailyEnabled":false,"dailyTime":"08:00","gymEnabled":false,"gymDays":"1,3,5","gymTime":"18:00","friendsEnabled":true,
+                     "photoEnabled":true,"photoTime":"20:15"}"""))
+                    .andExpect(jsonPath("$.prefs.photoEnabled").value(true)).andExpect(jsonPath("$.prefs.photoTime").value("20:15"));
+        }
+        // an older app leaves them as they are; a wrong time is refused
+        mvc.perform(put("/api/me/notifications").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
+                {"dailyEnabled":false,"dailyTime":"08:00","gymEnabled":false,"gymDays":"1,3,5","gymTime":"18:00","friendsEnabled":true}"""))
+                .andExpect(jsonPath("$.prefs.photoEnabled").value(true));
+        mvc.perform(put("/api/me/notifications").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
+                {"dailyEnabled":false,"dailyTime":"08:00","gymEnabled":false,"gymDays":"1,3,5","gymTime":"18:00","friendsEnabled":true,
+                 "photoEnabled":true,"photoTime":"24:00"}""")).andExpect(status().isBadRequest());
+
+        // Hugo took his photo: only Léa is reminded, at 20:15, once
+        java.time.LocalDate today = TrackingService.today();
+        jdbc.update("insert into photo (id, user_id, day, pose, width, height, bytes, thumb_bytes, format) values (?, ?, ?, 'FRONT', 600, 800, 1, 1, 'webp')",
+                java.util.UUID.randomUUID(), hugo.getId(), today);
+        pushes.sent.clear();
+        reminders.run(today, LocalTime.of(20, 14));
+        org.assertj.core.api.Assertions.assertThat(pushes.sent).isEmpty();
+        reminders.run(today, LocalTime.of(20, 15));
+        org.assertj.core.api.Assertions.assertThat(pushes.sent).hasSize(1);
+        org.assertj.core.api.Assertions.assertThat(pushes.sent.getFirst().endpoint().toString()).endsWith("/lea");
+        reminders.run(today, LocalTime.of(20, 15));
+        org.assertj.core.api.Assertions.assertThat(pushes.sent).hasSize(1);
+    }
+
     @Test
     void waterRemindersAndWhatsNew() throws Exception {
         mvc.perform(post("/api/me/push/subscriptions").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)

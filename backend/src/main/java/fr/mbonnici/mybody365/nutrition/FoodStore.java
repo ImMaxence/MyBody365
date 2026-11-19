@@ -71,6 +71,16 @@ public class FoodStore {
         return jdbc.query(sql.toString(), FoodStore::map, args.toArray());
     }
 
+    /**
+     * 1.11: the foods whose name reads close to this text (trigrams of its words), the member's own, Ciqual and Open Food
+     * Facts: the candidates of a food about to be created that may already exist
+     */
+    public List<Food> close(UUID userId, String text, int limit) {
+        return jdbc.query("select " + COLUMNS + " from food where ((source = 'USER' and owner_id = ?) or (source = 'CIQUAL' and not superseded)"
+                + " or source = 'OFF') and ? <% search_name order by word_similarity(?, search_name) desc, length(search_name) limit ?",
+                FoodStore::map, userId, text, text, limit);
+    }
+
     /** the products of Open Food Facts (the local copy): starting with the first word first, then the shortest names */
     public List<Food> searchOff(List<String> words, int limit) {
         StringBuilder sql = new StringBuilder("select " + COLUMNS + " from food where source = 'OFF'");

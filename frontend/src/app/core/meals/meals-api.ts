@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type { CiqualImport, Favorites, FoodSources, OffImport, Food, FoodInput, FoodsOverview, Lookalike, MealDay, MealDays, MealInput, MealStats, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, RecipeVisibility, Slot } from '../api/models';
+import type { CiqualImport, Favorites, FoodSources, OffImport, Food, FoodInput, FoodsOverview, FoundRecipe, IngredientFamily, Lookalike, ShoppingList, MealDay, MealDays, MealInput, MealStats, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, RecipeVisibility, Slot } from '../api/models';
 
 /** an ingredient of imported recipes the tables do not know (FOOD) or cannot weigh (WEIGHT) */
 /** the community's first recipes (written by the team, computed from Ciqual) */
@@ -135,6 +135,44 @@ export class MealsApi {
 
   recipe(id: string): Promise<Recipe> {
     return firstValueFrom(this.http.get<Recipe>(`/api/recipes/${id}`));
+  }
+
+  // ── 1.11: what to cook with what I have, the shopping list, foods that may already exist ──
+  ingredientFamilies(): Promise<IngredientFamily[]> {
+    return firstValueFrom(this.http.get<IngredientFamily[]>('/api/recipes/ingredients'));
+  }
+
+  recipesWith(keys: string[]): Promise<FoundRecipe[]> {
+    return firstValueFrom(this.http.get<FoundRecipe[]>('/api/recipes/with', { params: { k: keys } }));
+  }
+
+  shopping(): Promise<ShoppingList> {
+    return firstValueFrom(this.http.get<ShoppingList>('/api/me/shopping'));
+  }
+
+  addRecipeToShopping(recipeId: string, servings: number): Promise<ShoppingList> {
+    return firstValueFrom(this.http.post<ShoppingList>('/api/me/shopping/recipes', { recipeId, servings }));
+  }
+
+  addShoppingLine(name: string): Promise<ShoppingList> {
+    return firstValueFrom(this.http.post<ShoppingList>('/api/me/shopping/items', { name }));
+  }
+
+  checkShopping(id: string, checked: boolean): Promise<ShoppingList> {
+    return firstValueFrom(this.http.put<ShoppingList>(`/api/me/shopping/items/${id}`, { checked }));
+  }
+
+  deleteShopping(id: string): Promise<ShoppingList> {
+    return firstValueFrom(this.http.delete<ShoppingList>(`/api/me/shopping/items/${id}`));
+  }
+
+  clearShopping(onlyChecked: boolean): Promise<ShoppingList> {
+    return firstValueFrom(this.http.delete<ShoppingList>('/api/me/shopping', { params: onlyChecked ? { checked: 'true' } : {} }));
+  }
+
+  /** before a food of my own is created: the ones that may be the same (nothing saved) */
+  foodLookalikes(name: string, brand: string | null, kcal: number | null): Promise<Food[]> {
+    return firstValueFrom(this.http.post<Food[]>('/api/me/foods/lookalikes', { name, brand, kcal }));
   }
 
   /** before a new recipe is saved: the ones I can see that look like it (nothing saved) */
