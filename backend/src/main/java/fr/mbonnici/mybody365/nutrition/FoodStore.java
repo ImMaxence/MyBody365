@@ -19,11 +19,13 @@ public class FoodStore {
 
     /** a food and its nutrients per 100 g */
     public record Food(UUID id, Source source, String sourceCode, UUID ownerId, String name, String brand, String category,
-            Nutrients per100, String nutriscore, boolean nutriscoreEstimated, Double servingG, boolean superseded, Instant updatedAt) {}
+            Nutrients per100, String nutriscore, boolean nutriscoreEstimated, Double servingG, boolean superseded, Instant updatedAt,
+            /** 1.12: a product's front picture on images.openfoodfacts.org (its path there), and when its page last changed */
+            String imagePath, Instant sourceUpdatedAt) {}
 
     private static final String COLUMNS = """
             id, source, source_code, owner_id, name, brand, category, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g,
-            fiber_g, salt_g, nutriscore, nutriscore_estimated, serving_g, superseded, updated_at""";
+            fiber_g, salt_g, nutriscore, nutriscore_estimated, serving_g, superseded, updated_at, image_path, source_updated_at""";
 
     private final JdbcTemplate jdbc;
 
@@ -36,7 +38,8 @@ public class FoodStore {
         return new Food(rs.getObject("id", UUID.class), Source.valueOf(rs.getString("source")), rs.getString("source_code"),
                 owner == null ? null : UUID.fromString(owner), rs.getString("name"), rs.getString("brand"), rs.getString("category"),
                 Nutrients.from(rs), rs.getString("nutriscore"), rs.getBoolean("nutriscore_estimated"), Nutrients.num(rs, "serving_g"),
-                rs.getBoolean("superseded"), rs.getTimestamp("updated_at").toInstant());
+                rs.getBoolean("superseded"), rs.getTimestamp("updated_at").toInstant(), rs.getString("image_path"),
+                rs.getTimestamp("source_updated_at") == null ? null : rs.getTimestamp("source_updated_at").toInstant());
     }
 
     public Optional<Food> find(UUID id) {
@@ -119,6 +122,12 @@ public class FoodStore {
                 where id = ?""",
                 name, brand, searchName(name, null, brand), n.kcal(), n.proteinG(), n.carbsG(), n.sugarsG(), n.fatG(), n.satFatG(),
                 n.fiberG(), n.saltG(), nutriscore, estimated, servingG, Timestamp.from(Instant.now()), id);
+    }
+
+    /** 1.12: what Open Food Facts says of a product besides its nutrients: its picture and when its page last changed */
+    public void productPage(UUID id, String imagePath, Instant modifiedAt) {
+        jdbc.update("update food set image_path = ?, source_updated_at = ? where id = ?", imagePath,
+                modifiedAt == null ? null : Timestamp.from(modifiedAt), id);
     }
 
     public void delete(UUID id) {

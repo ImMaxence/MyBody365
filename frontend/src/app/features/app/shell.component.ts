@@ -14,6 +14,7 @@ import { Outbox } from '../../core/offline/outbox';
 import { TimerRun } from '../../core/engage/timer-run';
 import { MilestoneCelebrationComponent } from './milestone-celebration.component';
 import { ToastService } from '../../core/ui/toast.service';
+import { ShoppingStore } from '../../core/meals/shopping.store';
 
 /** how far (share of the width) or how fast (px/ms, the last moves) the screen must travel to go back */
 const DISTANCE = 0.4;
@@ -72,12 +73,15 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
           <a [routerLink]="tab.path" [replaceUrl]="true" [class.active]="activeIndex() === i" [attr.aria-current]="activeIndex() === i ? 'page' : null">
             <span class="ico">
               <app-icon [name]="tab.icon" [size]="23" [stroke]="activeIndex() === i ? 2.3 : 1.9" />
-              @if (tab.path === '/app/account' && todo.profile()) {
+              <!-- 1.12: a red dot on each tab where something waits (Profile, Today, Meals, Photos) -->
+              @if (waiting(tab.path)) {
                 <span class="dot" aria-hidden="true"></span>
-                <span class="sr-only">{{ 'todo.waiting' | t }}</span>
               }
             </span>
             <span class="lbl">{{ tab.label | t }}</span>
+            @if (waiting(tab.path)) {
+              <span class="sr-only">{{ 'todo.tabWaiting' | t }}</span>
+            }
           </a>
         }
       </nav>
@@ -325,6 +329,7 @@ export class ShellComponent {
   protected readonly todo = inject(TodoStore);
   private readonly screen = viewChild.required<ElementRef<HTMLElement>>('screen');
   private readonly url = signal(this.router.url);
+  private dotsAt = 0;
 
   protected readonly tabs = [
     { path: '/app', icon: 'home', label: 'nav.today', exact: true },
@@ -333,6 +338,26 @@ export class ShellComponent {
     { path: '/app/progress', icon: 'chart', label: 'nav.progress', exact: false },
     { path: '/app/account', icon: 'user', label: 'nav.profile', exact: false },
   ];
+
+  private readonly shopping = inject(ShoppingStore);
+  /** the lines of the shopping list not in the basket: the list itself once loaded (it changes as one ticks), else the server's count */
+  private readonly shoppingLeft = computed(() => (this.shopping.list() ? this.shopping.left() : (this.todo.todo()?.shoppingLeft ?? 0)));
+
+  /** something waits behind this tab */
+  protected waiting(path: string): boolean {
+    switch (path) {
+      case '/app/account':
+        return this.todo.profile();
+      case '/app':
+        return this.todo.today();
+      case '/app/meals':
+        return this.shoppingLeft() > 0;
+      case '/app/photos':
+        return this.todo.photos();
+      default:
+        return false;
+    }
+  }
 
   protected readonly showTabs = computed(() => {
     const url = this.url();
@@ -381,7 +406,14 @@ export class ShellComponent {
         filter((e) => e instanceof NavigationEnd),
         takeUntilDestroyed(),
       )
-      .subscribe((e) => this.url.set(e.urlAfterRedirects));
+      .subscribe((e) => {
+        this.url.set(e.urlAfterRedirects);
+        // 1.12: back on a tab, the dots catch up with what was just done (a photo taken, a request answered)
+        if (this.stack.depth() === 0 && this.session.account()?.onboarded && Date.now() - this.dotsAt > 8_000) {
+          this.dotsAt = Date.now();
+          void this.todo.refresh();
+        }
+      });
     if (isPlatformBrowser(inject(PLATFORM_ID))) {
       const destroy = inject(DestroyRef);
       const doc = inject(DOCUMENT);

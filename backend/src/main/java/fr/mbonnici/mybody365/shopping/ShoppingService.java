@@ -179,8 +179,8 @@ public class ShoppingService {
 
     /** eggs are counted, liquids measured, the rest weighed */
     static Unit unit(String name, String category) {
-        String n = SearchText.normalize(name);
-        String c = SearchText.normalize(category);
+        String n = SearchText.normalize(Aisle.ligatures(name));
+        String c = SearchText.normalize(Aisle.ligatures(category));
         if (n.startsWith("oeuf") || n.startsWith("oeufs")) {
             return Unit.PIECE;
         }
@@ -194,7 +194,7 @@ public class ShoppingService {
 
     /** how many eggs for these grams: a yolk weighs about 20 g, a white 33 g, a whole egg 60 g */
     static int pieces(String name, double grams) {
-        String n = SearchText.normalize(name);
+        String n = SearchText.normalize(Aisle.ligatures(name));
         double each = n.contains("jaune") ? 20 : n.contains("blanc") ? 33 : 60;
         return Math.max(1, (int) Math.ceil(grams / each - 0.2));
     }

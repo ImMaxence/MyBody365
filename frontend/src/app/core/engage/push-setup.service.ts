@@ -14,6 +14,11 @@ export class PushSetup {
   readonly enabled = computed(() => !!this.subscription());
   readonly permission = signal<NotificationPermission | 'unsupported'>(typeof Notification === 'undefined' ? 'unsupported' : Notification.permission);
 
+  constructor() {
+    // 1.12: allowed again in the phone's settings, the app sees it as soon as it comes back
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && this.refresh());
+  }
+
   /** asks the system, then registers the device; the outcome as a word */
   async enable(): Promise<'on' | 'denied' | 'error'> {
     try {

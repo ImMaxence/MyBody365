@@ -62,4 +62,26 @@ class NutritionUnitTest {
         assertThat(OffImporter.cause(new RuntimeException("PreparedStatementCallback; SQL [insert…]",
                 new IllegalStateException("ERROR: invalid byte sequence for encoding \"UTF8\": 0x00")))).startsWith("ERROR: invalid byte sequence");
     }
+
+    /** 1.12: the picture of a product is a path of the images host only, and its date a plausible one */
+    @org.junit.jupiter.api.Test
+    void productPicturesStayOnTheImagesHost() {
+        assertThat(OpenFoodFacts.imagePath("https://images.openfoodfacts.org/images/products/301/762/042/2003/front_fr.633.400.jpg"))
+                .isEqualTo("301/762/042/2003/front_fr.633.400.jpg");
+        assertThat(OpenFoodFacts.imagePath("https://static.openfoodfacts.org/images/products/20034412/front_fr.5.200.jpg"))
+                .isEqualTo("20034412/front_fr.5.200.jpg");
+        assertThat(OpenFoodFacts.imagePath("https://evil.example/images/products/301/front.jpg")).isNull();
+        assertThat(OpenFoodFacts.imagePath("https://images.openfoodfacts.org/images/products/../../etc/passwd")).isNull();
+        assertThat(OpenFoodFacts.imagePath("https://images.openfoodfacts.org/images/products/301/front.svg")).isNull();
+        assertThat(OpenFoodFacts.epoch(1_700_000_000d)).isEqualTo(java.time.Instant.ofEpochSecond(1_700_000_000L));
+        assertThat(OpenFoodFacts.epoch(12d)).isNull();
+        assertThat(OpenFoodFacts.imageType(new byte[] {(byte) 0xff, (byte) 0xd8, (byte) 0xff, 0})).isEqualTo("image/jpeg");
+        assertThat(OpenFoodFacts.imageType("<svg onload=x>".getBytes())).isNull();
+        java.util.Map<String, Integer> col = java.util.Map.of("code", 0, "product_name", 1, "countries_tags", 2, "energy-kcal_100g", 3,
+                "image_url", 4, "last_modified_t", 5);
+        OffImporter.Row row = OffImporter.parse(new String[] {"3017620422003", "Pâte à tartiner", "en:france", "539",
+                "https://images.openfoodfacts.org/images/products/301/762/042/2003/front_fr.633.400.jpg", "1731400000"}, col, "en:france");
+        assertThat(row.imagePath()).isEqualTo("301/762/042/2003/front_fr.633.400.jpg");
+        assertThat(row.modifiedAt()).isEqualTo(java.time.Instant.ofEpochSecond(1_731_400_000L));
+    }
 }

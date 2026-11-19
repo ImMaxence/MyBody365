@@ -20,7 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class TodoController {
 
-    public record Todo(boolean passkey, boolean drive, long adminRequests, int adminFeedback, int adminErrors) {}
+    /**
+     * 1.12: also what waits in the other tabs: friend requests and challenge invitations (Today), the shopping list
+     * (Meals), the photo of the day not taken yet by someone who takes them (Photos)
+     */
+    public record Todo(boolean passkey, boolean drive, long adminRequests, int adminFeedback, int adminErrors, int friendRequests,
+            int challengeInvites, int shoppingLeft, boolean photoToday) {}
 
     private final UserService users;
     private final JdbcTemplate jdbc;
@@ -47,7 +52,24 @@ public class TodoController {
                 Integer.class, me.getEmail());
         boolean noDrive = drive.configured() && !drive.status(me.getId()).connected();
         boolean admin = users.isAdmin(me);
+        java.util.UUID id = me.getId();
+        java.time.LocalDate today = fr.mbonnici.mybody365.tracking.TrackingService.today();
+        int friendRequests = count("select count(*) from friend_request where to_id = ?", id);
+        int invites = count("""
+                select count(*) from challenge_member m join challenge c on c.id = m.challenge_id
+                where m.user_id = ? and m.status = 'INVITED' and c.end_day >= ?""", id, today);
+        int shopping = count("select count(*) from shopping_item where user_id = ? and not checked", id);
+        // only for someone who takes them (one in the last two weeks) and keeps the reminder on
+        boolean photo = count("""
+                select count(*) from photo p where p.user_id = ? and p.day >= ? and p.day < ?
+                  and coalesce((select photo_enabled from notification_pref n where n.user_id = p.user_id), true)""", id, today.minusDays(14), today) > 0
+                && count("select count(*) from photo where user_id = ? and day = ?", id, today) == 0;
         return new Todo(passkeys == null || passkeys == 0, noDrive, admin ? requests.countByStatus(AccessRequest.Status.PENDING) : 0,
-                admin ? feedback.open() : 0, admin ? errors.open() : 0);
+                admin ? feedback.open() : 0, admin ? errors.open() : 0, friendRequests, invites, shopping, photo);
+    }
+
+    private int count(String sql, Object... args) {
+        Integer n = jdbc.queryForObject(sql, Integer.class, args);
+        return n == null ? 0 : n;
     }
 }

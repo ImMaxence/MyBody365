@@ -1,6 +1,7 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import type { MealDay } from '../../core/api/models';
-import { DayScore, dayScore } from '../../core/meals/day-score';
+import { DayScore, NutrientCheck, dayScore } from '../../core/meals/day-score';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { localDay } from '../../core/tracking/tracking.store';
@@ -12,7 +13,7 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
 @Component({
   selector: 'app-day-score',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent],
+  imports: [NgTemplateOutlet, TranslatePipe, IconComponent],
   template: `
     @if (score(); as s) {
       <button type="button" class="pill" [attr.data-band]="s.band" (click)="sheet.showModal()" [attr.aria-label]="'meals.score.open' | t: { score: i18n.number(s.score, 1) }">
@@ -31,8 +32,15 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
             <span class="big num" [attr.data-band]="s.band">{{ i18n.number(s.score, 1) }}<small>/10</small></span>
             <div>
               <h2 class="h3">{{ 'meals.score.bands.' + s.band | t }}</h2>
-              <p class="small muted">{{ (s.ongoing ? 'meals.score.ongoingText' : 'meals.score.text') | t }}</p>
+              <p class="small muted">{{ (s.ongoing ? 'meals.score.ongoing' : 'meals.score.title') | t }}</p>
             </div>
+          </div>
+          <!-- 1.12: what the mark is for, in one sentence; and why part of it waits for the end of the day -->
+          <div class="why">
+            <p class="small"><b>{{ 'meals.score.whyTitle' | t }}</b> {{ 'meals.score.why' | t }}</p>
+            @if (s.ongoing && s.waiting.length) {
+              <p class="small muted">{{ 'meals.score.ongoingWhy' | t }}</p>
+            }
           </div>
           <ul class="parts">
             @for (p of s.parts; track p.key; let i = $index) {
@@ -40,15 +48,49 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
                 <span class="p-ico" [attr.data-level]="level(p.points, p.max)"><app-icon [name]="icon[p.key]" [size]="16" /></span>
                 <span class="p-body">
                   <span class="p-head"><b>{{ 'meals.score.parts.' + p.key + '.title' | t }}</b><span class="num">{{ i18n.number(p.points, 1) }} / {{ p.max }}</span></span>
-                  <span class="small muted">{{ detail(p) }}</span>
+                  @if (p.key === 'nutrients') {
+                    <ng-container [ngTemplateOutlet]="checksList" [ngTemplateOutletContext]="{ $implicit: s.checks }" />
+                  } @else {
+                    <span class="small muted">{{ detail(p) }}</span>
+                  }
                   <span class="meter"><i [style.width.%]="(p.points / p.max) * 100" [attr.data-level]="level(p.points, p.max)"></i></span>
                 </span>
               </li>
             }
+            @for (w of s.waiting; track w.key; let i = $index) {
+              <li class="waiting" [style.--i]="s.parts.length + i">
+                <span class="p-ico"><app-icon [name]="icon[w.key]" [size]="16" /></span>
+                <span class="p-body">
+                  <span class="p-head"><b>{{ 'meals.score.parts.' + w.key + '.title' | t }}</b>
+                    <span class="later tiny"><app-icon name="clock" [size]="12" /> {{ 'meals.score.later' | t }}</span></span>
+                  @if (w.key === 'nutrients') {
+                    <ng-container [ngTemplateOutlet]="checksList" [ngTemplateOutletContext]="{ $implicit: s.checks }" />
+                  } @else {
+                    <span class="small muted">{{ soFar(w) }}</span>
+                  }
+                </span>
+              </li>
+            }
           </ul>
+          <p class="tip small" [class.perfect]="s.tip === 'perfect'">
+            <span class="tip-ico"><app-icon [name]="s.tip === 'perfect' ? 'check' : 'sparkles'" [size]="16" /></span>
+            <span><b>{{ (s.tip === 'perfect' ? 'meals.score.tipDone' : 'meals.score.tipTitle') | t }}</b> {{ 'meals.score.tips.' + s.tip | t }}</span>
+          </p>
           <p class="tiny muted">{{ 'meals.score.note' | t }}</p>
         </div>
       </dialog>
+      <ng-template #checksList let-checks>
+        <ul class="checks">
+          @for (x of checks; track x.key) {
+            <li [attr.data-state]="x.waiting ? 'wait' : x.ok ? 'ok' : 'bad'">
+              <span class="ck-ico"><app-icon [name]="x.waiting ? 'clock' : x.ok ? 'check' : 'alert'" [size]="12" [stroke]="2.6" /></span>
+              <span class="ck-name">{{ 'meals.score.checks.' + x.key | t }}</span>
+              <b class="num">{{ grams(x.value) }}</b>
+              <span class="ck-limit tiny">{{ limitOf(x) }}</span>
+            </li>
+          }
+        </ul>
+      </ng-template>
     }
   `,
   styles: `
@@ -208,6 +250,99 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
         width: 0;
       }
     }
+    .why {
+      display: grid;
+      gap: 6px;
+    }
+    .why p {
+      margin: 0;
+    }
+    /* a part judged once the day is over: in view, greyed, never counted */
+    .waiting .p-ico {
+      background: var(--surface-3);
+      color: var(--fg-3);
+    }
+    /* a long title: its « at the end of the day » goes under it rather than squeezing it */
+    .p-head {
+      align-items: center;
+      flex-wrap: wrap;
+      row-gap: 4px;
+    }
+    .later {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--surface-3);
+      color: var(--fg-2);
+      font-weight: 650;
+      white-space: nowrap;
+    }
+    .checks {
+      display: grid;
+      gap: 5px;
+      margin: 2px 0;
+      padding: 0;
+      list-style: none;
+    }
+    .checks li {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 8px;
+      font-size: var(--fs-s);
+    }
+    .ck-ico {
+      display: grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--success-soft);
+      color: var(--success);
+    }
+    [data-state='bad'] .ck-ico {
+      background: var(--warning-soft);
+      color: var(--warning);
+    }
+    [data-state='wait'] .ck-ico {
+      background: var(--surface-3);
+      color: var(--fg-3);
+    }
+    .ck-name {
+      color: var(--fg-2);
+    }
+    .ck-limit {
+      min-width: 9ch;
+      text-align: right;
+      color: var(--fg-3);
+    }
+    .tip {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 0;
+      padding: 12px 14px;
+      border-radius: var(--radius-m);
+      background: var(--accent-soft);
+    }
+    .tip.perfect {
+      background: var(--success-soft);
+    }
+    .tip-ico {
+      display: grid;
+      place-items: center;
+      flex: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--accent-text);
+    }
+    .tip.perfect .tip-ico {
+      color: var(--success);
+    }
     @media (prefers-reduced-motion: reduce) {
       .pill,
       .parts li,
@@ -228,6 +363,22 @@ export class DayScoreComponent {
   protected level(points: number, max: number): 'good' | 'mid' | 'low' {
     const r = points / max;
     return r >= 0.75 ? 'good' : r >= 0.4 ? 'mid' : 'low';
+  }
+
+  protected grams(v: number): string {
+    return `${this.i18n.number(v, v % 1 ? 1 : 0)} g`;
+  }
+
+  /** « 50 g max », « 25 g visés » */
+  protected limitOf(x: NutrientCheck): string {
+    return this.i18n.t(x.min ? 'meals.score.checks.min' : 'meals.score.checks.max', { v: this.i18n.number(x.limit) });
+  }
+
+  /** where the day stands so far, for a part judged once it is over */
+  protected soFar(w: DayScore['waiting'][number]): string {
+    const params: Record<string, string> = {};
+    for (const [k, x] of Object.entries(w.values)) params[k] = typeof x === 'number' ? this.i18n.number(x) : x;
+    return this.i18n.t('meals.score.parts.' + w.key + '.soFar', params);
   }
 
   protected detail(p: DayScore['parts'][number]): string {

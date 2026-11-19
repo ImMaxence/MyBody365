@@ -59,10 +59,16 @@ public enum Aisle {
         return Pattern.compile("\\b(" + alternatives + ")\\b");
     }
 
+    /** « Œufs » as « Oeufs »: search texts write the ligature as a plain o, which would read « oufs » */
+    static String ligatures(String s) {
+        return s == null ? null : s.replace("œ", "oe").replace("Œ", "Oe").replace("æ", "ae").replace("Æ", "Ae");
+    }
+
     /** the aisle of a food: its category first, then the words of its name; OTHER when nothing tells */
     public static Aisle of(String name, String category) {
-        String n = SearchText.normalize(name);
-        String c = SearchText.normalize(category);
+        // « Œufs » is « oeufs » here (search texts write the ligature as a plain o)
+        String n = SearchText.normalize(ligatures(name));
+        String c = SearchText.normalize(ligatures(category));
         if (FROZEN_WORDS.matcher(n).find()) {
             return FROZEN;
         }

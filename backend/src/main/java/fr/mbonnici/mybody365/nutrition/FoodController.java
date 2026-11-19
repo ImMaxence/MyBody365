@@ -80,6 +80,17 @@ public class FoodController {
         return foods.dto(foods.usable(id, me), me);
     }
 
+    /** 1.12: the picture of a product, through the server; the URL changes with the picture, so the phone keeps it */
+    @GetMapping("/api/foods/{id}/image")
+    public org.springframework.http.ResponseEntity<byte[]> image(@PathVariable UUID id, @RequestParam(defaultValue = "small") String size) {
+        return foods.image(id, !"full".equals(size))
+                .map(b -> org.springframework.http.ResponseEntity.ok()
+                        .contentType(org.springframework.http.MediaType.parseMediaType(OpenFoodFacts.imageType(b)))
+                        .cacheControl(org.springframework.http.CacheControl.maxAge(30, java.util.concurrent.TimeUnit.DAYS).cachePrivate())
+                        .body(b))
+                .orElseGet(() -> org.springframework.http.ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/api/me/foods")
     public List<FoodDto> mine(Authentication auth) {
         return foods.mine(users.current(auth).getId());

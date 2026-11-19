@@ -195,6 +195,7 @@ export class FoodSourcePage {
       nutriscore: f.nutriscore,
       estimated: f.nutriscoreEstimated,
       food: f,
+      day: this.day(),
     });
   }
 

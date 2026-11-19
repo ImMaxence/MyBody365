@@ -20,6 +20,9 @@ import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { NutriscoreComponent } from '../../shared/nutriscore.component';
 import { DayScoreComponent } from './day-score.component';
 import { ShoppingStore } from '../../core/meals/shopping.store';
+import { FoodThumbComponent } from '../../shared/food-thumb.component';
+import { BarsPlan, NutrientBarsComponent } from '../../shared/nutrient-bars.component';
+import type { Nutrients } from '../../core/api/models';
 
 const SLOT_ICON: Record<Slot, string> = { BREAKFAST: 'sun', LUNCH: 'utensils', DINNER: 'moon', SNACK: 'leaf' };
 const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'check', over: 'arrowUp', under: 'arrowDown', ongoing: null, logged: null };
@@ -28,7 +31,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
 @Component({
   selector: 'app-meals',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ShareSheetComponent, GuidesSheetComponent, TrendsCardComponent, DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, NutriscoreComponent, NumberStepperComponent],
+  imports: [ShareSheetComponent, GuidesSheetComponent, TrendsCardComponent, DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, NutriscoreComponent, NumberStepperComponent, FoodThumbComponent, NutrientBarsComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -39,10 +42,14 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
         <a routerLink="/app/meals/recipes" class="btn btn-secondary tile"><app-icon name="book" [size]="20" /> {{ 'meals.recipes' | t }}</a>
         <!-- 1.11: the shopping list, with the lines left to buy -->
         <a routerLink="/app/meals/shopping" class="btn btn-secondary tile" [attr.aria-label]="shoppingLabel()">
-          <app-icon name="cart" [size]="20" /> {{ 'shopping.short' | t }}
-          @if (shopping.left() > 0) {
-            <b class="badge num" aria-hidden="true">{{ shopping.left() }}</b>
-          }
+          <span class="tile-ico">
+            <app-icon name="cart" [size]="20" />
+            <!-- 1.12: a dot, as on the tabs, rather than a count -->
+            @if (shopping.left() > 0) {
+              <i class="dot" aria-hidden="true"></i>
+            }
+          </span>
+          {{ 'shopping.short' | t }}
         </a>
       </nav>
 
@@ -139,6 +146,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
                 @for (e of store.bySlot()[slot]; track e.id) {
                   <li>
                     <button type="button" class="entry" (click)="edit(e)">
+                      <app-food-thumb class="entry-thumb" [url]="e.thumbUrl" [group]="e.group" />
                       <span class="entry-body">
                         <span class="entry-name">{{ e.name }}</span>
                         @if (isPending(e)) {
@@ -233,11 +241,14 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
         <div class="sheet-grip"></div>
         @if (selected(); as e) {
           <div class="stack">
-            <div>
-              <h2 class="h3">{{ e.name }}</h2>
-              @if (e.detail) {
-                <p class="small muted">{{ e.detail }}</p>
-              }
+            <div class="entry-head">
+              <app-food-thumb class="sheet-thumb" [url]="e.thumbUrl" [group]="e.group" />
+              <div>
+                <h2 class="h3">{{ e.name }}</h2>
+                @if (e.detail) {
+                  <p class="small muted">{{ e.detail }}</p>
+                }
+              </div>
             </div>
             <span class="label">{{ 'meals.entry.quantity' | t }}</span>
             @if (e.grams != null) {
@@ -245,7 +256,9 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
             } @else {
               <app-number-stepper [(value)]="qty" [step]="0.5" [min]="0.25" [max]="20" [decimals]="2" [label]="'meals.quantity.servingsLabel' | t" />
             }
-            <p class="live num">{{ 'meals.quantity.total' | t: { kcal: i18n.number(liveKcal()) } }}</p>
+            <!-- 1.12: what this line brings, with the bars of the day (the rest of the day paler) -->
+            <span class="label">{{ 'meals.bars.title' | t }}</span>
+            <app-nutrient-bars [item]="liveNutrients()" [plan]="barsPlan()" [dayTotals]="restOfDay()" [entry]="true" />
             <span class="label">{{ 'meals.entry.move' | t }}</span>
             <div class="seg" role="group" [attr.aria-label]="'meals.entry.move' | t">
               @for (s of slots; track s) {
@@ -287,19 +300,40 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       text-align: center;
       line-height: 1.15;
     }
-    .badge {
+    .tile-ico {
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+    /* the same red dot as on the tabs: something waits there */
+    .tile-ico .dot {
       position: absolute;
-      top: 6px;
-      right: 8px;
-      min-width: 20px;
-      height: 20px;
-      padding: 0 6px;
-      border-radius: 10px;
-      background: var(--accent);
-      color: var(--accent-ink);
-      font-size: 11px;
-      line-height: 20px;
-      font-weight: 700;
+      top: -3px;
+      right: -6px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #e5341c;
+      box-shadow: 0 0 0 2px var(--surface);
+      animation: dot-in 420ms cubic-bezier(0.34, 1.6, 0.5, 1) both;
+    }
+    @keyframes dot-in {
+      from {
+        transform: scale(0);
+      }
+    }
+    .entry-thumb {
+      --thumb: 40px;
+      --thumb-radius: 11px;
+    }
+    .entry-head {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .sheet-thumb {
+      --thumb: 56px;
+      --thumb-radius: 16px;
     }
     .days {
       display: grid;
@@ -883,6 +917,26 @@ export class MealsPage {
     const base = e.grams ?? e.servings ?? 1;
     return Math.round((e.nutrients.kcal * this.qty()) / base);
   });
+  /** 1.12: the line's nutrients for the amount being chosen */
+  protected readonly liveNutrients = computed<Nutrients>(() => {
+    const e = this.selected();
+    if (!e) return { kcal: 0 };
+    const f = this.qty() / (e.grams ?? e.servings ?? 1);
+    const n = e.nutrients;
+    const x = (v?: number) => (v == null ? undefined : v * f);
+    return { kcal: n.kcal * f, proteinG: x(n.proteinG), carbsG: x(n.carbsG), fatG: x(n.fatG), fiberG: x(n.fiberG), sugarsG: x(n.sugarsG), saltG: x(n.saltG), satFatG: x(n.satFatG) };
+  });
+  /** the day without this line: the paler part of its bars */
+  protected readonly restOfDay = computed<Nutrients | null>(() => {
+    const e = this.selected();
+    const d = this.store.data();
+    if (!e || !d) return null;
+    const t = d.totals;
+    const n = e.nutrients;
+    const minus = (a?: number, b?: number) => Math.max(0, (a ?? 0) - (b ?? 0));
+    return { kcal: minus(t.kcal, n.kcal), proteinG: minus(t.proteinG, n.proteinG), carbsG: minus(t.carbsG, n.carbsG), fatG: minus(t.fatG, n.fatG), fiberG: minus(t.fiberG, n.fiberG) };
+  });
+  protected readonly barsPlan = computed<BarsPlan>(() => ({ kcal: this.planKcal(), ...this.plan() }));
 
   /**
    * The target in plain words: for losing (or gaining) how much a week, from what maintenance, and that it

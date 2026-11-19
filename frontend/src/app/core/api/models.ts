@@ -301,6 +301,9 @@ export interface Food {
   nutriscoreEstimated: boolean;
   servingG?: number;
   mine: boolean;
+  /** 1.12: a product's picture (through the server), and when Open Food Facts last changed its page */
+  imageUrl?: string;
+  dataUpdatedAt?: string;
 }
 
 export interface FoodInput {
@@ -332,6 +335,9 @@ export interface MealEntry {
   nutrients: Nutrients;
   nutriscore?: Grade;
   createdAt: string;
+  /** 1.12: a small picture (the recipe's photo, the product's), and what it is (recipe type, Ciqual category) for its emoji */
+  thumbUrl?: string;
+  group?: string;
 }
 
 export interface MealDay {
@@ -423,6 +429,8 @@ export interface RecentItem {
   nutriscore?: Grade;
   /** the portion's nutrients (QUICK) */
   quick?: Nutrients;
+  thumbUrl?: string;
+  group?: string;
 }
 
 /** TREAT (1.9): « Plaisir », pastries and treats */

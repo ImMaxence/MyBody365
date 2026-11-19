@@ -188,13 +188,20 @@ test.describe('meals', () => {
     await page.getByRole('dialog').getByLabel('Quantité en grammes').fill('300');
     await page.getByRole('dialog').getByLabel('Quantité en grammes').press('Tab');
     await expect(page.getByRole('dialog').getByText('960 kcal')).toBeVisible();
+    // 1.12: what this food brings, with the bars of the day
+    await expect(page.getByRole('dialog').getByText('Ce que ça apporte')).toBeVisible();
+    await expect(page.getByRole('dialog').getByText('Le reste de ta journée')).toBeVisible();
     await page.getByRole('dialog').getByRole('button', { name: 'Enregistrer' }).click();
     await expect(entry).toContainText('960');
 
     // the balance of the day, provisional, and what it is made of
     await page.getByRole('button', { name: /Équilibre de la journée/ }).click();
     const balance = page.getByRole('dialog', { name: 'Équilibre de la journée' });
-    await expect(balance.getByText('Nutriments', { exact: true })).toBeVisible();
+    // 1.12: what the mark is for, every part in view, those of the end of the day greyed, and a tip
+    await expect(balance.getByText('À quoi sert cette note ?')).toBeVisible();
+    await expect(balance.getByText('Sucre, sel, gras et fibres', { exact: true })).toBeVisible();
+    await expect(balance.getByText('En fin de journée').first()).toBeVisible();
+    await expect(balance.locator('.tip')).toBeVisible();
     await expectAccessible(page);
     await balance.locator('.sheet-grip').click();
     await expect(balance).toBeHidden();
@@ -341,6 +348,9 @@ test.describe('meals', () => {
     // the meals tab says how many lines are left
     await tab(page, 'Repas').click();
     await expect(page.getByRole('link', { name: /Liste de courses, \d+ article/ })).toBeVisible();
+    // 1.12: a red dot rather than a count, on the tile and on the tab
+    await expect(page.locator('.tile-ico .dot')).toBeVisible();
+    await expect(tab(page, 'Repas').locator('.dot')).toBeVisible();
 
     // what to cook with courgettes: the recipes that use them, what else they need
     await page.goto('/app/meals/recipes');

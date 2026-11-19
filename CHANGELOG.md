@@ -2,6 +2,30 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.12.0] - 2026-11-19
+
+Des photos dans tes repas, ce que chaque aliment t'apporte, une note du jour enfin claire et des retours en arrière sans à-coup
+
+### Ajouté
+- Repas : une petite photo devant chaque aliment de tes repas et de tes repas récents. La photo de la recette, celle du produit pour un produit scanné, sinon un dessin de ce que c'est (un fruit, un légume, du poisson, du fromage…)
+- Repas : touche un aliment de ta journée pour voir ce qu'il t'apporte, avec les mêmes barres que ta journée (calories, protéines, glucides, lipides, fibres, en part de ton objectif). Le reste de ta journée apparaît plus clair à côté, et les sucres, le sel et les graisses saturées sont écrits dessous. Les barres suivent la quantité que tu choisis, et elles sont aussi là quand tu ajoutes un aliment
+- Code-barres : la photo du produit et la date de la dernière mise à jour de sa fiche Open Food Facts. La photo passe par notre serveur, ton téléphone ne contacte jamais Open Food Facts
+- Un point rouge sur les onglets où quelque chose t'attend : une demande d'ami ou un défi à accepter sur Aujourd'hui, ta liste de courses sur Repas, la photo du jour pas encore prise sur Photos (si tu en prends), comme sur Profil
+- Notifications bloquées par erreur : la page Notifications explique comment les réautoriser, étape par étape pour ton téléphone (iPhone, Android ou ordinateur), et les active toute seule quand tu reviens dans l'app
+- Recettes de la communauté : 183 nouvelles photos libres de Wikimedia Commons, choisies une à une. 465 recettes sur 529 ont maintenant la leur (282 avant), les autres gardent leur dessin plutôt qu'une photo qui ne leur ressemble pas
+
+### Modifié
+- La note du jour dit à quoi elle sert : les calories disent combien tu manges, la note dit si tu manges bien. Les quatre critères sont toujours visibles, ceux qui attendent la fin de ta journée sont grisés avec où tu en es, le sucre, le sel, les graisses saturées et les fibres sont détaillés avec leur repère, et un conseil dit quoi faire pour gagner des points. Le calcul ne change pas
+- Recettes : en passant de Mes recettes à Amis ou Communauté, les recettes arrivent l'une après l'autre, du côté de l'onglet choisi
+- Repas : un point rouge sur Courses quand ta liste n'est pas finie, à la place du nombre d'articles
+- Notifications : le rappel de la photo du jour est activé de base, pour tout le monde. Tu peux toujours l'éteindre
+- Confidentialité : les photos des produits passent par notre serveur, comme les recherches
+
+### Corrigé
+- Retour en arrière : l'écran ne remonte plus d'un coup avant de partir vers la droite (ton téléphone replaçait l'écran que tu quittais là où était le précédent)
+- Sur iPhone, la barre d'onglets ne disparaît plus quand tu remontes d'un grand geste tout en haut d'une page, et ne glisse plus vers le bas quand tu descends d'un grand geste tout en bas (le rebond de la page était pris pour le clavier)
+- Liste de courses : le nom de chaque rayon ne chevauche plus son premier article, et des « Œufs bio » sont rangés en crèmerie et comptés à la pièce, plutôt que pesés dans « Autres »
+
 ## [1.11.0] - 2026-11-19
 
 Une liste de courses rangée par rayon, des idées de recettes avec ce que tu as, les recettes de la communauté en photo et un rappel pour la photo du jour

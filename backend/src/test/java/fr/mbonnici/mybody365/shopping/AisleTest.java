@@ -47,6 +47,10 @@ class AisleTest {
     void eggsAreCountedAndLiquidsMeasured() {
         assertThat(ShoppingService.unit("Oeuf cru", "oeufs")).isEqualTo(Unit.PIECE);
         assertThat(ShoppingService.pieces("Oeuf cru", 300)).isEqualTo(5);
+        // 1.12: written with its ligature, an egg is still an egg, in the dairy aisle
+        assertThat(ShoppingService.unit("Œufs bio", null)).isEqualTo(Unit.PIECE);
+        assertThat(ShoppingService.pieces("Œufs bio", 200)).isEqualTo(4);
+        assertThat(Aisle.of("Œufs bio", null)).isEqualTo(Aisle.DAIRY);
         assertThat(ShoppingService.pieces("Oeuf, jaune (jaune d'oeuf), cru", 40)).isEqualTo(2);
         assertThat(ShoppingService.unit("Lait demi-écrémé (aliment moyen)", "laits")).isEqualTo(Unit.ML);
         assertThat(ShoppingService.unit("Crème 30% MG, fluide, UHT", "crèmes et spécialités à base de crème")).isEqualTo(Unit.ML);

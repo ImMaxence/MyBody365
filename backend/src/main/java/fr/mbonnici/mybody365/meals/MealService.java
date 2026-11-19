@@ -66,7 +66,9 @@ public class MealService {
     public record CopyInput(@NotNull LocalDate fromDay, @NotNull LocalDate toDay, @NotNull Slot slot) {}
 
     public record EntryDto(UUID id, LocalDate day, Slot slot, UUID foodId, UUID recipeId, String name, String detail, Double grams,
-            Double servings, Nutrients nutrients, String nutriscore, Instant createdAt) {}
+            Double servings, Nutrients nutrients, String nutriscore, Instant createdAt,
+            /** 1.12: a small picture (the recipe's photo, the product's), and what it is for the emoji without one */
+            String thumbUrl, String group) {}
 
     public record DayDto(LocalDate day, Integer targetKcal, Nutrients totals, List<EntryDto> entries) {}
 
@@ -93,7 +95,7 @@ public class MealService {
 
     /** a food, a recipe or a quick portion logged lately, with the amount used last time (the portion's nutrients for QUICK) */
     public record RecentDto(String kind, UUID id, String name, String detail, Double grams, Double servings, double kcal,
-            String nutriscore, Nutrients quick) {}
+            String nutriscore, Nutrients quick, String thumbUrl, String group) {}
 
     private final JdbcTemplate jdbc;
     private final FoodService foods;
@@ -107,9 +109,34 @@ public class MealService {
         this.tracking = tracking;
     }
 
-    private static final String COLUMNS = """
-            id, day, slot, food_id, recipe_id, name, detail, grams, servings, kcal, protein_g, carbs_g, fat_g, sugars_g, fiber_g,
-            sat_fat_g, salt_g, nutriscore, created_at""";
+    /** 1.12: the lines with what their picture needs: the food's category and picture, the recipe's type and photo */
+    private static final String JOINED = """
+            select e.id, e.day, e.slot, e.food_id, e.recipe_id, e.name, e.detail, e.grams, e.servings, e.kcal, e.protein_g, e.carbs_g,
+              e.fat_g, e.sugars_g, e.fiber_g, e.sat_fat_g, e.salt_g, e.nutriscore, e.created_at,
+              f.source as food_source, f.category as food_category, f.image_path as food_image,
+              r.type as recipe_type, r.image_format as recipe_image, r.image_version as recipe_image_version
+            from meal_entry e left join food f on f.id = e.food_id left join recipe r on r.id = e.recipe_id""";
+
+    /** the small picture of a line: its recipe's photo, its product's picture; null otherwise */
+    static String thumbOf(ResultSet rs) throws SQLException {
+        UUID recipe = rs.getObject("recipe_id", UUID.class);
+        if (recipe != null && rs.getString("recipe_image") != null) {
+            return "/api/recipes/" + recipe + "/image/thumb?v=" + rs.getInt("recipe_image_version");
+        }
+        UUID food = rs.getObject("food_id", UUID.class);
+        return food == null || !"OFF".equals(rs.getString("food_source")) ? null : FoodService.imageUrl(food, rs.getString("food_image"));
+    }
+
+    /** what a line is, for its emoji: the recipe's type, the food's Ciqual category, PRODUCT for a product */
+    static String groupOf(ResultSet rs) throws SQLException {
+        if (rs.getString("recipe_type") != null) {
+            return rs.getString("recipe_type");
+        }
+        if (rs.getString("food_category") != null) {
+            return rs.getString("food_category");
+        }
+        return "OFF".equals(rs.getString("food_source")) ? "PRODUCT" : null;
+    }
 
     private static EntryDto map(ResultSet rs, int i) throws SQLException {
         double grams = rs.getDouble("grams");
@@ -119,12 +146,11 @@ public class MealService {
         return new EntryDto(rs.getObject("id", UUID.class), rs.getObject("day", LocalDate.class), Slot.valueOf(rs.getString("slot")),
                 rs.getObject("food_id", UUID.class), rs.getObject("recipe_id", UUID.class), rs.getString("name"), rs.getString("detail"),
                 noGrams ? null : grams, noServings ? null : servings, Nutrients.from(rs).rounded(), rs.getString("nutriscore"),
-                rs.getTimestamp("created_at").toInstant());
+                rs.getTimestamp("created_at").toInstant(), thumbOf(rs), groupOf(rs));
     }
 
     public DayDto day(UUID userId, LocalDate day) {
-        List<EntryDto> entries = jdbc.query("select " + COLUMNS + " from meal_entry where user_id = ? and day = ? order by created_at",
-                MealService::map, userId, day);
+        List<EntryDto> entries = jdbc.query(JOINED + " where e.user_id = ? and e.day = ? order by e.created_at", MealService::map, userId, day);
         Nutrients total = Nutrients.ZERO;
         for (EntryDto e : entries) {
             total = total.plus(e.nutrients());
@@ -260,7 +286,7 @@ public class MealService {
     @Transactional
     public DayDto copy(UUID userId, CopyInput in) {
         checkDay(in.toDay());
-        List<EntryDto> from = jdbc.query("select " + COLUMNS + " from meal_entry where user_id = ? and day = ? and slot = ? order by created_at",
+        List<EntryDto> from = jdbc.query(JOINED + " where e.user_id = ? and e.day = ? and e.slot = ? order by e.created_at",
                 MealService::map, userId, in.fromDay(), in.slot().name());
         for (EntryDto e : from) {
             insert(userId, in.toDay(), in.slot(), e.foodId(), e.recipeId(), e.name(), e.detail(), e.grams(), e.servings(), e.nutrients(),
@@ -272,9 +298,12 @@ public class MealService {
     public List<RecentDto> recent(UUID userId) {
         List<RecentDto> out = new ArrayList<>();
         List<Object[]> rows = new ArrayList<>(jdbc.query("""
-                select distinct on (coalesce(food_id, recipe_id)) food_id, recipe_id, name, detail, grams, servings, kcal, nutriscore, created_at
-                from meal_entry where user_id = ? and (food_id is not null or recipe_id is not null)
-                order by coalesce(food_id, recipe_id), created_at desc""", (rs, i) -> {
+                select distinct on (coalesce(e.food_id, e.recipe_id)) e.food_id, e.recipe_id, e.name, e.detail, e.grams, e.servings, e.kcal,
+                  e.nutriscore, e.created_at, f.source as food_source, f.category as food_category, f.image_path as food_image,
+                  r.type as recipe_type, r.image_format as recipe_image, r.image_version as recipe_image_version
+                from meal_entry e left join food f on f.id = e.food_id left join recipe r on r.id = e.recipe_id
+                where e.user_id = ? and (e.food_id is not null or e.recipe_id is not null)
+                order by coalesce(e.food_id, e.recipe_id), e.created_at desc""", (rs, i) -> {
             double g = rs.getDouble("grams");
             Double grams = rs.wasNull() ? null : g;
             double s = rs.getDouble("servings");
@@ -282,7 +311,8 @@ public class MealService {
             UUID food = rs.getObject("food_id", UUID.class);
             UUID recipe = rs.getObject("recipe_id", UUID.class);
             return new Object[] {new RecentDto(food != null ? "FOOD" : "RECIPE", food != null ? food : recipe, rs.getString("name"),
-                    rs.getString("detail"), grams, servings, Math.round(rs.getDouble("kcal")), rs.getString("nutriscore"), null),
+                    rs.getString("detail"), grams, servings, Math.round(rs.getDouble("kcal")), rs.getString("nutriscore"), null, thumbOf(rs),
+                    groupOf(rs)),
                     rs.getTimestamp("created_at").toInstant()};
         }, userId));
         // quick portions (and lines whose food is gone): offered again by name, as one portion
@@ -293,7 +323,7 @@ public class MealService {
             double s = rs.getDouble("servings");
             double factor = rs.wasNull() || s <= 0 ? 1 : 1 / s;
             Nutrients n = Nutrients.from(rs).times(factor).rounded();
-            return new Object[] {new RecentDto("QUICK", null, rs.getString("name"), null, null, 1.0, Math.round(n.kcal()), null, n),
+            return new Object[] {new RecentDto("QUICK", null, rs.getString("name"), null, null, 1.0, Math.round(n.kcal()), null, n, null, null),
                     rs.getTimestamp("created_at").toInstant()};
         }, userId));
         rows.sort(Comparator.comparing((Object[] r) -> (Instant) r[1]).reversed());
@@ -314,7 +344,7 @@ public class MealService {
     }
 
     private EntryDto own(UUID userId, UUID id) {
-        return jdbc.query("select " + COLUMNS + " from meal_entry where id = ? and user_id = ?", MealService::map, id, userId).stream()
+        return jdbc.query(JOINED + " where e.id = ? and e.user_id = ?", MealService::map, id, userId).stream()
                 .findFirst().orElseThrow(ApiException::notFound);
     }
 

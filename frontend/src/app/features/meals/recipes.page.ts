@@ -111,6 +111,9 @@ function plain(s: string): string {
         </div>
       }
 
+      <!-- 1.12: another tab or filter: its recipes come in, from the side of the tab (a filter: from below), one after the other -->
+      @for (k of [shownKey()]; track k) {
+      <div class="swap" [attr.data-enter]="enter()">
       <!-- 1.9: the favourite recipes (mine, my friends', the community's) above my own -->
       @if (tab() === 'mine' && favs().length) {
         <h2 class="group-title"><span class="heart"><app-icon name="heart" [size]="13" /></span> {{ 'meals.favorites.title' | t }} <span class="muted num">{{ favs().length }}</span></h2>
@@ -144,6 +147,8 @@ function plain(s: string): string {
             <div class="rcard skeleton" style="height: 210px"></div>
           }
         </div>
+      }
+      </div>
       }
       }
 
@@ -299,6 +304,40 @@ function plain(s: string): string {
       from {
         opacity: 0;
         transform: translateY(10px);
+      }
+    }
+    /* the page's own rhythm inside the wrapper */
+    .swap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-5);
+    }
+    /* 1.12: the cards of the tab just chosen come in one after the other (backwards: the press effect stays theirs) */
+    .swap[data-enter] :is(.rcard, .empty, .group-title) {
+      animation: card-x 380ms var(--ease-out) backwards;
+      animation-delay: calc(min(var(--i, 0), 7) * 32ms);
+    }
+    .swap[data-enter='right'] {
+      --dx: 22px;
+      --dy: 0px;
+    }
+    .swap[data-enter='left'] {
+      --dx: -22px;
+      --dy: 0px;
+    }
+    .swap[data-enter='up'] {
+      --dx: 0px;
+      --dy: 12px;
+    }
+    @keyframes card-x {
+      from {
+        opacity: 0;
+        transform: translate(var(--dx, 0), var(--dy, 0));
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .swap[data-enter] :is(.rcard, .empty, .group-title) {
+        animation: none;
       }
     }
     /* the frame sets the size, never the photo: on Safari a tall photo at height 100% would spill over the text */
@@ -464,6 +503,21 @@ export class RecipesPage {
     }
   }
   protected readonly list = signal<Recipe[] | null>(null);
+  /** 1.12: the list on screen (its key), and where the next one comes from: null for the first one (the screen's own transition) */
+  protected readonly shownKey = signal<string | null>(null);
+  protected readonly enter = signal<'left' | 'right' | 'up' | null>(null);
+  private static readonly ORDER: Record<string, number> = { mine: 0, friends: 1, community: 2 };
+
+  private show(key: string): void {
+    const prev = this.shownKey();
+    if (prev === key) return;
+    if (prev !== null) {
+      const from = prev.split('|')[0];
+      const to = key.split('|')[0];
+      this.enter.set(from === to ? 'up' : RecipesPage.ORDER[to] > RecipesPage.ORDER[from] ? 'right' : 'left');
+    }
+    this.shownKey.set(key);
+  }
   protected readonly loading = signal(false);
   /** the first list is still not there after a moment: placeholders, never for a quick one */
   protected readonly slow = signal(false);
@@ -482,7 +536,12 @@ export class RecipesPage {
     // a search: every source at once; cleared: back to the tabs
     effect(() => {
       const q = this.query();
-      untracked(() => (q ? this.find(q) : this.results.set(null)));
+      untracked(() => {
+        // back from a search: the tab as it was, without coming in again
+        this.enter.set(null);
+        if (q) void this.find(q);
+        else this.results.set(null);
+      });
     });
     effect(() => {
       const tab = this.tab();
@@ -493,7 +552,10 @@ export class RecipesPage {
       const known = this.seen.get(key);
       // the pages of the community already opened stay (« Voir plus »): back from a recipe, nothing shrinks
       this.page = known ? Math.max(0, Math.ceil(known.length / 30) - 1) : 0;
-      if (known) this.list.set(known);
+      if (known) {
+        this.list.set(known);
+        this.show(key);
+      }
       this.more.set(tab === 'community' && (known?.length ?? 0) > 0 && (known?.length ?? 0) % 30 === 0);
       this.loading.set(!known);
       // read without tracking: the list it sets must not start it again
@@ -506,10 +568,15 @@ export class RecipesPage {
           this.seen.set(key, kept);
           if (n !== this.seq) return;
           this.list.set(kept);
+          this.show(key);
           if (kept === r) this.page = 0;
           this.more.set(tab === 'community' && kept.length > 0 && kept.length % 30 === 0);
         })
-        .catch(() => n === this.seq && this.list.set(this.list() ?? []))
+        .catch(() => {
+          if (n !== this.seq) return;
+          this.list.set(this.list() ?? []);
+          this.show(key);
+        })
         .finally(() => {
           if (slow) clearTimeout(slow);
           if (n !== this.seq) return;

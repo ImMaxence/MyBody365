@@ -12,6 +12,7 @@ import { MealsApi } from '../../core/meals/meals-api';
 import { DISHES } from '../../core/meals/fast-food';
 import { IconComponent } from '../../shared/icon.component';
 import { NutriscoreComponent } from '../../shared/nutriscore.component';
+import { FoodThumbComponent } from '../../shared/food-thumb.component';
 import { TYPE_EMOJI } from './recipes.page';
 
 export type Picked = { kind: 'FOOD'; food: Food } | { kind: 'RECIPE'; recipe: Recipe } | { kind: 'RECENT'; item: RecentItem };
@@ -33,7 +34,7 @@ const PREVIEW = 5;
 @Component({
   selector: 'app-food-picker',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, NutriscoreComponent],
+  imports: [NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, NutriscoreComponent, FoodThumbComponent],
   template: `
     <div class="search">
       <app-icon name="search" [size]="20" />
@@ -129,7 +130,11 @@ const PREVIEW = 5;
           <div class="list">
             @for (r of recent(); track r.kind + (r.id ?? r.name)) {
               <button type="button" class="list-item" (click)="picked.emit({ kind: 'RECENT', item: r })">
-                <span class="list-icon"><app-icon [name]="r.kind === 'RECIPE' ? 'book' : r.kind === 'QUICK' ? 'zap' : 'clock'" /></span>
+                @if (r.kind === 'QUICK') {
+                  <span class="list-icon"><app-icon name="zap" /></span>
+                } @else {
+                  <app-food-thumb class="row-thumb" [url]="r.thumbUrl" [group]="r.group" />
+                }
                 <span class="list-body">
                   <span class="list-title">{{ r.name }}</span>
                   <span class="list-sub">{{ recentAmount(r) }} · {{ i18n.number(r.kcal) }} kcal</span>
@@ -257,6 +262,8 @@ const PREVIEW = 5;
       <button type="button" class="list-item" (click)="picked.emit({ kind: 'FOOD', food: f })">
         @if (fav) {
           <span class="list-icon fav-ico"><app-icon name="heart" /></span>
+        } @else {
+          <app-food-thumb class="row-thumb" [url]="f.imageUrl" [group]="f.category ?? (f.source === 'OFF' ? 'PRODUCT' : null)" />
         }
         <span class="list-body">
           <span class="list-title">{{ f.name }}</span>
@@ -290,6 +297,10 @@ const PREVIEW = 5;
     </ng-template>
   `,
   styles: `
+    .row-thumb {
+      --thumb: 38px;
+      --thumb-radius: 12px;
+    }
     :host {
       display: grid;
       gap: var(--space-3);

@@ -37,7 +37,8 @@ public final class FakeOpenData {
         if (path.equals("/api/v2/product/3017620422003")) {
             send(ex, 200, "application/json", """
                     {"status":1,"product":{"code":"3017620422003","product_name_fr":"Pâte à tartiner noisettes","brands":"Marque Test",
-                     "nutriscore_grade":"e","serving_quantity":15,
+                     "nutriscore_grade":"e","serving_quantity":15,"last_modified_t":1731400000,
+                     "image_front_url":"https://images.openfoodfacts.org/images/products/301/762/042/2003/front_fr.633.400.jpg",
                      "nutriments":{"energy-kcal_100g":539,"proteins_100g":6.3,"carbohydrates_100g":57.5,"sugars_100g":56.3,
                       "fat_100g":30.9,"saturated-fat_100g":10.6,"fiber_100g":0,"salt_100g":0.107}}}""");
         } else if (path.startsWith("/api/v2/product/")) {

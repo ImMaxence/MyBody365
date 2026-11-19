@@ -94,7 +94,7 @@ class EngagementTest extends AbstractIntegrationTest {
                 .content("{\"endpoint\":\"https://fcm.googleapis.com/fcm/send/abc123\"}")).andExpect(jsonPath("$.devices").value(0));
     }
 
-    /** 1.11: the photo of the day at its own time, only when it is not taken, once a day; off by default */
+    /** 1.11: the photo of the day at its own time, only when it is not taken, once a day; on by default since 1.12 */
     @Test
     void thePhotoOfTheDayHasItsOwnReminder() throws Exception {
         mvc.perform(post("/api/me/push/subscriptions").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
@@ -102,7 +102,7 @@ class EngagementTest extends AbstractIntegrationTest {
         mvc.perform(post("/api/me/push/subscriptions").with(as(hugo)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
                 .content(subscription("https://fcm.googleapis.com/fcm/send/hugo"))).andExpect(status().isOk());
         mvc.perform(get("/api/me/notifications").with(as(lea)))
-                .andExpect(jsonPath("$.prefs.photoEnabled").value(false)).andExpect(jsonPath("$.prefs.photoTime").value("19:00"));
+                .andExpect(jsonPath("$.prefs.photoEnabled").value(true)).andExpect(jsonPath("$.prefs.photoTime").value("19:00"));
         for (var who : java.util.List.of(lea, hugo)) {
             mvc.perform(put("/api/me/notifications").with(as(who)).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
                     {"dailyEnabled":false,"dailyTime":"08:00","gymEnabled":false,"gymDays":"1,3,5","gymTime":"18:00","friendsEnabled":true,

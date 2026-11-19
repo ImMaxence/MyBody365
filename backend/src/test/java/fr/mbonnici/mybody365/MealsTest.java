@@ -111,7 +111,10 @@ class MealsTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.source").value("OFF"))
                 .andExpect(jsonPath("$.brand").value("Marque Test"))
                 .andExpect(jsonPath("$.nutriscore").value("e"))
-                .andExpect(jsonPath("$.servingG").value(15.0));
+                .andExpect(jsonPath("$.servingG").value(15.0))
+                // 1.12: its picture through the server, and when its page last changed
+                .andExpect(jsonPath("$.imageUrl").value(org.hamcrest.Matchers.startsWith("/api/foods/")))
+                .andExpect(jsonPath("$.dataUpdatedAt").value("2024-11-12T08:26:40Z"));
         mvc.perform(get("/api/foods/barcode/0000000000000").with(as(lea))).andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("food_not_found"));
         mvc.perform(get("/api/foods/barcode/abc").with(as(lea))).andExpect(status().isBadRequest());

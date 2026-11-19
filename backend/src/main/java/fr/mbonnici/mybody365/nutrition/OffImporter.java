@@ -53,7 +53,7 @@ public class OffImporter {
             Instant finishedAt, String startedBy) {}
 
     /** what is kept of a line of the export */
-    record Row(String code, String name, String brand, Nutrients per100, String nutriscore, Double servingG) {}
+    record Row(String code, String name, String brand, Nutrients per100, String nutriscore, Double servingG, String imagePath, Instant modifiedAt) {}
 
     private final JdbcTemplate jdbc;
     private final TaskExecutor executor;
@@ -265,8 +265,11 @@ public class OffImporter {
         String brand = brands == null ? null : cut(brands.split(",")[0].strip(), 160);
         String grade = get(v, col, "nutriscore_grade");
         grade = grade != null && grade.matches("[a-eA-E]") ? grade.toLowerCase() : null;
+        // 1.12: the front picture and when the page last changed (columns an older export may not have)
+        String image = OpenFoodFacts.imagePath(get(v, col, "image_url") != null ? get(v, col, "image_url") : get(v, col, "image_small_url"));
+        Instant modified = OpenFoodFacts.epoch(num(get(v, col, "last_modified_t"), 4_000_000_000d));
         return new Row(code, cut(name.strip(), 200), brand == null || brand.isEmpty() ? null : brand, n, grade,
-                num(get(v, col, "serving_quantity"), 5000));
+                num(get(v, col, "serving_quantity"), 5000), image, modified);
     }
 
     /** added, or updated by barcode; a Nutri-Score computed when the export has none */
@@ -280,7 +283,8 @@ public class OffImporter {
             boolean estimated = r.nutriscore() == null && grade != null;
             Nutrients n = r.per100();
             args.add(new Object[] {UUID.randomUUID(), r.code(), r.name(), r.brand(), FoodStore.searchName(r.name(), null, r.brand()), n.kcal(),
-                    n.proteinG(), n.carbsG(), n.sugarsG(), n.fatG(), n.satFatG(), n.fiberG(), n.saltG(), grade, estimated, r.servingG()});
+                    n.proteinG(), n.carbsG(), n.sugarsG(), n.fatG(), n.satFatG(), n.fiberG(), n.saltG(), grade, estimated, r.servingG(), r.imagePath(),
+                    r.modifiedAt() == null ? null : Timestamp.from(r.modifiedAt())});
         }
         try {
             jdbc.batchUpdate(UPSERT, args);
@@ -302,13 +306,14 @@ public class OffImporter {
 
     private static final String UPSERT = """
             insert into food (id, source, source_code, name, brand, search_name, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g,
-              fiber_g, salt_g, nutriscore, nutriscore_estimated, serving_g)
-            values (?, 'OFF', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              fiber_g, salt_g, nutriscore, nutriscore_estimated, serving_g, image_path, source_updated_at)
+            values (?, 'OFF', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             on conflict (source_code) where source = 'OFF' do update set name = excluded.name, brand = excluded.brand,
               search_name = excluded.search_name, kcal = excluded.kcal, protein_g = excluded.protein_g, carbs_g = excluded.carbs_g,
               sugars_g = excluded.sugars_g, fat_g = excluded.fat_g, sat_fat_g = excluded.sat_fat_g, fiber_g = excluded.fiber_g,
               salt_g = excluded.salt_g, nutriscore = excluded.nutriscore, nutriscore_estimated = excluded.nutriscore_estimated,
-              serving_g = excluded.serving_g, updated_at = now()""";
+              serving_g = excluded.serving_g, image_path = coalesce(excluded.image_path, food.image_path),
+              source_updated_at = coalesce(excluded.source_updated_at, food.source_updated_at), updated_at = now()""";
 
     /** the reason itself (« invalid byte sequence… »), not the statement around it */
     static String cause(Throwable e) {

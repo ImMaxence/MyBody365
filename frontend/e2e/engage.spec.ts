@@ -49,10 +49,9 @@ test.describe('engagement', () => {
     await updates.uncheck();
     // water reminders wait for the glasses of water
     await expect(page.getByRole('switch', { name: /Pense à boire/ })).toBeDisabled();
-    // 1.11: the photo of the day at its own time, off until asked
+    // 1.11: the photo of the day at its own time; on by default since 1.12
     const photo = page.getByRole('switch', { name: /Photo du jour/ });
-    await expect(photo).not.toBeChecked();
-    await photo.check();
+    await expect(photo).toBeChecked();
     await expect(page.getByLabel('Heure du rappel photo')).toHaveValue('19:00');
     await page.getByLabel('Heure du rappel photo').fill('20:30');
     await expect(page.getByText('Réglages enregistrés').first()).toBeVisible();

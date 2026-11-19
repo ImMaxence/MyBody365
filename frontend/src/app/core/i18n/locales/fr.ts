@@ -658,6 +658,7 @@ export const fr = {
 
   todo: {
     waiting: 'Quelque chose t’attend dans ton profil',
+    tabWaiting: ', quelque chose t’attend ici',
     passkey: 'Ajoute une passkey : ton accès de secours sans Google',
     drive: 'Active la sauvegarde automatique sur ton Google Drive',
     adminCount: '{n} élément(s) à traiter',
@@ -1012,7 +1013,7 @@ export const fr = {
           p: [
             'Google LLC : connexion avec Google (si tu la choisis) et stockage chiffré des sauvegardes sur Google Drive.',
             'Cloudflare, Inc. : réseau de diffusion et protection du site ; le trafic transite par ses serveurs, y compris hors de l’Union européenne, dans le cadre des clauses contractuelles types.',
-            'Open Food Facts : les recherches d’aliments et de codes-barres sont faites depuis le serveur, sans aucune donnée personnelle. La table Ciqual est téléchargée depuis l’entrepôt de données de recherche data.gouv.fr par un administrateur. Les photos des recettes de la communauté sont téléchargées une fois depuis Wikimedia Commons par le serveur, sans aucune donnée personnelle.',
+            'Open Food Facts : les recherches d’aliments et de codes-barres sont faites depuis le serveur, sans aucune donnée personnelle, et les photos des produits passent par lui : ton téléphone ne contacte jamais Open Food Facts. La table Ciqual est téléchargée depuis l’entrepôt de données de recherche data.gouv.fr par un administrateur. Les photos des recettes de la communauté sont téléchargées une fois depuis Wikimedia Commons par le serveur, sans aucune donnée personnelle.',
             'Sites de recettes : quand tu importes une recette, le serveur lit la page dont tu as collé le lien, sans transmettre aucune donnée te concernant ; le site voit seulement une visite du serveur MyBody365. Le lien est conservé sur ta recette.',
             'Services de notification des navigateurs et des téléphones (Google, Apple, Mozilla, Microsoft) : ils acheminent les notifications, dont le contenu est chiffré de bout en bout entre le serveur et ton appareil.',
           ],

@@ -70,7 +70,7 @@ public class NotificationController {
         jdbc.update("""
                 insert into notification_pref (user_id, daily_enabled, daily_time, gym_enabled, gym_days, gym_time, friends_enabled,
                   water_enabled, updates_enabled, weekly_enabled, photo_enabled, photo_time)
-                values (?, ?, ?, ?, ?, ?, ?, coalesce(?, false), coalesce(?, true), coalesce(?, true), coalesce(?, false),
+                values (?, ?, ?, ?, ?, ?, ?, coalesce(?, false), coalesce(?, true), coalesce(?, true), coalesce(?, true),
                   coalesce(?, time '19:00'))
                 on conflict (user_id) do update set daily_enabled = excluded.daily_enabled, daily_time = excluded.daily_time,
                   gym_enabled = excluded.gym_enabled, gym_days = excluded.gym_days, gym_time = excluded.gym_time,
@@ -109,6 +109,6 @@ public class NotificationController {
                 rs.getTime("gym_time").toLocalTime().toString(), rs.getBoolean("friends_enabled"), rs.getBoolean("water_enabled"),
                 rs.getBoolean("updates_enabled"), rs.getBoolean("weekly_enabled"), rs.getBoolean("photo_enabled"),
                 rs.getTime("photo_time").toLocalTime().toString()), userId).stream().findFirst()
-                .orElse(new Prefs(true, "08:00", false, "1,3,5", "18:00", true, false, true, true, false, "19:00"));
+                .orElse(new Prefs(true, "08:00", false, "1,3,5", "18:00", true, false, true, true, true, "19:00"));
     }
 }

@@ -1,4 +1,4 @@
-# Audit de sécurité — MyBody365 (1.0.0, revu en 1.7.1 et en 1.9.0)
+# Audit de sécurité — MyBody365 (1.0.0, revu en 1.7.1, en 1.9.0 et en 1.12.0)
 
 Date : 16 novembre 2026. Périmètre : le dépôt complet (back Spring Boot, front Angular, nginx, fichiers Docker Compose), dans sa version 1.0.0 : photos, repas, notifications, amis, sauvegardes, import de recettes, noms d'utilisateur et photos de profil compris.
 
@@ -38,6 +38,23 @@ Méthode : relecture du code de chaque point d'entrée, vérification des règle
 | Info | Le trafic entre le back et SeaweedFS n'est pas chiffré | Réseau Docker interne, le service de stockage n'est jamais publié |
 
 Aucune vulnérabilité connue dans les dépendances livrées du front (`npm audit --omit=dev` : 0). Côté back, toutes les bibliothèques ajoutées sont dans leur dernière version publiée (AWS SDK 2.46.7, TwelveMonkeys 3.12.0).
+
+## Revue des 1.10, 1.11 et 1.12 (19 novembre 2026)
+
+Périmètre : tout ce qui a changé côté serveur depuis la 1.9.2 (27 fichiers) : recettes qui se ressemblent, liste de courses, « Que faire avec ce que j'ai ? », aliments qui existent déjà, photos des recettes de la communauté, rappel de la photo du jour, migrations V25 et V26 ; en 1.12, la photo et la date des produits Open Food Facts, les vignettes des repas, les points rouges des onglets. Côté front : la page Notifications bloquées, la fiche d'un aliment, la note du jour.
+
+Vérifié sans constat :
+- `POST /api/me/recipes/lookalikes` et `GET /api/recipes/with` ne comparent que les recettes que le compte voit (les siennes, la communauté non masquée, celles de ses amis qui ne sont pas privées) ; rien n'est enregistré ; 120 caractères et 60 ingrédients au plus, 6 ingrédients choisis au plus
+- Liste de courses (`/api/me/shopping*`) : chaque requête porte sur le compte de la session (`user_id` dans chaque `where`, 404 sinon) ; une recette n'est ajoutée que si le compte la voit, l'aliment d'un autre membre n'est repris que par son nom ; 300 caractères par ligne, un nombre de lignes plafonné ; pas dans les sauvegardes
+- `POST /api/me/foods/lookalikes` : texte normalisé passé en paramètre à la recherche par trigrammes, les aliments d'un autre membre exclus
+- Photos de la communauté : la liste des photos est un fichier du dépôt (aucune adresse venue d'un membre), téléchargées une seule fois par le serveur depuis Wikimedia uniquement, avec les contrôles d'adresse de l'import de recettes ; l'auteur et la licence sont du texte affiché comme tel (pas de HTML)
+- 1.12, photo d'un produit (`GET /api/foods/{id}/image`) : le chemin vient des données d'Open Food Facts, que n'importe qui peut modifier là-bas, donc il est vérifié comme une entrée hostile : uniquement un chemin du serveur d'images d'Open Food Facts (adresse fixe dans le code, chiffres, nom de fichier en caractères simples, `.jpg`, `.png` ou `.webp`, pas de `..`), 8 s et 1 Mo au plus, et seule une image JPEG, PNG ou WebP reconnue à ses premiers octets est renvoyée (un SVG ou une page HTML sont refusés, test dédié). Le téléphone ne contacte jamais Open Food Facts : son adresse IP ne leur est pas transmise. Le cache en mémoire est partagé (ce sont des images publiques) et plafonné à 16 Mo. Réservé aux membres connectés comme le reste de l'API ; l'aliment personnel d'un autre membre répond 404 comme un aliment inconnu
+- 1.12, vignettes des repas : les photos de recettes passent par le point d'accès existant, qui revérifie que le compte voit la recette (une recette redevenue privée affiche l'emoji)
+- 1.12, `GET /api/me/todo` : des nombres sur les seules données du compte (demandes d'ami reçues, invitations à un défi en cours, lignes de courses non cochées, photo du jour)
+- 1.12, rappel de la photo du jour activé pour tous : un rappel de plus par jour au plus, seulement si la photo manque et sur un appareil abonné ; l'interrupteur reste dans Notifications
+- Notifications bloquées : l'app ne contourne rien, elle explique le chemin vers les réglages du téléphone et ne redemande l'abonnement qu'une fois l'autorisation rendue par la personne
+
+Dépendances : aucune dépendance Maven ni npm livrée ajoutée depuis la 1.9 ; `npm audit --omit=dev` : 0 vulnérabilité. Une alerte concerne `sharp`, outil de développement qui génère les icônes à partir des images du dépôt (jamais livré, jamais appliqué à un fichier extérieur) : à mettre à jour à la prochaine régénération des icônes.
 
 ## Revue de la 1.9 (18 novembre 2026)
 

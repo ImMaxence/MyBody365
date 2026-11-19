@@ -104,6 +104,10 @@ export class StackNavigation {
   private next: { how: 'push' | 'replace' | 'pop'; to: number } = { how: 'push', to: 0 };
 
   constructor() {
+    // 1.12: the browser keeps its hands off the scroll. Left to itself ('auto', what the router leaves when its own
+    // restoration is disabled), it scrolled the screen being left to where the previous one had been, on the very
+    // popstate, before the transition took its picture: the whole screen jumped up, then slid away.
+    if (this.browser && this.doc.defaultView?.history) this.doc.defaultView.history.scrollRestoration = 'manual';
     // the browser animated this step back itself (its own swipe): no second animation on top
     this.doc.defaultView?.addEventListener('popstate', (e) => {
       if ((e as PopStateEvent & { hasUAVisualTransition?: boolean }).hasUAVisualTransition) this.silent = true;

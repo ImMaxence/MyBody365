@@ -268,12 +268,13 @@ export class MealAddPage {
       estimated: f.nutriscoreEstimated,
       initial,
       food: f,
+      day: this.day(),
     });
   }
 
   private openRecipe(r: Recipe, initial?: number): void {
     this.current = { kind: 'RECIPE', id: r.id, name: r.name, base: r.perServing };
-    this.sheet().open({ name: r.name, detail: this.i18n.t('meals.perServing'), unit: 'serving', base: r.perServing, nutriscore: r.nutriscore, estimated: true, initial, recipe: r });
+    this.sheet().open({ name: r.name, detail: this.i18n.t('meals.perServing'), unit: 'serving', base: r.perServing, nutriscore: r.nutriscore, estimated: true, initial, recipe: r, day: this.day() });
   }
 
   protected async add(qty: number): Promise<void> {

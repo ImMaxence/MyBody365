@@ -50,6 +50,34 @@ describe('day score', () => {
     const over = dayScore(day({ kcal: 2600, sugarsG: 20, saltG: 3, satFatG: 15 }, [entry(2600, 'b')], today), today)!;
     expect(over.parts.map((p) => p.key)).toContain('kcal');
   });
+
+  it('shows what waits for the end of the day and says how to earn points (1.12)', () => {
+    const lunch = dayScore(day({ kcal: 1300, proteinG: 110, carbsG: 120, fatG: 40, sugarsG: 12, saltG: 7, satFatG: 9, fiberG: 6 }, [entry(1300, 'b')], today), today)!;
+    // the calories and the split wait, so does the fibre; the salt is over its guide: that is the tip
+    expect(lunch.waiting.map((w) => w.key)).toEqual(['kcal', 'macros']);
+    expect(lunch.checks.find((c) => c.key === 'fiber')).toMatchObject({ waiting: true, min: true, limit: 25 });
+    expect(lunch.checks.find((c) => c.key === 'salt')).toMatchObject({ ok: false, limit: 5 });
+    expect(lunch.tip).toBe('salt');
+    // a perfect day, over: nothing to change
+    const perfect = dayScore(day({ proteinG: 125, carbsG: 225, fatG: 66.7, fiberG: 30, sugarsG: 40, saltG: 4, satFatG: 18 }, [entry(2000, 'a')]), today)!;
+    expect(perfect.waiting).toEqual([]);
+    expect(perfect.tip).toBe('perfect');
+    // too little protein: said as such
+    const lowProtein = dayScore(day({ proteinG: 50, carbsG: 300, fatG: 67, fiberG: 30, sugarsG: 40, saltG: 4, satFatG: 18 }, [entry(2000, 'a')]), today)!;
+    expect(lowProtein.tip).toBe('protein');
+  });
+});
+
+describe('food emoji (1.12)', () => {
+  it('tells a recipe by its type, a food by its Ciqual category, a product and the rest', async () => {
+    const { groupEmoji } = await import('./food-emoji');
+    expect(groupEmoji('LUNCH')).toBe('🥗');
+    expect(groupEmoji('fruits à coque et graines oléagineuses')).toBe('🥜');
+    expect(groupEmoji('fruits')).toBe('🍎');
+    expect(groupEmoji('oeufs')).toBe('🥚');
+    expect(groupEmoji('PRODUCT')).toBe('🛒');
+    expect(groupEmoji(null)).toBe('🍽️');
+  });
 });
 
 describe('monthly forecast', () => {

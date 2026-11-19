@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { SwPush } from '@angular/service-worker';
 import { errorCode } from '../../core/api/api.service';
 import { SessionStore } from '../../core/auth/session.store';
 import { EngageApi, NotificationPrefs } from '../../core/engage/engage-api';
+import { PushSetup } from '../../core/engage/push-setup.service';
+import { InstallService } from '../../core/pwa/install.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/ui/toast.service';
@@ -35,6 +37,8 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
             <p class="small muted">
               @if (!push.isEnabled) {
                 {{ 'engage.notifications.unsupported' | t }}
+              } @else if (!subscription() && blocked()) {
+                {{ 'engage.notifications.blocked' | t }}
               } @else {
                 {{ (subscription() ? 'engage.notifications.on' : 'engage.notifications.off') | t }}
               }
@@ -51,8 +55,23 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
                 {{ 'engage.notifications.disable' | t }}
               </button>
             </div>
+          } @else if (blocked()) {
+            <!-- 1.12: a « no » by mistake. No phone lets an app ask twice: the way back is in the phone's settings, step
+                 by step for this phone; coming back to the app is enough, it notices and turns them on -->
+            <div class="unblock">
+              <p class="small">{{ 'engage.notifications.blockedWhy' | t }}</p>
+              <ol class="steps">
+                @for (step of steps(); track $index) {
+                  <li class="small"><span class="step-n num">{{ $index + 1 }}</span><span>{{ step }}</span></li>
+                }
+              </ol>
+              <button type="button" class="btn btn-primary btn-block" [disabled]="busy()" (click)="enable()">
+                <app-icon name="repeat" [size]="18" /> {{ 'engage.notifications.retry' | t }}
+              </button>
+            </div>
           } @else {
             <button type="button" class="btn btn-primary btn-block" [disabled]="busy()" (click)="enable()"><app-icon name="bell" /> {{ 'engage.notifications.enable' | t }}</button>
+            <p class="tiny muted center">{{ 'engage.notifications.askOnce' | t }}</p>
           }
         }
         @if (devices() > 0) {
@@ -67,7 +86,7 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
             <span class="list-icon accent"><app-icon name="flame" /></span>
             <span class="pref-body">
               <span class="pref-title">{{ 'engage.notifications.daily' | t }}</span>
-              <span class="small muted">{{ 'engage.notifications.dailyHint' | t }}</span>
+              <span class="small muted">{{ (p.photoEnabled ? 'engage.notifications.dailyHintWeigh' : 'engage.notifications.dailyHint') | t }}</span>
             </span>
             <input type="checkbox" role="switch" class="switch" [checked]="p.dailyEnabled" (change)="toggle('dailyEnabled', $event)" />
           </label>
@@ -183,6 +202,40 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
     }
     .devices {
       text-align: center;
+    }
+    .unblock {
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      border-radius: var(--radius-m);
+      background: var(--warning-soft);
+    }
+    .unblock p {
+      margin: 0;
+    }
+    .steps {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .steps li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .step-n {
+      display: grid;
+      place-items: center;
+      flex: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--fg);
+      font-size: 12px;
+      font-weight: 750;
     }
     .center {
       text-align: center;
@@ -327,6 +380,16 @@ export class NotificationsPage {
   protected readonly i18n = inject(I18nService);
 
   protected readonly subscription = toSignal(this.push.subscription, { initialValue: null });
+  private readonly setup = inject(PushSetup);
+  private readonly platform = inject(InstallService).platform;
+  /** refused in the system: only its settings can turn them back on */
+  protected readonly blocked = computed(() => this.setup.permission() === 'denied');
+  /** the way to the switch, on this kind of phone */
+  protected readonly steps = computed(() => {
+    const p = this.platform();
+    const key = p === 'ios' ? 'ios' : p === 'android' ? 'android' : 'desktop';
+    return [1, 2, 3].map((n) => this.i18n.t(`engage.notifications.unblock.${key}${n}`));
+  });
   protected readonly prefs = signal<NotificationPrefs | null>(null);
   protected readonly devices = signal(0);
   protected readonly busy = signal(false);
@@ -336,6 +399,16 @@ export class NotificationsPage {
   private saving: Promise<unknown> = Promise.resolve();
 
   constructor() {
+    // back from the phone's settings: allowed there, they turn on here with no more taps (no prompt any more once allowed)
+    const doc = inject(DOCUMENT);
+    const back = () => {
+      if (doc.visibilityState !== 'visible') return;
+      const was = this.setup.permission();
+      this.setup.refresh();
+      if (was === 'denied' && this.setup.permission() === 'granted' && !this.subscription() && this.publicKey) void this.enable();
+    };
+    doc.addEventListener('visibilitychange', back);
+    inject(DestroyRef).onDestroy(() => doc.removeEventListener('visibilitychange', back));
     void this.api
       .notifications()
       .then((s) => {
@@ -357,6 +430,7 @@ export class NotificationsPage {
       const denied = typeof Notification !== 'undefined' && Notification.permission === 'denied';
       this.toast.error(this.i18n.error(denied ? 'push_denied' : errorCode(e) === 'generic' ? 'push_unsupported' : errorCode(e)));
     } finally {
+      this.setup.refresh();
       this.busy.set(false);
     }
   }

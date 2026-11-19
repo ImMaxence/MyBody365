@@ -6,7 +6,10 @@ import { HapticDirective } from '../../core/ui/haptics';
 import { ToastService } from '../../core/ui/toast.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { scaled } from '../../core/meals/meals.store';
+import { MealsStore, scaled } from '../../core/meals/meals.store';
+import { DayPlan } from '../../core/meals/day-plan';
+import { FoodThumbComponent } from '../../shared/food-thumb.component';
+import { NutrientBarsComponent } from '../../shared/nutrient-bars.component';
 import { IconComponent } from '../../shared/icon.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { NutriscoreComponent } from '../../shared/nutriscore.component';
@@ -25,19 +28,25 @@ export interface QuantityTarget {
   /** the food or the recipe itself: a heart to keep it in the favourites (1.9) */
   food?: Food;
   recipe?: Recipe;
+  /** 1.12: the day it goes to: its bars show the rest of that day */
+  day?: string;
 }
 
 /** The amount of a food or recipe, with the nutrients updating as it changes. */
 @Component({
   selector: 'app-quantity-sheet',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, NumberStepperComponent, NutriscoreComponent, HapticDirective],
+  imports: [TranslatePipe, IconComponent, NumberStepperComponent, NutriscoreComponent, HapticDirective, FoodThumbComponent, NutrientBarsComponent],
   template: `
     <dialog class="sheet" #dlg (close)="target.set(null)">
       <div class="sheet-grip"></div>
       @if (target(); as t) {
         <div class="stack">
           <div class="head">
+            <!-- 1.12: the product's picture (Open Food Facts) or the recipe's photo -->
+            @if (t.food?.imageUrl || t.recipe?.thumbUrl) {
+              <app-food-thumb class="q-thumb" [url]="t.food?.imageUrl ?? t.recipe?.thumbUrl" [group]="t.recipe ? t.recipe.type : 'PRODUCT'" />
+            }
             <div class="head-copy">
               <h2 class="h3">{{ t.name }}</h2>
               @if (t.detail) {
@@ -56,6 +65,10 @@ export interface QuantityTarget {
               </span>
             }
           </div>
+          <!-- 1.12: how fresh the product's data is, on its own line under the name -->
+          @if (t.food?.dataUpdatedAt; as at) {
+            <p class="tiny muted updated"><app-icon name="clock" [size]="13" /> {{ 'meals.quantity.offUpdated' | t: { date: i18n.date(at, { day: 'numeric', month: 'long', year: 'numeric' }) } }}</p>
+          }
           @if (t.unit === 'g') {
             <div class="presets" role="group" [attr.aria-label]="'meals.quantity.gramsLabel' | t">
               @if (t.servingG) {
@@ -73,14 +86,8 @@ export interface QuantityTarget {
             <app-number-stepper [(value)]="qty" [step]="0.5" [min]="0.25" [max]="20" [decimals]="2" [label]="'meals.quantity.servingsLabel' | t"
               [minusLabel]="'meals.quantity.minus' | t" [plusLabel]="'meals.quantity.plus' | t" />
           }
-          <div class="facts">
-            <div class="kcal"><span class="num">{{ i18n.number(live().kcal) }}</span> kcal</div>
-            <dl>
-              <div><dt>{{ 'meals.protein' | t }}</dt><dd class="num">{{ g(live().proteinG) }}</dd></div>
-              <div><dt>{{ 'meals.carbs' | t }}</dt><dd class="num">{{ g(live().carbsG) }}</dd></div>
-              <div><dt>{{ 'meals.fat' | t }}</dt><dd class="num">{{ g(live().fatG) }}</dd></div>
-            </dl>
-          </div>
+          <!-- 1.12: what it brings, with the bars of the Meals tab (the rest of the day paler) -->
+          <app-nutrient-bars [item]="live()" [plan]="plan.bars()" [dayTotals]="rest()" />
           <button type="button" class="btn btn-primary btn-block" [disabled]="busy()" (click)="confirm.emit(qty())">
             <app-icon name="plus" /> {{ confirmLabel() || ('meals.quantity.confirm' | t) }}
           </button>
@@ -122,46 +129,16 @@ export interface QuantityTarget {
     .presets .chip {
       cursor: pointer;
     }
-    .facts {
-      display: grid;
-      grid-template-columns: auto 1fr;
+    .q-thumb {
+      --thumb: 64px;
+      --thumb-radius: 16px;
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .updated {
+      display: flex;
       align-items: center;
-      gap: var(--space-4);
-      padding: var(--space-4);
-      border-radius: var(--radius-l);
-      background: var(--surface-2);
-    }
-    .kcal {
-      font-weight: 650;
-      color: var(--fg-2);
-    }
-    .kcal .num {
-      display: block;
-      font-weight: 850;
-      font-size: 1.8rem;
-      letter-spacing: -0.02em;
-      color: var(--fg);
-      line-height: 1;
-    }
-    dl {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
       gap: 6px;
-      margin: 0;
-    }
-    dl div {
-      display: grid;
-      gap: 2px;
-      text-align: center;
-    }
-    dt {
-      font-size: var(--fs-xs);
-      color: var(--fg-2);
-      font-weight: 600;
-    }
-    dd {
-      margin: 0;
-      font-weight: 750;
+      margin: calc(-1 * var(--space-2)) 0 0;
     }
   `,
 })
@@ -191,6 +168,15 @@ export class QuantitySheetComponent {
   readonly busy = signal(false);
   readonly confirmLabel = signal<string | null>(null);
 
+  protected readonly plan = inject(DayPlan);
+  private readonly meals = inject(MealsStore);
+  /** the day it goes to, as it stands (when it is the one loaded) */
+  protected readonly rest = computed<Nutrients | null>(() => {
+    const t = this.target();
+    const d = this.meals.data();
+    return t?.day && d?.day === t.day ? d.totals : null;
+  });
+
   protected readonly live = computed<Nutrients>(() => {
     const t = this.target();
     if (!t) return { kcal: 0 };
@@ -208,9 +194,5 @@ export class QuantitySheetComponent {
 
   close(): void {
     this.dialog().nativeElement.close();
-  }
-
-  protected g(v?: number): string {
-    return v == null ? '–' : `${this.i18n.number(v, v < 10 ? 1 : 0)} g`;
   }
 }

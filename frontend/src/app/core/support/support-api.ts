@@ -38,6 +38,11 @@ export interface Todo {
   adminRequests: number;
   adminFeedback: number;
   adminErrors: number;
+  /** 1.12: what waits in the other tabs */
+  friendRequests: number;
+  challengeInvites: number;
+  shoppingLeft: number;
+  photoToday: boolean;
 }
 
 /** A word to the creator, the errors journal and the admins' lists of both. */
@@ -88,6 +93,14 @@ export class TodoStore {
     const t = this.todo();
     return !!t && (t.passkey || t.drive || this.admin() > 0);
   });
+
+  /** 1.12: something to answer on Today (a friend request, a challenge invitation) */
+  readonly today = computed(() => {
+    const t = this.todo();
+    return !!t && (t.friendRequests ?? 0) + (t.challengeInvites ?? 0) > 0;
+  });
+  /** the photo of the day not taken yet, by someone who takes them */
+  readonly photos = computed(() => !!this.todo()?.photoToday);
 
   async refresh(): Promise<void> {
     try {

@@ -657,6 +657,7 @@ export const en: Dictionary = {
 
   todo: {
     waiting: 'Something is waiting in your profile',
+    tabWaiting: ', something is waiting here',
     passkey: 'Add a passkey: your way back in without Google',
     drive: 'Turn on the automatic backup to your Google Drive',
     adminCount: '{n} item(s) to handle',
@@ -1011,7 +1012,7 @@ export const en: Dictionary = {
           p: [
             'Google LLC: sign-in with Google (if you choose it) and encrypted storage of backups on Google Drive.',
             'Cloudflare, Inc.: content delivery and protection of the site; traffic goes through its servers, including outside the European Union, under standard contractual clauses.',
-            'Open Food Facts: food and barcode searches are made from the server, without any personal data. The Ciqual table is downloaded from the data.gouv.fr research data repository by an administrator. The photos of the community recipes are downloaded once from Wikimedia Commons by the server, without any personal data.',
+            'Open Food Facts: food and barcode searches are made from the server, without any personal data, and the pictures of the products go through it: your phone never contacts Open Food Facts. The Ciqual table is downloaded from the data.gouv.fr research data repository by an administrator. The photos of the community recipes are downloaded once from Wikimedia Commons by the server, without any personal data.',
             'Recipe sites: when you import a recipe, the server reads the page whose link you pasted, without passing on any data about you; the site only sees a visit from the MyBody365 server. The link is kept on your recipe.',
             'Notification services of browsers and phones (Google, Apple, Mozilla, Microsoft): they carry the notifications, whose content is end-to-end encrypted between the server and your device.',
           ],

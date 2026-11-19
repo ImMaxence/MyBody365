@@ -154,10 +154,24 @@ import { IconComponent } from '../../shared/icon.component';
     .for {
       margin: 0;
     }
+    /* 1.12: the name of the aisle above its card, never on it (the global section title pulls the next block up, which
+       only works in a stack with a gap) */
+    .aisle {
+      display: grid;
+      gap: 8px;
+    }
     .aisle .section-title {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      margin: 0;
+      padding: 0 4px;
+      color: var(--fg-1);
+      font-size: var(--fs-m);
+      font-weight: 700;
+    }
+    .aisle .section-title .faint {
+      font-weight: 600;
     }
     .row {
       display: flex;

@@ -32,7 +32,9 @@ public class FoodService {
     private static final Duration SEARCH_CACHE = Duration.ofHours(12);
 
     public record FoodDto(UUID id, Source source, String name, String brand, String category, Nutrients per100, String nutriscore,
-            boolean nutriscoreEstimated, Double servingG, boolean mine) {}
+            boolean nutriscoreEstimated, Double servingG, boolean mine,
+            /** 1.12: a product's picture (through the server) and when Open Food Facts last changed its page */
+            String imageUrl, Instant dataUpdatedAt) {}
 
     public record FoodInput(
             @NotBlank @Size(max = 200) String name,
@@ -65,7 +67,51 @@ public class FoodService {
 
     public FoodDto dto(Food f, UUID viewer) {
         return new FoodDto(f.id(), f.source(), f.name(), f.brand(), f.category(), f.per100().rounded(), f.nutriscore(),
-                f.nutriscoreEstimated(), f.servingG(), viewer != null && viewer.equals(f.ownerId()));
+                f.nutriscoreEstimated(), f.servingG(), viewer != null && viewer.equals(f.ownerId()), imageUrl(f), f.sourceUpdatedAt());
+    }
+
+    /** the picture of a product through the server; the path in the URL changes with the picture, so it may be kept */
+    public static String imageUrl(UUID foodId, String imagePath) {
+        return imagePath == null ? null : "/api/foods/" + foodId + "/image?v=" + Integer.toHexString(imagePath.hashCode());
+    }
+
+    private static String imageUrl(Food f) {
+        return f.source() == Source.OFF ? imageUrl(f.id(), f.imagePath()) : null;
+    }
+
+    /** the last pictures asked, for everybody (the same products come back in many meals), 16 MB at most */
+    private static final long IMAGES_MAX_BYTES = 16L * 1024 * 1024;
+    private final java.util.LinkedHashMap<String, byte[]> images = new java.util.LinkedHashMap<>(256, 0.75f, true);
+    private long imagesBytes = 0;
+
+    private synchronized byte[] cachedImage(String key) {
+        return images.get(key);
+    }
+
+    private synchronized void keepImage(String key, byte[] bytes) {
+        byte[] before = images.put(key, bytes);
+        imagesBytes += bytes.length - (before == null ? 0 : before.length);
+        var it = images.entrySet().iterator();
+        while (imagesBytes > IMAGES_MAX_BYTES && it.hasNext()) {
+            imagesBytes -= it.next().getValue().length;
+            it.remove();
+        }
+    }
+
+    /** 1.12: a product's picture (small: for the lists), fetched once from Open Food Facts then kept in memory */
+    public Optional<byte[]> image(UUID foodId, boolean small) {
+        Food f = foods.find(foodId).orElseThrow(ApiException::notFound);
+        if (f.source() != Source.OFF || f.imagePath() == null) {
+            return Optional.empty();
+        }
+        String key = f.imagePath() + (small ? "#s" : "");
+        byte[] hit = cachedImage(key);
+        if (hit != null) {
+            return Optional.of(hit);
+        }
+        Optional<byte[]> got = off.image(f.imagePath(), small);
+        got.ifPresent(b -> keepImage(key, b));
+        return got;
     }
 
     /** a food the account may use: any shared one, or its own */
@@ -134,8 +180,10 @@ public class FoodService {
         }
         Optional<Food> cached = foods.findOff(code);
         boolean local = offLocal.local();
-        // the local copy answers (refreshed at each import); a product too new for it is asked live, if allowed
-        if (cached.isPresent() && (local || cached.get().updatedAt().isAfter(Instant.now().minus(OFF_REFRESH)))) {
+        // the local copy answers (refreshed at each import); a product too new for it is asked live, if allowed.
+        // 1.12: a product imported before its picture and its date were kept is asked live once, for them
+        boolean beforePictures = cached.isPresent() && cached.get().sourceUpdatedAt() == null && props.nutrition().offLive();
+        if (cached.isPresent() && !beforePictures && (local || cached.get().updatedAt().isAfter(Instant.now().minus(OFF_REFRESH)))) {
             return dto(cached.get(), userId);
         }
         if (local && !props.nutrition().offLive()) {
@@ -164,11 +212,13 @@ public class FoodService {
         Optional<Food> existing = foods.findOff(p.code());
         if (existing.isPresent()) {
             foods.update(existing.get().id(), p.name(), p.brand(), p.per100(), grade, estimated, p.servingG());
+            foods.productPage(existing.get().id(), p.imagePath() != null ? p.imagePath() : existing.get().imagePath(), p.modifiedAt());
             return foods.find(existing.get().id()).orElseThrow();
         }
         try {
             UUID id = foods.insert(Source.OFF, p.code(), null, null, p.name(), null, p.brand(), null, p.per100(), grade, estimated,
                     p.servingG());
+            foods.productPage(id, p.imagePath(), p.modifiedAt());
             return foods.find(id).orElseThrow();
         } catch (DuplicateKeyException e) {
             // the same product saved at the same moment by another request

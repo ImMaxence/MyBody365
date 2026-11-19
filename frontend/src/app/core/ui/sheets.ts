@@ -60,16 +60,20 @@ function followKeyboard(doc: Document, view: Window): void {
   const root = doc.documentElement;
   let open = false;
   const update = () => {
-    const kb = Math.max(0, Math.round(view.innerHeight - vv.height - vv.offsetTop));
+    // 1.12: only the heights tell the keyboard. iOS moves the visual viewport (offsetTop) while the page bounces past
+    // its top or its bottom: read as a keyboard, a hard pull down hid the tab bar at once, and a long pull up pushed it
+    // further down the further the finger went.
+    const shorter = view.innerHeight - vv.height;
+    const kb = Math.max(0, Math.round(shorter - Math.max(0, vv.offsetTop)));
     // 1.11.1: iOS, as an installed app, sometimes keeps the page as short as it was with the keyboard once the keyboard
     // is gone (or back from the background): what is fixed at the bottom (the tab bar, the toasts) then floats in the
     // middle of the screen. The gap between what is seen and that short page is measured, the fixed bars go down by it.
-    const stuck = Math.round(vv.offsetTop + vv.height - view.innerHeight);
-    root.style.setProperty('--kb', `${kb}px`);
+    const stuck = Math.round(-shorter);
+    root.style.setProperty('--kb', `${shorter > 120 ? kb : 0}px`);
     root.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
     root.style.setProperty('--vv-stuck', `${stuck > 2 ? stuck : 0}px`);
     // the keyboard up: the tab bar steps aside (it would float above the keyboard, or under the finger)
-    const nowOpen = kb > 120;
+    const nowOpen = shorter > 120;
     root.classList.toggle('keyboard-open', nowOpen);
     if (open && !nowOpen) unstick();
     open = nowOpen;
