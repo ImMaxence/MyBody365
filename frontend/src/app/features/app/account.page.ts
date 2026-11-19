@@ -134,7 +134,7 @@ import { AvatarZoom } from '../../shared/avatar-zoom';
           </span>
           <app-icon name="chevronRight" />
         </button>
-        <a routerLink="/changelog" class="list-item">
+        <a routerLink="/app/account/changelog" class="list-item">
           <span class="list-icon"><app-icon name="sparkles" /></span>
           <span class="list-body">
             <span class="list-title">{{ 'account.changelog' | t }}</span>

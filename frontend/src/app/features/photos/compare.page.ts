@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import type { Photo, Pose } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -11,7 +12,7 @@ import { SegDirective } from '../../shared/seg.directive';
 @Component({
   selector: 'app-compare',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, TranslatePipe, IconComponent, BackButtonComponent],
+  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent, BackButtonComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -21,7 +22,8 @@ import { SegDirective } from '../../shared/seg.directive';
 
       <div class="seg" role="group" [attr.aria-label]="'photos.title' | t">
         @for (p of poses; track p) {
-          <button type="button" [attr.aria-pressed]="pose() === p" [disabled]="count(p) < 2" (click)="choosePose(p)">{{ 'photos.poses.' + p | t }}</button>
+          <!-- 1.12.1: a pose without two photos yet is greyed, yet chosen like the others: it says what it waits for -->
+          <button type="button" [attr.aria-pressed]="pose() === p" [class.few]="count(p) < 2" (click)="choosePose(p)">{{ 'photos.poses.' + p | t }}</button>
         }
       </div>
 
@@ -80,11 +82,20 @@ import { SegDirective } from '../../shared/seg.directive';
           }
         </div>
       } @else if (store.photos() !== null) {
-        <div class="empty"><span class="empty-icon"><app-icon name="columns" /></span><p>{{ 'photos.compareView.notEnough' | t }}</p></div>
+        <div class="empty">
+          <span class="empty-icon"><app-icon name="columns" /></span>
+          <h2 class="h3">{{ (count(pose()) === 0 ? 'photos.few.none' : 'photos.few.one') | t: { pose: ('photos.few.of.' + pose() | t) } }}</h2>
+          <p class="small">{{ 'photos.compareView.notEnough' | t }}</p>
+          <a class="btn btn-secondary" routerLink="/app/photos/camera"><app-icon name="camera" [size]="18" /> {{ 'photos.few.take' | t }}</a>
+        </div>
       }
     </main>
   `,
   styles: `
+    /* a pose without enough photos: paler, still a choice */
+    .seg button.few:not([aria-pressed='true']) {
+      opacity: 0.5;
+    }
     .summary {
       display: flex;
       gap: var(--space-2);
@@ -286,12 +297,17 @@ export class ComparePage {
       const first = this.store.ofPose(photo.pose)[0];
       if (first && first.id !== photo.id) this.beforeId.set(first.id);
     });
-    // no "after" param: the pose with the most photos
+    // no "after" param: the pose with the most photos, once, as the photos arrive (1.12.1: a pose chosen afterwards
+    // stays chosen, even without photos, and says so)
+    let picked = false;
     effect(() => {
       const all = this.store.photos();
-      if (!all || this.afterParam()) return;
-      const best = [...POSES].sort((x, y) => this.count(y) - this.count(x))[0];
-      if (this.count(this.pose()) < 2) this.pose.set(best);
+      if (!all || this.afterParam() || picked) return;
+      picked = true;
+      untracked(() => {
+        const best = [...POSES].sort((x, y) => this.count(y) - this.count(x))[0];
+        if (this.count(this.pose()) < 2) this.pose.set(best);
+      });
     });
   }
 

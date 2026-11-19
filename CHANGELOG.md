@@ -2,6 +2,17 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.12.1] - 2026-11-19
+
+Des changements d'écran sans à-coup, les Nouveautés dans l'app et les poses sans photo expliquées
+
+### Modifié
+- Nouveautés s'ouvre depuis ton profil comme un écran de l'app : il arrive par la droite, la barre d'onglets reste, et le retour te ramène au profil
+- Avant / après et time-lapse : une pose qui n'a pas encore assez de photos est grisée mais se choisit quand même, et dit ce qui manque (« Aucune photo de profil pour le moment ») avec un bouton vers l'appareil photo
+
+### Corrigé
+- Les changements d'écran sont maintenant dessinés par l'app elle-même, comme le retour au doigt : une copie de l'écran que tu quittes glisse ou s'efface pendant que le nouveau arrive, sous la vraie barre d'onglets. Sur iPhone, depuis le bas d'une page, l'écran ne remonte plus d'un coup avant de partir (Aujourd'hui puis Profil par exemple), et la barre d'onglets ne s'affiche plus au milieu de l'écran pendant une fraction de seconde (Profil puis Connexion et sécurité par exemple) : elle ne bouge plus du tout. Un écran sur lequel tu reviens apparaît directement là où tu l'avais laissé
+
 ## [1.12.0] - 2026-11-19
 
 Des photos dans tes repas, ce que chaque aliment t'apporte, une note du jour enfin claire et des retours en arrière sans à-coup

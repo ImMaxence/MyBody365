@@ -54,6 +54,12 @@ export const frPhotos = {
     position: '{n} sur {total}',
     share: 'Partager',
   },
+  few: {
+    none: 'Aucune photo {pose} pour le moment',
+    one: 'Une seule photo {pose} pour le moment',
+    of: { FRONT: 'de face', SIDE: 'de profil', BACK: 'de dos' },
+    take: 'Prendre ma photo du jour',
+  },
   compareView: {
     title: 'Avant / après',
     before: 'Avant',

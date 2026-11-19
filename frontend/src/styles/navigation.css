@@ -42,11 +42,6 @@ html[data-nav='fade']::view-transition-new(root) {
     260ms ease both nav-fade-in,
     380ms var(--nav-ease) both nav-settle;
 }
-/* from further down a screen: the old one is not shown (Safari would show it from its top for an instant) */
-html[data-nav='fade'][data-nav-scrolled]::view-transition-old(root) {
-  animation: none;
-  opacity: 0;
-}
 
 html[data-nav='page']::view-transition-old(root) {
   animation: 260ms ease-out both nav-fade-out;
@@ -129,4 +124,14 @@ html.theming::view-transition-new(root) {
   ::view-transition-new(*) {
     animation: none !important;
   }
+}
+
+/* 1.12.1: the still copies of a screen (the app's own transitions, the edge swipe) never replay what came in with it
+   (a card popping in, a bar growing): they show the screen as it was, nothing more */
+.nav-ghost,
+.nav-ghost *,
+.swipe-ghost,
+.swipe-ghost * {
+  animation: none !important;
+  transition: none !important;
 }

@@ -479,7 +479,7 @@ export class ShellComponent {
       dx: 0,
       moved: false,
       locked: false,
-      armed: e.touches.length === 1 && !this.leaving && this.stack.depth() > 0,
+      armed: e.touches.length === 1 && !this.leaving && !this.stack.busy() && this.stack.depth() > 0,
     };
   }
 

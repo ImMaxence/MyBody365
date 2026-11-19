@@ -1,7 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { BackButtonComponent } from '../../shared/back-button.component';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SeoService } from '../../core/seo.service';
+import { ActivatedRoute } from '@angular/router';
 import { IconComponent } from '../../shared/icon.component';
 import { SiteFooterComponent } from '../landing/site-footer.component';
 import { SubpageHeaderComponent } from '../landing/subpage-header.component';
@@ -22,14 +25,30 @@ const KINDS: Record<string, { icon: string; tone: string }> = {
 @Component({
   selector: 'app-changelog',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, SiteFooterComponent, SubpageHeaderComponent],
+  imports: [NgTemplateOutlet, TranslatePipe, IconComponent, SiteFooterComponent, SubpageHeaderComponent, BackButtonComponent],
   template: `
+    @if (inApp()) {
+      <!-- 1.12.1: from the profile, a screen of the app (pushed, tab bar kept), not the public site's page -->
+      <main class="page in-app">
+        <header class="page-head">
+          <app-back-button />
+          <h1 class="title small-title">{{ 'changelog.title' | t }}</h1>
+        </header>
+        <p class="small muted">{{ 'changelog.current' | t: { v: current } }} · {{ 'changelog.intro' | t }}</p>
+        <ng-container [ngTemplateOutlet]="releasesList" />
+      </main>
+    } @else {
     <app-subpage-header />
     <main id="main" class="container doc">
       <p class="eyebrow">{{ 'changelog.current' | t: { v: current } }}</p>
       <h1 class="h2">{{ 'changelog.title' | t }}</h1>
       <p class="lead">{{ 'changelog.intro' | t }}</p>
 
+      <ng-container [ngTemplateOutlet]="releasesList" />
+    </main>
+    <app-site-footer />
+    }
+    <ng-template #releasesList>
       <ol class="releases" role="list">
         @for (r of releases; track r.version; let first = $first) {
           <li class="release" [class.latest]="first">
@@ -83,8 +102,7 @@ const KINDS: Record<string, { icon: string; tone: string }> = {
           </li>
         }
       </ol>
-    </main>
-    <app-site-footer />
+    </ng-template>
   `,
   styles: `
     .doc {
@@ -97,6 +115,15 @@ const KINDS: Record<string, { icon: string; tone: string }> = {
       display: grid;
       gap: var(--space-5);
       margin-top: var(--space-6);
+    }
+    /* in the app: the page's own rhythm, cards a little tighter */
+    .in-app .releases {
+      gap: var(--space-4);
+      margin: 0;
+      padding: 0;
+    }
+    .in-app .release {
+      padding: var(--space-5) var(--space-4);
     }
     .release {
       position: relative;
@@ -180,8 +207,12 @@ export class ChangelogPage {
   private readonly seo = inject(SeoService);
   protected readonly releases = RELEASES;
   protected readonly current = CURRENT_VERSION;
+  /** route data: the app's screen (/app/account/changelog) rather than the site's page */
+  readonly inApp = input(false);
 
   constructor() {
+    // the app's screen keeps the app's language and title (the releases themselves are written in French)
+    if (inject(ActivatedRoute).snapshot.data['inApp']) return;
     // the changelog is written in French: the page is French whatever the visitor's language
     this.i18n.set('fr');
     this.seo.set({

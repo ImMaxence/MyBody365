@@ -57,6 +57,12 @@ export const enPhotos: Widen<typeof frPhotos> = {
     position: '{n} of {total}',
     share: 'Share',
   },
+  few: {
+    none: 'No photo {pose} yet',
+    one: 'Only one photo {pose} so far',
+    of: { FRONT: 'from the front', SIDE: 'from the side', BACK: 'from the back' },
+    take: 'Take my photo of the day',
+  },
   compareView: {
     title: 'Before / after',
     before: 'Before',

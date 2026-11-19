@@ -33,6 +33,69 @@ test.describe('stack navigation', () => {
     expect(kinds).toEqual(['fade', 'push', 'pop']);
   });
 
+  test('another screen from further down a screen: the screen left does not move, the tab bar neither (1.12.1)', async ({ page }) => {
+    await signIn(page, 'user');
+    await page.goto('/app/account');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Profil');
+    await page.evaluate(() => window.scrollTo(0, 300));
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+    // at the tap, where the screen's title and the tab bar are seen; then where the still copy of the screen is laid,
+    // and where the tab bar is in the middle of the push
+    await page.evaluate(() => {
+      const w = window as unknown as { __before: number; __bar: number; __ghost: number | null; __barDuring: number[] };
+      const main = document.getElementById('main')!;
+      const bar = () => document.querySelector('.tabbar')!.getBoundingClientRect().top;
+      w.__ghost = null;
+      w.__barDuring = [];
+      document.addEventListener(
+        'click',
+        () => {
+          w.__before = main.querySelector('h1')!.getBoundingClientRect().top;
+          w.__bar = bar();
+          // the tab bar, every 30 ms while the copy is there (a slower engine lays it later: sampled for 6 s)
+          const t = setInterval(() => document.querySelector('.nav-ghost') && w.__barDuring.push(bar()), 30);
+          setTimeout(() => clearInterval(t), 6000);
+        },
+        { capture: true, once: true },
+      );
+      new MutationObserver((records) => {
+        for (const r of records)
+          for (const n of r.addedNodes)
+            if (n instanceof HTMLElement && n.classList.contains('nav-ghost') && w.__ghost === null) w.__ghost = n.querySelector('h1')!.getBoundingClientRect().top;
+      }).observe(main.parentElement!, { childList: true });
+    });
+    await page.getByRole('link', { name: /Connexion et sécurité/ }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Connexion et sécurité');
+    const seen = await page.evaluate(() => {
+      const w = window as unknown as { __before: number; __bar: number; __ghost: number | null; __barDuring: number[] };
+      return { before: w.__before, bar: w.__bar, ghost: w.__ghost, barDuring: w.__barDuring };
+    });
+    // the copy laid exactly where the screen was seen
+    expect(seen.ghost).not.toBeNull();
+    expect(Math.abs((seen.ghost ?? 0) - seen.before)).toBeLessThan(1);
+    // the tab bar never moved during the push
+    expect(seen.barDuring.length).toBeGreaterThan(0);
+    for (const top of seen.barDuring) expect(Math.abs(top - seen.bar)).toBeLessThan(1);
+    // then the copy goes, the new screen at its top
+    await expect(page.locator('.nav-ghost')).toHaveCount(0);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  });
+
+  test('the changelog opens from the profile as a screen of the app (1.12.1)', async ({ page }) => {
+    await signIn(page, 'user');
+    const transitions = await recordTransitions(page);
+    await tab(page, 'Profil').click();
+    await page.getByRole('link', { name: /Nouveautés/ }).click();
+    await expect(page).toHaveURL(/\/app\/account\/changelog$/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Nouveautés');
+    // pushed like any screen of the profile, the tab bar kept
+    await expect(page.getByRole('navigation', { name: 'Navigation principale' })).toBeVisible();
+    await expect(page.locator('.release').first()).toBeVisible();
+    await page.getByRole('button', { name: 'Retour' }).click();
+    await expect(page).toHaveURL(/\/app\/account$/);
+    expect(await transitions()).toEqual(['fade', 'push', 'pop']);
+  });
+
   test('back from a screen opened directly goes to its parent screen', async ({ page }) => {
     await signIn(page, 'user');
     await page.goto('/app/account/security');

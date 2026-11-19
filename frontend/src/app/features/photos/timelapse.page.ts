@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import type { Photo, Pose } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -16,7 +17,7 @@ const FPS: Record<Speed, number> = { slow: 3, normal: 6, fast: 12 };
 @Component({
   selector: 'app-timelapse',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, TranslatePipe, IconComponent, BackButtonComponent],
+  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent, BackButtonComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -26,7 +27,8 @@ const FPS: Record<Speed, number> = { slow: 3, normal: 6, fast: 12 };
 
       <div class="seg" role="group" [attr.aria-label]="'photos.title' | t">
         @for (p of poses; track p) {
-          <button type="button" [attr.aria-pressed]="pose() === p" [disabled]="count(p) < 2" (click)="choose(p)">{{ 'photos.poses.' + p | t }}</button>
+          <!-- 1.12.1: a pose without two photos yet is greyed, yet chosen like the others: it says what it waits for -->
+          <button type="button" [attr.aria-pressed]="pose() === p" [class.few]="count(p) < 2" (click)="choose(p)">{{ 'photos.poses.' + p | t }}</button>
         }
       </div>
 
@@ -66,11 +68,20 @@ const FPS: Record<Speed, number> = { slow: 3, normal: 6, fast: 12 };
           </button>
         }
       } @else if (store.photos() !== null) {
-        <div class="empty"><span class="empty-icon"><app-icon name="film" /></span><p>{{ 'photos.timelapseView.notEnough' | t }}</p></div>
+        <div class="empty">
+          <span class="empty-icon"><app-icon name="film" /></span>
+          <h2 class="h3">{{ (count(pose()) === 0 ? 'photos.few.none' : 'photos.few.one') | t: { pose: ('photos.few.of.' + pose() | t) } }}</h2>
+          <p class="small">{{ 'photos.timelapseView.notEnough' | t }}</p>
+          <a class="btn btn-secondary" routerLink="/app/photos/camera"><app-icon name="camera" [size]="18" /> {{ 'photos.few.take' | t }}</a>
+        </div>
       }
     </main>
   `,
   styles: `
+    /* a pose without enough photos: paler, still a choice */
+    .seg button.few:not([aria-pressed='true']) {
+      opacity: 0.5;
+    }
     .player {
       position: relative;
       aspect-ratio: 3 / 4;
@@ -176,12 +187,17 @@ export class TimelapsePage {
 
   constructor() {
     void this.store.ensure().catch(() => this.store.photos.set([]));
+    // the pose with the most photos, once, as the photos arrive (1.12.1: a pose chosen afterwards stays chosen)
+    let picked = false;
     effect(() => {
-      if (!this.store.photos()) return;
-      if (this.count(this.pose()) < 2) {
-        const best = [...POSES].sort((x, y) => this.count(y) - this.count(x))[0];
-        this.pose.set(best);
-      }
+      if (!this.store.photos() || picked) return;
+      picked = true;
+      untracked(() => {
+        if (this.count(this.pose()) < 2) {
+          const best = [...POSES].sort((x, y) => this.count(y) - this.count(x))[0];
+          this.pose.set(best);
+        }
+      });
     });
     inject(DestroyRef).onDestroy(() => this.stop());
   }

@@ -117,10 +117,18 @@ test.describe('photos', () => {
     await page.getByRole('button', { name: 'Côte à côte' }).click();
     await expect(page.locator('.side figure')).toHaveCount(2);
     await expectAccessible(page);
+    // 1.12.1: a pose with no photo yet is a choice too: it says so, with the way to the camera
+    await page.getByRole('button', { name: 'Profil', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Aucune photo de profil pour le moment' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Prendre ma photo du jour' })).toBeVisible();
+    await page.getByRole('button', { name: 'Face', exact: true }).click();
+    await expect(page.getByText('10 jours d’écart')).toBeVisible();
 
     await page.goto('/app/photos/timelapse');
     await expect(page.getByText('Image 1 sur 2')).toBeVisible();
     await page.getByRole('button', { name: 'Lecture' }).click();
     await expect(page.getByText('Image 2 sur 2')).toBeVisible();
+    await page.getByRole('button', { name: 'Dos', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Aucune photo de dos pour le moment' })).toBeVisible();
   });
 });
