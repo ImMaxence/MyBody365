@@ -52,7 +52,7 @@ public class OffImporter {
      * and the product details (size, food group, processing, scans) and is imported again by itself
      */
     static final String FORMAT_KEY = "off_format";
-    static final String FORMAT = "1.13";
+    static final String FORMAT = "1.14";
     /** a month: Open Food Facts changes every day, the local copy follows once a month */
     private static final Duration REFRESH_AFTER = Duration.ofDays(30);
     private static final int BATCH = 1000;
@@ -62,7 +62,7 @@ public class OffImporter {
 
     /** what is kept of a line of the export */
     record Row(String code, String name, String brand, Nutrients per100, String nutriscore, Double servingG, String imagePath, Instant modifiedAt,
-            ProductInfo info) {}
+            ProductInfo info, String micros) {}
 
     private final JdbcTemplate jdbc;
     private final TaskExecutor executor;
@@ -318,8 +318,16 @@ public class OffImporter {
                 pnns == null || pnns.equalsIgnoreCase("unknown") ? null : cut(pnns, 40), nova == null || nova < 1 ? null : (int) Math.round(nova),
                 additives == null ? null : (int) Math.round(additives), ProductInfo.sweeteners(get(v, col, "additives_tags")),
                 num(get(v, col, "fruits-vegetables-legumes_100g"), 100), scans == null ? null : (int) Math.round(scans));
+        // 1.14: the vitamins and minerals given (in grams: to mg or µg)
+        java.util.Map<String, Double> micros = new java.util.LinkedHashMap<>();
+        for (Micros.Micro m : Micros.ALL) {
+            Double g = num(get(v, col, m.offColumn()), 100);
+            if (g != null) {
+                micros.put(m.key(), g * m.offFactor());
+            }
+        }
         return new Row(code, cut(name.strip(), 200), brand == null || brand.isEmpty() ? null : brand, n, grade,
-                num(get(v, col, "serving_quantity"), 5000), image, modified, info);
+                num(get(v, col, "serving_quantity"), 5000), image, modified, info, Micros.json(micros));
     }
 
     /** a free text of the export, cleaned and cut, or null */
@@ -341,7 +349,7 @@ public class OffImporter {
             args.add(new Object[] {UUID.randomUUID(), r.code(), r.name(), r.brand(), FoodStore.searchName(r.name(), null, r.brand()), n.kcal(),
                     n.proteinG(), n.carbsG(), n.sugarsG(), n.fatG(), n.satFatG(), n.fiberG(), n.saltG(), grade, estimated, r.servingG(), r.imagePath(),
                     r.modifiedAt() == null ? null : Timestamp.from(r.modifiedAt()), r.info().quantity(), r.info().genericName(), r.info().pnns(),
-                    r.info().nova(), r.info().additives(), r.info().sweeteners(), r.info().fruitVeg(), r.info().scans()});
+                    r.info().nova(), r.info().additives(), r.info().sweeteners(), r.info().fruitVeg(), r.info().scans(), r.micros()});
         }
         try {
             jdbc.batchUpdate(UPSERT, args);
@@ -364,8 +372,8 @@ public class OffImporter {
     private static final String UPSERT = """
             insert into food (id, source, source_code, name, brand, search_name, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g,
               fiber_g, salt_g, nutriscore, nutriscore_estimated, serving_g, image_path, source_updated_at, quantity, generic_name, pnns, nova,
-              additives, sweeteners, fruit_veg, scans)
-            values (?, 'OFF', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              additives, sweeteners, fruit_veg, scans, micros)
+            values (?, 'OFF', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb)
             on conflict (source_code) where source = 'OFF' do update set name = excluded.name, brand = excluded.brand,
               search_name = excluded.search_name, kcal = excluded.kcal, protein_g = excluded.protein_g, carbs_g = excluded.carbs_g,
               sugars_g = excluded.sugars_g, fat_g = excluded.fat_g, sat_fat_g = excluded.sat_fat_g, fiber_g = excluded.fiber_g,
@@ -373,7 +381,8 @@ public class OffImporter {
               serving_g = excluded.serving_g, image_path = coalesce(excluded.image_path, food.image_path),
               source_updated_at = coalesce(excluded.source_updated_at, food.source_updated_at), quantity = excluded.quantity,
               generic_name = excluded.generic_name, pnns = excluded.pnns, nova = excluded.nova, additives = excluded.additives,
-              sweeteners = excluded.sweeteners, fruit_veg = excluded.fruit_veg, scans = excluded.scans, updated_at = now()""";
+              sweeteners = excluded.sweeteners, fruit_veg = excluded.fruit_veg, scans = excluded.scans, micros = excluded.micros,
+              updated_at = now()""";
 
     /** the reason itself (« invalid byte sequence… »), not the statement around it */
     static String cause(Throwable e) {

@@ -60,6 +60,11 @@ public class UserService {
         return user.getRole() == AppUser.Role.ADMIN || isEnvAdmin(user);
     }
 
+    /** 1.14: the team account (the community's recipes) */
+    public boolean isBot(AppUser user) {
+        return user.getRole() == AppUser.Role.BOT;
+    }
+
     public List<GrantedAuthority> authorities(AppUser user) {
         List<GrantedAuthority> list = new ArrayList<>(2);
         list.add(new SimpleGrantedAuthority(ROLE_USER));

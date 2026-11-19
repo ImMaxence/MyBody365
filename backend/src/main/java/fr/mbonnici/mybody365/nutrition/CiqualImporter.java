@@ -153,11 +153,29 @@ public class CiqualImporter {
             jdbc.update("update ciqual_import set version = ? where id = ?", version, id);
             Integer existing = jdbc.queryForObject("select count(*) from food where source = 'CIQUAL' and source_version = ?",
                     Integer.class, version);
+            String base = origin(datasetUrl) + "/api/access/datafile/";
             if (existing != null && existing > 0) {
-                finish(id, "UP_TO_DATE", existing, null);
+                Integer withMicros = jdbc.queryForObject(
+                        "select count(*) from food where source = 'CIQUAL' and source_version = ? and micros is not null", Integer.class, version);
+                if (withMicros != null && withMicros > 0) {
+                    finish(id, "UP_TO_DATE", existing, null);
+                    return;
+                }
+                // 1.14: the same table, imported before its vitamins and minerals were kept: they are added to it
+                dir = Files.createTempDirectory("ciqual-");
+                Path compoFile = download(base + compo.id(), dir.resolve("compo.xml"), compo.size(), id, "compo", 10, 80);
+                progress(id, "save", 88);
+                int updated = saveMicros(version, CiqualParser.compo(compoFile));
+                if (updated == 0) {
+                    // a table without them: nothing changed
+                    finish(id, "UP_TO_DATE", existing, null);
+                    return;
+                }
+                finish(id, "DONE", updated, null);
+                log.info("Ciqual {}: vitamins and minerals added to {} foods", version, updated);
+                events.publishEvent(new Imported(version));
                 return;
             }
-            String base = origin(datasetUrl) + "/api/access/datafile/";
             dir = Files.createTempDirectory("ciqual-");
             Path alimFile = download(base + alim.id(), dir.resolve("alim.xml"), alim.size(), id, "foods", 2, 8);
             Path groupFile = groups == null ? null : download(base + groups.id(), dir.resolve("groups.xml"), groups.size(), id, "groups", 8, 10);
@@ -209,18 +227,64 @@ public class CiqualImporter {
             String nameEn = a.nameEn() == null ? null : cut(a.nameEn(), 200);
             rows.add(new Object[] {UUID.randomUUID(), a.code(), version, name, nameEn, category == null ? null : cut(category, 160),
                     FoodStore.searchName(name, nameEn, null), n.kcal(), n.proteinG(), n.carbsG(), n.sugarsG(), n.fatG(), n.satFatG(),
-                    n.fiberG(), n.saltG(), grade, grade != null});
+                    n.fiberG(), n.saltG(), grade, grade != null, Micros.json(CiqualParser.micros(v))});
         }
         tx.executeWithoutResult(s -> {
             for (int i = 0; i < rows.size(); i += 500) {
                 jdbc.batchUpdate("""
                         insert into food (id, source, source_code, source_version, name, name_en, category, search_name, kcal, protein_g,
-                          carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g, salt_g, nutriscore, nutriscore_estimated)
-                        values (?, 'CIQUAL', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", rows.subList(i, Math.min(i + 500, rows.size())));
+                          carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g, salt_g, nutriscore, nutriscore_estimated, micros)
+                        values (?, 'CIQUAL', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb)""", rows.subList(i, Math.min(i + 500, rows.size())));
             }
             jdbc.update("update food set superseded = true where source = 'CIQUAL' and source_version <> ? and not superseded", version);
         });
         return rows.size();
+    }
+
+    /** 1.14: the vitamins and minerals of a table already imported, set on its foods (by their code) */
+    private int saveMicros(String version, Map<String, double[]> values) {
+        List<Object[]> rows = new ArrayList<>();
+        values.forEach((code, v) -> {
+            String json = Micros.json(CiqualParser.micros(v));
+            if (json != null) {
+                rows.add(new Object[] {json, version, code});
+            }
+        });
+        int[] done = {0};
+        tx.executeWithoutResult(s -> {
+            for (int i = 0; i < rows.size(); i += 500) {
+                for (int n : jdbc.batchUpdate("update food set micros = ?::jsonb where source = 'CIQUAL' and source_version = ? and source_code = ?",
+                        rows.subList(i, Math.min(i + 500, rows.size())))) {
+                    done[0] += Math.max(0, n);
+                }
+            }
+        });
+        return done[0];
+    }
+
+    /**
+     * 1.14: a table imported before the vitamins and minerals were kept gets them by itself, a few minutes after a start
+     * (the same download as an update), unless an admin already did it
+     */
+    @org.springframework.scheduling.annotation.Scheduled(initialDelayString = "${app.nutrition.ciqual-micros-delay:PT4M}", fixedDelayString = "PT12H")
+    public void addMicrosIfMissing() {
+        if (!props.nutrition().offAutoRefresh()) {
+            return;
+        }
+        Integer foods = jdbc.queryForObject("select count(*) from food where source = 'CIQUAL' and not superseded", Integer.class);
+        Integer withMicros = jdbc.queryForObject("select count(*) from food where source = 'CIQUAL' and not superseded and micros is not null",
+                Integer.class);
+        Integer recent = jdbc.queryForObject(
+                "select count(*) from ciqual_import where status in ('RUNNING', 'FAILED') and started_at > now() - interval '1 day'", Integer.class);
+        if (foods == null || foods == 0 || (withMicros != null && withMicros > 0) || (recent != null && recent > 0)) {
+            return;
+        }
+        try {
+            start(null);
+            log.info("Ciqual: the vitamins and minerals are added to the table in use");
+        } catch (RuntimeException e) {
+            log.info("Ciqual vitamins not added now: {}", e.getMessage());
+        }
     }
 
     private String fetch(String url) throws IOException, InterruptedException {

@@ -1,6 +1,6 @@
 import { ShareSheetComponent } from '../../shared/share-sheet.component';
 import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
 import type { MacroSplit, MealEntry, MealStats, Slot } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -19,6 +19,10 @@ import { KcalRingComponent } from '../../shared/kcal-ring.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { HealthScoreComponent } from '../../shared/health-score.component';
 import { KnowCardComponent } from './know-card.component';
+import { RichInComponent } from './rich-in.component';
+import { dayScore } from '../../core/meals/day-score';
+import { healthAlerts } from '../../core/meals/health';
+import type { HealthDto, Food } from '../../core/api/models';
 import { DayScoreComponent } from './day-score.component';
 import { ShoppingStore } from '../../core/meals/shopping.store';
 import { FoodThumbComponent } from '../../shared/food-thumb.component';
@@ -32,7 +36,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
 @Component({
   selector: 'app-meals',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ShareSheetComponent, GuidesSheetComponent, TrendsCardComponent, DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, HealthScoreComponent, KnowCardComponent, NumberStepperComponent, FoodThumbComponent, NutrientBarsComponent],
+  imports: [ShareSheetComponent, GuidesSheetComponent, TrendsCardComponent, DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, HealthScoreComponent, KnowCardComponent, NumberStepperComponent, FoodThumbComponent, NutrientBarsComponent, RichInComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -253,6 +257,39 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
                 }
               </div>
             </div>
+            <!-- 1.14: a recipe of the day opens in one tap, its ingredients and its steps -->
+            @if (e.recipeId; as rid) {
+              <button type="button" class="btn btn-secondary btn-s see-recipe" (click)="openRecipe(rid)">
+                <app-icon name="book" [size]="18" /> {{ 'meals.entry.seeRecipe' | t }} <app-icon name="chevronRight" [size]="16" />
+              </button>
+            }
+            <!-- 1.14: its health score and why, its warnings, and where the day stands -->
+            @if (e.health != null) {
+              <div class="entry-health">
+                <app-health-score [score]="e.health" size="full" />
+                @if (selectedHealth(); as h) {
+                  @if (h.pros.length || h.cons.length) {
+                    <ul class="reasons" role="list">
+                      @for (p of h.pros; track p) {
+                        <li class="pro"><app-icon name="check" [size]="13" [stroke]="3" /> {{ 'meals.health.pros.' + p | t }}</li>
+                      }
+                      @for (c of h.cons; track c) {
+                        <li class="con"><app-icon name="minus" [size]="13" [stroke]="3" /> {{ 'meals.health.cons.' + c | t }}</li>
+                      }
+                    </ul>
+                  }
+                }
+              </div>
+            }
+            @for (a of selectedAlerts(); track a.key) {
+              <p class="alert small"><app-icon name="alert" [size]="16" /> <span>{{ 'meals.health.alerts.' + a.key | t: { v: i18n.number(a.value, 1), u: e.liquid ? 'ml' : 'g' } }}</span></p>
+            }
+            @if (dayNow(); as dn) {
+              <p class="small muted day-now">
+                <app-icon name="sparkles" [size]="15" />
+                <span>{{ (dn.ongoing ? 'meals.entry.dayOngoing' : 'meals.entry.dayDone') | t: { score: i18n.number(dn.score, dn.score % 1 ? 1 : 0), share: dn.share } }}</span>
+              </p>
+            }
             <span class="label">{{ 'meals.entry.quantity' | t }}</span>
             @if (e.grams != null && e.liquid) {
               <app-number-stepper [(value)]="qty" [step]="10" [min]="1" [max]="5000" [decimals]="0" unit="ml" [label]="'meals.quantity.mlLabel' | t" />
@@ -264,6 +301,8 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
             <!-- 1.12: what this line brings, with the bars of the day (the rest of the day paler) -->
             <span class="label">{{ 'meals.bars.title' | t }}</span>
             <app-nutrient-bars [item]="liveNutrients()" [plan]="barsPlan()" [dayTotals]="restOfDay()" [entry]="true" />
+            <!-- 1.14: the vitamins and minerals this line brings the most of (its micros are for its amount as noted) -->
+            <app-rich-in [micros]="e.micros" [factor]="qty() / (e.grams ?? e.servings ?? 1)" />
             <span class="label">{{ 'meals.entry.move' | t }}</span>
             <div class="seg" role="group" [attr.aria-label]="'meals.entry.move' | t">
               @for (s of slots; track s) {
@@ -280,6 +319,59 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
     </main>
   `,
   styles: `
+    /* 1.14: the health of a line, in its sheet */
+    .entry-health {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-2) var(--space-3);
+    }
+    .entry-health .reasons {
+      display: flex;
+      flex: 1 1 100%;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .entry-health .reasons li {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px 4px 7px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .entry-health .pro {
+      background: color-mix(in srgb, var(--success, #1f9d55) 13%, transparent);
+      color: color-mix(in srgb, var(--success, #1f9d55) 55%, var(--fg));
+    }
+    .entry-health .con {
+      background: color-mix(in srgb, #e2711d 13%, transparent);
+      color: color-mix(in srgb, #e2711d 50%, var(--fg));
+    }
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 0;
+      padding: var(--space-3);
+      border-radius: 16px;
+      background: color-mix(in srgb, #e2711d 10%, transparent);
+    }
+    .alert app-icon {
+      flex: none;
+      margin-top: 1px;
+      color: #e2711d;
+    }
+    .day-now {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+    }
     .spacer {
       flex: 1;
     }
@@ -335,6 +427,9 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       display: flex;
       align-items: center;
       gap: var(--space-3);
+    }
+    .see-recipe {
+      justify-self: start;
     }
     .sheet-thumb {
       --thumb: 56px;
@@ -885,6 +980,13 @@ export class MealsPage {
   protected readonly slots = SLOTS;
   protected readonly slotIcon = SLOT_ICON;
   protected readonly selected = signal<MealEntry | null>(null);
+  private readonly router = inject(Router);
+
+  /** 1.14: the recipe of a line of the day; the sheet goes at once, the recipe screen comes in over it */
+  protected openRecipe(id: string): void {
+    this.dialog().nativeElement.close();
+    void this.router.navigate(['/app/meals/recipes', id]);
+  }
   protected readonly qty = signal(100);
   protected readonly moveTo = signal<Slot>('LUNCH');
   protected readonly busy = signal(false);
@@ -1102,6 +1204,25 @@ export class MealsPage {
     return Math.round(this.store.bySlot()[slot].reduce((s, e) => s + e.nutrients.kcal, 0));
   }
 
+  /** 1.14: the food of the line opened (its reasons, its warnings), or the health of its recipe */
+  protected readonly selectedFood = signal<Food | null>(null);
+  protected readonly selectedRecipeHealth = signal<HealthDto | null>(null);
+  protected readonly selectedHealth = computed<HealthDto | null>(() => this.selectedFood()?.health ?? this.selectedRecipeHealth());
+  protected readonly selectedAlerts = computed(() => {
+    const f = this.selectedFood();
+    if (!f) return [];
+    return healthAlerts({ ...f.per100, drink: !!f.liquid && f.kind !== 'Milk and yogurt' && f.category !== 'laits' });
+  });
+  /** the day's score as it stands, and this line's share of its calories */
+  protected readonly dayNow = computed(() => {
+    const d = this.store.data();
+    const e = this.selected();
+    if (!d || !e) return null;
+    const s = dayScore(d, this.today(), this.plan().shares);
+    if (!s) return null;
+    return { score: s.score, ongoing: s.ongoing, share: d.totals.kcal > 0 ? Math.round((100 * e.nutrients.kcal) / d.totals.kcal) : 0 };
+  });
+
   protected amount(e: MealEntry): string {
     if (e.grams != null && e.liquid) return this.i18n.t('meals.ml', { ml: this.i18n.number(e.grams) });
     if (e.grams != null) return this.i18n.t('meals.grams', { g: this.i18n.number(e.grams) });
@@ -1119,6 +1240,16 @@ export class MealsPage {
       return;
     }
     this.selected.set(e);
+    this.selectedFood.set(null);
+    this.selectedRecipeHealth.set(null);
+    // 1.14: why it has its score: what its food or its recipe says of itself
+    if (e.foodId) {
+      const id = e.foodId;
+      void this.mealsApi.food(id).then((f) => this.selected()?.foodId === id && this.selectedFood.set(f)).catch(() => undefined);
+    } else if (e.recipeId) {
+      const id = e.recipeId;
+      void this.mealsApi.recipe(id).then((r) => this.selected()?.recipeId === id && this.selectedRecipeHealth.set(r.health ?? null)).catch(() => undefined);
+    }
     this.qty.set(e.grams ?? e.servings ?? 1);
     this.moveTo.set(e.slot);
     this.dialog().nativeElement.showModal();

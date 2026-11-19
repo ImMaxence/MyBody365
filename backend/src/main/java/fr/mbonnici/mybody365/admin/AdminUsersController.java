@@ -106,6 +106,10 @@ public class AdminUsersController {
     public UserDto update(@PathVariable UUID id, @RequestBody UpdateUser body, Authentication auth) {
         AppUser me = users.current(auth);
         AppUser user = userRepository.findById(id).orElseThrow(ApiException::notFound);
+        // 1.14: the bot keeps its role, its status and its quota, and no account becomes a bot
+        if (users.isBot(user) || body.role() == AppUser.Role.BOT) {
+            throw ApiException.forbidden("bot_account");
+        }
         boolean protectedAccount = users.isEnvAdmin(user) || user.getId().equals(me.getId());
         if (body.role() != null && body.role() != user.getRole()) {
             if (protectedAccount) {
@@ -145,6 +149,9 @@ public class AdminUsersController {
     public void delete(@PathVariable UUID id, Authentication auth) {
         AppUser me = users.current(auth);
         AppUser user = userRepository.findById(id).orElseThrow(ApiException::notFound);
+        if (users.isBot(user)) {
+            throw ApiException.forbidden("bot_account");
+        }
         if (users.isEnvAdmin(user) || user.getId().equals(me.getId())) {
             throw ApiException.forbidden("protected_account");
         }
@@ -157,6 +164,9 @@ public class AdminUsersController {
     public Map<String, Integer> endSessions(@PathVariable UUID id, Authentication auth) {
         AppUser me = users.current(auth);
         AppUser user = userRepository.findById(id).orElseThrow(ApiException::notFound);
+        if (users.isBot(user)) {
+            throw ApiException.forbidden("bot_account");
+        }
         int ended = users.endSessions(user.getEmail());
         audit.record(me, Action.USER_SESSIONS_ENDED, Target.user(user), String.valueOf(ended));
         return Map.of("ended", ended);
@@ -169,6 +179,10 @@ public class AdminUsersController {
     public LinkDto createLink(@PathVariable UUID id, @Valid @RequestBody CreateLink body, Authentication auth) {
         AppUser me = users.current(auth);
         AppUser user = userRepository.findById(id).orElseThrow(ApiException::notFound);
+        // the bot never signs in
+        if (users.isBot(user)) {
+            throw ApiException.forbidden("bot_account");
+        }
         if (user.getStatus() != AppUser.Status.ACTIVE) {
             throw ApiException.conflict("account_suspended");
         }

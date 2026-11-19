@@ -8,6 +8,7 @@ import { MealsApi } from '../../core/meals/meals-api';
 import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
+import { ClearableDirective } from '../../shared/clearable.directive';
 import { HealthScoreComponent } from '../../shared/health-score.component';
 import { TYPE_EMOJI } from './recipes.page';
 
@@ -32,7 +33,7 @@ const plain = (s: string) =>
 @Component({
   selector: 'app-recipes-with',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent],
+  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, ClearableDirective],
   template: `
     <main class="page">
       <header class="page-head">

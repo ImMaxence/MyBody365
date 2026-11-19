@@ -1,5 +1,8 @@
 package fr.mbonnici.mybody365.recipe;
 
+import fr.mbonnici.mybody365.admin.AuditService;
+import fr.mbonnici.mybody365.admin.AuditService.Action;
+import fr.mbonnici.mybody365.admin.AuditService.Target;
 import fr.mbonnici.mybody365.common.ApiException;
 import fr.mbonnici.mybody365.recipe.RecipeService.RecipeDto;
 import fr.mbonnici.mybody365.recipe.RecipeService.RecipeInput;
@@ -37,8 +40,11 @@ public class RecipeController {
     private final RecipeImporter importer;
     private final RecipeLookalikes lookalikes;
     private final RecipeFinder finder;
+    private final AuditService audit;
 
-    public RecipeController(RecipeService recipes, UserService users, RecipeImporter importer, RecipeLookalikes lookalikes, RecipeFinder finder) {
+    public RecipeController(RecipeService recipes, UserService users, RecipeImporter importer, RecipeLookalikes lookalikes, RecipeFinder finder,
+            AuditService audit) {
+        this.audit = audit;
         this.importer = importer;
         this.lookalikes = lookalikes;
         this.finder = finder;
@@ -69,7 +75,18 @@ public class RecipeController {
     public RecipeDto update(@PathVariable UUID id, @Valid @RequestBody RecipeInput body, Authentication auth) {
         AppUser me = users.current(auth);
         communityCheck(me, body);
-        return recipes.update(me.getId(), id, body);
+        boolean admin = users.isAdmin(me);
+        RecipeService.RecipeRow before = recipes.row(id);
+        RecipeDto saved = recipes.update(me.getId(), admin, id, body);
+        byAdmin(me, before, Action.RECIPE_EDITED);
+        return saved;
+    }
+
+    /** 1.14: a community recipe changed by an admin who is not its owner goes in the admins' journal */
+    private void byAdmin(AppUser me, RecipeService.RecipeRow r, Action action) {
+        if (!r.ownerId().equals(me.getId())) {
+            audit.record(me, action, new Target("RECIPE", r.id().toString(), r.name()), null);
+        }
     }
 
     /**
@@ -101,24 +118,33 @@ public class RecipeController {
     @DeleteMapping("/api/me/recipes/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id, Authentication auth) {
-        recipes.delete(users.current(auth).getId(), id);
+        AppUser me = users.current(auth);
+        RecipeService.RecipeRow before = recipes.row(id);
+        recipes.delete(me.getId(), users.isAdmin(me), id);
+        byAdmin(me, before, Action.RECIPE_DELETED);
     }
 
     @PostMapping(value = "/api/me/recipes/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public RecipeDto setImage(@PathVariable UUID id, @RequestParam("file") MultipartFile file, Authentication auth) throws IOException {
-        return recipes.setImage(users.current(auth).getId(), id, file.getBytes());
+        AppUser me = users.current(auth);
+        RecipeDto saved = recipes.setImage(me.getId(), users.isAdmin(me), id, file.getBytes());
+        byAdmin(me, recipes.row(id), Action.RECIPE_EDITED);
+        return saved;
     }
 
     @DeleteMapping("/api/me/recipes/{id}/image")
     public RecipeDto deleteImage(@PathVariable UUID id, Authentication auth) {
-        return recipes.deleteImage(users.current(auth).getId(), id);
+        AppUser me = users.current(auth);
+        RecipeDto saved = recipes.deleteImage(me.getId(), users.isAdmin(me), id);
+        byAdmin(me, recipes.row(id), Action.RECIPE_EDITED);
+        return saved;
     }
 
     @GetMapping("/api/recipes/community")
     public List<RecipeDto> community(@RequestParam(required = false) Type type, @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "top") String sort,
-            @RequestParam(defaultValue = "0") int page, Authentication auth) {
-        return recipes.community(users.current(auth).getId(), type, "new".equals(sort), page, q);
+            @RequestParam(defaultValue = "0") int page, @RequestParam(required = false) String rich, Authentication auth) {
+        return recipes.community(users.current(auth).getId(), type, "new".equals(sort), page, q, rich);
     }
 
     /** a draft read from a recipe site (nothing saved): the app fills its form with it */

@@ -8,6 +8,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/ui/toast.service';
 import { AvatarImgComponent } from '../../shared/avatar-img.component';
 import { IconComponent } from '../../shared/icon.component';
+import { ClearableDirective } from '../../shared/clearable.directive';
 import { AdminStore } from './admin.store';
 import { LinkSheetComponent } from './link-sheet.component';
 
@@ -15,7 +16,7 @@ import { LinkSheetComponent } from './link-sheet.component';
 @Component({
   selector: 'app-admin-users',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AvatarImgComponent, FormsModule, TranslatePipe, IconComponent, LinkSheetComponent],
+  imports: [AvatarImgComponent, FormsModule, TranslatePipe, IconComponent, LinkSheetComponent, ClearableDirective],
   template: `
     <div class="row tools">
       <label class="search">
@@ -42,7 +43,7 @@ import { LinkSheetComponent } from './link-sheet.component';
               </span>
               <span class="list-sub">{{ u.email }}</span>
               <span class="badges">
-                <span class="chip" [class.chip-cool]="u.role === 'ADMIN'">{{ (u.role === 'ADMIN' ? 'admin.users.roleAdmin' : 'admin.users.roleUser') | t }}</span>
+                <span class="chip" [class.chip-cool]="u.role === 'ADMIN'" [class.chip-accent]="u.role === 'BOT'">{{ (u.role === 'ADMIN' ? 'admin.users.roleAdmin' : u.role === 'BOT' ? 'admin.users.roleBot' : 'admin.users.roleUser') | t }}</span>
                 @if (u.status === 'SUSPENDED') {
                   <span class="chip chip-danger">{{ 'admin.users.suspended' | t }}</span>
                 }
@@ -135,7 +136,10 @@ import { LinkSheetComponent } from './link-sheet.component';
           @if (u.envAdmin) {
             <p class="notice"><app-icon name="lock" /> {{ 'admin.users.envAdmin' | t }} — {{ 'admin.users.envAdminHint' | t }}</p>
           }
-
+          <!-- 1.14: the team account: nothing to do on it -->
+          @if (u.role === 'BOT') {
+            <p class="notice"><app-icon name="lock" /> {{ 'admin.users.bot' | t }}</p>
+          } @else {
           <div class="list actions">
             <button type="button" class="list-item" (click)="link(u, u.lastLoginAt ? 'RECOVERY' : 'INVITE')" [disabled]="u.status === 'SUSPENDED'">
               <span class="list-icon"><app-icon name="link" /></span>
@@ -162,6 +166,7 @@ import { LinkSheetComponent } from './link-sheet.component';
               </button>
             }
           </div>
+          }
           <button type="button" class="btn btn-ghost btn-block" (click)="userDialog.close()">{{ 'common.close' | t }}</button>
         </div>
       }

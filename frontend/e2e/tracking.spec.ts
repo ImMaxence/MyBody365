@@ -218,4 +218,26 @@ test.describe('tracking', () => {
     expect(res.status()).toBe(400);
     expect((await res.json()).message).toBe('goal_too_low');
   });
+
+  test('the goal in calories, then the starting weight changed (1.14)', async ({ page }) => {
+    await signIn(page, 'new');
+    await page.goto('/app/progress');
+    // 75 kg → 70 kg: 5 kg × 7 700 kcal, divided by the deficit of a day
+    const card = page.locator('app-deficit-card');
+    await expect(card.getByRole('heading', { name: 'Le calcul de ton objectif' })).toBeVisible();
+    await expect(card.getByText(/^5\s*kg × 7\s*700\s*kcal = 38\s*500\s*kcal$/)).toBeVisible();
+    await card.getByRole('button', { name: /^500 kcal$/ }).click();
+    await expect(card.getByText(/^38\s*500\s*kcal ÷ 500\s*kcal par jour = 77 jours$/)).toBeVisible();
+    await expectAccessible(page);
+    // the starting point, from the « Départ » tile
+    await page.getByRole('link', { name: /^Poids de départ : 75,0 kg, modifier$/ }).click();
+    await expect(page).toHaveURL(/\/app\/account\/goal$/);
+    const start = page.getByRole('textbox', { name: 'Poids de départ' });
+    await start.fill('78');
+    await start.blur();
+    await page.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByText('Objectif mis à jour')).toBeVisible();
+    await page.goto('/app/progress');
+    await expect(page.getByRole('link', { name: /^Poids de départ : 78,0 kg, modifier$/ })).toBeVisible();
+  });
 });

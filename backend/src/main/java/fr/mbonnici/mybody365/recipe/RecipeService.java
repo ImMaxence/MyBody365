@@ -90,7 +90,9 @@ public class RecipeService {
     }
 
     /** a line: its calories for the weight, its food's values per 100 g, and whether it counts as fruit and vegetables */
-    public record IngredientDto(UUID foodId, String name, double grams, double kcal, Nutrients per100, boolean fruitVeg) {}
+    public record IngredientDto(UUID foodId, String name, double grams, double kcal, Nutrients per100, boolean fruitVeg,
+            /** 1.14: the health score of its food (null: unknown, alcohol, or the food is gone) */
+            Double health) {}
 
     /** per serving: the calories, the macros when known */
     public record ManualNutrition(
@@ -108,14 +110,18 @@ public class RecipeService {
             /** 1.11: a free photo (Wikimedia Commons): who took it, its licence, its page (null in lists) */
             String imageCredit, String imageLicense, String imageSource,
             /** 1.13: the health score of a serving's dish, with its reasons (null: entered by hand, or with alcohol) */
-            FoodService.Health health) {}
+            FoodService.Health health,
+            /** 1.14: vitamins and minerals of a serving (empty: unknown) */
+            Map<String, Double> micros) {}
 
     /** a recipe as stored */
     public record RecipeRow(UUID id, UUID ownerId, String ownerName, String name, Type type, List<Type> types, int servings, String notes, boolean shared,
             Visibility visibility, boolean hidden, String imageFormat, Long imageBytes, int imageVersion, Nutrients perServing, Double servingG,
             String nutriscore, int score, Instant createdAt,
             /** 1.13: the health score (null: no ingredient to judge it from, or alcohol in it) */
-            HealthScore.Result health) {
+            HealthScore.Result health,
+            /** 1.14: vitamins and minerals of a serving */
+            Map<String, Double> micros) {
 
         String imageKey(boolean thumb) {
             return ObjectStorage.userPrefix(ownerId) + "r/" + id + "_" + imageVersion + (thumb ? "_t." : ".") + imageFormat;
@@ -146,7 +152,7 @@ public class RecipeService {
     private static final String SELECT = """
             select r.id, r.owner_id, u.display_name, r.name, r.type, r.types, r.servings, r.notes, r.shared, r.visibility, r.hidden, r.image_format, r.image_bytes,
               r.image_version, r.kcal, r.protein_g, r.carbs_g, r.sugars_g, r.fat_g, r.sat_fat_g, r.fiber_g, r.salt_g, r.serving_g,
-              r.nutriscore, r.score, r.created_at, r.fruit_veg, r.alcohol
+              r.nutriscore, r.score, r.created_at, r.fruit_veg, r.alcohol, r.micros::text as micros
             from recipe r join app_user u on u.id = r.owner_id""";
 
     private static RecipeRow map(ResultSet rs, int i) throws SQLException {
@@ -162,7 +168,7 @@ public class RecipeService {
                 rs.getInt("image_version"), Nutrients.from(rs), noServing ? null : serving, rs.getString("nutriscore"), rs.getInt("score"),
                 rs.getTimestamp("created_at").toInstant(), health(rs.getString("name"), types(rs.getString("type"), rs.getString("types")),
                         Nutrients.from(rs), noServing ? null : serving, rs.getObject("fruit_veg") == null ? null : rs.getDouble("fruit_veg"),
-                        rs.getBoolean("alcohol")));
+                        rs.getBoolean("alcohol")), fr.mbonnici.mybody365.nutrition.Micros.parse(rs.getString("micros")));
     }
 
     /**
@@ -221,17 +227,19 @@ public class RecipeService {
                 firstName(r.ownerName()), r.perServing().rounded(), r.servingG(), r.nutriscore(), r.score(), myVote,
                 r.imageFormat() == null ? null : base + "full" + v, r.imageFormat() == null ? null : base + "thumb" + v, ingredients,
                 r.createdAt(), manual, lines, source, source == null ? null : sourceName(source), r.imageFormat() == null ? null : credit,
-                r.imageFormat() == null ? null : license, r.imageFormat() == null ? null : imageSource, FoodService.Health.of(r.health()));
+                r.imageFormat() == null ? null : license, r.imageFormat() == null ? null : imageSource, FoodService.Health.of(r.health()),
+                fr.mbonnici.mybody365.nutrition.Micros.rounded(r.micros()));
     }
 
     private List<IngredientDto> ingredients(UUID recipeId) {
         return jdbc.query("""
                 select ri.food_id, ri.name, ri.grams, ri.kcal, ri.protein_g, ri.carbs_g, ri.sugars_g, ri.fat_g, ri.sat_fat_g, ri.fiber_g, ri.salt_g,
-                  f.category
+                  f.category, f.source, f.name as food_name, f.quantity, f.generic_name, f.pnns, f.nova, f.additives, f.sweeteners, f.fruit_veg,
+                  f.scans
                 from recipe_ingredient ri left join food f on f.id = ri.food_id where ri.recipe_id = ? order by ri.position""",
                 (rs, i) -> new IngredientDto(rs.getObject("food_id", UUID.class), rs.getString("name"), rs.getDouble("grams"),
                         Math.round(rs.getDouble("kcal") * rs.getDouble("grams") / 100), Nutrients.from(rs).rounded(),
-                        HealthScore.fruitVegCategory(rs.getString("category"))),
+                        HealthScore.fruitVegCategory(rs.getString("category")), ingredientHealth(rs)),
                 recipeId);
     }
 
@@ -267,18 +275,126 @@ public class RecipeService {
         return community(viewerId, type, newest, page, null);
     }
 
-    /** 30 a page; with words, the recipes whose name holds every one of them (« creme brulee » finds « Crème brûlée ») */
     public List<RecipeDto> community(UUID viewerId, Type type, boolean newest, int page, String query) {
+        return community(viewerId, type, newest, page, query, null);
+    }
+
+    /** words a search leaves out (« salade de riz » is about salad and rice) */
+    private static final java.util.Set<String> STOP = java.util.Set.of("de", "du", "des", "la", "le", "les", "au", "aux", "a", "et", "en", "d", "l",
+            "un", "une", "avec", "sans", "pour", "sur", "ou", "the", "and", "with", "of");
+
+    /** a word of a search, singular (« salades » → « salade », « choux » → « chou »), as the names are compared */
+    static String stem(String w) {
+        if (w.length() >= 5 && (w.endsWith("s") || w.endsWith("x"))) {
+            return w.substring(0, w.length() - 1);
+        }
+        return w;
+    }
+
+    /** the words a search looks for, singular, without the little words */
+    static List<String> searchWords(String query) {
+        return fr.mbonnici.mybody365.nutrition.SearchText.words(query).stream().filter(w -> w.length() >= 2 && !STOP.contains(w))
+                .map(RecipeService::stem).distinct().limit(6).toList();
+    }
+
+    /**
+     * 30 a page. 1.14: with words, every word counts on its own (« salade tiramisu chocolat » finds the salads, the tiramisus
+     * and the recipes with chocolate): a word in the name weighs 3, among the ingredients 1, and the recipes holding the most
+     * of them come first; among those as good, the words take turns (a salad, a tiramisu, a recipe with chocolate, a salad…)
+     * so that one word with many recipes does not fill the page. Sorted by a vitamin or a mineral (rich: its key), the richest
+     * servings first, against its reference.
+     */
+    public List<RecipeDto> community(UUID viewerId, Type type, boolean newest, int page, String query, String rich) {
         StringBuilder where = new StringBuilder(" where r.shared and not r.hidden").append(ofType(type));
         List<Object> args = new java.util.ArrayList<>();
-        for (String word : fr.mbonnici.mybody365.nutrition.SearchText.words(query)) {
-            where.append(" and ").append(PLAIN_NAME).append(" like ? escape '\\'");
-            args.add(fr.mbonnici.mybody365.nutrition.SearchText.contains(word));
+        List<String> words = searchWords(query);
+        StringBuilder relevance = new StringBuilder();
+        List<Object> relevanceArgs = new java.util.ArrayList<>();
+        for (String w : words) {
+            String like = fr.mbonnici.mybody365.nutrition.SearchText.contains(w);
+            relevance.append(relevance.isEmpty() ? "" : " + ").append("(case when ").append(PLAIN_NAME).append(" like ? escape '\\' then 3")
+                    .append(" when exists (select 1 from recipe_ingredient ri where ri.recipe_id = r.id and ").append(PLAIN_INGREDIENT)
+                    .append(" like ? escape '\\') or ").append(PLAIN_LINES).append(" like ? escape '\\' then 1 else 0 end)");
+            relevanceArgs.add(like);
+            relevanceArgs.add(like);
+            relevanceArgs.add(like);
         }
-        String order = newest ? " order by r.shared_at desc nulls last" : " order by r.score desc, r.shared_at desc nulls last";
+        if (!words.isEmpty()) {
+            where.append(" and (").append(relevance).append(") > 0");
+            args.addAll(relevanceArgs);
+        }
+        fr.mbonnici.mybody365.nutrition.Micros.Micro micro = rich == null ? null : fr.mbonnici.mybody365.nutrition.Micros.of(rich);
+        StringBuilder order = new StringBuilder(" order by ");
+        if (micro != null) {
+            // a key of ours, never a word from outside (Micros.of returned it)
+            where.append(" and (r.micros ->> '").append(micro.key()).append("')::numeric > 0");
+            order.append("(r.micros ->> '").append(micro.key()).append("')::numeric desc, ");
+        }
+        if (!words.isEmpty()) {
+            // the first word found in the name: the group whose recipes take turns with the other words' (99: in the ingredients)
+            StringBuilder group = new StringBuilder("case");
+            List<Object> groupArgs = new java.util.ArrayList<>();
+            for (int i = 0; i < words.size(); i++) {
+                group.append(" when ").append(PLAIN_NAME).append(" like ? escape '\\' then ").append(i);
+                groupArgs.add(fr.mbonnici.mybody365.nutrition.SearchText.contains(words.get(i)));
+            }
+            group.append(" else 99 end");
+            String inner = SELECT.replace("from recipe r join", ", (" + relevance + ") as rel, (" + group + ") as grp, r.shared_at as at from recipe r join");
+            List<Object> all = new java.util.ArrayList<>(relevanceArgs);
+            all.addAll(groupArgs);
+            all.addAll(args);
+            String turn = "row_number() over (partition by x.rel, x.grp order by " + (newest ? "x.at desc nulls last" : "x.score desc, x.at desc nulls last") + ")";
+            String byMicro = micro == null ? "" : "(x.micros::jsonb ->> '" + micro.key() + "')::numeric desc, ";
+            all.add(Math.max(0, page) * 30);
+            return jdbc.query("select * from (" + inner + where + ") x order by " + byMicro + "x.rel desc, " + turn + ", x.grp limit 30 offset ?",
+                    RecipeService::map, all.toArray()).stream().map(r -> dto(r, viewerId, false)).toList();
+        }
+        order.append(newest ? "r.shared_at desc nulls last" : "r.score desc, r.shared_at desc nulls last");
         args.add(Math.max(0, page) * 30);
         return jdbc.query(SELECT + where + order + " limit 30 offset ?", RecipeService::map, args.toArray()).stream()
                 .map(r -> dto(r, viewerId, false)).toList();
+    }
+
+    /** an ingredient's name and a recipe's lines entered by hand, as a recipe name is compared */
+    private static final String PLAIN_INGREDIENT = "translate(lower(ri.name), 'àáâäãåèéêëìíîïòóôöõùúûüýÿçñœæ', 'aaaaaaeeeeiiiiooooouuuuyycnoa')";
+    private static final String PLAIN_LINES = "translate(lower(coalesce(r.ingredient_lines, '')), 'àáâäãåèéêëìíîïòóôöõùúûüýÿçñœæ', 'aaaaaaeeeeiiiiooooouuuuyycnoa')";
+
+    /**
+     * 1.14: the vitamins and minerals of every recipe made of foods, worked out again from its foods (after a Ciqual
+     * import brought them, and once at start for the recipes saved before)
+     */
+    @org.springframework.context.event.EventListener(fr.mbonnici.mybody365.nutrition.CiqualImporter.Imported.class)
+    public void refreshMicros() {
+        Map<UUID, fr.mbonnici.mybody365.nutrition.Micros.Mix> mixes = new java.util.LinkedHashMap<>();
+        Map<UUID, Integer> servings = new java.util.HashMap<>();
+        jdbc.query("""
+                select ri.recipe_id, r.servings, ri.grams, ri.kcal, f.micros::text as micros
+                from recipe_ingredient ri join recipe r on r.id = ri.recipe_id left join food f on f.id = ri.food_id
+                where not coalesce(r.manual_nutrition, false)""", rs -> {
+            UUID id = rs.getObject("recipe_id", UUID.class);
+            servings.put(id, Math.max(1, rs.getInt("servings")));
+            double grams = rs.getDouble("grams");
+            // recipe_ingredient.kcal is per 100 g of the food
+            mixes.computeIfAbsent(id, k -> new fr.mbonnici.mybody365.nutrition.Micros.Mix())
+                    .add(fr.mbonnici.mybody365.nutrition.Micros.parse(rs.getString("micros")), grams, rs.getDouble("kcal") * grams / 100);
+        });
+        List<Object[]> rows = new java.util.ArrayList<>();
+        mixes.forEach((id, mix) -> rows.add(new Object[] {fr.mbonnici.mybody365.nutrition.Micros.json(mix.known(1.0 / servings.get(id))), id}));
+        for (int i = 0; i < rows.size(); i += 500) {
+            jdbc.batchUpdate("update recipe set micros = ?::jsonb where id = ?", rows.subList(i, Math.min(i + 500, rows.size())));
+        }
+    }
+
+    /** once at start: the recipes saved before 1.14 get their vitamins and minerals, when their foods have them */
+    @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
+    public void microsAtStart() {
+        Integer missing = jdbc.queryForObject("""
+                select count(*) from recipe r where r.micros is null and not coalesce(r.manual_nutrition, false)
+                  and exists (select 1 from recipe_ingredient ri join food f on f.id = ri.food_id where ri.recipe_id = r.id and f.micros is not null)""",
+                Integer.class);
+        if (missing != null && missing > 0) {
+            refreshMicros();
+        }
     }
 
     /** the recipes of the viewer's friends (shown to friends or to the community), newest first */
@@ -302,10 +418,40 @@ public class RecipeService {
 
     @Transactional
     public RecipeDto update(UUID userId, UUID id, RecipeInput in) {
-        own(userId, id);
-        write(id, userId, in);
-        news.saved(userId, id);
+        return update(userId, false, id, in);
+    }
+
+    /** 1.14: by its owner, or by an admin when it is in the community (its foods those its owner may use) */
+    @Transactional
+    public RecipeDto update(UUID userId, boolean admin, UUID id, RecipeInput in) {
+        RecipeRow r = editable(userId, admin, id);
+        write(id, r.ownerId(), in);
+        news.saved(r.ownerId(), id);
         return dto(row(id), userId, true);
+    }
+
+    /** 1.14: the community for the admins (Admin › Recettes): by name, without a photo or hidden, 50 a page, and the counts */
+    public record AdminList(long total, long noPhoto, long hidden, List<RecipeDto> recipes) {}
+
+    public AdminList adminCommunity(UUID viewerId, String query, String filter, int page) {
+        StringBuilder where = new StringBuilder(" where r.visibility = 'PUBLIC'");
+        List<Object> args = new ArrayList<>();
+        for (String w : searchWords(query)) {
+            where.append(" and ").append(PLAIN_NAME).append(" like ?");
+            args.add("%" + w + "%");
+        }
+        Map<String, Object> c = jdbc.queryForMap("select count(*) as total, count(*) filter (where r.image_format is null) as nophoto,"
+                + " count(*) filter (where r.hidden) as hidden from recipe r" + where, args.toArray());
+        if ("nophoto".equals(filter)) {
+            where.append(" and r.image_format is null");
+        } else if ("hidden".equals(filter)) {
+            where.append(" and r.hidden");
+        }
+        args.add(Math.max(0, page) * 50);
+        List<RecipeDto> list = jdbc.query(SELECT + where + " order by " + PLAIN_NAME + ", r.id offset ? limit 50", RecipeService::map, args.toArray())
+                .stream().map(r -> dto(r, viewerId, false)).toList();
+        return new AdminList(((Number) c.get("total")).longValue(), ((Number) c.get("nophoto")).longValue(), ((Number) c.get("hidden")).longValue(),
+                list);
     }
 
     /** "https://www.les-creations-de-yona.fr/…" → "les-creations-de-yona.fr" */
@@ -345,7 +491,7 @@ public class RecipeService {
         jdbc.update("""
                 update recipe set name = ?, type = ?, types = ?, servings = ?, notes = ?, shared = ?, visibility = ?, kcal = ?, protein_g = ?, carbs_g = ?,
                   sugars_g = null, fat_g = ?, sat_fat_g = null, fiber_g = null, salt_g = null, serving_g = null, nutriscore = null,
-                  fruit_veg = null, alcohol = false,
+                  fruit_veg = null, alcohol = false, micros = null,
                   manual_nutrition = true, ingredient_lines = ?, source_url = ?, updated_at = now(),
                   shared_at = case when ? and not ? then now() else shared_at end
                 where id = ?""",
@@ -355,6 +501,17 @@ public class RecipeService {
     }
 
     /** ingredients (each with a copy of its food's nutrients), then the totals per serving */
+    /** 1.14: an ingredient's health score, judged on the values copied in the recipe and on what its food says of itself */
+    private static Double ingredientHealth(ResultSet rs) throws SQLException {
+        String source = rs.getString("source");
+        if (source == null) {
+            return null;
+        }
+        HealthScore.Result h = HealthScore.score(HealthScore.of(fr.mbonnici.mybody365.nutrition.FoodStore.Source.valueOf(source),
+                rs.getString("food_name"), rs.getString("category"), Nutrients.from(rs), fr.mbonnici.mybody365.nutrition.FoodStore.info(rs)));
+        return h == null ? null : h.score();
+    }
+
     private void write(UUID id, UUID userId, RecipeInput in) {
         if (in.manual() != null) {
             writeManual(id, in);
@@ -369,6 +526,7 @@ public class RecipeService {
         double fruitVeg = 0;
         double plants = 0;
         boolean alcohol = false;
+        fr.mbonnici.mybody365.nutrition.Micros.Mix micros = new fr.mbonnici.mybody365.nutrition.Micros.Mix();
         int position = 0;
         for (IngredientInput ing : in.ingredients()) {
             Food f = foods.usable(ing.foodId(), userId);
@@ -388,6 +546,7 @@ public class RecipeService {
                 plants += ing.grams();
             }
             alcohol |= HealthScore.of(f).alcohol();
+            micros.add(f.micros(), ing.grams(), n.kcal() * ing.grams() / 100);
         }
         Nutrients perServing = total.times(1.0 / in.servings());
         // a ratatouille is mostly vegetables: their share counts, as on a packaging
@@ -402,8 +561,10 @@ public class RecipeService {
                 in.resolved() == Visibility.PUBLIC, in.resolved().name(), perServing.kcal(), perServing.proteinG(), perServing.carbsG(),
                 perServing.sugarsG(), perServing.fatG(), perServing.satFatG(), perServing.fiberG(), perServing.saltG(), grams / in.servings(), grade,
                 in.resolved() == Visibility.PUBLIC, wasShared, id);
-        jdbc.update("update recipe set manual_nutrition = false, ingredient_lines = null, source_url = ?, fruit_veg = ?, alcohol = ? where id = ?",
-                source(in.sourceUrl()), Math.round(1000 * plants / grams) / 10.0, alcohol, id);
+        jdbc.update("""
+                update recipe set manual_nutrition = false, ingredient_lines = null, source_url = ?, fruit_veg = ?, alcohol = ?, micros = ?::jsonb
+                where id = ?""", source(in.sourceUrl()), Math.round(1000 * plants / grams) / 10.0, alcohol,
+                fr.mbonnici.mybody365.nutrition.Micros.json(micros.known(1.0 / in.servings())), id);
     }
 
     /**
@@ -424,7 +585,13 @@ public class RecipeService {
 
     @Transactional
     public void delete(UUID userId, UUID id) {
-        RecipeRow r = own(userId, id);
+        delete(userId, false, id);
+    }
+
+    /** 1.14: an admin may delete a community recipe (one of the team's files never comes back: community_seed keeps it) */
+    @Transactional
+    public void delete(UUID userId, boolean admin, UUID id) {
+        RecipeRow r = editable(userId, admin, id);
         jdbc.update("delete from recipe where id = ?", id);
         removeImage(r);
     }
@@ -436,9 +603,9 @@ public class RecipeService {
         UUID copy = UUID.randomUUID();
         jdbc.update("""
                 insert into recipe (id, owner_id, name, type, types, servings, notes, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g,
-                  salt_g, serving_g, nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol)
+                  salt_g, serving_g, nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol, micros)
                 select ?, ?, name, type, types, servings, notes, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g, salt_g, serving_g,
-                  nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol from recipe where id = ?""", copy, userId, id);
+                  nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol, micros from recipe where id = ?""", copy, userId, id);
         jdbc.update("""
                 insert into recipe_ingredient (id, recipe_id, position, food_id, name, grams, kcal, protein_g, carbs_g, sugars_g, fat_g,
                   sat_fat_g, fiber_g, salt_g)
@@ -453,7 +620,7 @@ public class RecipeService {
                 RecipeRow c = row(copy);
                 RecipeRow withImage = new RecipeRow(c.id(), c.ownerId(), c.ownerName(), c.name(), c.type(), c.types(), c.servings(), c.notes(), false,
                         Visibility.PRIVATE, false, r.imageFormat(), (long) (full.length + thumb.length), 1, c.perServing(), c.servingG(), c.nutriscore(), 0,
-                        c.createdAt(), c.health());
+                        c.createdAt(), c.health(), c.micros());
                 storage.put(withImage.imageKey(false), full, contentType(r.imageFormat()));
                 storage.put(withImage.imageKey(true), thumb, contentType(r.imageFormat()));
                 // the photo goes with its credit
@@ -468,7 +635,13 @@ public class RecipeService {
 
     @Transactional
     public RecipeDto setImage(UUID userId, UUID id, byte[] file) {
-        RecipeRow r = own(userId, id);
+        return setImage(userId, false, id, file);
+    }
+
+    /** 1.14: an admin may change the photo of a community recipe (counted in nobody's quota: the team has none) */
+    @Transactional
+    public RecipeDto setImage(UUID userId, boolean admin, UUID id, byte[] file) {
+        RecipeRow r = editable(userId, admin, id);
         if (file == null || file.length == 0) {
             throw ApiException.badRequest("invalid_image");
         }
@@ -477,10 +650,13 @@ public class RecipeService {
         }
         Processed img = images.process(file, IMAGE_SIDE, THUMB_SIDE);
         long size = img.full().length + img.thumb().length;
-        quota.check(userId, size, r.imageBytes() == null ? 0 : r.imageBytes());
+        if (r.ownerId().equals(userId)) {
+            quota.check(userId, size, r.imageBytes() == null ? 0 : r.imageBytes());
+        }
         int version = r.imageVersion() + 1;
         RecipeRow next = new RecipeRow(r.id(), r.ownerId(), r.ownerName(), r.name(), r.type(), r.types(), r.servings(), r.notes(), r.shared(),
-                r.visibility(), r.hidden(), img.format(), size, version, r.perServing(), r.servingG(), r.nutriscore(), r.score(), r.createdAt(), r.health());
+                r.visibility(), r.hidden(), img.format(), size, version, r.perServing(), r.servingG(), r.nutriscore(), r.score(), r.createdAt(), r.health(),
+                r.micros());
         storage.put(next.imageKey(false), img.full(), img.contentType());
         storage.put(next.imageKey(true), img.thumb(), img.contentType());
         jdbc.update("""
@@ -501,7 +677,8 @@ public class RecipeService {
         long size = img.full().length + img.thumb().length;
         int version = r.imageVersion() + 1;
         RecipeRow next = new RecipeRow(r.id(), r.ownerId(), r.ownerName(), r.name(), r.type(), r.types(), r.servings(), r.notes(), r.shared(),
-                r.visibility(), r.hidden(), img.format(), size, version, r.perServing(), r.servingG(), r.nutriscore(), r.score(), r.createdAt(), r.health());
+                r.visibility(), r.hidden(), img.format(), size, version, r.perServing(), r.servingG(), r.nutriscore(), r.score(), r.createdAt(), r.health(),
+                r.micros());
         storage.put(next.imageKey(false), img.full(), img.contentType());
         storage.put(next.imageKey(true), img.thumb(), img.contentType());
         jdbc.update("""
@@ -516,7 +693,12 @@ public class RecipeService {
 
     @Transactional
     public RecipeDto deleteImage(UUID userId, UUID id) {
-        RecipeRow r = own(userId, id);
+        return deleteImage(userId, false, id);
+    }
+
+    @Transactional
+    public RecipeDto deleteImage(UUID userId, boolean admin, UUID id) {
+        RecipeRow r = editable(userId, admin, id);
         jdbc.update("update recipe set image_format = null, image_bytes = null, image_credit = null, image_license = null, image_source = null"
                 + " where id = ?", id);
         removeImage(r);
@@ -570,6 +752,15 @@ public class RecipeService {
     public Map<String, Object> counts() {
         return jdbc.queryForMap("select count(*) as total, count(*) filter (where shared and not hidden) as shared,"
                 + " count(*) filter (where hidden) as hidden from recipe");
+    }
+
+    /** 1.14: the recipe its owner may change, or an admin when it is in the community */
+    private RecipeRow editable(UUID userId, boolean admin, UUID id) {
+        RecipeRow r = row(id);
+        if (!r.ownerId().equals(userId) && !(admin && r.visibility() == Visibility.PUBLIC)) {
+            throw ApiException.notFound();
+        }
+        return r;
     }
 
     private RecipeRow own(UUID userId, UUID id) {

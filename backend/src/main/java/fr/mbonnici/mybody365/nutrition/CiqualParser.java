@@ -59,12 +59,19 @@ public final class CiqualParser {
         return out;
     }
 
-    /** food code → the 8 values of {@link #CONSTITUENTS} (NaN when unknown) */
+    /**
+     * food code → the 8 values of {@link #CONSTITUENTS}, then (1.14) the vitamins and minerals of {@link Micros#ALL} in
+     * their order (NaN when unknown)
+     */
     public static Map<String, double[]> compo(Path file) throws IOException, XMLStreamException {
         Map<String, Integer> index = new HashMap<>();
         for (int i = 0; i < CONSTITUENTS.length; i++) {
             index.put(CONSTITUENTS[i], i);
         }
+        for (int i = 0; i < Micros.ALL.size(); i++) {
+            index.put(Micros.ALL.get(i).ciqual(), CONSTITUENTS.length + i);
+        }
+        final int width = CONSTITUENTS.length + Micros.ALL.size();
         Map<String, double[]> out = new HashMap<>();
         records(file, "COMPO", r -> {
             Integer i = index.get(r.get("const_code"));
@@ -73,12 +80,24 @@ public final class CiqualParser {
                 return;
             }
             double[] v = out.computeIfAbsent(code, k -> {
-                double[] a = new double[CONSTITUENTS.length];
+                double[] a = new double[width];
                 Arrays.fill(a, Double.NaN);
                 return a;
             });
             v[i] = value(r.get("teneur"));
         });
+        return out;
+    }
+
+    /** 1.14: the vitamins and minerals of a food's values (what compo gives after the 8 nutrients), as their keys */
+    public static Map<String, Double> micros(double[] v) {
+        Map<String, Double> out = new LinkedHashMap<>();
+        for (int i = 0; i < Micros.ALL.size(); i++) {
+            int at = CONSTITUENTS.length + i;
+            if (at < v.length && !Double.isNaN(v[at]) && v[at] >= 0) {
+                out.put(Micros.ALL.get(i).key(), v[at]);
+            }
+        }
         return out;
     }
 

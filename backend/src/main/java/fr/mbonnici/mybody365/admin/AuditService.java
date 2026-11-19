@@ -33,6 +33,9 @@ public class AuditService {
         REPORTED_PHOTO_DELETED,
         RECIPE_HIDDEN,
         RECIPE_RESTORED,
+        /** 1.14: a community recipe changed or deleted by an admin (Admin › Recettes) */
+        RECIPE_EDITED,
+        RECIPE_DELETED,
     }
 
     public record Target(String type, String id, String label) {

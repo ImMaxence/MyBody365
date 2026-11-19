@@ -12,6 +12,7 @@ import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 import { HealthScoreComponent } from '../../shared/health-score.component';
+import { RichInComponent } from './rich-in.component';
 import { ReportSheetComponent } from '../../shared/report-sheet.component';
 import { FavoritesStore } from '../../core/meals/favorites.store';
 import { HapticDirective } from '../../core/ui/haptics';
@@ -20,12 +21,13 @@ import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { ShoppingStore } from '../../core/meals/shopping.store';
 import { closeSheet } from '../../core/ui/sheets';
 import { TYPE_EMOJI } from './recipes.page';
+import { SessionStore } from '../../core/auth/session.store';
 
 /** A recipe: its picture, nutrients per serving, ingredients, votes, and what can be done with it. */
 @Component({
   selector: 'app-recipe',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective, NumberStepperComponent],
+  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective, NumberStepperComponent, RichInComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -118,6 +120,8 @@ import { TYPE_EMOJI } from './recipes.page';
             <div><dt>{{ 'meals.fat' | t }}</dt><dd class="num">{{ g(r.perServing.fatG) }}</dd></div>
             <div><dt>{{ 'meals.fiber' | t }}</dt><dd class="num">{{ g(r.perServing.fiberG) }}</dd></div>
           </dl>
+          <!-- 1.14: the vitamins and minerals a serving brings the most of -->
+          <app-rich-in class="rich-in" [micros]="r.micros" />
         </section>
 
         <div class="main-actions">
@@ -152,7 +156,16 @@ import { TYPE_EMOJI } from './recipes.page';
         <h2 class="section-title">{{ 'meals.recipe.ingredients' | t }} · {{ 'meals.servings' | t: { n: r.servings } }}</h2>
         <ul class="ingredients card" role="list">
           @for (ing of r.ingredients ?? []; track $index) {
-            <li><span>{{ ing.name }}</span><span class="num muted">{{ i18n.number(ing.grams) }} g · {{ ing.kcal }} kcal</span></li>
+            <!-- 1.14: its score out of 10, its name on as many lines as it needs, the amount and the calories in their own column -->
+            <li class="ing">
+              @if (ing.health != null) {
+                <app-health-score class="ing-score" [score]="ing.health" />
+              } @else {
+                <span class="ing-score none" aria-hidden="true"></span>
+              }
+              <span class="ing-name">{{ ing.name }}</span>
+              <span class="ing-amount num"><b>{{ i18n.number(ing.grams) }} g</b><small class="muted">{{ ing.kcal }} kcal</small></span>
+            </li>
           }
           @for (line of r.ingredientLines ?? []; track $index) {
             <li><span>{{ line }}</span></li>
@@ -170,6 +183,10 @@ import { TYPE_EMOJI } from './recipes.page';
             <a class="btn btn-secondary" [routerLink]="['/app/meals/recipes', r.id, 'edit']"><app-icon name="pencil" /> {{ 'meals.recipe.edit' | t }}</a>
             <button type="button" class="btn btn-ghost danger" (click)="confirm.showModal()"><app-icon name="trash" /> {{ 'meals.recipe.deleteShort' | t }}</button>
           } @else {
+            <!-- 1.14: an admin changes a community recipe in the same editor -->
+            @if (isAdmin() && r.visibility === 'PUBLIC') {
+              <a class="btn btn-secondary wide" [routerLink]="['/app/meals/recipes', r.id, 'edit']"><app-icon name="pencil" /> {{ 'meals.recipe.editCommunity' | t }}</a>
+            }
             <button type="button" class="btn btn-secondary wide" [disabled]="busy()" (click)="copy(r)"><app-icon name="copy" /> {{ 'meals.recipe.copy' | t }}</button>
             <button type="button" class="btn btn-ghost wide report" (click)="reportSheet().open('RECIPE', r.id)"><app-icon name="flag" [size]="18" /> {{ 'friends.report.title' | t }}</button>
           }
@@ -403,6 +420,36 @@ import { TYPE_EMOJI } from './recipes.page';
     .ingredients li:first-child {
       border-top: 0;
     }
+    .ingredients li.ing {
+      display: grid;
+      /* the score column keeps one width (« 10/10 » or « 6,5/10 »): the names line up */
+      grid-template-columns: 3.7rem minmax(0, 1fr) auto;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .ing-score {
+      justify-self: start;
+    }
+    .ing-score.none {
+      display: block;
+    }
+    .ing-name {
+      overflow-wrap: anywhere;
+      line-height: 1.3;
+    }
+    .ing-amount {
+      display: grid;
+      justify-items: end;
+      gap: 1px;
+      white-space: nowrap;
+      text-align: right;
+    }
+    .ing-amount b {
+      font-weight: 650;
+    }
+    .ing-amount small {
+      font-size: 12px;
+    }
     .notes {
       padding: var(--space-4);
       white-space: pre-line;
@@ -494,6 +541,7 @@ export class RecipePage {
   );
   private readonly day = computed(() => (this.dayParam() && /^\d{4}-\d{2}-\d{2}$/.test(this.dayParam()!) ? this.dayParam()! : localDay()));
   private readonly api = inject(MealsApi);
+  protected readonly isAdmin = inject(SessionStore).isAdmin;
   private readonly meals = inject(MealsStore);
   private readonly toast = inject(ToastService);
   private readonly stack = inject(StackNavigation);

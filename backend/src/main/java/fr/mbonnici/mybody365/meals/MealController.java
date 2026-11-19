@@ -78,6 +78,12 @@ public class MealController {
         return meals.stats(users.current(auth).getId(), days);
     }
 
+    /** 1.14: the vitamins and minerals of the last days, and those that run low */
+    @GetMapping("/micros")
+    public MealService.MicrosDto micros(@RequestParam(defaultValue = "7") int days, Authentication auth) {
+        return meals.micros(users.current(auth).getId(), days);
+    }
+
     @GetMapping("/recent")
     public List<RecentDto> recent(Authentication auth) {
         return meals.recent(users.current(auth).getId());

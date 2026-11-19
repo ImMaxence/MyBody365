@@ -55,6 +55,7 @@ const CALENDAR: Cell[] = Array.from({ length: 28 }, (_, i) => {
         <a [routerLink]="home()" class="brand" aria-label="MyBody365"><app-logo [size]="32" /></a>
         <nav class="nav" aria-label="Sections">
           <a href="#apercu">{{ 'landing.nav.preview' | t }}</a>
+          <a href="#amis">{{ 'landing.nav.friends' | t }}</a>
           <a href="#parcours">{{ 'landing.nav.journey' | t }}</a>
           <a href="#privacy">{{ 'landing.nav.privacy' | t }}</a>
           <a href="#faq">{{ 'landing.nav.faq' | t }}</a>
@@ -148,6 +149,66 @@ const CALENDAR: Cell[] = Array.from({ length: 28 }, (_, i) => {
         <div class="container preview-foot">
           <a href="#install" class="btn btn-primary"><app-icon name="download" /> {{ 'landing.installCta' | t }}</a>
           <p class="small muted">{{ 'landing.previewNote' | t }}</p>
+        </div>
+      </section>
+
+      <!-- 1.14: the friends, put forward: flames side by side, challenges, what is shared and the « Bravo » -->
+      <section id="amis" class="friends-band">
+        <div class="container friends">
+          <div class="friends-copy">
+            <p class="eyebrow reveal">{{ 'landing.friendsEyebrow' | t }}</p>
+            <h2 class="h2 reveal">{{ 'landing.friendsTitle' | t }}</h2>
+            <p class="lead reveal">{{ 'landing.friendsText' | t }}</p>
+            <ul class="f-points" role="list">
+              @for (p of friendsPoints(); track p.title) {
+                <li class="reveal">
+                  <span class="f-ico"><app-icon [name]="p.icon" [size]="20" [stroke]="2.2" /></span>
+                  <span>
+                    <b>{{ p.title }}</b>
+                    <span class="small muted">{{ p.text }}</span>
+                  </span>
+                </li>
+              }
+            </ul>
+          </div>
+          <div class="scene" role="img" [attr.aria-label]="'landing.friendsDemo.label' | t">
+            <div class="f-card challenge">
+              <div class="c-head">
+                <span class="c-ico"><app-icon name="trophy" [size]="18" [stroke]="2.2" /></span>
+                <span>
+                  <b>{{ 'landing.friendsDemo.challenge' | t }}</b>
+                  <span class="tiny muted">{{ 'landing.friendsDemo.day' | t }}</span>
+                </span>
+              </div>
+              <ol class="board" role="list">
+                @for (f of demoBoard; track f.name; let i = $index) {
+                  <li [class.me]="f.me">
+                    <span class="rank num">{{ i + 1 }}</span>
+                    <span class="av" [style.background]="f.color">{{ f.me ? ('landing.friendsDemo.youInitial' | t) : f.name.charAt(0) }}</span>
+                    <span class="who">{{ f.me ? ('landing.friendsDemo.you' | t) : f.name }}</span>
+                    <span class="days" aria-hidden="true">
+                      @for (d of f.days; track $index) {
+                        <i [class.on]="d"></i>
+                      }
+                    </span>
+                    <span class="flame num"><app-icon name="flame" [size]="14" [stroke]="2.4" />{{ f.flame }}</span>
+                  </li>
+                }
+              </ol>
+            </div>
+            <div class="f-card post">
+              <span class="av" style="background: linear-gradient(135deg, #7048e8, #4c6ef5)">S</span>
+              <span class="p-body">
+                <b>{{ 'landing.friendsDemo.post' | t }}</b>
+                <span class="tiny muted">{{ 'landing.friendsDemo.postSub' | t }}</span>
+                <span class="bravo"><app-icon name="thumbUp" [size]="14" [stroke]="2.4" /> {{ 'landing.friendsDemo.bravo' | t }} · 4</span>
+              </span>
+            </div>
+            <div class="f-card nudge">
+              <span class="av" style="background: linear-gradient(135deg, #0ca678, #20c997)">L</span>
+              <span class="small">{{ 'landing.friendsDemo.nudge' | t }}</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -772,6 +833,199 @@ const CALENDAR: Cell[] = Array.from({ length: 28 }, (_, i) => {
       max-width: 34rem;
     }
 
+    /* ── friends (1.14) ─────────────────────────────────────────────────────── */
+    .friends-band {
+      padding: var(--space-16) 0;
+      background:
+        radial-gradient(120% 70% at 100% 0%, color-mix(in srgb, var(--flame-3) 16%, transparent), transparent 60%),
+        radial-gradient(90% 60% at 0% 100%, color-mix(in srgb, var(--flame-1) 10%, transparent), transparent 60%);
+      scroll-margin-top: var(--anchor-offset);
+      overflow: hidden;
+    }
+    .friends {
+      display: grid;
+      gap: var(--space-10);
+      align-items: center;
+    }
+    .friends-copy {
+      display: grid;
+      gap: var(--space-4);
+      min-width: 0;
+    }
+    .friends-copy .h2 {
+      max-width: 14ch;
+    }
+    .f-points {
+      display: grid;
+      gap: var(--space-4);
+      margin-top: var(--space-2);
+    }
+    .f-points li {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+    }
+    .f-points li > span:last-child {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+    .f-ico {
+      display: grid;
+      place-items: center;
+      flex: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: var(--accent-soft);
+      color: var(--accent-text);
+    }
+    .scene {
+      position: relative;
+      display: grid;
+      gap: var(--space-3);
+      max-width: 26rem;
+      width: 100%;
+      justify-self: center;
+    }
+    .f-card {
+      border-radius: 22px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-2, 0 12px 32px rgba(0, 0, 0, 0.12));
+      padding: var(--space-4);
+    }
+    .challenge {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .c-head {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .c-head > span:last-child {
+      display: grid;
+    }
+    .c-ico {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--flame);
+      color: #fff;
+    }
+    .board {
+      display: grid;
+      gap: 8px;
+    }
+    .board li {
+      display: grid;
+      grid-template-columns: 14px 32px minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .board li.me {
+      background: var(--accent-soft);
+    }
+    .rank {
+      color: var(--fg-3);
+      font-size: 12px;
+      text-align: center;
+    }
+    .av {
+      display: grid;
+      place-items: center;
+      flex: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .who {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .days {
+      display: flex;
+      gap: 3px;
+    }
+    .days i {
+      width: 7px;
+      height: 16px;
+      border-radius: 4px;
+      background: var(--surface-3);
+    }
+    .days i.on {
+      background: var(--flame);
+    }
+    .flame {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      min-width: 2.6rem;
+      justify-content: flex-end;
+      color: var(--accent-text);
+      font-weight: 800;
+    }
+    .post,
+    .nudge {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+    }
+    .post {
+      margin-left: var(--space-6);
+    }
+    .p-body {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+    }
+    .bravo {
+      justify-self: start;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .nudge {
+      align-items: center;
+      margin-right: var(--space-6);
+      padding: var(--space-3) var(--space-4);
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .nudge {
+        animation: nudge-in 900ms var(--ease-out, ease) 400ms both;
+      }
+      @keyframes nudge-in {
+        from {
+          opacity: 0;
+          transform: translateY(12px) scale(0.96);
+        }
+      }
+    }
+    @media (min-width: 900px) {
+      .friends {
+        grid-template-columns: 1.05fr 1fr;
+        gap: var(--space-12);
+      }
+    }
+
     /* ── privacy ────────────────────────────────────────────────────────────── */
     .privacy-band {
       padding: var(--space-16) 0;
@@ -1057,6 +1311,14 @@ export class LandingPage {
   protected readonly privacyPoints = computed(() => this.i18n.get<string[]>('landing.privacyPoints') ?? []);
   protected readonly faq = computed(() => this.i18n.get<{ q: string; a: string }[]>('landing.faq') ?? []);
   /** the screens of the preview (pictures: scripts/screenshots.mjs → public/shots) */
+  /** 1.14: the friends section, and its little scene (made-up names: nothing of anyone's) */
+  protected readonly friendsPoints = computed(() => this.i18n.get<{ icon: string; title: string; text: string }[]>('landing.friendsPoints') ?? []);
+  protected readonly demoBoard = [
+    { name: 'Léa', me: false, flame: 46, color: 'linear-gradient(135deg, #0ca678, #20c997)', days: [1, 1, 1, 1, 1] },
+    { name: 'me', me: true, flame: 32, color: 'var(--flame)', days: [1, 1, 1, 1, 1] },
+    { name: 'Sam', me: false, flame: 18, color: 'linear-gradient(135deg, #7048e8, #4c6ef5)', days: [1, 1, 0, 1, 1] },
+    { name: 'Noé', me: false, flame: 9, color: 'linear-gradient(135deg, #f08c00, #fab005)', days: [1, 0, 1, 1, 0] },
+  ];
   protected readonly shots = computed(() => this.i18n.get<{ key: string; title: string; text: string; alt: string }[]>('landing.previewShots') ?? []);
 
   /** one screen further or back (the row snaps on each screen) */

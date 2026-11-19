@@ -86,11 +86,14 @@ class CommunityRecipesTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.ingredients[0].fruitVeg").value(true));
         // found by its name, without case nor accents
         mvc.perform(get("/api/recipes/community").param("q", "RATATOUÏLLE").with(as(lea))).andExpect(jsonPath("$.length()").value(1));
-        mvc.perform(get("/api/recipes/community").param("q", "ratatouille gateau").with(as(lea))).andExpect(jsonPath("$.length()").value(0));
+        // 1.14: every word counts on its own: « ratatouille gâteau » finds the ratatouille, « courgettes » finds it by its ingredients
+        mvc.perform(get("/api/recipes/community").param("q", "ratatouille gateau").with(as(lea))).andExpect(jsonPath("$.length()").value(1));
+        mvc.perform(get("/api/recipes/community").param("q", "tiramisu courgettes").with(as(lea))).andExpect(jsonPath("$[0].name").value("Ratatouille"));
+        mvc.perform(get("/api/recipes/community").param("q", "tiramisu").with(as(lea))).andExpect(jsonPath("$.length()").value(0));
         mvc.perform(get("/api/recipes/community").param("q", "50%_").with(as(lea))).andExpect(jsonPath("$.length()").value(0));
 
-        // the team is a plain member no one can sign in with, and its recipes stay in the community
-        assertThat(jdbc.queryForObject("select role from app_user where email = ?", String.class, CommunityRecipes.TEAM_EMAIL)).isEqualTo("USER");
+        // the team is a bot no one can sign in with (1.14), and its recipes stay in the community
+        assertThat(jdbc.queryForObject("select role from app_user where email = ?", String.class, CommunityRecipes.TEAM_EMAIL)).isEqualTo("BOT");
         assertThat(jdbc.queryForObject("select google_sub is null and not discoverable from app_user where email = ?", Boolean.class,
                 CommunityRecipes.TEAM_EMAIL)).isTrue();
         assertThat(guard.run()).isZero();
@@ -99,10 +102,10 @@ class CommunityRecipesTest extends AbstractIntegrationTest {
         AppUser admin = account("admin@example.com", AppUser.Role.ADMIN);
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> links.issue(team, fr.mbonnici.mybody365.auth.AccountLink.Kind.RECOVERY, admin.getId()))
                 .hasMessageContaining("team_account");
-        // an account made admin before 1.7.1 is a plain member again
+        // an account made admin before 1.7.1, or a plain member before 1.14, is a bot
         jdbc.update("update app_user set role = 'ADMIN' where email = ?", CommunityRecipes.TEAM_EMAIL);
         community.demoteTeam();
-        assertThat(jdbc.queryForObject("select role from app_user where email = ?", String.class, CommunityRecipes.TEAM_EMAIL)).isEqualTo("USER");
+        assertThat(jdbc.queryForObject("select role from app_user where email = ?", String.class, CommunityRecipes.TEAM_EMAIL)).isEqualTo("BOT");
 
         // once only, even after an admin deleted it
         assertThat(community.seed(parse(text))).isZero();

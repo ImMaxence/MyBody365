@@ -23,12 +23,14 @@ public class FoodStore {
             /** 1.12: a product's front picture on images.openfoodfacts.org (its path there), and when its page last changed */
             String imagePath, Instant sourceUpdatedAt,
             /** 1.13: a product's size, generic name, food group, processing… (ProductInfo), and how many members noted it this year */
-            ProductInfo info, int uses) {}
+            ProductInfo info, int uses,
+            /** 1.14: vitamins and minerals per 100 g (Micros keys), empty when unknown */
+            java.util.Map<String, Double> micros) {}
 
     private static final String COLUMNS = """
             id, source, source_code, owner_id, name, brand, category, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g,
             fiber_g, salt_g, nutriscore, nutriscore_estimated, serving_g, superseded, updated_at, image_path, source_updated_at, quantity,
-            generic_name, pnns, nova, additives, sweeteners, fruit_veg, scans, uses""";
+            generic_name, pnns, nova, additives, sweeteners, fruit_veg, scans, uses, micros::text as micros""";
 
     private final JdbcTemplate jdbc;
 
@@ -42,10 +44,11 @@ public class FoodStore {
                 owner == null ? null : UUID.fromString(owner), rs.getString("name"), rs.getString("brand"), rs.getString("category"),
                 Nutrients.from(rs), rs.getString("nutriscore"), rs.getBoolean("nutriscore_estimated"), Nutrients.num(rs, "serving_g"),
                 rs.getBoolean("superseded"), rs.getTimestamp("updated_at").toInstant(), rs.getString("image_path"),
-                rs.getTimestamp("source_updated_at") == null ? null : rs.getTimestamp("source_updated_at").toInstant(), info(rs), rs.getInt("uses"));
+                rs.getTimestamp("source_updated_at") == null ? null : rs.getTimestamp("source_updated_at").toInstant(), info(rs), rs.getInt("uses"),
+                Micros.parse(rs.getString("micros")));
     }
 
-    static ProductInfo info(ResultSet rs) throws SQLException {
+    public static ProductInfo info(ResultSet rs) throws SQLException {
         int nova = rs.getInt("nova");
         boolean noNova = rs.wasNull();
         int additives = rs.getInt("additives");

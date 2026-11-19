@@ -3,6 +3,7 @@ package fr.mbonnici.mybody365.meals;
 import fr.mbonnici.mybody365.common.ApiException;
 import fr.mbonnici.mybody365.nutrition.FoodService;
 import fr.mbonnici.mybody365.nutrition.HealthScore;
+import fr.mbonnici.mybody365.nutrition.Micros;
 import fr.mbonnici.mybody365.nutrition.FoodStore.Food;
 import fr.mbonnici.mybody365.nutrition.Nutrients;
 import fr.mbonnici.mybody365.recipe.RecipeService;
@@ -24,6 +25,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -73,9 +75,19 @@ public class MealService {
             /** 1.12: a small picture (the recipe's photo, the product's), and what it is for the emoji without one */
             String thumbUrl, String group,
             /** 1.13: its health score out of 10 (null: unknown, or alcohol) and whether its amount is in millilitres */
-            Double health, boolean liquid) {}
+            Double health, boolean liquid,
+            /** 1.14: the vitamins and minerals it brings (its food's or its recipe's as they are now; empty: unknown) */
+            Map<String, Double> micros) {}
 
-    public record DayDto(LocalDate day, Integer targetKcal, Nutrients totals, List<EntryDto> entries) {}
+    public record DayDto(LocalDate day, Integer targetKcal, Nutrients totals, List<EntryDto> entries,
+            /** 1.14: the vitamins and minerals of the day, and the share of its calories whose are known (0 to 1) */
+            Map<String, Double> micros, double microsCoverage) {}
+
+    /**
+     * 1.14: the vitamins and minerals over the last days: the mean of the days noted, the share of their calories whose are
+     * known, and those under half of their reference (when enough is known to say so)
+     */
+    public record MicrosDto(int days, int noted, double coverage, Map<String, Double> average, List<String> low) {}
 
     /** the totals of one day (days without anything logged are left out) */
     public record DayTotal(LocalDate day, double kcal, double proteinG, double carbsG, double fatG, int entries) {}
@@ -118,7 +130,7 @@ public class MealService {
     private static final String JOINED = """
             select e.id, e.day, e.slot, e.food_id, e.recipe_id, e.name, e.detail, e.grams, e.servings, e.kcal, e.protein_g, e.carbs_g,
               e.fat_g, e.sugars_g, e.fiber_g, e.sat_fat_g, e.salt_g, e.nutriscore, e.created_at, e.health, e.liquid,
-              f.source as food_source, f.category as food_category, f.image_path as food_image,
+              f.micros::text as food_micros, r.micros::text as recipe_micros, f.source as food_source, f.category as food_category, f.image_path as food_image,
               r.type as recipe_type, r.image_format as recipe_image, r.image_version as recipe_image_version
             from meal_entry e left join food f on f.id = e.food_id left join recipe r on r.id = e.recipe_id""";
 
@@ -151,7 +163,21 @@ public class MealService {
         return new EntryDto(rs.getObject("id", UUID.class), rs.getObject("day", LocalDate.class), Slot.valueOf(rs.getString("slot")),
                 rs.getObject("food_id", UUID.class), rs.getObject("recipe_id", UUID.class), rs.getString("name"), rs.getString("detail"),
                 noGrams ? null : grams, noServings ? null : servings, Nutrients.from(rs).rounded(), rs.getString("nutriscore"),
-                rs.getTimestamp("created_at").toInstant(), thumbOf(rs), groupOf(rs), health(rs), rs.getBoolean("liquid"));
+                rs.getTimestamp("created_at").toInstant(), thumbOf(rs), groupOf(rs), health(rs), rs.getBoolean("liquid"),
+                Micros.rounded(microsOf(rs, noGrams ? null : grams, noServings ? null : servings)));
+    }
+
+    /** 1.14: a line's vitamins and minerals: its food's per 100 g for its grams, its recipe's per serving for its servings */
+    static Map<String, Double> microsOf(ResultSet rs, Double grams, Double servings) throws SQLException {
+        String food = rs.getString("food_micros");
+        if (food != null && grams != null) {
+            return Micros.times(Micros.parse(food), grams / 100);
+        }
+        String recipe = rs.getString("recipe_micros");
+        if (recipe != null && servings != null) {
+            return Micros.times(Micros.parse(recipe), servings);
+        }
+        return Map.of();
     }
 
     /** the line's health score; a line noted before 1.13 has its Nutri-Score read as one */
@@ -167,10 +193,73 @@ public class MealService {
     public DayDto day(UUID userId, LocalDate day) {
         List<EntryDto> entries = jdbc.query(JOINED + " where e.user_id = ? and e.day = ? order by e.created_at", MealService::map, userId, day);
         Nutrients total = Nutrients.ZERO;
+        Map<String, Double> micros = new java.util.LinkedHashMap<>();
+        Map<String, Double> knownBy = new java.util.HashMap<>();
+        double known = 0;
         for (EntryDto e : entries) {
             total = total.plus(e.nutrients());
+            Micros.add(micros, e.micros());
+            if (!e.micros().isEmpty()) {
+                known += e.nutrients().kcal();
+            }
+            for (String k : e.micros().keySet()) {
+                knownBy.merge(k, e.nutrients().kcal(), Double::sum);
+            }
         }
-        return new DayDto(day, target(userId), total.rounded(), entries);
+        double kcal = total.kcal();
+        double coverage = kcal > 0 ? Math.min(1, known / kcal) : 0;
+        // a vitamin unknown for most of the day (not in the tables for its foods) is not shown: it would look missing
+        micros.keySet().removeIf(k -> kcal <= 0 || knownBy.getOrDefault(k, 0d) / kcal < 0.5);
+        return new DayDto(day, target(userId), total.rounded(), entries, Micros.rounded(micros), Math.round(coverage * 100) / 100.0);
+    }
+
+    /** 1.14: the vitamins and minerals of the last days (today counted only once it is over: a day going on is not a lack) */
+    public MicrosDto micros(UUID userId, int days) {
+        int n = Math.max(3, Math.min(30, days));
+        LocalDate to = LocalDate.now(java.time.ZoneId.of("Europe/Paris")).minusDays(1);
+        LocalDate from = to.minusDays(n - 1L);
+        List<EntryDto> entries = jdbc.query(JOINED + " where e.user_id = ? and e.day between ? and ?", MealService::map, userId, from, to);
+        Map<LocalDate, List<EntryDto>> byDay = new java.util.TreeMap<>();
+        for (EntryDto e : entries) {
+            byDay.computeIfAbsent(e.day(), k -> new ArrayList<>()).add(e);
+        }
+        Map<String, Double> sum = new java.util.LinkedHashMap<>();
+        Map<String, Double> knownBy = new java.util.HashMap<>();
+        double kcal = 0;
+        double known = 0;
+        int noted = 0;
+        for (List<EntryDto> day : byDay.values()) {
+            double dayKcal = day.stream().mapToDouble(e -> e.nutrients().kcal()).sum();
+            // a day with almost nothing noted says nothing of what was eaten
+            if (dayKcal < 800) {
+                continue;
+            }
+            noted++;
+            kcal += dayKcal;
+            for (EntryDto e : day) {
+                Micros.add(sum, e.micros());
+                if (!e.micros().isEmpty()) {
+                    known += e.nutrients().kcal();
+                }
+                for (String k : e.micros().keySet()) {
+                    knownBy.merge(k, e.nutrients().kcal(), Double::sum);
+                }
+            }
+        }
+        double coverage = kcal > 0 ? known / kcal : 0;
+        Map<String, Double> average = new java.util.LinkedHashMap<>();
+        List<String> low = new ArrayList<>();
+        for (Micros.Micro m : Micros.ALL) {
+            double mean = noted == 0 ? 0 : sum.getOrDefault(m.key(), 0d) / noted;
+            average.put(m.key(), mean);
+            // said only with 3 days noted and most of their calories known for this one (a value missing from the tables is
+            // unknown, not none); the known part is brought back to the whole
+            double share = kcal > 0 ? knownBy.getOrDefault(m.key(), 0d) / kcal : 0;
+            if (noted >= 3 && share >= 0.6 && mean / share < m.nrv() * 0.5) {
+                low.add(m.key());
+            }
+        }
+        return new MicrosDto(n, noted, Math.round(coverage * 100) / 100.0, Micros.rounded(average), low);
     }
 
     private Integer target(UUID userId) {

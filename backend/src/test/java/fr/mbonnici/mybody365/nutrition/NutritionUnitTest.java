@@ -145,4 +145,19 @@ class NutritionUnitTest {
         assertThat(row.imagePath()).isEqualTo("301/762/042/2003/front_fr.633.400.jpg");
         assertThat(row.modifiedAt()).isEqualTo(java.time.Instant.ofEpochSecond(1_731_400_000L));
     }
+
+    /** 1.14: a vitamin known for a small part of a recipe only is unknown for the recipe, not « 0 % » */
+    @Test
+    void aVitaminKnownForAPinchOnlyIsUnknownForTheDish() {
+        Micros.Mix stew = new Micros.Mix();
+        // 600 g of beef (vitamin E unknown, B12 known), 10 g of parsley (vitamin E known)
+        stew.add(java.util.Map.of("b12", 2.0), 600, 900);
+        stew.add(java.util.Map.of("e", 0.8, "b12", 0.0), 10, 4);
+        java.util.Map<String, Double> perServing = stew.known(1.0 / 4);
+        assertThat(perServing).doesNotContainKey("e");
+        assertThat(perServing.get("b12")).isEqualTo(3.0);
+        // unknown values in the JSON are dropped, a negative one too
+        assertThat(Micros.parse("{\"c\": 12.5, \"zz\": 3, \"fe\": -1}")).containsOnlyKeys("c");
+        assertThat(Micros.json(java.util.Map.of())).isNull();
+    }
 }

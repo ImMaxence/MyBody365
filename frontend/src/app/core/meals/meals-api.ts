@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type { CiqualImport, Favorites, FoodSources, OffImport, Food, FoodInput, FoodsOverview, FoundRecipe, IngredientFamily, Lookalike, ShoppingList, MealDay, MealDays, MealInput, MealStats, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, RecipeVisibility, Slot } from '../api/models';
+import type { CiqualImport, Favorites, FoodSources, OffImport, Food, FoodInput, FoodsOverview, FoundRecipe, IngredientFamily, Lookalike, ShoppingList, MealDay, MealDays, MealInput, MealStats, MicrosSummary, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, RecipeVisibility, Slot } from '../api/models';
 
 /** an ingredient of imported recipes the tables do not know (FOOD) or cannot weigh (WEIGHT) */
 /** the community's first recipes (written by the team, computed from Ciqual) */
@@ -101,6 +101,11 @@ export class MealsApi {
     return firstValueFrom(this.http.post<MealDay>('/api/me/meals/copy', { fromDay, toDay, slot }));
   }
 
+  /** 1.14: the vitamins and minerals of the last days */
+  micros(days = 7): Promise<MicrosSummary> {
+    return firstValueFrom(this.http.get<MicrosSummary>('/api/me/meals/micros', { params: { days } }));
+  }
+
   recent(): Promise<RecentItem[]> {
     return firstValueFrom(this.http.get<RecentItem[]>('/api/me/meals/recent'));
   }
@@ -126,10 +131,11 @@ export class MealsApi {
   }
 
   /** 30 a page; q: words of the name */
-  community(type: RecipeType | null, sort: 'top' | 'new', page = 0, q = ''): Promise<Recipe[]> {
+  community(type: RecipeType | null, sort: 'top' | 'new', page = 0, q = '', rich: string | null = null): Promise<Recipe[]> {
     const params: Record<string, string | number> = { sort, page };
     if (type) params['type'] = type;
     if (q.trim()) params['q'] = q.trim();
+    if (rich) params['rich'] = rich;
     return firstValueFrom(this.http.get<Recipe[]>('/api/recipes/community', { params }));
   }
 

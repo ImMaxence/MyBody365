@@ -44,7 +44,7 @@ public class CommunityGuard {
         int moved = 0;
         for (Map<String, Object> o : owners) {
             // the team's own recipes (CommunityRecipes) are the community's first ones
-            boolean admin = "ADMIN".equals(o.get("role")) || props.isAdminEmail((String) o.get("email"))
+            boolean admin = "ADMIN".equals(o.get("role")) || "BOT".equals(o.get("role")) || props.isAdminEmail((String) o.get("email"))
                     || CommunityRecipes.TEAM_EMAIL.equals(o.get("email"));
             if (!admin) {
                 moved += jdbc.update("update recipe set visibility = 'FRIENDS', shared = false where owner_id = ? and visibility = 'PUBLIC'",

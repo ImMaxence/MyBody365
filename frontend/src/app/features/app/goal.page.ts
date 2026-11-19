@@ -30,6 +30,11 @@ import { NumberStepperComponent } from '../../shared/number-stepper.component';
 
         <app-pace-picker [weight]="s.current.weightKg ?? s.profile.startWeightKg" [goal]="goal()" [(pace)]="pace" />
 
+        <!-- 1.14: the starting point, if it was mistyped or the journey began before the app -->
+        <span class="label" id="start-label">{{ 'goal.start' | t }}</span>
+        <app-number-stepper [(value)]="start" [step]="0.1" [min]="30" [max]="350" [decimals]="1" unit="kg" [label]="'goal.start' | t" />
+        <p class="hint">{{ 'goal.startHint' | t: { date: i18n.date(s.profile.startDate, { day: 'numeric', month: 'long', year: 'numeric' }) } }}</p>
+
         @if (!s.profile.job) {
           <p class="notice notice-accent"><app-icon name="info" [size]="18" /> {{ 'setup.activityNew' | t }}</p>
         }
@@ -98,6 +103,7 @@ export class GoalPage {
 
   protected readonly summary = this.tracking.summary;
   protected readonly goal = signal(70);
+  protected readonly start = signal(80);
   protected readonly height = signal(170);
   protected readonly pace = signal<number>(0.5);
   protected readonly job = signal<Job>('SEATED');
@@ -112,6 +118,7 @@ export class GoalPage {
       const p = this.loaded();
       if (!p) return;
       this.goal.set(p.goalWeightKg);
+      this.start.set(p.startWeightKg);
       this.height.set(p.heightCm);
       this.pace.set(p.weeklyRateKg);
       // a profile saved before 1.7 has a level only: the nearest answers, to check
@@ -136,6 +143,7 @@ export class GoalPage {
         currentWeightKg: s.current.weightKg ?? s.profile.startWeightKg,
         goalWeightKg: this.goal(),
         weeklyRateKg: this.pace(),
+        startWeightKg: Math.round(this.start() * 10) / 10,
       });
       this.toast.show(this.i18n.t('goal.saved'));
       this.stack.back('/app/account');

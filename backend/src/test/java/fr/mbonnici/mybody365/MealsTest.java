@@ -308,4 +308,41 @@ class MealsTest extends AbstractIntegrationTest {
         json(post("/api/me/recipes"), lea, "{\"name\":\"Vide\",\"type\":\"LUNCH\",\"servings\":1,\"ingredients\":[]}")
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value("recipe_empty"));
     }
+
+    /** 1.14: the vitamins and minerals of the day and of the last days, a value missing from the tables being unknown */
+    @Test
+    void theVitaminsOfTheDayAndWhatRanLowLately() throws Exception {
+        java.util.UUID pepper = java.util.UUID.randomUUID();
+        java.util.UUID pasta = java.util.UUID.randomUUID();
+        jdbc.update("""
+                insert into food (id, source, source_code, name, search_name, category, kcal, protein_g, carbs_g, fat_g, micros)
+                values (?, 'CIQUAL', '92001', 'Poivron rouge, cru', 'poivron rouge, cru', 'légumes', 30, 1, 5, 0.3, '{"c": 140, "fe": 0.4}'::jsonb),
+                       (?, 'CIQUAL', '92002', 'Pâtes, cuites', 'pates, cuites', 'pâtes', 400, 12, 75, 1.5, '{"fe": 0.5, "mg": 20}'::jsonb)""",
+                pepper, pasta);
+        json(post("/api/me/meals"), lea, "{\"day\":\"" + today + "\",\"slot\":\"LUNCH\",\"foodId\":\"" + pepper + "\",\"grams\":100}")
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.entries[0].micros.c").value(140.0))
+                // the pepper alone: vitamin C known for the whole day
+                .andExpect(jsonPath("$.micros.c").value(140.0))
+                .andExpect(jsonPath("$.microsCoverage").value(1.0));
+        // 400 g of pasta (1 600 kcal) whose vitamin C is unknown: it is not shown for the day any more (known for 2 % of it)
+        json(post("/api/me/meals"), lea, "{\"day\":\"" + today + "\",\"slot\":\"DINNER\",\"foodId\":\"" + pasta + "\",\"grams\":400}")
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.micros.c").doesNotExist())
+                .andExpect(jsonPath("$.micros.fe").value(org.hamcrest.Matchers.closeTo(2.4, 0.01)))
+                .andExpect(jsonPath("$.micros.mg").value(80.0));
+
+        // three days over of pasta only: iron and magnesium known and low, vitamin C unknown (never said low)
+        for (int d = 1; d <= 3; d++) {
+            json(post("/api/me/meals"), lea, "{\"day\":\"" + today.minusDays(d) + "\",\"slot\":\"LUNCH\",\"foodId\":\"" + pasta + "\",\"grams\":300}")
+                    .andExpect(status().isCreated());
+        }
+        mvc.perform(get("/api/me/meals/micros").param("days", "7").with(as(lea))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.noted").value(3))
+                .andExpect(jsonPath("$.low", org.hamcrest.Matchers.hasItems("fe", "mg")))
+                .andExpect(jsonPath("$.low", org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("c"))));
+        // a day with little noted says nothing: two days only, no alert
+        jdbc.update("delete from meal_entry where user_id = ? and day = ?", lea.getId(), today.minusDays(3));
+        mvc.perform(get("/api/me/meals/micros").with(as(lea))).andExpect(jsonPath("$.low.length()").value(0));
+    }
 }

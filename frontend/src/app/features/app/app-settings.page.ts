@@ -47,6 +47,13 @@ import { IconComponent } from '../../shared/icon.component';
       display: grid;
       gap: var(--space-2);
     }
+    /* 1.14: the titles a little further from their buttons */
+    .block .section-title {
+      margin: 0 0 var(--space-2);
+    }
+    .block + .block {
+      margin-top: var(--space-4);
+    }
   `,
 })
 export class AppSettingsPage {

@@ -13,6 +13,7 @@ export class SegDirective {
     let ro: ResizeObserver | null = null;
     afterNextRender(() => {
       el.classList.add('seg-anim');
+      let first = true;
       const update = () => {
         const active = el.querySelector<HTMLElement>(
           ':scope > [aria-pressed="true"], :scope > [aria-selected="true"], :scope > [aria-checked="true"], :scope > [aria-current="page"]',
@@ -26,8 +27,15 @@ export class SegDirective {
         el.style.setProperty('--seg-w', `${active.offsetWidth}px`);
         el.style.setProperty('--seg-h', `${active.offsetHeight}px`);
         el.style.setProperty('--seg-o', '1');
-        // a chip row that scrolls: the chosen chip comes into view
-        if (el.scrollWidth > el.clientWidth) active.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+        // a chip row that scrolls: the chosen chip comes into view. 1.14: the row alone scrolls (scrollIntoView also scrolled
+        // the page sideways while it slid in from the right: the Recipes screen overshot to the left, then jumped back)
+        if (el.scrollWidth > el.clientWidth) {
+          const left = active.offsetLeft;
+          const right = left + active.offsetWidth;
+          const target = left < el.scrollLeft ? left - 8 : right > el.scrollLeft + el.clientWidth ? right - el.clientWidth + 8 : el.scrollLeft;
+          if (target !== el.scrollLeft) el.scrollTo({ left: Math.max(0, target), behavior: first ? 'auto' : 'smooth' });
+        }
+        first = false;
       };
       update();
       // transitions on only once the indicator sits under the first choice (no slide on arrival)

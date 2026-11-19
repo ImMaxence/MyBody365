@@ -7,6 +7,7 @@
 //
 // A separate stack with its own empty database, so the pictures show clean demo data.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import { chromium, devices } from 'playwright';
 
 const BASE = process.env.SHOTS_URL ?? 'http://localhost:4310';
@@ -147,6 +148,7 @@ await seed.close();
   // three friends, each with a flame of their own
   const invite = (await api(ctx, 'POST', '/api/me/friends/invite')).url;
   const token = invite.slice(invite.indexOf('#') + 1);
+  const friendCtx = [];
   for (const [as, name, days, weighedToday, username] of [
     ['user', 'Léa', 34, true, 'lea.martin'],
     ['new', 'Hugo', 12, false, 'hugo.b'],
@@ -162,12 +164,31 @@ await seed.close();
     await api(f, 'PUT', '/api/me/profile', {
       sex: 'FEMALE', birthDate: '1995-05-05', heightCm: 168, activityLevel: 'LIGHT', currentWeightKg: 72, goalWeightKg: 65, weeklyRateKg: 0.5,
     });
-    for (let i = days; i >= 1; i--) await api(f, 'PUT', `/api/me/logs/${day(i)}`, { weightKg: 72 - (days - i) * 0.05 });
+    // down to today (the profile weighed today in at its starting 72 kg): the curve goes on to this morning
+    for (let i = days; i >= 0; i--) await api(f, 'PUT', `/api/me/logs/${day(i)}`, { weightKg: Math.round((72 - (days - i) * 0.05) * 10) / 10 });
     // the onboarding weighed today in: taken back for the one who has not weighed in yet
     if (!weighedToday) await api(f, 'DELETE', `/api/me/logs/${day(0)}`);
     await api(f, 'POST', '/api/me/friends/accept', { token });
-    await f.close();
+    friendCtx.push({ f, name });
   }
+  // the demo journeys began with their first weigh-in, not today (a profile starts the day it is made): straight in the
+  // database of this stack of its own, so that the progress shared and the curves tell weeks, not « 0 kg in 0 days »
+  execSync(
+    `docker exec ${process.env.SHOTS_DB ?? 'mybody365-shots-db-1'} psql -U mybody365 -d mybody365 -c "update body_profile p set start_date = l.day, start_weight_kg = l.weight_kg from (select distinct on (user_id) user_id, day, weight_kg from body_log where weight_kg is not null order by user_id, day) l where l.user_id = p.user_id"`,
+    { stdio: 'inherit' },
+  );
+  // 1.14: what the friends show (their progress, without the kilos), Max's Bravo, and a challenge on the weigh-in
+  for (const { f, name } of friendCtx) {
+    if (name !== 'Hugo') await api(f, 'POST', '/api/me/posts', { kind: 'PROGRESS', weights: false });
+  }
+  for (const p of await api(ctx, 'GET', '/api/friends/posts')) {
+    if (p.id) await api(ctx, 'PUT', `/api/friends/posts/${p.id}/cheer`);
+    break;
+  }
+  const mine = (await api(ctx, 'GET', '/api/me/friends')).friends;
+  const challenge = await api(ctx, 'POST', '/api/me/challenges', { kind: 'WEIGH', days: 7, friends: mine.map((x) => x.id) });
+  for (const { f } of friendCtx) await api(f, 'POST', `/api/me/challenges/${challenge.id}/join`);
+  for (const { f } of friendCtx) await f.close();
   // and Camille, who found Max by his username
   {
     const f = await browser.newContext(phone);
@@ -215,6 +236,17 @@ for (const scheme of ['dark', 'light']) {
   raw[`recipes-${scheme}`] = await shot(page, `recipes-${scheme}`);
   await page.goto(BASE + '/app/friends', { waitUntil: 'networkidle' });
   raw[`friends-${scheme}`] = await shot(page, `friends-${scheme}`);
+  // 1.14: the friends and their flames, the news of the friends (their progress and the Bravo), then the challenge
+  await page.locator('h2.section-title', { hasText: /^Amis$/ }).evaluate((el) => el.scrollIntoView({ block: 'start' }));
+  await page.evaluate(() => window.scrollBy(0, -90));
+  raw[`friends-list-${scheme}`] = await shot(page, `friends-list-${scheme}`);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.getByRole('heading', { name: 'Nouvelles de tes amis' }).scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollBy(0, -90));
+  raw[`friends-posts-${scheme}`] = await shot(page, `friends-posts-${scheme}`);
+  await page.goto(BASE + '/app/challenges', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(600);
+  raw[`challenges-${scheme}`] = await shot(page, `challenges-${scheme}`);
   await page.goto(BASE + '/app/progress', { waitUntil: 'networkidle' });
   await page.waitForTimeout(900);
   raw[`progress-${scheme}`] = await shot(page, `progress-${scheme}`);
@@ -254,6 +286,13 @@ for (const scheme of ['dark', 'light']) {
   const page = await ctx.newPage();
   await page.goto(BASE + '/', { waitUntil: 'networkidle' });
   raw[`site-top-${scheme}`] = await shot(page, `site-top-${scheme}`);
+  // 1.14: the friends section
+  await page.locator('#amis .friends-copy .h2').scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollBy(0, -90));
+  raw[`site-friends-${scheme}`] = await shot(page, `site-friends-${scheme}`);
+  await page.locator('#amis .scene').scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollBy(0, -60));
+  raw[`site-friends2-${scheme}`] = await shot(page, `site-friends2-${scheme}`);
   for (const day of ['7', '30', '90', '365']) {
     await page.locator('.stop .m-num', { hasText: new RegExp(`^${day}$`) }).scrollIntoViewIfNeeded();
     await page.evaluate(() => window.scrollBy(0, -80));
@@ -375,6 +414,23 @@ await compose(
       ['meals-light', 'Repas', 'Calendrier, calories, macros'],
       ['friends-dark', 'Amis', 'Demandes, flammes, coups de pouce'],
       ['progress-light', 'Progrès', 'Courbe, tendance, prévision'],
+    ]
+      .map(([k, t, s]) => `<div style="width:320px"><div class="phone"><img src="${img(k)}"></div><div class="cap">${t}<small>${s}</small></div></div>`)
+      .join('')}
+  </div>`,
+);
+
+// 1.14: the friends, put forward
+await compose(
+  'friends',
+  1600,
+  1000,
+  `<div class="canvas" style="width:1600px;height:1000px;gap:44px;align-items:flex-start;padding-top:80px">
+    ${[
+      ['friends-list-light', 'Tes amis', 'Leurs flammes, un coup de pouce en un tap'],
+      ['friends-posts-dark', 'Leurs nouvelles', 'Leur avancée, sans les kilos, et tes Bravo'],
+      ['challenges-light', 'Les défis', 'Pesée, eau, repas ou photo : le classement se remplit tout seul'],
+      ['site-friends2-dark', 'Plus facile à plusieurs', 'Trouve-les par nom d’utilisateur, lien ou QR code'],
     ]
       .map(([k, t, s]) => `<div style="width:320px"><div class="phone"><img src="${img(k)}"></div><div class="cap">${t}<small>${s}</small></div></div>`)
       .join('')}

@@ -407,4 +407,45 @@ test.describe('meals', () => {
     await looks.getByRole('button', { name: /Courgette/ }).first().click();
     await expect(page.getByRole('dialog').filter({ hasText: /Courgette/ })).toBeVisible();
   });
+
+  test('the recipe search finds each word, a cross clears it, the recipes sort by a vitamin (1.14)', async ({ page }) => {
+    await signIn(page, 'user');
+    await page.goto('/app/meals/recipes');
+    const box = page.getByRole('searchbox', { name: 'Chercher parmi toutes les recettes' });
+    await box.fill('salade tiramisu');
+    // each word on its own: the salads and the tiramisus
+    await expect(page.getByRole('link', { name: /Tiramisu/ }).first()).toBeVisible();
+    await expect(page.getByRole('link', { name: /Salade/ }).first()).toBeVisible();
+    await page.getByRole('button', { name: 'Effacer la recherche' }).click();
+    await expect(box).toHaveValue('');
+    await expect(box).toBeFocused();
+    await expect(page.getByRole('button', { name: 'Effacer la recherche' })).toBeHidden();
+    // « Riches en »: a vitamin to sort the community by
+    await page.getByRole('button', { name: 'Communauté' }).click();
+    const rich = page.getByRole('group', { name: 'Riches en' });
+    await rich.getByRole('button', { name: 'Vitamine C' }).click();
+    await expect(rich.getByRole('button', { name: 'Vitamine C' })).toHaveAttribute('aria-pressed', 'true');
+    await expectAccessible(page);
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test('a recipe noted in a meal opens from its line: « Voir la recette » (1.14)', async ({ page }) => {
+    await signIn(page, 'new');
+    await page.goto('/app/meals/recipes');
+    await page.getByRole('button', { name: 'Communauté' }).click();
+    await page.locator('a.rcard').first().click();
+    const heading = page.getByRole('heading', { level: 1 });
+    await expect(heading).toBeVisible();
+    const title = (await heading.innerText()).trim();
+    const recipeUrl = page.url().split('?')[0];
+    await page.getByRole('button', { name: 'Ajouter à un repas' }).click();
+    // the sheet's own button: « Au dîner », « Au déjeuner »… after the hour
+    await page.getByRole('dialog').locator('button.btn-primary').click();
+    await expect(page.getByRole('dialog')).toBeHidden();
+    await page.goto('/app/meals');
+    await page.getByRole('button', { name: title }).first().click();
+    await page.getByRole('button', { name: 'Voir la recette' }).click();
+    await expect(page).toHaveURL(recipeUrl);
+    await expect(page.getByRole('heading', { name: title, level: 1 })).toBeVisible();
+  });
 });

@@ -12,6 +12,8 @@ import { MilestonesCardComponent } from './milestones-card.component';
 import { BmiSheetComponent } from './bmi-sheet.component';
 import { ShareSheetComponent } from '../../shared/share-sheet.component';
 import { bmiBand, waistClass } from '../../core/tracking/bmi';
+import { RouterLink } from '@angular/router';
+import { DeficitCardComponent } from './deficit-card.component';
 
 type Range = 'm1' | 'm3' | 'all';
 const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
@@ -20,7 +22,7 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
 @Component({
   selector: 'app-progress',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ShareSheetComponent, MilestonesCardComponent, BmiSheetComponent, MonthlyForecastComponent, SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
+  imports: [RouterLink, DeficitCardComponent, ShareSheetComponent, MilestonesCardComponent, BmiSheetComponent, MonthlyForecastComponent, SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -60,7 +62,11 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
 
           @if (summary(); as s) {
             <section class="stats">
-              <div class="stat"><span class="label"><span class="s-ico"><app-icon name="flag" [size]="15" /></span>{{ 'progress.start' | t }}</span><span class="v num">{{ i18n.number(s.profile.startWeightKg, 1) }}<small> kg</small></span></div>
+              <!-- 1.14: the starting point is changed in « Mon objectif » -->
+              <a class="stat bmi" routerLink="/app/account/goal" [attr.aria-label]="'progress.startEdit' | t: { kg: i18n.number(s.profile.startWeightKg, 1) }">
+                <span class="label"><span class="s-ico"><app-icon name="flag" [size]="15" /></span>{{ 'progress.start' | t }}<app-icon name="pencil" [size]="14" /></span>
+                <span class="v num">{{ i18n.number(s.profile.startWeightKg, 1) }}<small> kg</small></span>
+              </a>
               <div class="stat"><span class="label"><span class="s-ico accent"><app-icon name="weight" [size]="15" /></span>{{ 'progress.current' | t }}</span><span class="v num">{{ i18n.number(s.current.weightKg ?? s.current.trendKg, 1) }}<small> kg</small></span></div>
               <div class="stat">
                 <span class="label"><span class="s-ico" [class.good]="isGood(s.current.changeKg ?? 0)"><app-icon [name]="(s.current.changeKg ?? 0) > 0 ? 'trendUp' : 'trendDown'" [size]="15" /></span>{{ 'progress.change' | t }}</span>
@@ -89,6 +95,11 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
                 }
               </div>
             </section>
+          }
+
+          <!-- 1.14: what is left, in calories: kilos × 7 700 ÷ the deficit of a day = the days -->
+          @if (summary(); as s) {
+            <app-deficit-card [summary]="s" />
           }
 
           @if (forecast(); as f) {
@@ -203,6 +214,9 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
       color: inherit;
       text-align: left;
       transition: transform var(--dur-1) var(--ease-out), background-color var(--dur-2);
+    }
+    a.stat.bmi {
+      text-decoration: none;
     }
     .stat.bmi:active {
       transform: scale(0.97);

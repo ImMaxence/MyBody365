@@ -148,4 +148,22 @@ test.describe('admin area', () => {
     const res = await page.request.get('/api/admin/users');
     expect(res.status()).toBe(403);
   });
+
+  test('the community recipes: search, without a photo, opened in the editor (1.14)', async ({ page }) => {
+    await signIn(page, 'admin');
+    await page.goto('/app/admin/recipes');
+    await expect(page.getByRole('group', { name: 'Filtrer les recettes' }).getByRole('button', { name: /^Toutes/ })).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('searchbox', { name: 'Rechercher une recette' }).fill('ratatouille');
+    const first = page.locator('.row .open').first();
+    await expect(first).toContainText(/Ratatouille/i);
+    await page.getByRole('group', { name: 'Filtrer les recettes' }).getByRole('button', { name: /^Sans photo/ }).click();
+    await page.getByRole('searchbox', { name: 'Rechercher une recette' }).fill('');
+    await expectAccessible(page);
+    await expectNoHorizontalOverflow(page);
+    // a community recipe opens in the recipe editor, which says it stays in the community
+    await page.getByRole('group', { name: 'Filtrer les recettes' }).getByRole('button', { name: /^Toutes/ }).click();
+    await page.locator('.row .open').first().click();
+    await expect(page).toHaveURL(/\/app\/meals\/recipes\/[0-9a-f-]+\/edit$/);
+    await expect(page.getByText(/Recette de la communauté : tes changements sont vus par tous/)).toBeVisible();
+  });
 });

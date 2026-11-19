@@ -11,6 +11,7 @@ import { FavoritesStore } from '../../core/meals/favorites.store';
 import { MealsApi } from '../../core/meals/meals-api';
 import { DISHES } from '../../core/meals/fast-food';
 import { IconComponent } from '../../shared/icon.component';
+import { ClearableDirective } from '../../shared/clearable.directive';
 import { HealthScoreComponent } from '../../shared/health-score.component';
 import { kindKey } from '../../core/meals/products';
 import { FoodThumbComponent } from '../../shared/food-thumb.component';
@@ -35,7 +36,7 @@ const PREVIEW = 5;
 @Component({
   selector: 'app-food-picker',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, HealthScoreComponent, FoodThumbComponent],
+  imports: [NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, HealthScoreComponent, FoodThumbComponent, ClearableDirective],
   template: `
     <!-- 1.13: a search form (role="search", name="q"): iOS offers no contact to fill in, Enter closes the keyboard -->
     <form class="search" role="search" action="" (submit)="$event.preventDefault(); blur($event)">
@@ -686,13 +687,22 @@ export class FoodPickerComponent {
 
   /** mine and my friends' looked through here, the community on the server; mine first, each once */
   private async findRecipes(q: string, n: number): Promise<void> {
-    const words = plain(q).split(' ').filter((w) => w.length >= 2);
-    const match = (r: Recipe) => words.every((w) => plain(r.name).includes(w));
+    // 1.14: every word counts on its own, the recipes holding the most of them first (as the community on the server)
+    const words = plain(q)
+      .split(' ')
+      .filter((w) => w.length >= 2 && !['de', 'du', 'des', 'la', 'le', 'les', 'au', 'aux', 'et', 'en', 'avec', 'sans'].includes(w))
+      .map((w) => (w.length >= 5 && /[sx]$/.test(w) ? w.slice(0, -1) : w));
+    const hits = (r: Recipe) => words.filter((w) => plain(r.name).includes(w)).length;
+    const match = (r: Recipe) => hits(r) > 0;
     this.friendsRecipes ??= this.api.friendsRecipes(null).catch(() => [] as Recipe[]);
     const [friends, community] = await Promise.all([this.friendsRecipes, this.api.community(null, 'top', 0, q).catch(() => [] as Recipe[])]);
     if (n !== this.seq) return;
     const seen = new Set<string>();
-    const all = [...this.recipes().filter(match), ...friends.filter(match), ...community].filter((r) => !seen.has(r.id) && !!seen.add(r.id));
+    const all = [
+      ...this.recipes().filter(match).sort((a, b) => hits(b) - hits(a)),
+      ...friends.filter(match).sort((a, b) => hits(b) - hits(a)),
+      ...community,
+    ].filter((r) => !seen.has(r.id) && !!seen.add(r.id));
     this.foundRecipes.set(all);
   }
 

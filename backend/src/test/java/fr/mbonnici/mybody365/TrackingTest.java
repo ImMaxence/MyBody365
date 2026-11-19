@@ -216,4 +216,22 @@ class TrackingTest extends AbstractIntegrationTest {
                         .content("{\"weightKg\":78}"))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value("invalid_day"));
     }
+
+    /** 1.14: the starting weight is changed from « Mon objectif »; the weigh-ins stay as they were */
+    @Test
+    void theStartingWeightIsChangedLaterTheWeighInsStay() throws Exception {
+        String base = """
+                {"sex":"FEMALE","birthDate":"1996-04-12","heightCm":168,"job":"SEATED","sessionsPerWeek":2,"currentWeightKg":78.4,
+                 "goalWeightKg":68,"weeklyRateKg":0.5%s}""";
+        // the first save: today's weight is the start
+        putJson("/api/me/profile", base.formatted(",\"startWeightKg\":90")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.profile.startWeightKg").value(78.4));
+        putJson("/api/me/profile", base.formatted(",\"startWeightKg\":81.2")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.profile.startWeightKg").value(81.2));
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject("select weight_kg from body_log where user_id = ?", Double.class, lea.getId()))
+                .isEqualTo(78.4);
+        // left out: kept; out of bounds: refused
+        putJson("/api/me/profile", base.formatted("")).andExpect(jsonPath("$.profile.startWeightKg").value(81.2));
+        putJson("/api/me/profile", base.formatted(",\"startWeightKg\":12")).andExpect(status().isBadRequest());
+    }
 }

@@ -162,7 +162,7 @@ public class CommunityRecipes {
             return found.getFirst();
         }
         UUID id = UUID.randomUUID();
-        jdbc.update("insert into app_user (id, email, display_name, role, discoverable) values (?, ?, ?, 'USER', false)", id, TEAM_EMAIL,
+        jdbc.update("insert into app_user (id, email, display_name, role, discoverable) values (?, ?, ?, 'BOT', false)", id, TEAM_EMAIL,
                 TEAM_NAME);
         return id;
     }
@@ -171,7 +171,8 @@ public class CommunityRecipes {
     @EventListener(ApplicationReadyEvent.class)
     @org.springframework.core.annotation.Order(0)
     public void demoteTeam() {
-        jdbc.update("update app_user set role = 'USER' where email = ? and role = 'ADMIN'", TEAM_EMAIL);
+        // 1.14: a bot (no sign-in, never deleted, suspended or promoted); an admin before 1.7.1, a plain member until 1.14
+        jdbc.update("update app_user set role = 'BOT' where email = ? and role <> 'BOT'", TEAM_EMAIL);
     }
 
     /**

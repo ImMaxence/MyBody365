@@ -8,6 +8,9 @@ import type { I18nService } from '../i18n/i18n.service';
  */
 const W = 1080;
 const H = 1350;
+/** 1.14: the site's address sits on the last band, nothing drawn reaches it (a long day used to cover it, or go past the bottom) */
+const FOOTER = H - 70;
+const CONTENT_BOTTOM = H - 140;
 const SLOT_EMOJI: Record<string, string> = { BREAKFAST: '🥣', LUNCH: '🥗', DINNER: '🍲', SNACK: '🍎' };
 const DISPLAY = '"Archivo Variable", Archivo, "Inter Variable", Inter, system-ui, sans-serif';
 const TEXT = '"Inter Variable", Inter, system-ui, sans-serif';
@@ -48,7 +51,7 @@ export async function postImage(post: Post, i18n: I18nService): Promise<Blob> {
 
   ctx.font = `600 30px ${TEXT}`;
   ctx.globalAlpha = 0.8;
-  ctx.fillText('mybody365.mbonnici.fr', 80, H - 80);
+  ctx.fillText('mybody365.mbonnici.fr', 80, FOOTER);
   ctx.globalAlpha = 1;
 
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('no image'))), 'image/png'));
@@ -110,40 +113,47 @@ function drawMilestone(ctx: CanvasRenderingContext2D, d: MilestoneData, i18n: I1
 function drawDay(ctx: CanvasRenderingContext2D, d: DayData, i18n: I18nService): void {
   ctx.font = `900 150px ${DISPLAY}`;
   const kcal = i18n.number(d.kcal);
-  ctx.fillText(kcal, 72, 420);
+  ctx.fillText(kcal, 72, 380);
   const w = ctx.measureText(kcal).width;
   ctx.font = `700 52px ${TEXT}`;
-  ctx.fillText(d.targetKcal ? `kcal / ${i18n.number(d.targetKcal)}` : 'kcal', 92 + w, 420);
+  ctx.fillText(d.targetKcal ? `kcal / ${i18n.number(d.targetKcal)}` : 'kcal', 92 + w, 380);
 
-  // the lines on a frosted card
-  const top = 490;
-  const rows = d.lines.slice(0, 9);
-  const height = 60 + rows.length * 78 + (d.lines.length + (d.more ?? 0) > rows.length ? 60 : 0);
+  // the lines on a frosted card, as many as fit above the macros and the site (1.14), the others counted
+  const top = 440;
+  const ROW = 66;
+  const MORE = 56;
+  const bottom = CONTENT_BOTTOM - (d.proteinG != null ? 66 : 0);
+  const total = d.lines.length + (d.more ?? 0);
+  const heightOf = (n: number) => 60 + n * ROW + (total > n ? MORE : 0);
+  let n = Math.min(d.lines.length, 9);
+  while (n > 1 && top + heightOf(n) > bottom) n--;
+  const rows = d.lines.slice(0, n);
+  const height = heightOf(n);
   roundRect(ctx, 60, top, W - 120, height, 40);
   ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
   ctx.fill();
   ctx.fillStyle = '#fff';
-  let y = top + 90;
+  let y = top + 80;
   for (const l of rows) {
-    ctx.font = `600 40px ${TEXT}`;
+    ctx.font = `600 38px ${TEXT}`;
     const right = `${i18n.number(l.kcal)} kcal`;
     const rw = ctx.measureText(right).width;
     ctx.fillText(fit(ctx, `${SLOT_EMOJI[l.slot] ?? '🍽️'}  ${l.name}`, W - 260 - rw), 100, y);
     ctx.globalAlpha = 0.85;
     ctx.fillText(right, W - 100 - rw, y);
     ctx.globalAlpha = 1;
-    y += 78;
+    y += ROW;
   }
   const hidden = d.lines.length - rows.length + (d.more ?? 0);
   if (hidden > 0) {
     ctx.font = `600 34px ${TEXT}`;
     ctx.globalAlpha = 0.85;
-    ctx.fillText(i18n.t('friends.posts.more', { n: hidden }), 100, y);
+    ctx.fillText(i18n.t('friends.posts.more', { n: hidden }), 100, y - ROW + MORE);
     ctx.globalAlpha = 1;
   }
   if (d.proteinG != null) {
     ctx.font = `600 36px ${TEXT}`;
-    ctx.fillText(i18n.t('meals.estimate.macros', { p: d.proteinG, c: d.carbsG ?? 0, f: d.fatG ?? 0 }), 80, top + height + 80);
+    ctx.fillText(i18n.t('meals.estimate.macros', { p: d.proteinG, c: d.carbsG ?? 0, f: d.fatG ?? 0 }), 80, top + height + 66);
   }
 }
 

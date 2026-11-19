@@ -125,6 +125,8 @@ export class AdminPage {
     { path: 'requests', icon: 'inbox' },
     { path: 'links', icon: 'link' },
     { path: 'foods', icon: 'leaf' },
+    // 1.14: the community's recipes
+    { path: 'recipes', icon: 'book' },
     { path: 'moderation', icon: 'flag' },
     { path: 'feedback', icon: 'mail' },
     { path: 'errors', icon: 'alert' },

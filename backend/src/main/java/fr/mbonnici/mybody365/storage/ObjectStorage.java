@@ -3,7 +3,8 @@ package fr.mbonnici.mybody365.storage;
 import java.util.UUID;
 
 /**
- * Where pictures live. Keys are always under {@code u/{userId}/}: deleting an account deletes its prefix.
+ * Where pictures live. A member's keys are always under {@code u/{userId}/}: deleting an account deletes its prefix.
+ * 1.14: the pictures of the Open Food Facts products, shared by everyone, are kept under {@code off/}.
  * Implemented on S3 (SeaweedFS in the Compose files, any S3-compatible service otherwise).
  */
 public interface ObjectStorage {

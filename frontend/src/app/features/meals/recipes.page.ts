@@ -9,6 +9,7 @@ import { RecipesView } from '../../core/meals/recipes-view';
 import { FavoritesStore } from '../../core/meals/favorites.store';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
+import { ClearableDirective } from '../../shared/clearable.directive';
 import { HealthScoreComponent } from '../../shared/health-score.component';
 import { SegDirective } from '../../shared/seg.directive';
 
@@ -17,6 +18,18 @@ export const RECIPE_TYPES: RecipeType[] = ['HEALTHY', 'BREAKFAST', 'LUNCH', 'DIN
 export const TYPE_EMOJI: Record<RecipeType, string> = { HEALTHY: '🥑', BREAKFAST: '🥣', LUNCH: '🥗', DINNER: '🍲', SNACK: '🍎', DESSERT: '🍰', TREAT: '🧁', DRINK: '🍹' };
 
 /** My recipes, my friends' recipes, and the community's (best first or newest, by type). */
+/** 1.14: the words a search looks for, singular (« salades » → « salade »), without the little words (as the server) */
+const STOP = new Set(['de', 'du', 'des', 'la', 'le', 'les', 'au', 'aux', 'a', 'et', 'en', 'd', 'l', 'un', 'une', 'avec', 'sans', 'pour', 'sur', 'ou']);
+function searchWords(q: string): string[] {
+  return [...new Set(plain(q).split(' ').filter((w) => w.length >= 2 && !STOP.has(w)).map((w) => (w.length >= 5 && /[sx]$/.test(w) ? w.slice(0, -1) : w)))].slice(0, 6);
+}
+
+/** 1.14: the richest servings in a vitamin or a mineral first, those without any of it left out */
+function byRich(list: Recipe[], rich: string | null): Recipe[] {
+  if (!rich) return list;
+  return list.filter((r) => (r.micros?.[rich] ?? 0) > 0).sort((a, b) => (b.micros?.[rich] ?? 0) - (a.micros?.[rich] ?? 0));
+}
+
 /** a name as compared by the search: lower case, no accents, words separated by single spaces (as the server) */
 function plain(s: string): string {
   return s
@@ -32,7 +45,7 @@ function plain(s: string): string {
 @Component({
   selector: 'app-recipes',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent],
+  imports: [SegDirective, NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, ClearableDirective],
   template: `
     <main class="page">
       <header class="page-head">
@@ -103,6 +116,16 @@ function plain(s: string): string {
               <button type="button" [attr.aria-pressed]="type() === t" (click)="type.set(t)"><span class="chip-emoji" aria-hidden="true">{{ emoji[t] }}</span> {{ 'meals.recipe.types.' + t | t }}</button>
             }
           </div>
+          <!-- 1.14: the richest servings in a vitamin or a mineral first -->
+          <div class="rich-row">
+            <span class="tiny muted rich-label">{{ 'meals.micros.sort' | t }}</span>
+            <div class="slide-chips" role="group" [attr.aria-label]="'meals.micros.sort' | t">
+              <button type="button" [attr.aria-pressed]="rich() === null" (click)="rich.set(null)">{{ 'meals.micros.sortAll' | t }}</button>
+              @for (k of richKeys; track k) {
+                <button type="button" [attr.aria-pressed]="rich() === k" (click)="rich.set(k)">{{ 'meals.micros.names.' + k | t }}</button>
+              }
+            </div>
+          </div>
           @if (tab() === 'community') {
             <div class="seg small-seg" role="group">
               <button type="button" [attr.aria-pressed]="sort() === 'top'" (click)="sort.set('top')">{{ 'meals.recipe.sortTop' | t }}</button>
@@ -138,7 +161,13 @@ function plain(s: string): string {
         } @else {
           <div class="empty">
             <span class="empty-icon"><app-icon name="book" /></span>
-            <p class="small">{{ 'meals.recipe.empty.' + tab() | t }}</p>
+            @if (tab() !== 'mine' && rich(); as k) {
+              <!-- 1.14: nothing rich in it (or its vitamins not known yet): said as such -->
+              <p class="small">{{ 'meals.micros.sortEmpty' | t: { name: richName(k) } }}</p>
+              <button type="button" class="btn btn-secondary btn-s" (click)="rich.set(null)">{{ 'meals.micros.sortClear' | t }}</button>
+            } @else {
+              <p class="small">{{ 'meals.recipe.empty.' + tab() | t }}</p>
+            }
           </div>
         }
       } @else if (slow()) {
@@ -207,6 +236,14 @@ function plain(s: string): string {
     .cards.stale {
       opacity: 0.55;
       transition: opacity 160ms ease 220ms;
+    }
+    .rich-row {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+    .rich-label {
+      padding-left: 2px;
     }
     .filters {
       display: grid;
@@ -303,9 +340,7 @@ function plain(s: string): string {
       text-decoration: none;
       transition: transform var(--dur-2) var(--ease-out);
     }
-    .rcard:active {
-      transform: scale(0.97);
-    }
+    /* 1.14: no press effect: on a phone it played as soon as a finger touched a card to scroll the list */
     @keyframes card-in {
       from {
         opacity: 0;
@@ -447,6 +482,13 @@ export class RecipesPage {
   protected readonly tab = this.view.tab;
   protected readonly type = this.view.type;
   protected readonly sort = this.view.sort;
+  protected readonly rich = this.view.rich;
+  /** « vitamine C », « fer »: the name inside a sentence */
+  protected richName(k: string): string {
+    const name = this.i18n.t('meals.micros.names.' + k);
+    return name.charAt(0).toLowerCase() + name.slice(1);
+  }
+  protected readonly richKeys = ['c', 'fe', 'ca', 'a', 'd', 'b9', 'b12', 'mg', 'k', 'zn', 'e', 'b6'];
   /** what is typed in the community search, and what is searched (a moment after the last key) */
   protected readonly term = this.view.term;
   protected readonly query = this.view.query;
@@ -472,11 +514,14 @@ export class RecipesPage {
   private find(q: string): void {
     const n = ++this.searchSeq;
     this.searching.set(true);
-    const words = plain(q).split(' ').filter((w) => w.length >= 2);
-    const match = (r: Recipe) => {
+    const words = searchWords(q);
+    // 1.14: every word counts on its own (« salade tiramisu chocolat »): the recipes holding the most of them first
+    const score = (r: Recipe) => {
       const name = plain(r.name);
-      return words.every((w) => name.includes(w));
+      return words.filter((w) => name.includes(w)).length;
     };
+    const match = (r: Recipe) => score(r) > 0;
+    const best = (a: Recipe, b: Recipe) => score(b) - score(a);
     Promise.all([
       this.api.myRecipes().catch(() => [] as Recipe[]),
       this.api.friendsRecipes(null).catch(() => [] as Recipe[]),
@@ -485,8 +530,8 @@ export class RecipesPage {
       .then(([mine, friends, community]) => {
         if (n !== this.searchSeq) return;
         const groups = [
-          { key: 'mine' as const, list: mine.filter(match) },
-          { key: 'friends' as const, list: friends.filter(match) },
+          { key: 'mine' as const, list: mine.filter(match).sort(best) },
+          { key: 'friends' as const, list: friends.filter(match).sort(best) },
           { key: 'community' as const, list: community },
         ];
         this.results.set(groups.filter((g) => g.list.length));
@@ -498,7 +543,7 @@ export class RecipesPage {
     const n = this.seq;
     this.loadingMore.set(true);
     try {
-      const next = await this.api.community(this.type(), this.sort(), this.page + 1);
+      const next = await this.api.community(this.type(), this.sort(), this.page + 1, '', this.rich());
       if (n !== this.seq) return;
       this.page++;
       this.list.update((l) => [...(l ?? []), ...next.filter((r) => !l?.some((x) => x.id === r.id))]);
@@ -535,7 +580,7 @@ export class RecipesPage {
   /** the list on screen, as kept in RecipesView.seen */
   private key(): string {
     const tab = this.tab();
-    return [tab, tab === 'mine' ? null : this.type(), tab === 'community' ? this.sort() : ''].join('|');
+    return [tab, tab === 'mine' ? null : this.type(), tab === 'community' ? this.sort() : '', tab === 'mine' ? '' : (this.rich() ?? '')].join('|');
   }
 
   constructor() {
@@ -554,7 +599,8 @@ export class RecipesPage {
       const tab = this.tab();
       const type = tab === 'mine' ? null : this.type();
       const sort = this.sort();
-      const key = [tab, type, tab === 'community' ? sort : ''].join('|');
+      const rich = tab === 'mine' ? null : this.rich();
+      const key = [tab, type, tab === 'community' ? sort : '', rich ?? ''].join('|');
       const n = ++this.seq;
       const known = this.seen.get(key);
       // the pages of the community already opened stay (« Voir plus »): back from a recipe, nothing shrinks
@@ -567,7 +613,12 @@ export class RecipesPage {
       this.loading.set(!known);
       // read without tracking: the list it sets must not start it again
       const slow = untracked(this.list) === null ? setTimeout(() => n === this.seq && this.slow.set(true), 450) : null;
-      const load = tab === 'mine' ? this.api.myRecipes() : tab === 'friends' ? this.api.friendsRecipes(type) : this.api.community(type, sort);
+      const load =
+        tab === 'mine'
+          ? this.api.myRecipes()
+          : tab === 'friends'
+            ? this.api.friendsRecipes(type).then((list) => byRich(list, rich))
+            : this.api.community(type, sort, 0, '', rich);
       load
         .then((r) => {
           // the first page again, and the next ones as they were

@@ -29,7 +29,9 @@ public final class TrackingDtos {
             /** today's weight: the starting point on the first save */
             @NotNull @DecimalMin("30") @DecimalMax("350") BigDecimal currentWeightKg,
             @NotNull @DecimalMin("30") @DecimalMax("350") BigDecimal goalWeightKg,
-            @NotNull @DecimalMin("0.25") @DecimalMax("1.0") BigDecimal weeklyRateKg) {}
+            @NotNull @DecimalMin("0.25") @DecimalMax("1.0") BigDecimal weeklyRateKg,
+            /** 1.14: the starting point, changed from « Mon objectif » (null: kept); the weigh-ins do not change */
+            @DecimalMin("30") @DecimalMax("350") BigDecimal startWeightKg) {}
 
     public record ProfileDto(
             Sex sex,

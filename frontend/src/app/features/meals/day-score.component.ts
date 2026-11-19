@@ -1,7 +1,9 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import type { MealDay } from '../../core/api/models';
 import { DayScore, NutrientCheck, dayScore } from '../../core/meals/day-score';
+import { MICROS, pctOf } from '../../core/meals/micros';
+import { MealsApi } from '../../core/meals/meals-api';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { localDay } from '../../core/tracking/tracking.store';
@@ -16,7 +18,7 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
   imports: [NgTemplateOutlet, TranslatePipe, IconComponent],
   template: `
     @if (score(); as s) {
-      <button type="button" class="pill" [attr.data-band]="s.band" (click)="sheet.showModal()" [attr.aria-label]="'meals.score.open' | t: { score: i18n.number(s.score, 1) }">
+      <button type="button" class="pill" [attr.data-band]="s.band" (click)="openSheet(sheet)" [attr.aria-label]="'meals.score.open' | t: { score: i18n.number(s.score, 1) }">
         <span class="mark num">{{ i18n.number(s.score, 1) }}<small>/10</small></span>
         <span class="words">
           <b>{{ 'meals.score.bands.' + s.band | t }}</b>
@@ -76,6 +78,33 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
             <span class="tip-ico"><app-icon [name]="s.tip === 'perfect' ? 'check' : 'sparkles'" [size]="16" /></span>
             <span><b>{{ (s.tip === 'perfect' ? 'meals.score.tipDone' : 'meals.score.tipTitle') | t }}</b> {{ 'meals.score.tips.' + s.tip | t }}</span>
           </p>
+          <!-- 1.14: the vitamins and minerals of the day, against their daily reference, and what ran low lately -->
+          <h3 class="section-title micro-title">{{ 'meals.micros.title' | t }}</h3>
+          @for (k of lowWeek(); track k) {
+            <p class="alert small">
+              <app-icon name="alert" [size]="16" />
+              <span><b>{{ 'meals.micros.low' | t: { name: ('meals.micros.names.' + k | t) } }}</b> {{ 'meals.micros.sources.' + k | t }}</span>
+            </p>
+          }
+          @if ((day().microsCoverage ?? 0) > 0 && microRows().length) {
+            <ul class="micros" role="list">
+              @for (m of microRows(); track m.key) {
+                <li [class.low]="m.pct < 50">
+                  <span class="mi-name">{{ 'meals.micros.names.' + m.key | t }}</span>
+                  <span class="mi-bar" aria-hidden="true"><i [style.width.%]="Math.min(100, m.pct)"></i></span>
+                  <span class="mi-pct num">{{ m.pct }} %</span>
+                </li>
+              }
+            </ul>
+            <p class="tiny muted">
+              {{ 'meals.micros.note' | t }}
+              @if ((day().microsCoverage ?? 0) < 0.9) {
+                {{ 'meals.micros.partial' | t: { pct: Math.round((day().microsCoverage ?? 0) * 100) } }}
+              }
+            </p>
+          } @else {
+            <p class="small muted">{{ 'meals.micros.none' | t }}</p>
+          }
           <p class="tiny muted">{{ 'meals.score.note' | t }}</p>
         </div>
       </dialog>
@@ -279,6 +308,62 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
       font-weight: 650;
       white-space: nowrap;
     }
+    /* 1.14: vitamins and minerals */
+    .micro-title {
+      margin-top: var(--space-2);
+    }
+    .micros {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .micros li {
+      display: grid;
+      grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr) 3.2rem;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 13px;
+    }
+    .mi-name {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .mi-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--surface-3);
+      overflow: hidden;
+    }
+    .mi-bar i {
+      display: block;
+      height: 100%;
+      border-radius: 3px;
+      background: var(--success, #1f9d55);
+    }
+    .micros li.low .mi-bar i {
+      background: #e2711d;
+    }
+    .mi-pct {
+      text-align: right;
+      color: var(--fg-2);
+    }
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 0;
+      padding: var(--space-3);
+      border-radius: 16px;
+      background: color-mix(in srgb, #e2711d 10%, transparent);
+    }
+    .alert app-icon {
+      flex: none;
+      margin-top: 1px;
+      color: #e2711d;
+    }
     .checks {
       display: grid;
       gap: 5px;
@@ -359,6 +444,24 @@ export class DayScoreComponent {
   protected readonly i18n = inject(I18nService);
   protected readonly icon = ICON;
   protected readonly score = computed(() => dayScore(this.day(), localDay(), this.shares()));
+  protected readonly Math = Math;
+  private readonly api = inject(MealsApi);
+  /** 1.14: what ran low over the last 7 days (asked when the sheet opens) */
+  protected readonly lowWeek = signal<string[]>([]);
+  /** the day's vitamins and minerals, in % of their reference */
+  protected readonly microRows = computed(() => {
+    // the server leaves out a vitamin unknown for most of the day: it is not shown, rather than shown as missing
+    const known = this.day().micros ?? {};
+    return MICROS.filter((m) => known[m.key] != null).map((m) => ({ key: m.key, pct: pctOf(m, known[m.key]) }));
+  });
+
+  protected openSheet(sheet: HTMLDialogElement): void {
+    sheet.showModal();
+    void this.api
+      .micros(7)
+      .then((m) => this.lowWeek.set(m.low))
+      .catch(() => undefined);
+  }
 
   protected level(points: number, max: number): 'good' | 'mid' | 'low' {
     const r = points / max;

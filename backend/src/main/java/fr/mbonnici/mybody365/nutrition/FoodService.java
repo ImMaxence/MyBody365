@@ -39,7 +39,9 @@ public class FoodService {
              * 1.13: the health score and its reasons; a product's size, generic name and food group (to tell twenty « Biscoff »
              * apart); measured in millilitres (a drink, a milk, a soup) and the millilitres of its can or bottle
              */
-            Health health, String quantity, String genericName, String kind, boolean liquid, Integer packageMl, Integer nova) {}
+            Health health, String quantity, String genericName, String kind, boolean liquid, Integer packageMl, Integer nova,
+            /** 1.14: vitamins and minerals per 100 g (empty when unknown) */
+            Map<String, Double> micros) {}
 
     /** 1.13: out of 10 by halves; what makes it good, what costs it points (codes the app words) */
     public record Health(double score, List<String> pros, List<String> cons) {
@@ -70,7 +72,16 @@ public class FoodService {
     /** the same searches come back often (and Open Food Facts asks to keep them few) */
     private final Map<String, Cached> searchCache = new ConcurrentHashMap<>();
 
-    public FoodService(FoodStore foods, OpenFoodFacts off, OffImporter offLocal, AppProperties props) {
+    /** 1.14: the pictures of the products kept for good (null in a test without storage) */
+    private final fr.mbonnici.mybody365.storage.ObjectStorage storage;
+    /** 1.14: the pictures Open Food Facts did not give lately, not asked again for an hour */
+    private final java.util.Map<String, Long> failed = new java.util.concurrent.ConcurrentHashMap<>();
+    /** 1.14: a few pictures fetched at a time: a list of 30 products does not send 30 requests at once */
+    private final java.util.concurrent.Semaphore fetching = new java.util.concurrent.Semaphore(6);
+
+    public FoodService(FoodStore foods, OpenFoodFacts off, OffImporter offLocal, AppProperties props,
+            org.springframework.beans.factory.ObjectProvider<fr.mbonnici.mybody365.storage.ObjectStorage> storage) {
+        this.storage = storage.getIfAvailable();
         this.foods = foods;
         this.off = off;
         this.offLocal = offLocal;
@@ -83,7 +94,7 @@ public class FoodService {
         return new FoodDto(f.id(), f.source(), f.name(), f.brand(), f.category(), f.per100().rounded(), f.nutriscore(),
                 f.nutriscoreEstimated(), f.servingG(), viewer != null && viewer.equals(f.ownerId()), imageUrl(f), f.sourceUpdatedAt(),
                 Health.of(HealthScore.score(HealthScore.of(f))), info.quantity(), info.genericName(), info.pnns(), liquid,
-                liquid ? ProductInfo.millilitres(info.quantity()) : null, info.nova());
+                liquid ? ProductInfo.millilitres(info.quantity()) : null, info.nova(), Micros.rounded(f.micros()));
     }
 
     /** 1.13: a food's health score as a meal line keeps it (null when it cannot be judged) */
@@ -183,7 +194,11 @@ public class FoodService {
         }
     }
 
-    /** 1.12: a product's picture (small: for the lists), fetched once from Open Food Facts then kept in memory */
+    /**
+     * 1.12: a product's picture (small: for the lists), fetched from Open Food Facts then kept in memory. 1.14: kept for
+     * good in the storage too (under off/, outside the members' u/ prefixes): fetched once ever, not again after a restart;
+     * one that failed is not asked again for an hour, and 6 at most are fetched at a time.
+     */
     public Optional<byte[]> image(UUID foodId, boolean small) {
         Food f = foods.find(foodId).orElseThrow(ApiException::notFound);
         if (f.source() != Source.OFF || f.imagePath() == null) {
@@ -194,9 +209,63 @@ public class FoodService {
         if (hit != null) {
             return Optional.of(hit);
         }
-        Optional<byte[]> got = off.image(f.imagePath(), small);
-        got.ifPresent(b -> keepImage(key, b));
+        String stored = "off/" + (small ? "s/" : "f/") + f.imagePath();
+        byte[] kept = storedImage(stored);
+        if (kept != null) {
+            keepImage(key, kept);
+            return Optional.of(kept);
+        }
+        Long failedAt = failed.get(key);
+        if (failedAt != null && System.currentTimeMillis() - failedAt < 3_600_000L) {
+            return Optional.empty();
+        }
+        Optional<byte[]> got;
+        try {
+            if (!fetching.tryAcquire(10, java.util.concurrent.TimeUnit.SECONDS)) {
+                return Optional.empty();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return Optional.empty();
+        }
+        try {
+            got = off.image(f.imagePath(), small);
+        } finally {
+            fetching.release();
+        }
+        if (got.isPresent()) {
+            failed.remove(key);
+            keepImage(key, got.get());
+            storeImage(stored, got.get());
+        } else {
+            if (failed.size() > 50_000) {
+                failed.clear();
+            }
+            failed.put(key, System.currentTimeMillis());
+        }
         return got;
+    }
+
+    private byte[] storedImage(String key) {
+        if (storage == null) {
+            return null;
+        }
+        try {
+            return storage.get(key);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private void storeImage(String key, byte[] bytes) {
+        if (storage == null) {
+            return;
+        }
+        try {
+            storage.put(key, bytes, OpenFoodFacts.imageType(bytes));
+        } catch (RuntimeException e) {
+            // kept in memory still: the next restart fetches it again
+        }
     }
 
     /** a food the account may use: any shared one, or its own */

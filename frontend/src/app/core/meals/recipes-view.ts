@@ -11,6 +11,8 @@ export class RecipesView {
   readonly tab = signal<'mine' | 'friends' | 'community'>('mine');
   readonly type = signal<RecipeType | null>(null);
   readonly sort = signal<'top' | 'new'>('top');
+  /** 1.14: the vitamin or mineral the recipes are sorted by, the richest servings first (null: not sorted by one) */
+  readonly rich = signal<string | null>(null);
   /** what is typed in the search, and what is searched (a moment after the last key) */
   readonly term = signal('');
   readonly query = signal('');
@@ -21,6 +23,7 @@ export class RecipesView {
     this.tab.set('mine');
     this.type.set(null);
     this.sort.set('top');
+    this.rich.set(null);
     this.term.set('');
     this.query.set('');
     this.seen.clear();

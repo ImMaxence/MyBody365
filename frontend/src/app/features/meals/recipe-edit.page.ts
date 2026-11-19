@@ -211,6 +211,9 @@ interface Line {
           <textarea class="textarea" id="r-notes" name="notes" rows="5" maxlength="4000" [(ngModel)]="notes"></textarea>
         </div>
 
+        @if (community()) {
+          <p class="notice small"><app-icon name="users" [size]="16" /> {{ 'meals.recipe.communityEdit' | t }}</p>
+        } @else {
         <div class="field">
           <span class="label" id="r-vis">{{ 'meals.recipe.visibility.title' | t }}</span>
           <div class="seg vis" role="radiogroup" aria-labelledby="r-vis">
@@ -224,6 +227,7 @@ interface Line {
             <p class="small muted vis-hint">{{ 'meals.recipe.visibility.' + v + 'Hint' | t }}</p>
           }
         </div>
+        }
 
         <button type="submit" class="btn btn-primary btn-block" [disabled]="busy()"><app-icon name="check" /> {{ 'meals.recipe.save' | t }}</button>
       </form>
@@ -272,6 +276,21 @@ interface Line {
     </main>
   `,
   styles: `
+    .notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 0;
+      padding: var(--space-3) var(--space-4);
+      border-radius: 16px;
+      background: var(--accent-soft);
+      color: var(--fg);
+    }
+    .notice app-icon {
+      flex: none;
+      margin-top: 2px;
+      color: var(--accent-text);
+    }
     .photo {
       position: relative;
       display: grid;
@@ -630,6 +649,8 @@ export class RecipeEditPage {
   protected readonly visibilities = computed<RecipeVisibility[]>(() => (this.session.isAdmin() ? ['PRIVATE', 'FRIENDS', 'PUBLIC'] : ['PRIVATE', 'FRIENDS']));
   protected readonly visibilityIcon = VISIBILITY_ICON;
   protected readonly visibility = signal<RecipeVisibility>('PRIVATE');
+  /** 1.14: a community recipe opened by an admin who is not its owner (the team's): it stays in the community */
+  protected readonly community = signal(false);
   /** every meal it is for (one at least); the main one: the first of them in the usual order */
   protected readonly picked = signal<RecipeType[]>(['LUNCH']);
   /** 1.13: « Healthy » is never the main type when a meal is ticked too (its emoji, its place) */
@@ -716,6 +737,7 @@ export class RecipeEditPage {
     this.name = r.name;
     this.notes = r.notes ?? '';
     const vis: RecipeVisibility = r.visibility ?? (r.shared ? 'PUBLIC' : 'PRIVATE');
+    this.community.set(!r.mine && vis === 'PUBLIC');
     this.visibility.set(vis === 'PUBLIC' && !this.session.isAdmin() ? 'FRIENDS' : vis);
     this.picked.set(r.types?.length ? r.types : [r.type]);
     this.servings.set(r.servings);

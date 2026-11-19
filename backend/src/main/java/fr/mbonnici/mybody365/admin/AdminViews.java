@@ -44,7 +44,7 @@ class AdminViews {
                 .map(l -> link(l, u, null, null))
                 .orElse(null);
         return new UserDto(u.getId(), u.getEmail(), u.getDisplayName(), u.getPictureUrl(),
-                users.isAdmin(u) ? "ADMIN" : "USER", u.getStatus().name(), users.isEnvAdmin(u),
+                users.isAdmin(u) ? "ADMIN" : users.isBot(u) ? "BOT" : "USER", u.getStatus().name(), users.isEnvAdmin(u),
                 viewer != null && viewer.getId().equals(u.getId()),
                 new GoogleDto(u.getGoogleSub() != null, u.getGoogleEmail()), users.passkeyCount(u), u.isOnboarded(),
                 u.getCreatedAt(), u.getLastLoginAt(), u.getLastLoginMethod() == null ? null : u.getLastLoginMethod().name(), active,

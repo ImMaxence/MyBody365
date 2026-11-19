@@ -15,6 +15,7 @@ import { NutrientBarsComponent } from '../../shared/nutrient-bars.component';
 import { IconComponent } from '../../shared/icon.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { HealthScoreComponent } from '../../shared/health-score.component';
+import { RichInComponent } from './rich-in.component';
 
 /** what is being added: a food (by grams, nutrients per 100 g) or a recipe (by servings, per serving) */
 export interface QuantityTarget {
@@ -44,7 +45,7 @@ export interface QuantityTarget {
 @Component({
   selector: 'app-quantity-sheet',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, NumberStepperComponent, HealthScoreComponent, HapticDirective, FoodThumbComponent, NutrientBarsComponent],
+  imports: [TranslatePipe, IconComponent, NumberStepperComponent, HealthScoreComponent, HapticDirective, FoodThumbComponent, NutrientBarsComponent, RichInComponent],
   template: `
     <dialog class="sheet" #dlg (close)="target.set(null)">
       <div class="sheet-grip"></div>
@@ -127,6 +128,8 @@ export interface QuantityTarget {
           }
           <!-- 1.12: what it brings, with the bars of the Meals tab (the rest of the day paler) -->
           <app-nutrient-bars [item]="live()" [plan]="plan.bars()" [dayTotals]="rest()" />
+          <!-- 1.14: the vitamins and minerals this amount brings the most of -->
+          <app-rich-in [micros]="t.food?.micros ?? t.recipe?.micros" [factor]="t.unit === 'g' ? qty() / 100 : qty()" />
           <!-- 1.13: a product rich in saturated fat, sugar or salt says so, and why it matters -->
           @for (a of alerts(); track a.key) {
             <p class="alert small"><app-icon name="alert" [size]="16" /> <span>{{ 'meals.health.alerts.' + a.key | t: { v: i18n.number(a.value, 1), u: liquid() ? 'ml' : 'g' } }}</span></p>

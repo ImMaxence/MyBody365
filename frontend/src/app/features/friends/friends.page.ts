@@ -9,6 +9,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
+import { ClearableDirective } from '../../shared/clearable.directive';
 import { ReportSheetComponent } from '../../shared/report-sheet.component';
 import { AvatarZoom } from '../../shared/avatar-zoom';
 import { PostCardComponent } from '../../shared/post-card.component';
@@ -20,7 +21,7 @@ import { POSTS_SEEN_KEY } from '../../core/friends/friends-api';
 @Component({
   selector: 'app-friends',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, ReportSheetComponent, PostCardComponent],
+  imports: [FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, ReportSheetComponent, PostCardComponent, ClearableDirective],
   template: `
     <main class="page">
       <header class="page-head">
@@ -33,7 +34,7 @@ import { POSTS_SEEN_KEY } from '../../core/friends/friends-api';
         <form class="find-form" (ngSubmit)="search()">
           <label class="handle-input">
             <span aria-hidden="true">@</span>
-            <input name="username" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="21" enterkeyhint="search"
+            <input appClearable name="username" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="21" enterkeyhint="search"
               role="combobox" aria-autocomplete="list" aria-controls="friend-suggestions" [attr.aria-expanded]="suggestions().length > 0"
               [attr.aria-activedescendant]="active() >= 0 ? 'suggestion-' + active() : null"
               [attr.aria-label]="'friends.search.label' | t" [placeholder]="'friends.search.placeholder' | t" [(ngModel)]="query"

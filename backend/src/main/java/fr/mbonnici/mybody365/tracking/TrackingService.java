@@ -101,6 +101,9 @@ public class TrackingService {
         } else {
             throw ApiException.badRequest("validation_failed");
         }
+        if (!first && in.startWeightKg() != null) {
+            p.setStartWeightKg(scale2(in.startWeightKg()));
+        }
         p.setGoalWeightKg(scale2(in.goalWeightKg()));
         p.setWeeklyRateKg(rate);
         p.touch();

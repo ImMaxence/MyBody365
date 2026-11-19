@@ -7,6 +7,385 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.14.0",
+    "date": "2026-11-19",
+    "summary": [
+      {
+        "t": "Les vitamines et les minéraux de tes repas, une recherche de recettes qui comprend chaque mot, le calcul de ton objectif en calories, une page Recettes pour les admins et une barre d'onglets qui suit ton doigt"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "Vitamines et minéraux : la note de la journée montre ce que tes aliments t'apportent, en part du repère européen (celui des étiquettes) : vitamines A, D, E, C, B1, B2, B6, B9 et B12, calcium, fer, magnésium, potassium et zinc. Quand l'un manque depuis plusieurs jours, une alerte le dit avec les aliments qui en apportent, dans la note et dans « Bon à savoir ». Une vitamine inconnue pour tes aliments n'est jamais comptée comme un manque"
+            }
+          ],
+          [
+            {
+              "t": "« Riche en » : les vitamines et minéraux qu'apporte une quantité, sur l'écran de la quantité, le détail d'un repas et la fiche d'une recette"
+            }
+          ],
+          [
+            {
+              "t": "Recettes : trier par vitamine ou minéral (« Riches en » vitamine C, fer, calcium…), les portions les plus riches d'abord"
+            }
+          ],
+          [
+            {
+              "t": "Repas : toucher un aliment de ta journée montre sa note santé, ce qui la fait monter ou baisser, ses alertes, et la note de ta journée en cours avec la part de ses calories. Une recette notée dans un repas a un bouton « Voir la recette »"
+            }
+          ],
+          [
+            {
+              "t": "Détail d'une recette : la note santé de chaque ingrédient"
+            }
+          ],
+          [
+            {
+              "t": "Progrès : « Le calcul de ton objectif ». 1 kg de graisse, c'est environ 7 700 kcal : les kilos qui restent × 7 700, divisés par le déficit de chaque jour, donnent le nombre de jours et la date. D'autres déficits s'essaient en un tap, et un déficit qui te ferait manger moins de 1 200 kcal par jour (1 500 pour un homme) est signalé"
+            }
+          ],
+          [
+            {
+              "t": "Mon objectif : le poids de départ se modifie, aussi depuis la case Départ de la page Progrès. Tes pesées ne changent pas"
+            }
+          ],
+          [
+            {
+              "t": "Bon à savoir : les fibres (elles font aller aux toilettes, mais trop d'un coup gonfle et gêne le fer et le calcium), l'eau (les reins, les infections urinaires et les calculs), les fruits (2 à 3 par jour, pas à volonté) et les vitamines (varier les couleurs)"
+            }
+          ],
+          [
+            {
+              "t": "Les champs de recherche ont une petite croix pour tout effacer d'un coup, le clavier reste ouvert"
+            }
+          ],
+          [
+            {
+              "t": "Administration : une page Recettes. Les recettes de la communauté par nom, celles sans photo et celles masquées à part, masquer ou remettre d'un tap. Touche une recette pour la modifier (nom, ingrédients, étapes, photo) dans l'éditeur des recettes, chaque changement est noté dans le journal"
+            }
+          ],
+          [
+            {
+              "t": "Le compte MyBody365, qui publie les recettes de la communauté, a le rôle « Bot » : personne ne peut le modifier, le suspendre ni le supprimer"
+            }
+          ],
+          [
+            {
+              "t": "Site : une section « Entre amis », avec les flammes côte à côte, les défis, l'avancée partagée sans les kilos et les Bravo"
+            }
+          ],
+          [
+            {
+              "t": "Recettes de la communauté : 56 nouvelles photos libres de Wikimedia Commons, 658 recettes sur 729 ont maintenant la leur"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "La barre d'onglets suit ton doigt au lieu de partir d'un coup, puis se range ou revient toute seule quand tu lâches"
+            }
+          ],
+          [
+            {
+              "t": "Recettes : la recherche comprend chaque mot à part. « Salade tiramisu chocolat » trouve les salades, les tiramisus et les recettes au chocolat, celles qui ont le plus de mots en premier (dans leur nom, puis dans leurs ingrédients), et les mots chacun leur tour pour qu'aucun ne remplisse la page. « Salades » trouve aussi « salade »"
+            }
+          ],
+          [
+            {
+              "t": "Les photos des produits Open Food Facts sont gardées sur le serveur : chargées une fois, elles ne se perdent plus à un redémarrage, et une liste qui en demande beaucoup ne fait plus échouer les dernières"
+            }
+          ],
+          [
+            {
+              "t": "Apparence et langue : plus d'espace sous les titres, et le texte de la langue ne parle plus d'e-mails"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Le bouton Recettes de la page Repas : la page des recettes ne glisse plus trop loin vers la gauche en s'ouvrant (on voyait la page Repas derrière)"
+            }
+          ],
+          [
+            {
+              "t": "La barre d'onglets ne saute plus quand tu fais défiler vite vers le bas puis vers le haut"
+            }
+          ],
+          [
+            {
+              "t": "Recettes : plus d'effet d'appui sur les cartes quand tu fais défiler la page"
+            }
+          ],
+          [
+            {
+              "t": "Détail d'une recette : les quantités et les calories restent alignées à droite, même à côté d'un long nom d'ingrédient"
+            }
+          ],
+          [
+            {
+              "t": "Partage de ta journée en image : l'adresse du site en bas n'est plus coupée, la liste s'arrête avant (8 aliments, puis « et N autres »)"
+            }
+          ],
+          [
+            {
+              "t": "Le stockage des photos ne peut plus se bloquer : il crée autant d'espaces que le disque en permet (il s'arrêtait à 8, puis les photos ne s'enregistraient plus et ne s'affichaient plus)"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "version": "1.13.0",
+    "date": "2026-11-19",
+    "summary": [
+      {
+        "t": "Une note santé sur 10 à la place du Nutri-Score, les produits enfin faciles à distinguer, les boissons au verre, 200 recettes Healthy, une barre d'onglets qui s'efface quand tu fais défiler et une page Statistiques pour les admins"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "Une note santé sur 10, calculée par MyBody365, à la place du Nutri-Score : sur les produits, les aliments, les recettes, tes repas, les boissons, le fast-food et ce que tu montres à tes amis. Elle lit les nutriments comme le Nutri-Score, et ajoute ce qu'il oublie : les produits ultra-transformés, la friture, les édulcorants, les additifs, et la qualité des graisses. L'huile d'olive a 8,5, le beurre 1,5, des frites industrielles 2,5 à 5, des céréales au chocolat 3, un filet de poulet 9,5. Chaque fiche dit pourquoi (« Riche en fibres », « Ultra-transformé », « Beaucoup de sucre »…), et le Nutri-Score officiel d'un produit reste écrit en dessous"
+            }
+          ],
+          [
+            {
+              "t": "Un avertissement sur les produits riches en graisses saturées (ce sont elles qui font le plus monter le mauvais cholestérol), très sucrés ou très salés, avec le repère à retenir"
+            }
+          ],
+          [
+            {
+              "t": "Repas : « Bon à savoir », un conseil choisi d'après ta journée (trop de graisses saturées, de sucre ou de sel déjà), sinon un nouveau chaque jour. Tous les repères en un tap : les graisses saturées à limiter, faire baisser le mauvais cholestérol, le sucre (surtout celui qui se boit), le sel, les produits ultra-transformés, et 1 kg de graisse, c'est environ 7 700 kcal"
+            }
+          ],
+          [
+            {
+              "t": "Les boissons au verre : le lait, les jus, les sodas, les soupes se comptent en millilitres, avec une tasse (150 ml), un verre (200 ml), un mug (300 ml), un bol (400 ml) et la canette ou la bouteille du produit. Pour l'alcool, un verre, un demi ou une pinte"
+            }
+          ],
+          [
+            {
+              "t": "Produits industriels : la marque au-dessus du nom, puis ce que c'est (pâte à tartiner, biscuits, boisson sucrée…), la contenance du paquet et les calories, pour distinguer vingt « Biscoff » d'un coup d'œil. Les marques trouvées se choisissent en un tap, et une marque tapée dans la recherche (« lotus biscoff ») est reconnue toute seule"
+            }
+          ],
+          [
+            {
+              "t": "200 recettes Healthy dans la communauté, 729 en tout : 50 bowls et salades (bowl patate douce et fromage blanc, dense bean salad, green goddess, poke, buddha bowl…), 50 plats (poulet et légumes sur une plaque, dahl, chili sin carne, boulettes de dinde, curry vert…), 50 petits-déjeuners, collations et desserts (baked oats, overnight oats, chia pudding, yogurt bark, nice cream, energy balls…) et 50 soupes, entrées et boissons sans alcool (gaspacho, pho, golden milk, lassi…). Toutes sont notées 6,5 sur 10 ou plus"
+            }
+          ],
+          [
+            {
+              "t": "Recettes : la catégorie « Healthy », en premier devant tous les autres filtres"
+            }
+          ],
+          [
+            {
+              "t": "Recettes de la communauté : 137 nouvelles photos libres de Wikimedia Commons, choisies une à une, pour les recettes Healthy et les anciennes qui n'en avaient pas. 602 recettes sur 729 ont maintenant la leur, les autres gardent leur dessin plutôt qu'une photo qui ne leur ressemble pas"
+            }
+          ],
+          [
+            {
+              "t": "La barre d'onglets glisse hors de l'écran quand tu fais défiler une page vers le bas, et revient dès que tu remontes un peu, comme sur YouTube. Elle est toujours là en haut d'une page et quand tu changes d'écran"
+            }
+          ],
+          [
+            {
+              "t": "Administration : une page Statistiques, avec ce que le projet prend sur le serveur. Le stockage (la base de données, les photos, la part du disque), la mémoire et le processeur de l'app, du stockage des photos et du serveur entier, leurs courbes sur 24 heures, et quelques chiffres (comptes, aliments notés, photos, recettes)"
+            }
+          ],
+          [
+            {
+              "t": "Open Food Facts se met à jour tout seul : une fois par mois, et quelques minutes après cette nouvelle version, pour ramener la photo, la contenance et la catégorie de chaque produit"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "La recherche montre les meilleurs résultats d'abord : ce que tu manges souvent, ce que les membres notent le plus, puis les produits les plus scannés et les plus complets (avec une photo et une marque). Une fiche sans calories passe à la fin"
+            }
+          ],
+          [
+            {
+              "t": "La note du jour juge la qualité de ce que tu as mangé avec la note santé moyenne de tes aliments, et les statistiques des repas montrent la note santé de tes calories"
+            }
+          ],
+          [
+            {
+              "t": "L'icône de la date de mise à jour des données, en haut des pages Produits industriels et Aliments bruts, est plus grande"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Produits industriels : la page ne remonte plus tout en haut à chaque lettre tapée. La liste reste affichée pendant la recherche suivante, un peu estompée, au lieu de disparaître"
+            }
+          ],
+          [
+            {
+              "t": "La recherche des aliments est un vrai champ de recherche : la touche Rechercher du clavier le ferme"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "version": "1.12.1",
+    "date": "2026-11-19",
+    "summary": [
+      {
+        "t": "Des changements d'écran sans à-coup, les Nouveautés dans l'app et les poses sans photo expliquées"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "Nouveautés s'ouvre depuis ton profil comme un écran de l'app : il arrive par la droite, la barre d'onglets reste, et le retour te ramène au profil"
+            }
+          ],
+          [
+            {
+              "t": "Avant / après et time-lapse : une pose qui n'a pas encore assez de photos est grisée mais se choisit quand même, et dit ce qui manque (« Aucune photo de profil pour le moment ») avec un bouton vers l'appareil photo"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Les changements d'écran sont maintenant dessinés par l'app elle-même, comme le retour au doigt : une copie de l'écran que tu quittes glisse ou s'efface pendant que le nouveau arrive, sous la vraie barre d'onglets. Sur iPhone, depuis le bas d'une page, l'écran ne remonte plus d'un coup avant de partir (Aujourd'hui puis Profil par exemple), et la barre d'onglets ne s'affiche plus au milieu de l'écran pendant une fraction de seconde (Profil puis Connexion et sécurité par exemple) : elle ne bouge plus du tout. Un écran sur lequel tu reviens apparaît directement là où tu l'avais laissé"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "version": "1.12.0",
+    "date": "2026-11-19",
+    "summary": [
+      {
+        "t": "Des photos dans tes repas, ce que chaque aliment t'apporte, une note du jour enfin claire et des retours en arrière sans à-coup"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "Repas : une petite photo devant chaque aliment de tes repas et de tes repas récents. La photo de la recette, celle du produit pour un produit scanné, sinon un dessin de ce que c'est (un fruit, un légume, du poisson, du fromage…)"
+            }
+          ],
+          [
+            {
+              "t": "Repas : touche un aliment de ta journée pour voir ce qu'il t'apporte, avec les mêmes barres que ta journée (calories, protéines, glucides, lipides, fibres, en part de ton objectif). Le reste de ta journée apparaît plus clair à côté, et les sucres, le sel et les graisses saturées sont écrits dessous. Les barres suivent la quantité que tu choisis, et elles sont aussi là quand tu ajoutes un aliment"
+            }
+          ],
+          [
+            {
+              "t": "Code-barres : la photo du produit et la date de la dernière mise à jour de sa fiche Open Food Facts. La photo passe par notre serveur, ton téléphone ne contacte jamais Open Food Facts"
+            }
+          ],
+          [
+            {
+              "t": "Un point rouge sur les onglets où quelque chose t'attend : une demande d'ami ou un défi à accepter sur Aujourd'hui, ta liste de courses sur Repas, la photo du jour pas encore prise sur Photos (si tu en prends), comme sur Profil"
+            }
+          ],
+          [
+            {
+              "t": "Notifications bloquées par erreur : la page Notifications explique comment les réautoriser, étape par étape pour ton téléphone (iPhone, Android ou ordinateur), et les active toute seule quand tu reviens dans l'app"
+            }
+          ],
+          [
+            {
+              "t": "Recettes de la communauté : 183 nouvelles photos libres de Wikimedia Commons, choisies une à une. 465 recettes sur 529 ont maintenant la leur (282 avant), les autres gardent leur dessin plutôt qu'une photo qui ne leur ressemble pas"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "La note du jour dit à quoi elle sert : les calories disent combien tu manges, la note dit si tu manges bien. Les quatre critères sont toujours visibles, ceux qui attendent la fin de ta journée sont grisés avec où tu en es, le sucre, le sel, les graisses saturées et les fibres sont détaillés avec leur repère, et un conseil dit quoi faire pour gagner des points. Le calcul ne change pas"
+            }
+          ],
+          [
+            {
+              "t": "Recettes : en passant de Mes recettes à Amis ou Communauté, les recettes arrivent l'une après l'autre, du côté de l'onglet choisi"
+            }
+          ],
+          [
+            {
+              "t": "Repas : un point rouge sur Courses quand ta liste n'est pas finie, à la place du nombre d'articles"
+            }
+          ],
+          [
+            {
+              "t": "Notifications : le rappel de la photo du jour est activé de base, pour tout le monde. Tu peux toujours l'éteindre"
+            }
+          ],
+          [
+            {
+              "t": "Confidentialité : les photos des produits passent par notre serveur, comme les recherches"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Retour en arrière : l'écran ne remonte plus d'un coup avant de partir vers la droite (ton téléphone replaçait l'écran que tu quittais là où était le précédent)"
+            }
+          ],
+          [
+            {
+              "t": "Sur iPhone, la barre d'onglets ne disparaît plus quand tu remontes d'un grand geste tout en haut d'une page, et ne glisse plus vers le bas quand tu descends d'un grand geste tout en bas (le rebond de la page était pris pour le clavier)"
+            }
+          ],
+          [
+            {
+              "t": "Liste de courses : le nom de chaque rayon ne chevauche plus son premier article, et des « Œufs bio » sont rangés en crèmerie et comptés à la pièce, plutôt que pesés dans « Autres »"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.11.0",
     "date": "2026-11-19",
     "summary": [

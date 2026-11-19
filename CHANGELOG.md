@@ -2,6 +2,39 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.14.0] - 2026-11-19
+
+Les vitamines et les minéraux de tes repas, une recherche de recettes qui comprend chaque mot, le calcul de ton objectif en calories, une page Recettes pour les admins et une barre d'onglets qui suit ton doigt
+
+### Ajouté
+- Vitamines et minéraux : la note de la journée montre ce que tes aliments t'apportent, en part du repère européen (celui des étiquettes) : vitamines A, D, E, C, B1, B2, B6, B9 et B12, calcium, fer, magnésium, potassium et zinc. Quand l'un manque depuis plusieurs jours, une alerte le dit avec les aliments qui en apportent, dans la note et dans « Bon à savoir ». Une vitamine inconnue pour tes aliments n'est jamais comptée comme un manque
+- « Riche en » : les vitamines et minéraux qu'apporte une quantité, sur l'écran de la quantité, le détail d'un repas et la fiche d'une recette
+- Recettes : trier par vitamine ou minéral (« Riches en » vitamine C, fer, calcium…), les portions les plus riches d'abord
+- Repas : toucher un aliment de ta journée montre sa note santé, ce qui la fait monter ou baisser, ses alertes, et la note de ta journée en cours avec la part de ses calories. Une recette notée dans un repas a un bouton « Voir la recette »
+- Détail d'une recette : la note santé de chaque ingrédient
+- Progrès : « Le calcul de ton objectif ». 1 kg de graisse, c'est environ 7 700 kcal : les kilos qui restent × 7 700, divisés par le déficit de chaque jour, donnent le nombre de jours et la date. D'autres déficits s'essaient en un tap, et un déficit qui te ferait manger moins de 1 200 kcal par jour (1 500 pour un homme) est signalé
+- Mon objectif : le poids de départ se modifie, aussi depuis la case Départ de la page Progrès. Tes pesées ne changent pas
+- Bon à savoir : les fibres (elles font aller aux toilettes, mais trop d'un coup gonfle et gêne le fer et le calcium), l'eau (les reins, les infections urinaires et les calculs), les fruits (2 à 3 par jour, pas à volonté) et les vitamines (varier les couleurs)
+- Les champs de recherche ont une petite croix pour tout effacer d'un coup, le clavier reste ouvert
+- Administration : une page Recettes. Les recettes de la communauté par nom, celles sans photo et celles masquées à part, masquer ou remettre d'un tap. Touche une recette pour la modifier (nom, ingrédients, étapes, photo) dans l'éditeur des recettes, chaque changement est noté dans le journal
+- Le compte MyBody365, qui publie les recettes de la communauté, a le rôle « Bot » : personne ne peut le modifier, le suspendre ni le supprimer
+- Site : une section « Entre amis », avec les flammes côte à côte, les défis, l'avancée partagée sans les kilos et les Bravo
+- Recettes de la communauté : 56 nouvelles photos libres de Wikimedia Commons, 658 recettes sur 729 ont maintenant la leur
+
+### Modifié
+- La barre d'onglets suit ton doigt au lieu de partir d'un coup, puis se range ou revient toute seule quand tu lâches
+- Recettes : la recherche comprend chaque mot à part. « Salade tiramisu chocolat » trouve les salades, les tiramisus et les recettes au chocolat, celles qui ont le plus de mots en premier (dans leur nom, puis dans leurs ingrédients), et les mots chacun leur tour pour qu'aucun ne remplisse la page. « Salades » trouve aussi « salade »
+- Les photos des produits Open Food Facts sont gardées sur le serveur : chargées une fois, elles ne se perdent plus à un redémarrage, et une liste qui en demande beaucoup ne fait plus échouer les dernières
+- Apparence et langue : plus d'espace sous les titres, et le texte de la langue ne parle plus d'e-mails
+
+### Corrigé
+- Le bouton Recettes de la page Repas : la page des recettes ne glisse plus trop loin vers la gauche en s'ouvrant (on voyait la page Repas derrière)
+- La barre d'onglets ne saute plus quand tu fais défiler vite vers le bas puis vers le haut
+- Recettes : plus d'effet d'appui sur les cartes quand tu fais défiler la page
+- Détail d'une recette : les quantités et les calories restent alignées à droite, même à côté d'un long nom d'ingrédient
+- Partage de ta journée en image : l'adresse du site en bas n'est plus coupée, la liste s'arrête avant (8 aliments, puis « et N autres »)
+- Le stockage des photos ne peut plus se bloquer : il crée autant d'espaces que le disque en permet (il s'arrêtait à 8, puis les photos ne s'enregistraient plus et ne s'affichaient plus)
+
 ## [1.13.0] - 2026-11-19
 
 Une note santé sur 10 à la place du Nutri-Score, les produits enfin faciles à distinguer, les boissons au verre, 200 recettes Healthy, une barre d'onglets qui s'efface quand tu fais défiler et une page Statistiques pour les admins

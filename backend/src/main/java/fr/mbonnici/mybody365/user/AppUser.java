@@ -15,7 +15,8 @@ import org.hibernate.generator.EventType;
 @Table(name = "app_user")
 public class AppUser {
 
-    public enum Role { USER, ADMIN }
+    /** BOT (1.14): the team account that publishes the community's recipes: no sign-in, never deleted, suspended or promoted */
+    public enum Role { USER, ADMIN, BOT }
 
     public enum Status { ACTIVE, SUSPENDED }
 

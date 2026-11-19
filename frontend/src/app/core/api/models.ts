@@ -97,7 +97,7 @@ export interface AdminUser {
   email: string;
   displayName: string;
   avatarUrl?: string;
-  role: 'USER' | 'ADMIN';
+  role: 'USER' | 'ADMIN' | 'BOT';
   status: 'ACTIVE' | 'SUSPENDED';
   envAdmin: boolean;
   self: boolean;
@@ -175,6 +175,8 @@ export interface ProfileInput {
   currentWeightKg: number;
   goalWeightKg: number;
   weeklyRateKg: number;
+  /** 1.14: the starting point, changed from « Mon objectif » (left out: kept) */
+  startWeightKg?: number;
 }
 
 export interface BodyProfile {
@@ -321,6 +323,8 @@ export interface Food {
   packageMl?: number;
   /** NOVA group, 1 (raw) to 4 (ultra-processed) */
   nova?: number;
+  /** 1.14: vitamins and minerals per 100 g */
+  micros?: Partial<Record<string, number>>;
 }
 
 export interface FoodInput {
@@ -358,6 +362,8 @@ export interface MealEntry {
   /** 1.13: its health score out of 10, and an amount in millilitres */
   health?: number | null;
   liquid?: boolean;
+  /** 1.14: the vitamins and minerals it brings (core/meals/micros.ts keys) */
+  micros?: Partial<Record<string, number>>;
 }
 
 export interface MealDay {
@@ -365,6 +371,18 @@ export interface MealDay {
   targetKcal?: number;
   totals: Nutrients;
   entries: MealEntry[];
+  /** 1.14: the vitamins and minerals of the day, and the share of its calories whose are known (0 to 1) */
+  micros?: Partial<Record<string, number>>;
+  microsCoverage?: number;
+}
+
+/** 1.14: the vitamins and minerals of the last days, and those that run low */
+export interface MicrosSummary {
+  days: number;
+  noted: number;
+  coverage: number;
+  average: Partial<Record<string, number>>;
+  low: string[];
 }
 
 /** a day of the calendar: only days with something logged come back */
@@ -492,8 +510,10 @@ export interface Recipe {
   imageSource?: string;
   /** 1.13: the health score of its dish (none when entered by hand, or with alcohol) */
   health?: HealthDto | null;
+  /** 1.14: vitamins and minerals of a serving */
+  micros?: Partial<Record<string, number>>;
   /** each line: its calories for the weight, its food's values per 100 g, whether it counts as fruit and vegetables */
-  ingredients?: { foodId?: string; name: string; grams: number; kcal: number; per100?: Nutrients; fruitVeg?: boolean }[];
+  ingredients?: { foodId?: string; name: string; grams: number; kcal: number; per100?: Nutrients; fruitVeg?: boolean; health?: number | null }[];
   createdAt: string;
 }
 
