@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type { CiqualImport, Favorites, FoodSources, OffImport, Food, FoodInput, FoodsOverview, MealDay, MealDays, MealInput, MealStats, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, RecipeVisibility, Slot } from '../api/models';
+import type { CiqualImport, Favorites, FoodSources, OffImport, Food, FoodInput, FoodsOverview, Lookalike, MealDay, MealDays, MealInput, MealStats, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, RecipeVisibility, Slot } from '../api/models';
 
 /** an ingredient of imported recipes the tables do not know (FOOD) or cannot weigh (WEIGHT) */
 /** the community's first recipes (written by the team, computed from Ciqual) */
@@ -135,6 +135,11 @@ export class MealsApi {
 
   recipe(id: string): Promise<Recipe> {
     return firstValueFrom(this.http.get<Recipe>(`/api/recipes/${id}`));
+  }
+
+  /** before a new recipe is saved: the ones I can see that look like it (nothing saved) */
+  lookalikes(name: string, ingredients: RecipeInput['ingredients']): Promise<Lookalike[]> {
+    return firstValueFrom(this.http.post<Lookalike[]>('/api/me/recipes/lookalikes', { name, ingredients }));
   }
 
   createRecipe(input: RecipeInput): Promise<Recipe> {

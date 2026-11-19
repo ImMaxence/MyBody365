@@ -49,6 +49,19 @@ test.describe('photos', () => {
     expect(errors).toEqual([]);
   });
 
+  test('today’s photo picked in the gallery, straight from the tab (1.10)', async ({ page }) => {
+    await signIn(page, 'new');
+    await tab(page, 'Photos').click();
+    await expect(page.getByRole('button', { name: 'Importer depuis ma galerie' })).toBeVisible();
+    await page.locator('input[type=file]').setInputFiles({ name: 'me.png', mimeType: 'image/png', buffer: makePng(400, 500) });
+    // the camera screen shows it at once, its pose still to choose
+    await expect(page.getByRole('button', { name: 'Garder cette photo' })).toBeVisible();
+    await page.getByRole('radio', { name: 'Dos' }).click();
+    await page.getByRole('button', { name: 'Garder cette photo' }).click();
+    await expect(page.getByText('Photo du jour prise')).toBeVisible();
+    await expect(page.getByRole('link', { name: /Ouvrir la photo du/ }).getByText('Dos')).toBeVisible();
+  });
+
   test('a photo is private: another account gets a 404', async ({ page, browser }) => {
     await signIn(page, 'new');
     await page.goto('/app/photos/camera');

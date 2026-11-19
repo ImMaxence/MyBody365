@@ -395,6 +395,9 @@ export const fr = {
     evening: {
       title: 'Pesée du soir',
       hint: 'Facultatif, pour voir ce que la journée ajoute',
+      locked: 'Disponible dès 17 h, après ta pesée du jour',
+      lockedHour: 'Disponible dès 17 h',
+      lockedMorning: 'Disponible après ta pesée du jour',
       text: 'Le soir, on pèse souvent 0,5 à 2 kg de plus qu’au réveil (l’eau, les repas) : c’est normal. Ta courbe, ta flamme et ton objectif suivent la pesée du matin',
       label: 'Poids ce soir',
       diff: '{d} kg depuis ce matin',

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import type { Photo, Pose } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -58,6 +58,11 @@ interface Month {
           <app-icon name="chevronRight" />
         </a>
       }
+      <!-- 1.10: the photo of the day from the phone's gallery (taken earlier, or with the phone's own camera) -->
+      <button type="button" class="btn btn-secondary btn-block from-gallery" (click)="gallery.click()">
+        <app-icon name="image" [size]="18" /> {{ 'photos.camera.import' | t }}
+      </button>
+      <input #gallery type="file" accept="image/*" hidden (change)="picked($event)" />
 
       @if (blurred()) {
         <p class="blur-note small muted"><app-icon name="eyeOff" [size]="15" /> {{ 'photos.blur.note' | t }}</p>
@@ -307,6 +312,17 @@ interface Month {
 export class PhotosPage {
   protected readonly store = inject(PhotosStore);
   protected readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
+
+  /** a picture of the gallery: on to the camera screen, which shows it to choose its pose and keep it */
+  protected picked(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    this.store.handOver(file);
+    void this.router.navigate(['/app/photos/camera']);
+  }
   protected readonly poses = POSES;
   protected readonly pose = signal<Pose | null>(null);
 

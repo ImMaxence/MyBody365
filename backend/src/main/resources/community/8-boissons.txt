@@ -1,0 +1,187 @@
+# Recettes de la communauté, 1.10 : dix cocktails de plus pour noter ce qu'on boit (l'alcool est compté en verres
+# standard, sans Nutri-Score) et dix boissons sans alcool, du lassi au shake protéiné. Même format que les autres :
+#   = Nom | TYPES | parts
+#   code_ciqual grammes   (poids pour toute la recette ; le texte après les grammes n'est qu'un repère)
+#   : une étape
+
+= Caïpiroska | DRINK | 1
+1008 50 vodka
+13067 60 citron vert
+31016 15 sucre
+18066 100 glace pilée
+: Couper le citron vert en quartiers et les écraser au fond du verre avec le sucre
+: Remplir de glace pilée, verser la vodka et mélanger
+
+= Moscow mule | DRINK | 1
+1008 50 vodka
+18010 120 limonade
+11074 5 gingembre frais
+2031 15 jus de citron vert
+18066 80 glaçons
+: Écraser le gingembre râpé au fond d'un mug avec le jus de citron vert
+: Ajouter les glaçons et la vodka, compléter de limonade et mélanger
+
+= Cuba libre | DRINK | 1
+1004 50 rhum
+18018 120 cola
+2031 15 jus de citron vert
+18066 80 glaçons
+: Remplir un verre de glaçons, verser le rhum et le jus de citron vert
+: Compléter de cola et mélanger doucement
+
+= Mai tai | DRINK | 1
+1004 50 rhum
+1003 15 liqueur d'orange
+2031 20 jus de citron vert
+2073 40 jus d'ananas
+18017 10 sirop d'orgeat
+18066 80 glaçons
+: Secouer le rhum, la liqueur, le jus de citron vert, le jus d'ananas et le sirop avec les glaçons
+: Verser dans un verre rempli de glace
+
+= Daïquiri à la fraise | DRINK | 1
+1004 45 rhum
+13014 100 fraises
+2031 20 jus de citron vert
+31016 10 sucre
+18066 80 glaçons
+: Mixer les fraises avec le rhum, le jus de citron vert, le sucre et les glaçons
+: Verser dans un verre à cocktail bien froid
+
+= Cosmopolitan | DRINK | 1
+1008 40 vodka
+1003 15 liqueur d'orange
+2381 30 jus de canneberge
+2031 15 jus de citron vert
+18066 80 glaçons
+: Secouer tous les ingrédients avec les glaçons
+: Filtrer dans un verre à cocktail
+
+= Bloody Mary | DRINK | 1
+1008 45 vodka
+2053 150 jus de tomate
+2028 10 jus de citron
+20023 30 branche de céleri
+11044 1 sel au céleri
+11015 1 poivre
+18066 60 glaçons
+: Mélanger la vodka, le jus de tomate, le citron, le sel et le poivre avec les glaçons
+: Servir avec la branche de céleri
+
+= Vin chaud | DRINK | 6
+5214 750 vin rouge
+31016 100 sucre
+13034 150 orange
+11025 2 cannelle en bâton
+11052 1 clous de girofle
+11074 5 gingembre frais
+: Chauffer le vin avec le sucre, l'orange en rondelles et les épices, sans jamais le faire bouillir
+: Laisser infuser 15 minutes à feu très doux, filtrer et servir chaud
+
+= Irish coffee | DRINK | 1
+1005 40 whisky
+18004 120 café chaud
+31017 10 sucre roux
+19417 30 crème liquide fouettée
+: Verser le whisky et le sucre dans un verre chaud, ajouter le café et mélanger
+: Faire glisser la crème légèrement fouettée sur le dos d'une cuillère pour qu'elle flotte
+
+= Punch coco | DRINK | 8
+1004 250 rhum
+18041 400 lait de coco
+19027 300 lait concentré sucré
+11048 1 noix de muscade
+11025 1 cannelle
+11098 5 vanille
+: Mixer le lait de coco, le lait concentré, la vanille, la muscade et la cannelle
+: Ajouter le rhum, mélanger et laisser au moins 4 heures au frais
+: Servir bien froid en petits verres
+
+= Lassi à la mangue | DRINK,BREAKFAST,SNACK | 2
+13025 250 mangue
+19593 250 yaourt nature
+19033 100 lait
+31008 15 miel
+11075 1 cardamome
+: Mixer la mangue avec le yaourt, le lait, le miel et la cardamome jusqu'à ce que ce soit bien lisse
+: Servir bien frais
+
+= Smoothie vert | DRINK,BREAKFAST,SNACK | 2
+20059 60 épinards frais
+13005 120 banane
+13039 150 pomme
+13021 80 kiwi
+2028 10 jus de citron
+18066 200 eau
+: Mixer les épinards avec l'eau, puis ajouter les fruits coupés et le citron
+: Mixer jusqu'à ce que ce soit bien lisse
+
+= Café glacé | DRINK,SNACK | 1
+18071 60 café expresso
+19033 150 lait demi-écrémé
+31016 8 sucre
+18066 80 glaçons
+: Sucrer le café chaud et le laisser refroidir
+: Verser sur les glaçons et compléter de lait froid
+
+= Golden latte | DRINK,SNACK | 1
+18899 250 boisson à l'avoine
+11089 3 curcuma
+11006 1 gingembre en poudre
+11025 1 cannelle
+31008 10 miel
+11015 0,5 poivre
+: Chauffer la boisson à l'avoine avec les épices en fouettant, sans bouillir
+: Sucrer au miel et servir chaud
+
+= Chaï latte | DRINK,SNACK | 1
+18154 150 thé noir infusé
+19033 150 lait demi-écrémé
+31016 10 sucre
+11025 1 cannelle
+11075 1 cardamome
+11074 3 gingembre frais
+11052 0,5 clou de girofle
+: Faire infuser le thé 5 minutes avec les épices et le gingembre
+: Ajouter le lait et le sucre, chauffer en fouettant pour faire mousser et filtrer
+
+= Thé à la menthe | DRINK | 4
+18155 800 thé vert infusé
+11027 20 menthe fraîche
+31016 60 sucre
+: Faire infuser le thé vert 3 minutes dans l'eau très chaude
+: Ajouter la menthe et le sucre, laisser infuser encore 3 minutes
+: Servir en versant de haut pour faire mousser
+
+= Shake protéiné à la banane | DRINK,BREAKFAST,SNACK | 1
+19033 200 lait demi-écrémé
+19724 150 spécialité laitière riche en protéines
+13005 100 banane
+32140 20 flocons d'avoine
+15202 10 beurre de cacahuète
+: Mixer tous les ingrédients jusqu'à ce que ce soit bien lisse
+: Servir aussitôt, idéal après le sport
+
+= Diabolo menthe | DRINK | 1
+18010 250 limonade
+18017 25 sirop de menthe
+18066 40 glaçons
+: Verser le sirop dans un grand verre avec les glaçons
+: Compléter de limonade bien fraîche
+
+= Milkshake au chocolat | DRINK,TREAT | 2
+19016 300 lait entier
+39515 180 glace (chocolat ou vanille)
+18100 15 cacao en poudre
+31016 15 sucre
+19420 40 crème chantilly
+: Mixer le lait, la glace, le cacao et le sucre jusqu'à ce que ce soit mousseux
+: Servir aussitôt avec la chantilly
+
+= Infusion gingembre, citron et miel | DRINK | 2
+11074 30 gingembre frais
+13009 60 citron
+31008 20 miel
+18066 500 eau
+: Faire infuser le gingembre en lamelles 10 minutes dans l'eau frémissante
+: Ajouter le jus du citron et le miel, filtrer et servir chaud

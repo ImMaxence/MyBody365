@@ -1,0 +1,512 @@
+# Recettes de la communauté, 1.10 : des petits-déjeuners qui tiennent jusqu'à midi, des collations simples et des
+# desserts de toujours, du plus léger au plus gourmand (« Plaisir »). Même format que les autres fichiers :
+#   = Nom | TYPES | parts
+#   code_ciqual grammes   (poids cru pour toute la recette ; le texte après les grammes n'est qu'un repère)
+#   : une étape
+
+= Pancakes protéinés au fromage blanc | BREAKFAST,SNACK | 2
+19644 200 fromage blanc 0 %
+22000 120 œufs (2)
+32140 80 flocons d'avoine
+13005 100 banane
+11046 5 levure chimique
+11025 1 cannelle
+17440 5 huile de tournesol
+: Mixer le fromage blanc, les œufs, les flocons d'avoine, la banane, la levure et la cannelle
+: Cuire de petites louches de pâte 2 minutes de chaque côté dans une poêle à peine huilée
+
+= Porridge pomme cannelle | BREAKFAST | 1
+32140 50 flocons d'avoine
+19033 250 lait demi-écrémé
+13039 120 pomme
+11025 1 cannelle
+31008 10 miel
+15005 10 cerneaux de noix
+: Cuire les flocons dans le lait 5 minutes à feu doux en remuant
+: Ajouter la pomme coupée en petits dés et la cannelle, cuire encore 2 minutes
+: Servir avec le miel et les noix concassées
+
+= Pudding de chia au lait d'amande | BREAKFAST,SNACK | 2
+15047 50 graines de chia
+18107 300 boisson à l'amande sans sucres ajoutés
+31034 15 sirop d'érable
+13015 125 framboises
+13025 100 mangue
+: Mélanger les graines de chia avec la boisson à l'amande et le sirop d'érable
+: Laisser reposer au moins 4 heures au frais, idéalement une nuit, en remuant une fois au début
+: Servir avec les framboises et la mangue en dés
+
+= Bowl cake au chocolat | BREAKFAST,SNACK | 1
+32140 40 flocons d'avoine
+22000 60 œuf (1)
+19033 60 lait demi-écrémé
+13005 60 banane écrasée
+18100 8 cacao en poudre
+11046 3 levure chimique
+31085 10 chocolat noir
+: Écraser la banane dans un bol, ajouter l'œuf, le lait, les flocons, le cacao et la levure
+: Ajouter le chocolat en morceaux au centre
+: Cuire 2 minutes au micro-ondes
+
+= Bircher muesli | BREAKFAST | 2
+32140 100 flocons d'avoine
+19593 125 yaourt nature
+19033 150 lait demi-écrémé
+13039 150 pomme
+2028 10 jus de citron
+15004 20 noisettes
+13046 20 raisins secs
+31008 15 miel
+: Mélanger les flocons avec le yaourt et le lait, laisser gonfler une nuit au frais
+: Le matin, ajouter la pomme râpée arrosée de citron, les noisettes concassées, les raisins et le miel
+
+= Smoothie bowl aux fruits rouges | BREAKFAST,SNACK | 1
+13005 120 banane congelée
+13015 60 framboises
+13028 60 myrtilles
+19860 100 yaourt à la grecque
+32004 30 muesli
+15047 5 graines de chia
+: Mixer la banane, la moitié des fruits rouges et le yaourt jusqu'à obtenir une crème épaisse
+: Verser dans un bol et garnir du reste des fruits, du muesli et des graines de chia
+
+= Œufs Bénédicte | BREAKFAST,LUNCH | 2
+7257 140 muffins anglais (2)
+22000 240 œufs (4)
+28910 80 jambon (ou bacon)
+16400 50 beurre
+22002 40 jaunes d'œufs (2)
+2028 10 jus de citron
+11018 15 vinaigre
+11058 1 sel
+: Monter la sauce hollandaise : fouetter les jaunes avec le citron au bain-marie, puis incorporer le beurre fondu petit à petit
+: Pocher les œufs 3 minutes dans l'eau frémissante vinaigrée
+: Toaster les muffins coupés en deux et les garnir de jambon, d'un œuf poché et de sauce
+
+= English breakfast | BREAKFAST,LUNCH | 2
+22000 120 œufs (2)
+28727 80 bacon
+30115 120 chipolatas
+20194 200 haricots blancs à la sauce tomate
+20056 120 champignons
+20385 150 tomate
+7200 60 pain de mie (2 tranches)
+16400 10 beurre
+: Griller les chipolatas 12 minutes et le bacon 3 minutes
+: Poêler les champignons et la tomate coupée en deux, réchauffer les haricots
+: Cuire les œufs au plat et toaster le pain beurré
+: Servir le tout ensemble
+
+= Muffins aux œufs et légumes | BREAKFAST,SNACK | 3
+22000 360 œufs (6)
+20087 100 poivron rouge
+20059 60 épinards
+20034 50 oignon
+12118 40 emmental râpé
+19033 50 lait
+11058 2 sel
+11015 1 poivre
+: Couper le poivron et l'oignon en petits dés, hacher les épinards
+: Battre les œufs avec le lait, le sel et le poivre, ajouter les légumes et l'emmental
+: Répartir dans 6 moules à muffins et cuire 20 minutes à 180 °C
+
+= Pancakes banane et flocons d'avoine | BREAKFAST,SNACK | 2
+13005 200 bananes
+22000 120 œufs (2)
+32140 80 flocons d'avoine
+19033 50 lait
+11046 4 levure chimique
+11025 1 cannelle
+17440 5 huile de tournesol
+: Mixer les bananes, les œufs, les flocons, le lait, la levure et la cannelle
+: Cuire de petits pancakes 2 minutes de chaque côté dans une poêle à peine huilée
+
+= Tartine fromage frais, miel et figues | BREAKFAST,SNACK | 2
+7100 120 pain de campagne (2 tranches)
+12068 60 fromage frais
+13012 120 figues
+31008 15 miel
+15005 15 cerneaux de noix
+: Toaster le pain
+: Tartiner de fromage frais, couvrir de figues en tranches et de noix concassées
+: Arroser de miel
+
+= Tartine beurre de cacahuète et banane | BREAKFAST,SNACK | 1
+7110 70 pain complet (2 tranches)
+15202 20 beurre de cacahuète
+13005 100 banane
+11025 1 cannelle
+: Toaster le pain
+: Tartiner de beurre de cacahuète, couvrir de rondelles de banane et saupoudrer de cannelle
+
+= Breakfast burrito | BREAKFAST,LUNCH | 2
+7815 160 tortillas de blé (2 grandes)
+22000 240 œufs (4)
+28727 60 bacon
+4008 150 pomme de terre
+12726 50 cheddar
+20041 80 poivron
+20385 100 tomate
+17440 8 huile de tournesol
+11058 2 sel
+: Faire dorer la pomme de terre en petits dés 12 minutes dans l'huile, ajouter le poivron et le bacon
+: Ajouter les œufs battus salés et les brouiller
+: Garnir les tortillas chaudes d'œufs, de cheddar râpé et de tomate en dés, puis rouler
+
+= Toast avocat et saumon fumé | BREAKFAST,LUNCH,SNACK | 2
+7110 120 pain complet (2 grandes tranches)
+13004 140 avocat
+26037 80 saumon fumé
+2028 10 jus de citron
+11003 4 ciboulette
+11015 1 poivre
+: Toaster le pain
+: Écraser l'avocat avec le citron et le poivre et en tartiner le pain
+: Couvrir de saumon fumé et parsemer de ciboulette
+
+= Porridge chocolat banane | BREAKFAST | 1
+32140 50 flocons d'avoine
+19033 250 lait demi-écrémé
+18100 8 cacao en poudre
+13005 100 banane
+31034 10 sirop d'érable
+: Cuire les flocons dans le lait avec le cacao 5 minutes à feu doux en remuant
+: Servir avec la banane en rondelles et le sirop d'érable
+
+= Bol fromage blanc, compote et avoine | BREAKFAST,SNACK | 1
+19646 150 fromage blanc 3 %
+13151 100 compote de pomme allégée en sucres
+32140 30 flocons d'avoine
+15004 10 noisettes
+11025 1 cannelle
+: Verser le fromage blanc dans un bol
+: Ajouter la compote, les flocons, les noisettes concassées et la cannelle
+
+= Pop-corn maison | SNACK | 4
+9231 80 maïs à pop-corn
+17440 15 huile de tournesol
+11058 2 sel
+: Chauffer l'huile dans une grande casserole avec quelques grains
+: Quand ils éclatent, ajouter le reste du maïs, couvrir et secouer la casserole jusqu'à ce que les éclatements cessent
+: Saler aussitôt
+
+= Mélange de fruits secs et noix | SNACK | 6
+15000 60 amandes
+15054 60 noix de cajou
+15004 40 noisettes
+13046 40 raisins secs
+13001 60 abricots secs
+31085 30 chocolat noir
+: Couper les abricots en morceaux et le chocolat en pépites
+: Mélanger le tout et répartir en petites portions d'une poignée
+
+= Pomme et beurre de cacahuète | SNACK | 1
+13039 150 pomme
+15202 15 beurre de cacahuète
+11025 1 cannelle
+: Couper la pomme en quartiers
+: Servir avec le beurre de cacahuète saupoudré de cannelle pour y tremper les quartiers
+
+= Dattes fourrées à la pâte d'amande | SNACK,TREAT | 6
+13011 180 dattes (18)
+15201 90 pâte d'amande
+15005 20 cerneaux de noix
+: Ouvrir les dattes sur le côté et retirer le noyau
+: Les fourrer d'une petite boule de pâte d'amande et décorer d'un morceau de noix
+
+= Barres protéinées au beurre de cacahuète | SNACK | 8
+32140 160 flocons d'avoine
+15202 120 beurre de cacahuète
+31008 80 miel
+19054 60 lait en poudre écrémé
+31085 50 chocolat noir
+: Chauffer doucement le beurre de cacahuète avec le miel
+: Mélanger avec les flocons et le lait en poudre
+: Tasser dans un moule recouvert de papier cuisson, napper de chocolat fondu
+: Laisser durcir 2 heures au frais avant de couper 8 barres
+
+= Cookies avoine et banane | SNACK,BREAKFAST | 4
+13005 240 bananes bien mûres
+32140 150 flocons d'avoine
+31085 40 chocolat noir
+13046 20 raisins secs
+11025 1 cannelle
+: Écraser les bananes et les mélanger avec les flocons, la cannelle, le chocolat en pépites et les raisins
+: Former 12 petits tas sur une plaque
+: Cuire 15 minutes à 180 °C
+
+= Crudités et houmous | SNACK,LUNCH | 2
+20009 200 carottes
+20019 150 concombre
+20087 120 poivron rouge
+20016 120 chou-fleur
+25621 120 houmous
+: Couper les légumes en bâtonnets et le chou-fleur en petits bouquets
+: Les servir avec le houmous pour les y tremper
+
+= Nachos au fromage | SNACK | 4
+38417 200 chips de maïs
+12726 150 cheddar
+20385 200 tomates
+20034 60 oignon
+13004 140 avocat
+13067 30 citron vert
+20151 3 piment
+19410 60 crème épaisse
+11094 8 coriandre
+: Étaler les chips sur une plaque et les couvrir de cheddar râpé, gratiner 5 minutes à 200 °C
+: Couper les tomates, l'oignon et le piment en petits dés avec la coriandre
+: Écraser l'avocat avec le citron vert
+: Servir les nachos avec la salsa, l'avocat et la crème
+
+= Charlotte aux fraises | TREAT,DESSERT | 8
+24430 250 biscuits à la cuillère (24)
+13014 500 fraises
+19584 250 mascarpone
+19417 250 crème liquide
+31016 80 sucre
+18066 150 eau
+: Faire un sirop avec l'eau et la moitié du sucre, y tremper rapidement les biscuits et en tapisser un moule
+: Fouetter le mascarpone avec la crème et le reste du sucre en chantilly ferme
+: Alterner couches de crème et de fraises coupées, finir par des biscuits
+: Laisser prendre au moins 6 heures au frais, démouler et décorer de fraises
+
+= Baba au rhum | TREAT,DESSERT | 8
+9440 250 farine
+22000 180 œufs (3)
+16400 80 beurre
+31016 330 sucre (pâte et sirop)
+11010 15 levure de boulanger
+19033 60 lait tiède
+18066 500 eau
+1004 80 rhum
+19420 100 crème chantilly
+: Mélanger la farine, les œufs, la levure délayée dans le lait et 30 g de sucre, pétrir 10 minutes, ajouter le beurre mou
+: Remplir des moules à baba à moitié, laisser lever 1 heure et cuire 20 minutes à 180 °C
+: Faire bouillir l'eau avec le reste du sucre, hors du feu ajouter le rhum
+: Imbiber les babas de sirop tiède et servir avec la chantilly
+
+= Poires Belle-Hélène | DESSERT | 4
+13037 600 poires (4)
+31016 100 sucre
+18066 700 eau
+39515 240 glace vanille
+31085 100 chocolat noir
+19417 80 crème liquide
+: Pocher les poires épluchées 20 minutes dans l'eau sucrée frémissante, puis les laisser refroidir
+: Faire fondre le chocolat avec la crème
+: Servir chaque poire avec une boule de glace vanille, nappée de chocolat chaud
+
+= Pêche Melba | DESSERT | 4
+13043 500 pêches (4)
+31016 100 sucre
+18066 600 eau
+39515 240 glace vanille
+13015 200 framboises
+19420 60 crème chantilly
+15041 20 amandes effilées
+: Pocher les pêches 5 minutes dans l'eau sucrée, les peler et les couper en deux
+: Mixer les framboises avec 20 g de sucre pour le coulis
+: Servir les pêches sur la glace vanille, nappées de coulis, avec la chantilly et les amandes grillées
+
+= Mont-Blanc | TREAT,DESSERT | 6
+22001 100 blancs d'œufs (3)
+31016 200 sucre
+15013 300 crème de marrons
+19417 250 crème liquide
+19584 100 mascarpone
+: Monter les blancs en neige en ajoutant le sucre peu à peu, former 6 disques de meringue et les cuire 1 heure 30 à 100 °C
+: Fouetter la crème avec le mascarpone en chantilly
+: Poser un dôme de chantilly sur chaque meringue
+: Recouvrir de vermicelles de crème de marrons à la poche à douille
+
+= Tarte aux myrtilles | TREAT,DESSERT | 8
+23444 250 pâte sablée
+13028 500 myrtilles
+22000 120 œufs (2)
+19417 150 crème liquide
+31016 80 sucre
+: Garnir le moule de pâte et la précuire 10 minutes à 180 °C
+: Répartir les myrtilles sur la pâte
+: Battre les œufs avec la crème et le sucre, verser sur les fruits
+: Cuire 30 minutes à 180 °C
+
+= Tarte aux abricots | TREAT,DESSERT | 8
+23414 230 pâte brisée
+13000 700 abricots
+15041 60 poudre d'amande
+22000 60 œuf (1)
+31016 70 sucre
+16400 30 beurre
+: Mélanger la poudre d'amande, l'œuf, le beurre mou et la moitié du sucre et en tapisser la pâte
+: Disposer les abricots coupés en deux, face bombée vers le bas
+: Saupoudrer du reste de sucre et cuire 40 minutes à 180 °C
+
+= Kouglof | TREAT,BREAKFAST | 10
+9440 500 farine
+16400 150 beurre
+22000 120 œufs (2)
+31016 80 sucre
+19033 200 lait tiède
+11010 20 levure de boulanger
+13046 100 raisins secs
+15041 40 amandes entières
+1004 30 rhum
+11058 8 sel
+: Faire tremper les raisins dans le rhum
+: Pétrir la farine, le sucre, le sel, les œufs et la levure délayée dans le lait 10 minutes, ajouter le beurre mou puis les raisins
+: Laisser lever 1 heure 30, disposer les amandes au fond du moule beurré et y mettre la pâte
+: Laisser lever encore 1 heure et cuire 45 minutes à 180 °C
+
+= Tarte au fromage blanc | TREAT,DESSERT | 8
+23414 230 pâte brisée
+19501 500 fromage blanc
+22000 180 œufs (3)
+31016 120 sucre
+19417 100 crème liquide
+9510 30 fécule de maïs
+13009 40 citron
+11098 5 vanille
+: Battre le fromage blanc avec les jaunes, le sucre, la crème, la fécule, le zeste et le jus du citron et la vanille
+: Incorporer les blancs montés en neige
+: Verser sur la pâte et cuire 50 minutes à 170 °C, laisser refroidir dans le four entrouvert
+
+= Crêpes Suzette | TREAT,DESSERT | 4
+9440 125 farine
+19033 250 lait
+22000 120 œufs (2)
+16400 70 beurre
+31016 70 sucre
+2070 150 jus d'orange
+13034 50 zeste d'orange
+1003 40 liqueur d'orange
+: Préparer 8 crêpes avec la farine, le lait, les œufs, 20 g de beurre fondu et 10 g de sucre
+: Faire fondre le reste du beurre avec le reste du sucre jusqu'au caramel blond, ajouter le jus et le zeste d'orange
+: Plier les crêpes en quatre, les réchauffer dans la sauce
+: Flamber à la liqueur au moment de servir
+
+= Tarte tropézienne | TREAT,DESSERT | 8
+9440 300 farine
+22000 300 œufs (5)
+16400 100 beurre
+31016 180 sucre
+11010 15 levure de boulanger
+19033 600 lait
+9510 50 fécule de maïs
+19417 200 crème liquide
+11098 5 vanille
+: Pétrir la farine, 2 œufs, 40 g de sucre, la levure délayée dans 100 g de lait et le beurre, laisser lever 2 heures
+: Étaler la brioche en un grand disque, la dorer et la saupoudrer de 20 g de sucre, cuire 20 minutes à 180 °C
+: Préparer une crème pâtissière avec le reste du lait, 3 œufs, le reste du sucre, la fécule et la vanille, la laisser refroidir puis l'alléger de crème fouettée
+: Couper la brioche en deux dans l'épaisseur et la garnir de crème
+
+= Pain d'épices maison | TREAT,SNACK | 10
+9440 250 farine
+31008 200 miel
+31017 60 sucre roux
+19033 150 lait
+22000 60 œuf (1)
+16400 50 beurre
+11046 8 levure chimique
+11025 4 cannelle
+11006 2 gingembre en poudre
+11048 1 noix de muscade
+11052 1 clous de girofle moulus
+: Chauffer le lait avec le miel, le sucre et le beurre jusqu'à ce que tout fonde
+: Mélanger la farine, la levure et les épices, ajouter le mélange chaud puis l'œuf
+: Verser dans un moule à cake et cuire 50 minutes à 160 °C
+: Attendre le lendemain pour le couper, il n'en est que meilleur
+
+= Gâteau à l'orange | TREAT,SNACK | 8
+9440 200 farine
+31016 150 sucre
+22000 180 œufs (3)
+16400 120 beurre
+2070 100 jus d'orange
+13034 60 zeste d'orange
+11046 10 levure chimique
+: Battre le beurre mou avec le sucre, ajouter les œufs un à un
+: Ajouter la farine, la levure, le jus et le zeste d'orange
+: Cuire 35 minutes à 180 °C
+
+= Rochers à la noix de coco | TREAT,SNACK | 6
+15007 200 noix de coco râpée
+31016 120 sucre
+22001 100 blancs d'œufs (3)
+: Mélanger la noix de coco, le sucre et les blancs
+: Chauffer 5 minutes au bain-marie en remuant
+: Former de petites pyramides sur une plaque et cuire 15 minutes à 180 °C jusqu'à ce que les pointes dorent
+
+= Truffes au chocolat | TREAT | 10
+31085 200 chocolat noir
+19417 100 crème liquide
+16400 30 beurre
+18100 20 cacao en poudre
+: Verser la crème bouillante sur le chocolat haché, attendre 1 minute et mélanger
+: Ajouter le beurre et laisser durcir 2 heures au frais
+: Former des boules et les rouler dans le cacao
+
+= Brookies | TREAT,SNACK | 10
+31085 200 chocolat noir
+16400 180 beurre
+31016 120 sucre
+31017 100 sucre roux
+22000 180 œufs (3)
+9440 220 farine
+31004 80 chocolat au lait
+11046 4 levure chimique
+: Pour le brownie, faire fondre 150 g de chocolat noir avec 100 g de beurre, ajouter le sucre blanc, 2 œufs et 70 g de farine
+: Pour le cookie, mélanger le reste du beurre mou, le sucre roux, 1 œuf, le reste de farine, la levure, le chocolat au lait et le reste du chocolat noir en pépites
+: Verser le brownie dans un moule, puis la pâte à cookie en morceaux par-dessus
+: Cuire 30 minutes à 180 °C
+
+= Crème au chocolat maison | DESSERT | 4
+19033 500 lait
+31085 100 chocolat noir
+22002 60 jaunes d'œufs (3)
+31016 50 sucre
+9510 20 fécule de maïs
+: Fouetter les jaunes avec le sucre et la fécule
+: Verser le lait chaud dessus, remettre sur le feu et cuire en remuant jusqu'à épaississement
+: Hors du feu, ajouter le chocolat haché, mélanger et répartir dans des ramequins
+: Laisser prendre 3 heures au frais
+
+= Semoule au lait | DESSERT | 4
+19033 750 lait
+9610 80 semoule fine
+31016 70 sucre
+11098 5 vanille
+13046 30 raisins secs
+: Porter le lait à ébullition avec le sucre et la vanille
+: Verser la semoule en pluie et cuire 10 minutes à feu doux en remuant
+: Ajouter les raisins, répartir dans des ramequins et servir tiède ou froid
+
+= Pommes au four à la cannelle | DESSERT | 4
+13039 720 pommes (4)
+16400 20 beurre
+31008 30 miel
+11025 2 cannelle
+15005 20 cerneaux de noix
+: Évider les pommes et les poser dans un plat
+: Garnir chaque cœur d'un peu de beurre, de miel, de cannelle et de noix
+: Cuire 35 minutes à 180 °C en arrosant de jus à mi-cuisson
+
+= Yaourt glacé aux fruits rouges | DESSERT,SNACK | 4
+19860 400 yaourt à la grecque
+13015 150 framboises
+13028 100 myrtilles
+13014 100 fraises
+31008 50 miel
+: Mixer le yaourt avec le miel et la moitié des fruits
+: Verser dans une boîte, ajouter le reste des fruits et mettre au congélateur 3 heures en remuant toutes les heures
+: Sortir 10 minutes avant de servir
+
+= Compote pommes poires maison | DESSERT,SNACK,BREAKFAST | 4
+13039 500 pommes
+13037 300 poires
+18066 80 eau
+11025 1 cannelle
+11098 3 vanille
+: Éplucher et couper les fruits en morceaux
+: Les cuire 20 minutes à couvert avec l'eau, la cannelle et la vanille, sans sucre : les poires sucrent assez
+: Écraser à la fourchette ou mixer selon la texture voulue

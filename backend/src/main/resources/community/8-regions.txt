@@ -1,0 +1,526 @@
+# Recettes de la communauté, 1.10 : un tour des régions de France, de la Provence au Nord, de la Savoie au Pays
+# basque, avec les plats de terroir qui manquaient. Même format que les autres fichiers :
+#   = Nom | TYPES | parts
+#   code_ciqual grammes   (poids cru pour toute la recette ; le texte après les grammes n'est qu'un repère)
+#   : une étape
+
+= Poule au pot | LUNCH,DINNER | 6
+36014 1000 poule (une poule de 2 kg, sans les os)
+20009 400 carottes
+20039 400 poireaux
+20064 300 navets
+20023 150 céleri branche
+20034 150 oignon
+11052 1 clous de girofle
+11053 1 laurier
+11070 2 thym
+11174 15 bouillon de volaille
+18066 3000 eau
+9100 300 riz
+11058 6 sel
+: Mettre la poule dans une grande marmite d'eau froide avec l'oignon piqué de clous de girofle, le thym, le laurier et le bouillon
+: Porter à frémissement et cuire 2 heures en écumant
+: Ajouter les légumes et cuire encore 40 minutes
+: Cuire le riz dans un peu de bouillon et servir avec la poule et les légumes
+
+= Potée auvergnate | LUNCH,DINNER | 6
+28550 600 poitrine de porc demi-sel
+30104 400 saucisse de Morteau
+20069 800 chou vert
+4008 800 pommes de terre
+20009 400 carottes
+20064 300 navets
+20034 150 oignon
+11053 1 laurier
+11070 2 thym
+18066 3000 eau
+: Dessaler la poitrine 2 heures dans l'eau froide
+: La cuire 1 heure dans l'eau avec l'oignon, le thym et le laurier
+: Ajouter le chou blanchi et coupé en quartiers, les carottes et les navets, cuire 30 minutes
+: Ajouter les pommes de terre et la saucisse, cuire encore 30 minutes
+
+= Garbure | LUNCH,DINNER | 6
+8110 400 confit de canard
+20069 600 chou vert
+20511 400 haricots blancs
+4008 500 pommes de terre
+20009 300 carottes
+20064 200 navets
+20039 200 poireaux
+28502 150 poitrine fumée (ventrèche)
+20034 150 oignon
+11000 8 ail
+18066 2500 eau
+11058 4 sel
+: Faire revenir la ventrèche en dés et l'oignon dans une grande marmite
+: Ajouter l'eau, les carottes, les navets, les poireaux et les pommes de terre en morceaux, cuire 30 minutes
+: Ajouter le chou émincé, les haricots blancs, l'ail et le confit, cuire encore 45 minutes
+: Servir la soupe bien épaisse avec le confit
+
+= Bouillabaisse | LUNCH,DINNER | 6
+26085 400 rougets
+26018 500 lotte
+26080 500 dorade
+4008 600 pommes de terre
+20385 400 tomates
+20034 150 oignon
+20028 200 fenouil
+11000 10 ail
+11039 0,5 safran
+17270 50 huile d'olive
+18066 2000 eau
+7001 200 pain grillé
+11168 80 rouille ou aïoli
+11058 6 sel
+: Faire revenir l'oignon, le fenouil et l'ail dans l'huile, ajouter les tomates, le safran et l'eau, cuire 20 minutes
+: Ajouter les pommes de terre en rondelles et cuire 15 minutes
+: Ajouter les poissons en tronçons, des plus fermes aux plus tendres, et cuire 10 minutes à petits bouillons
+: Servir le bouillon sur le pain grillé tartiné de rouille, puis les poissons et les pommes de terre
+
+= Baeckeoffe | LUNCH,DINNER | 6
+28302 500 échine de porc
+21504 500 épaule d'agneau
+6270 500 paleron de bœuf
+4008 1200 pommes de terre
+20034 300 oignons
+20009 200 carottes
+20039 150 poireau
+5215 500 vin blanc d'Alsace
+11000 8 ail
+11070 2 thym
+11053 1 laurier
+11058 8 sel
+: Mariner les viandes en cubes une nuit avec le vin blanc, les oignons émincés, l'ail, le thym et le laurier
+: Dans une terrine, alterner pommes de terre en rondelles, viandes, légumes et oignons, saler chaque couche
+: Verser la marinade, fermer la terrine avec un boudin de pâte ou du papier aluminium
+: Cuire 3 heures à 180 °C
+
+= Croziflette | LUNCH,DINNER | 4
+9810 300 crozets
+12045 450 reblochon
+28720 200 lardons fumés
+20034 150 oignon
+19410 150 crème épaisse
+5215 100 vin blanc
+: Cuire les crozets 15 minutes dans l'eau salée
+: Faire revenir les lardons et l'oignon émincé, déglacer au vin blanc
+: Mélanger les crozets, les lardons, l'oignon et la crème dans un plat, couvrir du reblochon coupé en deux dans l'épaisseur
+: Gratiner 25 minutes à 200 °C
+
+= Diots au vin blanc | LUNCH,DINNER | 4
+30177 600 diots
+20034 250 oignons
+5215 300 vin blanc de Savoie
+9614 250 polenta
+18066 1000 eau
+16400 20 beurre
+11053 1 laurier
+11058 3 sel
+: Dorer les diots dans une cocotte, ajouter les oignons émincés et les faire fondre
+: Verser le vin blanc, ajouter le laurier et laisser mijoter 40 minutes à couvert
+: Cuire la polenta dans l'eau bouillante salée en remuant, ajouter le beurre
+: Servir les diots et leur sauce avec la polenta
+
+= Poulet vallée d'Auge | LUNCH,DINNER | 4
+36002 700 cuisses de poulet (4, sans les os)
+13039 400 pommes
+20056 250 champignons de Paris
+19410 200 crème épaisse
+5006 250 cidre brut
+1001 40 calvados
+16400 30 beurre
+20097 40 échalote
+11058 3 sel
+: Dorer le poulet dans le beurre, flamber au calvados
+: Ajouter l'échalote, les champignons et le cidre, cuire 35 minutes à couvert
+: Poêler les pommes en quartiers dans un peu de beurre
+: Ajouter la crème à la sauce, laisser réduire 5 minutes et servir avec les pommes
+
+= Lapin chasseur | LUNCH,DINNER | 4
+34001 1200 lapin en morceaux
+20056 300 champignons de Paris
+20137 300 tomates pelées
+20097 60 échalotes
+5215 250 vin blanc
+16400 25 beurre
+9440 15 farine
+11014 10 persil
+11070 2 thym
+11058 3 sel
+: Dorer les morceaux de lapin dans le beurre, ajouter les échalotes et les champignons
+: Saupoudrer de farine, mélanger, puis verser le vin blanc et les tomates
+: Ajouter le thym et cuire 1 heure à couvert à feu doux
+: Parsemer de persil
+
+= Sole meunière | LUNCH,DINNER | 2
+26058 300 soles (2 de 300 g, soit 300 g de chair)
+9440 30 farine
+16400 50 beurre
+13009 60 citron
+11014 8 persil
+4008 400 pommes de terre
+11058 2 sel
+: Cuire les pommes de terre 20 minutes à la vapeur
+: Fariner les soles et les cuire 4 à 5 minutes de chaque côté dans la moitié du beurre
+: Faire mousser le reste du beurre jusqu'à ce qu'il soit noisette, ajouter le jus de citron et le persil
+: Napper les soles de beurre et servir avec les pommes de terre
+
+= Truite aux amandes | LUNCH,DINNER | 2
+27009 300 truites (2, soit 300 g de chair)
+15041 40 amandes effilées
+16400 40 beurre
+9440 20 farine
+13009 50 citron
+11014 6 persil
+20061 300 haricots verts
+11058 2 sel
+: Cuire les haricots verts 10 minutes à l'eau salée
+: Fariner les truites et les cuire 6 minutes de chaque côté dans la moitié du beurre
+: Dorer les amandes dans le reste du beurre, ajouter le jus de citron
+: Napper les truites des amandes et servir avec les haricots verts et le persil
+
+= Noix de Saint-Jacques à la fondue de poireaux | LUNCH,DINNER | 2
+10045 300 noix de Saint-Jacques
+20039 400 poireaux
+19436 100 crème légère
+16400 25 beurre
+13009 20 citron
+11058 2 sel
+11015 1 poivre
+: Émincer les poireaux et les faire fondre 15 minutes à couvert dans la moitié du beurre, ajouter la crème
+: Saisir les noix de Saint-Jacques 1 minute de chaque côté dans le reste du beurre bien chaud
+: Servir les noix sur la fondue de poireaux, avec un trait de citron, du sel et du poivre
+
+= Pissaladière | LUNCH,DINNER,SNACK | 6
+37001 400 pâte à pizza
+20034 1000 oignons
+26000 60 anchois
+13032 50 olives noires
+17270 40 huile d'olive
+11070 2 thym
+11058 2 sel
+: Faire fondre les oignons émincés 45 minutes à feu très doux dans l'huile avec le thym, sans les colorer
+: Étaler la pâte sur une plaque et la couvrir des oignons
+: Disposer les anchois en croisillons et les olives
+: Cuire 25 minutes à 220 °C
+
+= Socca | SNACK,LUNCH | 4
+9580 250 farine de pois chiche
+18066 500 eau
+17270 40 huile d'olive
+11058 4 sel
+11015 2 poivre
+: Fouetter la farine avec l'eau, la moitié de l'huile et le sel, laisser reposer 1 heure
+: Chauffer une grande plaque huilée dans le four à 250 °C
+: Verser une fine couche de pâte et cuire 8 minutes jusqu'à ce que le dessus soit doré
+: Couper en morceaux et poivrer généreusement
+
+= Salade lyonnaise | LUNCH,DINNER | 2
+20012 200 salade frisée
+28720 150 lardons fumés
+22000 120 œufs (2)
+7001 60 pain pour les croûtons
+20097 20 échalote
+17270 20 huile d'olive
+11018 15 vinaigre
+11013 5 moutarde
+11058 1 sel
+: Faire dorer les lardons à la poêle, puis les croûtons de pain dans leur graisse
+: Pocher les œufs 3 minutes dans l'eau frémissante vinaigrée
+: Mélanger l'huile, le vinaigre, la moutarde, l'échalote hachée et le sel
+: Disposer la frisée assaisonnée, les lardons, les croûtons et les œufs pochés
+
+= Piperade | LUNCH,DINNER | 4
+20087 400 poivrons rouges
+20085 300 poivrons verts
+20385 600 tomates
+20034 200 oignons
+11000 8 ail
+11049 4 piment d'Espelette (paprika)
+17270 30 huile d'olive
+28800 160 jambon de Bayonne
+22000 240 œufs (4)
+11058 3 sel
+: Faire fondre les oignons et les poivrons en lanières dans l'huile 15 minutes
+: Ajouter l'ail, les tomates en morceaux et le piment, cuire 20 minutes
+: Poêler les tranches de jambon
+: Servir la piperade avec le jambon et les œufs au plat ou brouillés
+
+= Axoa de veau | LUNCH,DINNER | 4
+6590 700 veau (collier ou épaule)
+20087 250 poivrons rouges
+20085 200 poivrons verts
+20034 200 oignons
+11000 8 ail
+11049 4 piment d'Espelette (paprika)
+11174 8 bouillon de volaille
+18066 300 eau
+17270 25 huile d'olive
+4008 600 pommes de terre
+11058 4 sel
+: Couper le veau en tout petits dés
+: Faire revenir les oignons, l'ail et les poivrons émincés dans l'huile
+: Ajouter le veau et le piment, le dorer, puis l'eau et le bouillon, mijoter 45 minutes
+: Servir avec les pommes de terre cuites à l'eau
+
+= Andouillette, moutarde et frites | LUNCH,DINNER | 2
+8550 400 andouillettes
+4044 400 frites au four
+11013 30 moutarde
+20097 30 échalote
+5215 80 vin blanc
+19410 50 crème épaisse
+: Cuire les frites 25 minutes au four à 220 °C
+: Inciser les andouillettes et les dorer 15 minutes à la poêle
+: Faire revenir l'échalote, déglacer au vin blanc, ajouter la crème et la moutarde, réduire 3 minutes
+: Servir les andouillettes nappées de sauce, avec les frites
+
+= Quenelles gratinées | LUNCH,DINNER | 4
+8937 600 quenelles
+20260 400 coulis de tomate
+20056 200 champignons de Paris
+20034 80 oignon
+12118 80 emmental râpé
+17270 10 huile d'olive
+11060 2 herbes de Provence
+: Faire revenir l'oignon et les champignons dans l'huile, ajouter le coulis et les herbes, cuire 10 minutes
+: Disposer les quenelles dans un plat et les napper de sauce
+: Parsemer d'emmental et cuire 25 minutes à 200 °C, elles doublent de volume
+
+= Tarte à l'oignon | LUNCH,DINNER | 6
+23414 230 pâte brisée
+20034 800 oignons
+28720 120 lardons fumés
+22000 180 œufs (3)
+19410 200 crème épaisse
+19033 100 lait
+16400 25 beurre
+11048 1 noix de muscade
+11058 3 sel
+: Faire fondre les oignons émincés 30 minutes dans le beurre, sans les colorer
+: Ajouter les lardons revenus
+: Battre les œufs, la crème, le lait, la muscade et le sel
+: Garnir la pâte d'oignons, verser l'appareil et cuire 35 minutes à 190 °C
+
+= Aïoli provençal | LUNCH,DINNER | 6
+26043 900 cabillaud (ou morue dessalée)
+4008 800 pommes de terre
+20009 500 carottes
+20061 400 haricots verts
+20016 500 chou-fleur
+22000 360 œufs (6)
+11000 25 ail
+22002 40 jaunes d'œufs (2)
+17270 250 huile d'olive
+13009 30 citron
+11058 6 sel
+: Monter l'aïoli : piler l'ail avec le sel, ajouter les jaunes puis l'huile en filet en fouettant, finir par le citron
+: Cuire les légumes séparément à l'eau ou à la vapeur, et les œufs 9 minutes
+: Pocher le poisson 8 minutes dans l'eau frémissante
+: Servir le tout tiède avec l'aïoli
+
+= Soupe au pistou | LUNCH,DINNER | 6
+20511 300 haricots blancs
+20061 250 haricots verts
+20020 300 courgettes
+20009 200 carottes
+4008 250 pommes de terre
+20385 300 tomates
+9810 100 petites pâtes
+18066 2000 eau
+11033 40 basilic
+11000 10 ail
+17270 50 huile d'olive
+12120 50 parmesan
+11058 6 sel
+: Cuire les légumes coupés en dés 35 minutes dans l'eau salée
+: Ajouter les haricots blancs et les pâtes, cuire 10 minutes
+: Piler le basilic avec l'ail, l'huile et le parmesan pour le pistou
+: Servir la soupe avec une cuillère de pistou dans chaque assiette
+
+= Gardiane camarguaise | LUNCH,DINNER | 6
+6270 1200 bœuf (paleron)
+5214 750 vin rouge
+20034 300 oignons
+20009 200 carottes
+13032 120 olives noires
+11000 10 ail
+11070 2 thym
+11053 1 laurier
+17270 30 huile d'olive
+9102 400 riz de Camargue
+11058 6 sel
+: Mariner la viande en morceaux une nuit dans le vin avec les oignons, les carottes, l'ail, le thym et le laurier
+: Égoutter la viande, la dorer dans l'huile, puis verser la marinade
+: Mijoter 3 heures à couvert, ajouter les olives 20 minutes avant la fin
+: Servir avec le riz
+
+= Poulet au vinaigre | LUNCH,DINNER | 4
+36002 750 cuisses de poulet (4 à 6, sans les os)
+11018 120 vinaigre de vin
+5215 150 vin blanc
+20068 30 concentré de tomate
+20097 60 échalotes
+11000 8 ail
+19410 100 crème épaisse
+16400 30 beurre
+11014 10 persil
+11058 3 sel
+: Dorer le poulet dans le beurre, ajouter les échalotes et l'ail
+: Déglacer au vinaigre, laisser réduire de moitié, ajouter le vin et le concentré
+: Cuire 35 minutes à couvert
+: Ajouter la crème, réduire 5 minutes et parsemer de persil
+
+= Œufs en meurette | LUNCH,DINNER | 2
+22000 240 œufs (4)
+5214 400 vin rouge
+28720 100 lardons fumés
+20056 120 champignons de Paris
+20097 40 échalotes
+16400 25 beurre
+9440 10 farine
+7001 80 pain grillé
+11058 2 sel
+: Faire revenir les lardons, les champignons et les échalotes dans la moitié du beurre
+: Verser le vin, laisser réduire de moitié, puis lier avec le reste du beurre manié avec la farine
+: Pocher les œufs 3 minutes dans la sauce frémissante
+: Servir sur le pain grillé, nappés de sauce
+
+= Quiche saumon et épinards | LUNCH,DINNER | 6
+23414 230 pâte brisée
+26036 300 saumon
+20059 300 épinards
+22000 180 œufs (3)
+19436 200 crème légère
+19033 100 lait
+11048 1 noix de muscade
+11058 3 sel
+: Faire tomber les épinards et bien les égoutter, couper le saumon en dés
+: Battre les œufs, la crème, le lait, la muscade et le sel
+: Garnir la pâte d'épinards et de saumon, verser l'appareil
+: Cuire 35 minutes à 190 °C
+
+= Parmentier de canard | LUNCH,DINNER | 4
+8110 600 confit de canard
+4008 1000 pommes de terre
+19033 200 lait
+16400 30 beurre
+20097 60 échalotes
+7500 30 chapelure
+11048 1 noix de muscade
+11058 3 sel
+: Cuire les pommes de terre et les écraser en purée avec le lait, le beurre, la muscade et le sel
+: Effilocher le confit sans la peau et le faire revenir avec les échalotes
+: Étaler le canard dans un plat, couvrir de purée et de chapelure
+: Gratiner 25 minutes à 200 °C
+
+= Soufflé au fromage | LUNCH,DINNER | 4
+22000 300 œufs (5)
+19033 300 lait
+12110 120 comté râpé
+16400 40 beurre
+9440 40 farine
+11048 1 noix de muscade
+11058 2 sel
+: Faire une béchamel épaisse avec le beurre, la farine et le lait, ajouter la muscade et le sel
+: Hors du feu, incorporer les jaunes puis le comté
+: Monter les blancs en neige ferme et les incorporer délicatement
+: Verser dans un moule beurré et cuire 30 minutes à 180 °C, sans ouvrir le four
+
+= Choucroute de la mer | LUNCH,DINNER | 4
+25220 800 choucroute cuite
+26036 300 saumon
+26043 300 cabillaud
+26090 200 haddock
+10007 200 crevettes cuites
+4008 600 pommes de terre
+5215 200 vin blanc
+16400 40 beurre
+19436 100 crème légère
+20097 30 échalote
+: Réchauffer la choucroute 20 minutes avec la moitié du vin blanc
+: Cuire les pommes de terre à la vapeur
+: Pocher les poissons 8 minutes dans de l'eau frémissante
+: Réduire l'échalote dans le reste du vin, ajouter la crème et le beurre en fouettant, et servir le tout nappé de sauce
+
+= Welsh | LUNCH,DINNER | 2
+7100 160 pain de campagne (2 tranches)
+12726 250 cheddar
+5000 120 bière brune
+28910 80 jambon (2 tranches)
+11013 15 moutarde
+22000 120 œufs (2)
+4044 300 frites au four
+: Cuire les frites 25 minutes au four à 220 °C
+: Faire fondre le cheddar dans la bière en remuant, ajouter la moutarde
+: Déposer le pain et le jambon dans des plats individuels, napper de fromage fondu
+: Gratiner 10 minutes à 220 °C, ajouter un œuf au plat et servir avec les frites
+
+= Flamiche au maroilles | LUNCH,DINNER | 6
+23414 230 pâte brisée
+12036 300 maroilles
+22000 120 œufs (2)
+19410 200 crème épaisse
+20039 200 poireau
+16400 15 beurre
+11015 1 poivre
+: Faire fondre le poireau émincé dans le beurre
+: Battre les œufs avec la crème et le poivre
+: Garnir la pâte du poireau, du maroilles en tranches et de l'appareil
+: Cuire 30 minutes à 200 °C
+
+= Ficelle picarde | LUNCH,DINNER | 4
+9440 125 farine
+19033 250 lait
+22000 120 œufs (2)
+28910 160 jambon (4 tranches)
+20056 250 champignons de Paris
+20097 30 échalote
+19410 200 crème épaisse
+12118 60 emmental râpé
+16400 20 beurre
+11058 2 sel
+: Préparer 4 crêpes avec la farine, le lait, les œufs et une pincée de sel
+: Faire revenir l'échalote et les champignons émincés dans le beurre, ajouter la moitié de la crème
+: Garnir chaque crêpe d'une tranche de jambon et de champignons, la rouler et la poser dans un plat
+: Napper du reste de crème, parsemer d'emmental et gratiner 15 minutes à 200 °C
+
+= Truffade | LUNCH,DINNER | 4
+4008 1000 pommes de terre
+12109 400 tomme fraîche (cantal jeune)
+28720 100 lardons
+11000 6 ail
+11014 10 persil
+17440 20 huile de tournesol
+11058 3 sel
+: Couper les pommes de terre en fines lamelles et les faire dorer 25 minutes à la poêle avec les lardons et l'huile
+: Ajouter l'ail et le persil hachés
+: Incorporer la tomme en lamelles et remuer jusqu'à ce qu'elle file
+: Servir aussitôt
+
+= Calamars à la plancha | LUNCH,DINNER | 2
+10001 500 calamars
+11000 8 ail
+11014 15 persil
+17270 25 huile d'olive
+13009 50 citron
+20151 2 piment
+11058 2 sel
+: Nettoyer les calamars et les couper en anneaux
+: Les saisir 3 minutes à feu très vif dans l'huile
+: Ajouter l'ail, le persil et le piment hachés, cuire encore 1 minute
+: Arroser de citron et saler
+
+= Poulet aux morilles | LUNCH,DINNER | 4
+36017 600 suprêmes de poulet
+20105 150 morilles fraîches
+19410 250 crème épaisse
+5215 150 vin blanc (vin jaune si possible)
+20097 40 échalotes
+16400 30 beurre
+9100 280 riz
+11058 3 sel
+: Nettoyer soigneusement les morilles
+: Dorer le poulet dans le beurre, le réserver, puis faire revenir les échalotes et les morilles
+: Déglacer au vin, remettre le poulet et cuire 20 minutes à couvert
+: Ajouter la crème, réduire 5 minutes et servir avec le riz

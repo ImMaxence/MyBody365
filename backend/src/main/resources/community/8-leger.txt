@@ -1,0 +1,703 @@
+# Recettes de la communauté, 1.10 : léger et rassasiant. Beaucoup de légumes, des protéines à chaque assiette,
+# peu de matières grasses ajoutées : les plats qu'on refait quand on fait attention, sans avoir faim une heure après.
+# Même format que les autres fichiers :
+#   = Nom | TYPES | parts
+#   code_ciqual grammes   (poids cru pour toute la recette ; le texte après les grammes n'est qu'un repère)
+#   : une étape
+
+= Poulet, patate douce et brocoli | LUNCH,DINNER | 2
+36017 300 filets de poulet
+4101 400 patates douces
+20057 300 brocoli
+17270 10 huile d'olive
+11049 2 paprika
+11058 2 sel
+11015 1 poivre
+: Couper les patates douces en cubes, les arroser d'huile, de paprika et de sel, et les rôtir 25 minutes à 200 °C
+: Cuire le brocoli 6 minutes à la vapeur
+: Saisir les filets de poulet à la poêle, 5 à 6 minutes de chaque côté, puis les trancher
+: Servir le poulet avec les patates douces et le brocoli
+
+= Bowl saumon, quinoa et avocat | LUNCH,DINNER | 2
+26036 220 pavés de saumon
+9340 100 quinoa
+13004 100 avocat
+20019 150 concombre
+20172 120 tomates cerises
+2031 20 jus de citron vert
+11104 15 sauce soja
+15010 6 graines de sésame
+: Cuire le quinoa 12 minutes dans l'eau bouillante, puis l'égoutter
+: Cuire les pavés de saumon 4 minutes de chaque côté à la poêle, puis les émietter
+: Couper l'avocat, le concombre et les tomates cerises
+: Garnir les bols de quinoa, de saumon et de légumes, arroser de sauce soja et de citron vert, parsemer de sésame
+
+= Salade de poulet grillé | LUNCH,DINNER | 2
+36017 260 filets de poulet
+20171 150 laitue romaine
+20172 150 tomates cerises
+20019 150 concombre
+20066 80 maïs doux
+20238 40 oignon rouge
+19593 100 yaourt nature
+2028 15 jus de citron
+11013 10 moutarde
+11003 5 ciboulette
+11058 2 sel
+: Griller les filets de poulet 5 à 6 minutes de chaque côté, puis les couper en lamelles
+: Mélanger le yaourt, la moutarde, le jus de citron, la ciboulette et le sel pour la sauce
+: Disposer la salade, les tomates, le concombre, le maïs et l'oignon rouge émincé
+: Ajouter le poulet et napper de sauce au yaourt
+
+= Cabillaud vapeur et légumes | LUNCH,DINNER | 2
+26043 300 dos de cabillaud
+20009 200 carottes
+20020 200 courgettes
+20057 200 brocoli
+13009 40 citron
+17270 10 huile d'olive
+11093 3 aneth
+11058 2 sel
+: Couper les carottes et les courgettes en rondelles, détailler le brocoli en bouquets
+: Cuire les carottes 5 minutes à la vapeur, ajouter le brocoli, les courgettes et le cabillaud, et cuire encore 8 minutes
+: Arroser d'un filet d'huile d'olive et de citron, parsemer d'aneth et saler
+
+= Dinde au curry et riz complet | LUNCH,DINNER | 2
+36304 300 escalopes de dinde
+9102 140 riz complet
+20034 100 oignon
+20020 200 courgette
+19432 120 crème légère à 4 %
+11005 6 curry
+17270 10 huile d'olive
+11094 5 coriandre
+11058 2 sel
+: Cuire le riz complet 25 minutes dans l'eau bouillante
+: Couper la dinde en dés, émincer l'oignon et couper la courgette en cubes
+: Faire revenir l'oignon dans l'huile, ajouter la dinde et la dorer 5 minutes
+: Ajouter la courgette, le curry et la crème légère, laisser mijoter 10 minutes
+: Servir avec le riz et la coriandre ciselée
+
+= Salade de pois chiches au thon | LUNCH,DINNER | 2
+20532 240 pois chiches
+26039 140 thon au naturel
+20385 200 tomates
+20019 150 concombre
+20238 40 oignon rouge
+11014 10 persil
+17270 15 huile d'olive
+2028 15 jus de citron
+11042 2 cumin
+11058 2 sel
+: Rincer et égoutter les pois chiches
+: Couper les tomates et le concombre en dés, émincer finement l'oignon rouge
+: Mélanger avec le thon émietté et le persil ciselé
+: Assaisonner d'huile d'olive, de citron, de cumin et de sel
+
+= Omelette aux légumes | BREAKFAST,LUNCH,DINNER | 2
+22000 300 œufs (5)
+20020 150 courgette
+20041 100 poivron
+20034 60 oignon
+20385 100 tomate
+17270 8 huile d'olive
+11060 2 herbes de Provence
+11058 2 sel
+: Couper la courgette, le poivron, l'oignon et la tomate en petits dés
+: Les faire revenir 8 minutes dans l'huile d'olive
+: Battre les œufs avec le sel et les herbes, les verser sur les légumes
+: Cuire à feu doux jusqu'à ce que l'omelette soit prise
+
+= Omelette de blancs d'œufs aux épinards | BREAKFAST,LUNCH | 1
+22001 165 blancs d'œufs (5)
+22000 60 œuf entier (1)
+20059 100 épinards frais
+12805 30 chèvre frais
+17270 4 huile d'olive
+11058 1 sel
+11015 1 poivre
+: Faire tomber les épinards 2 minutes dans la poêle huilée
+: Battre les blancs et l'œuf entier avec le sel et le poivre
+: Verser sur les épinards, émietter le chèvre frais et cuire à feu doux
+: Plier l'omelette en deux et servir
+
+= Chili léger à la dinde | LUNCH,DINNER | 4
+36304 450 escalopes de dinde hachées
+20524 400 haricots rouges
+20137 400 tomates pelées
+20041 200 poivron
+20034 120 oignon
+20066 140 maïs doux
+11042 4 cumin
+11049 4 paprika
+11000 6 ail
+17270 10 huile d'olive
+11058 3 sel
+9102 240 riz complet
+: Hacher la dinde au couteau ou au hachoir, émincer l'oignon et l'ail, couper le poivron en dés
+: Faire revenir l'oignon et l'ail dans l'huile, ajouter la dinde et la dorer
+: Ajouter le poivron, les épices, les tomates pelées, les haricots rouges et le maïs, laisser mijoter 25 minutes
+: Servir avec le riz complet cuit 25 minutes
+
+= Spaghettis de courgettes à la bolognaise | LUNCH,DINNER | 2
+20020 600 courgettes
+6250 250 steak haché 5 %
+20137 300 tomates pelées
+20034 60 oignon
+20009 60 carotte
+11000 4 ail
+17270 8 huile d'olive
+11060 2 herbes de Provence
+12120 20 parmesan
+11058 2 sel
+: Tailler les courgettes en spaghettis avec un taille-légumes ou un économe
+: Faire revenir l'oignon, l'ail et la carotte hachés dans l'huile, ajouter la viande et la dorer
+: Ajouter les tomates et les herbes, laisser mijoter 20 minutes
+: Poêler les spaghettis de courgettes 2 minutes, servir avec la bolognaise et le parmesan
+
+= Wok de poulet aux légumes croquants | LUNCH,DINNER | 2
+36017 300 filets de poulet
+20041 150 poivron
+20009 120 carotte
+20173 120 pois gourmands
+20183 100 pousses de soja
+20034 60 oignon
+11104 25 sauce soja
+11074 8 gingembre frais
+11000 5 ail
+17400 8 huile de sésame
+9510 6 fécule de maïs
+: Couper le poulet en lanières et l'enrober de fécule
+: Saisir le poulet 4 minutes au wok bien chaud dans l'huile de sésame, le réserver
+: Faire sauter l'oignon, la carotte et le poivron 4 minutes, ajouter les pois gourmands, l'ail et le gingembre
+: Remettre le poulet, ajouter les pousses de soja et la sauce soja, et sauter encore 2 minutes
+
+= Soupe miso au tofu | LUNCH,DINNER,SNACK | 2
+20916 40 miso
+20906 200 tofu soyeux
+20999 4 algue wakamé séchée
+20059 60 épinards
+11003 10 ciboule
+18066 700 eau
+: Réhydrater le wakamé 5 minutes dans l'eau froide
+: Chauffer l'eau sans la faire bouillir, y délayer le miso
+: Ajouter le tofu en cubes, le wakamé égoutté et les épinards, chauffer 2 minutes
+: Parsemer de ciboule émincée
+
+= Velouté de brocoli | LUNCH,DINNER | 4
+20057 600 brocoli
+4008 200 pomme de terre
+20034 100 oignon
+11041 10 bouillon de légumes
+18066 900 eau
+12069 60 fromage frais allégé
+11048 1 noix de muscade
+11058 2 sel
+: Faire cuire le brocoli, la pomme de terre et l'oignon 20 minutes dans l'eau avec le bouillon
+: Mixer avec le fromage frais, la muscade et le sel
+
+= Soupe de tomates rôties | LUNCH,DINNER | 4
+20385 1000 tomates
+20087 200 poivron rouge
+20034 120 oignon
+11000 8 ail
+17270 15 huile d'olive
+11041 8 bouillon de légumes
+18066 400 eau
+11033 10 basilic
+11058 2 sel
+: Couper les tomates, le poivron et l'oignon en morceaux, les arroser d'huile avec l'ail
+: Les rôtir 35 minutes à 200 °C
+: Mixer avec l'eau chaude et le bouillon, saler et parsemer de basilic
+
+= Velouté de champignons | LUNCH,DINNER | 4
+20056 600 champignons de Paris
+20034 100 oignon
+4008 150 pomme de terre
+11041 10 bouillon de légumes
+18066 700 eau
+19432 150 crème légère à 4 %
+11014 10 persil
+11058 2 sel
+: Faire revenir l'oignon et les champignons émincés 8 minutes à sec dans une cocotte
+: Ajouter la pomme de terre en dés, l'eau et le bouillon, cuire 20 minutes
+: Mixer avec la crème légère, saler et parsemer de persil
+
+= Bouillon de poulet aux légumes | LUNCH,DINNER | 4
+36017 400 filets de poulet
+20009 200 carottes
+20039 200 poireau
+20023 100 céleri branche
+20034 100 oignon
+9810 100 pâtes (vermicelles)
+11174 15 bouillon de volaille
+18066 1500 eau
+11070 2 thym
+11053 1 laurier
+11014 10 persil
+: Porter l'eau à frémissement avec le bouillon, le thym et le laurier
+: Ajouter les filets de poulet et les légumes coupés en petits morceaux, cuire 25 minutes
+: Retirer le poulet, l'effilocher et le remettre avec les pâtes, cuire encore 5 minutes
+: Parsemer de persil
+
+= Soupe thaïe au poulet et lait de coco | LUNCH,DINNER | 4
+36017 400 filets de poulet
+18041 400 lait de coco
+20056 200 champignons
+20172 150 tomates cerises
+11174 10 bouillon de volaille
+18066 600 eau
+11074 20 gingembre frais
+11194 20 sauce nuoc-mâm
+2031 30 jus de citron vert
+20151 5 piment
+11094 10 coriandre
+: Porter l'eau à frémissement avec le bouillon, le gingembre en lamelles et le piment
+: Ajouter le poulet en fines tranches et les champignons, cuire 8 minutes
+: Verser le lait de coco et les tomates cerises, chauffer 3 minutes sans bouillir
+: Assaisonner de nuoc-mâm et de citron vert, parsemer de coriandre
+
+= Velouté de petits pois à la menthe | LUNCH,DINNER | 4
+20084 600 petits pois surgelés
+20034 100 oignon
+4008 150 pomme de terre
+11041 10 bouillon de légumes
+18066 800 eau
+11027 10 menthe fraîche
+12069 60 fromage frais allégé
+11058 2 sel
+: Faire cuire les petits pois, l'oignon et la pomme de terre 15 minutes dans l'eau avec le bouillon
+: Mixer avec la menthe et le fromage frais, saler
+
+= Soupe chinoise aux crevettes et vermicelles | LUNCH,DINNER | 2
+10021 200 crevettes crues décortiquées
+9900 60 vermicelles de riz
+20340 150 pak choï
+20056 100 champignons
+20009 80 carotte
+11174 10 bouillon de volaille
+18066 800 eau
+11104 20 sauce soja
+11074 10 gingembre frais
+11003 8 ciboule
+: Porter l'eau à ébullition avec le bouillon, le gingembre et la sauce soja
+: Ajouter la carotte en julienne et les champignons émincés, cuire 4 minutes
+: Ajouter les crevettes, le pak choï et les vermicelles, cuire 3 minutes
+: Parsemer de ciboule émincée
+
+= Velouté de céleri-rave | LUNCH,DINNER | 4
+20055 700 céleri-rave
+4008 150 pomme de terre
+20034 80 oignon
+11041 10 bouillon de légumes
+18066 800 eau
+19432 100 crème légère à 4 %
+11048 1 noix de muscade
+11058 2 sel
+: Éplucher et couper le céleri-rave et la pomme de terre en cubes
+: Les cuire 25 minutes avec l'oignon dans l'eau et le bouillon
+: Mixer avec la crème légère, la muscade et le sel
+
+= Salade de quinoa aux légumes grillés | LUNCH,DINNER | 2
+9340 140 quinoa
+20020 200 courgette
+20053 200 aubergine
+20087 150 poivron rouge
+12066 60 feta
+17270 15 huile d'olive
+2028 15 jus de citron
+11027 6 menthe
+11058 2 sel
+: Cuire le quinoa 12 minutes, l'égoutter et le laisser refroidir
+: Couper les légumes en dés, les arroser d'huile et les griller 25 minutes à 200 °C
+: Mélanger le quinoa, les légumes, la feta émiettée, la menthe et le jus de citron
+
+= Salade de pois chiches, concombre et feta | LUNCH,DINNER | 2
+20532 240 pois chiches
+20019 250 concombre
+20172 150 tomates cerises
+12066 80 feta
+20238 30 oignon rouge
+13032 30 olives noires
+17270 15 huile d'olive
+2028 15 jus de citron
+11035 1 origan
+: Rincer les pois chiches, couper le concombre et les tomates cerises
+: Mélanger avec l'oignon rouge émincé, les olives et la feta en dés
+: Assaisonner d'huile d'olive, de citron et d'origan
+
+= Salade de haricots verts, thon et œuf | LUNCH,DINNER | 2
+20061 350 haricots verts
+26039 140 thon au naturel
+22000 120 œufs (2)
+20097 20 échalote
+20172 120 tomates cerises
+17270 15 huile d'olive
+11091 10 vinaigre balsamique
+11013 5 moutarde
+11058 2 sel
+: Cuire les haricots verts 10 minutes à l'eau salée, puis les refroidir dans l'eau froide
+: Cuire les œufs 9 minutes, les écaler et les couper en quartiers
+: Mélanger l'huile, le vinaigre, la moutarde et l'échalote hachée
+: Disposer les haricots, le thon, les tomates et les œufs, napper de vinaigrette
+
+= Salade de crevettes, pamplemousse et avocat | LUNCH,DINNER | 2
+10007 200 crevettes cuites
+13040 250 pamplemousse
+13004 140 avocat
+20272 80 mesclun
+17270 10 huile d'olive
+2031 15 jus de citron vert
+11094 5 coriandre
+11058 1 sel
+: Peler le pamplemousse à vif et détacher les quartiers
+: Couper l'avocat en tranches
+: Disposer le mesclun, les crevettes, le pamplemousse et l'avocat
+: Arroser d'huile et de citron vert, parsemer de coriandre
+
+= Coleslaw léger | LUNCH,DINNER,SNACK | 4
+20116 400 chou blanc
+20014 150 chou rouge
+20009 200 carottes
+19593 150 yaourt nature
+11054 30 mayonnaise
+2028 15 jus de citron
+11013 5 moutarde
+11058 2 sel
+: Émincer très finement les choux et râper les carottes
+: Mélanger le yaourt, la mayonnaise, la moutarde, le citron et le sel
+: Mélanger les légumes avec la sauce et laisser reposer 30 minutes au frais
+
+= Taboulé de chou-fleur | LUNCH,DINNER,SNACK | 4
+20016 600 chou-fleur
+20385 250 tomates
+20019 200 concombre
+20238 50 oignon rouge
+11014 30 persil
+11027 15 menthe
+17270 25 huile d'olive
+2028 40 jus de citron
+11058 3 sel
+: Mixer le chou-fleur cru par à-coups jusqu'à obtenir une semoule
+: Couper les tomates, le concombre et l'oignon en petits dés, ciseler le persil et la menthe
+: Mélanger le tout avec l'huile, le citron et le sel, laisser reposer 30 minutes au frais
+
+= Riz de chou-fleur sauté aux légumes | LUNCH,DINNER | 2
+20016 500 chou-fleur
+22000 120 œufs (2)
+20084 100 petits pois
+20009 100 carotte
+20034 60 oignon
+11104 20 sauce soja
+17400 8 huile de sésame
+11003 8 ciboule
+: Mixer le chou-fleur cru par à-coups pour obtenir des grains comme du riz
+: Faire sauter l'oignon et la carotte en dés 4 minutes dans l'huile, ajouter les petits pois et le chou-fleur, cuire 6 minutes
+: Pousser sur le côté, brouiller les œufs dans la poêle, mélanger avec la sauce soja et la ciboule
+
+= Gratin de brocoli au fromage blanc | LUNCH,DINNER | 4
+20057 800 brocoli
+19646 250 fromage blanc 3 %
+22000 120 œufs (2)
+12118 60 emmental râpé
+11048 1 noix de muscade
+11058 2 sel
+11015 1 poivre
+: Cuire le brocoli 6 minutes à la vapeur et le disposer dans un plat
+: Battre le fromage blanc, les œufs, la muscade, le sel et le poivre, verser sur le brocoli
+: Parsemer d'emmental et gratiner 20 minutes à 200 °C
+
+= Poêlée de haricots verts et champignons | LUNCH,DINNER | 2
+20061 400 haricots verts
+20056 250 champignons de Paris
+20097 30 échalote
+11000 5 ail
+17270 10 huile d'olive
+11014 8 persil
+11058 2 sel
+: Cuire les haricots verts 8 minutes à l'eau salée et les égoutter
+: Faire revenir l'échalote et les champignons émincés dans l'huile 6 minutes
+: Ajouter les haricots verts et l'ail, sauter 3 minutes, parsemer de persil
+
+= Aubergines rôties au yaourt | LUNCH,DINNER,SNACK | 2
+20053 600 aubergines
+19860 150 yaourt à la grecque
+17270 15 huile d'olive
+11000 4 ail
+11027 6 menthe
+2028 10 jus de citron
+11042 2 cumin
+11058 2 sel
+: Couper les aubergines en deux, quadriller la chair et l'arroser d'huile
+: Les rôtir 35 minutes à 200 °C
+: Mélanger le yaourt, l'ail râpé, le citron et le sel
+: Napper les aubergines de yaourt, parsemer de menthe et de cumin
+
+= Légumes rôtis au four | LUNCH,DINNER | 4
+20009 300 carottes
+20181 300 panais
+20138 400 courge butternut
+20238 150 oignons rouges
+20041 200 poivron
+17270 25 huile d'olive
+11068 4 romarin
+11000 8 ail
+11058 3 sel
+: Couper tous les légumes en gros morceaux
+: Les mélanger avec l'huile, l'ail, le romarin et le sel
+: Rôtir 40 minutes à 200 °C en remuant à mi-cuisson
+
+= Brochettes de dinde et légumes | LUNCH,DINNER | 2
+36304 300 escalopes de dinde
+20020 200 courgette
+20087 150 poivron rouge
+20238 80 oignon rouge
+19593 60 yaourt nature
+2028 15 jus de citron
+11049 3 paprika
+11000 4 ail
+11058 2 sel
+: Couper la dinde en cubes et la mariner 30 minutes avec le yaourt, le citron, l'ail, le paprika et le sel
+: Couper les légumes en morceaux et les enfiler en alternance avec la dinde sur des piques
+: Griller les brochettes 12 minutes en les retournant
+
+= Poulet tandoori | LUNCH,DINNER | 4
+36024 600 cuisses de poulet sans peau
+19593 200 yaourt nature
+2028 20 jus de citron
+11005 8 curry
+11049 6 paprika
+11042 3 cumin
+11074 10 gingembre frais
+11000 8 ail
+11058 3 sel
+9119 240 riz basmati
+: Inciser les cuisses de poulet
+: Mélanger le yaourt, le citron, les épices, le gingembre et l'ail râpés, et le sel, et y mariner le poulet au moins 2 heures
+: Cuire 35 minutes à 220 °C
+: Servir avec le riz basmati cuit 12 minutes
+
+= Escalope de dinde à la moutarde et brocoli | LUNCH,DINNER | 2
+36304 280 escalopes de dinde
+20057 400 brocoli
+19432 120 crème légère à 4 %
+11013 25 moutarde
+20097 30 échalote
+17270 8 huile d'olive
+11058 2 sel
+: Cuire le brocoli 6 minutes à la vapeur
+: Dorer les escalopes 3 minutes de chaque côté dans l'huile, les réserver
+: Faire revenir l'échalote hachée, ajouter la crème et la moutarde, et laisser réduire 2 minutes
+: Remettre les escalopes dans la sauce et servir avec le brocoli
+
+= Steak de thon et légumes grillés | LUNCH,DINNER | 2
+26064 300 steaks de thon
+20020 200 courgette
+20053 200 aubergine
+20087 150 poivron rouge
+17270 15 huile d'olive
+13009 40 citron
+11033 6 basilic
+11058 2 sel
+: Couper les légumes en tranches, les huiler et les griller 4 minutes de chaque côté
+: Saisir les steaks de thon 2 minutes de chaque côté, le cœur reste rosé
+: Servir avec les légumes, le citron et le basilic
+
+= Truite au four et pommes de terre vapeur | LUNCH,DINNER | 2
+27009 300 filets de truite
+4008 400 pommes de terre
+13009 50 citron
+16400 10 beurre
+11093 4 aneth
+11058 2 sel
+11015 1 poivre
+: Cuire les pommes de terre 20 minutes à la vapeur
+: Déposer les filets de truite sur une plaque, avec des rondelles de citron, le beurre en lamelles, l'aneth, le sel et le poivre
+: Cuire 12 minutes à 200 °C et servir avec les pommes de terre
+
+= Colin à la tomate et riz | LUNCH,DINNER | 2
+26129 300 filets de colin
+20137 300 tomates pelées
+20034 60 oignon
+11000 4 ail
+13032 30 olives noires
+17270 10 huile d'olive
+11060 2 herbes de Provence
+9100 140 riz
+11058 2 sel
+: Cuire le riz 12 minutes dans l'eau bouillante
+: Faire revenir l'oignon et l'ail dans l'huile, ajouter les tomates, les olives et les herbes, cuire 10 minutes
+: Déposer le colin dans la sauce, couvrir et cuire 8 minutes à feu doux
+: Servir avec le riz
+
+= Crevettes, courgettes et riz complet | LUNCH,DINNER | 2
+10021 300 crevettes crues décortiquées
+20020 400 courgettes
+9102 140 riz complet
+11000 6 ail
+17270 10 huile d'olive
+13009 40 citron
+11014 8 persil
+20151 3 piment
+11058 2 sel
+: Cuire le riz complet 25 minutes
+: Faire sauter les courgettes en demi-rondelles 5 minutes dans l'huile
+: Ajouter les crevettes, l'ail et le piment, cuire 3 minutes
+: Arroser de citron, parsemer de persil et servir avec le riz
+
+= Bœuf sauté au brocoli | LUNCH,DINNER | 2
+6206 280 rumsteck
+20057 400 brocoli
+11104 30 sauce soja
+11223 20 sauce d'huître
+11074 8 gingembre frais
+11000 5 ail
+9510 6 fécule de maïs
+17130 10 huile de colza
+9100 120 riz
+: Cuire le riz 12 minutes
+: Couper le bœuf en fines lanières et l'enrober de fécule
+: Saisir le bœuf 2 minutes au wok dans l'huile, le réserver
+: Faire sauter le brocoli 4 minutes avec l'ail et le gingembre, remettre le bœuf avec les sauces et servir avec le riz
+
+= Porc sauté aux poivrons | LUNCH,DINNER | 2
+28204 300 filet mignon de porc
+20087 150 poivron rouge
+20085 150 poivron vert
+20034 80 oignon
+11104 25 sauce soja
+31008 10 miel
+11000 5 ail
+17130 10 huile de colza
+9100 120 riz
+: Cuire le riz 12 minutes
+: Couper le porc en fines tranches et les poivrons en lanières
+: Saisir le porc 3 minutes au wok dans l'huile, ajouter l'oignon et les poivrons et sauter 4 minutes
+: Ajouter l'ail, la sauce soja et le miel, mélanger 1 minute et servir avec le riz
+
+= Galettes de lentilles corail | LUNCH,DINNER,SNACK | 4
+20535 250 lentilles corail
+20009 150 carotte
+20034 80 oignon
+22000 60 œuf (1)
+9580 40 farine de pois chiche
+11042 3 cumin
+11094 8 coriandre
+17270 15 huile d'olive
+11058 3 sel
+: Cuire les lentilles 12 minutes dans l'eau, les égoutter et les écraser
+: Mélanger avec la carotte râpée, l'oignon haché, l'œuf, la farine, le cumin, la coriandre et le sel
+: Former des galettes et les dorer 4 minutes de chaque côté dans l'huile
+
+= Chou-fleur rôti aux épices | LUNCH,DINNER,SNACK | 2
+20016 700 chou-fleur
+17270 20 huile d'olive
+11089 3 curcuma
+11042 3 cumin
+11049 3 paprika
+19860 100 yaourt à la grecque
+11094 6 coriandre
+11058 2 sel
+: Détailler le chou-fleur en bouquets
+: Les mélanger avec l'huile, les épices et le sel
+: Rôtir 30 minutes à 210 °C, servir avec le yaourt et la coriandre
+
+= Wrap léger à la dinde | LUNCH,SNACK | 2
+7815 120 tortillas de blé (2)
+36304 200 escalopes de dinde
+20031 50 laitue
+20385 100 tomate
+20009 80 carotte râpée
+12069 60 fromage frais allégé
+11049 2 paprika
+11058 1 sel
+: Griller les escalopes avec le paprika et le sel, puis les trancher
+: Tartiner les tortillas de fromage frais
+: Garnir de laitue, de tomate, de carotte râpée et de dinde, puis rouler
+
+= Tartine saumon fumé, fromage frais et concombre | BREAKFAST,LUNCH,SNACK | 2
+7110 120 pain complet (2 grandes tranches)
+26037 100 saumon fumé
+12069 60 fromage frais allégé
+20019 100 concombre
+2028 5 jus de citron
+11093 2 aneth
+: Toaster les tranches de pain
+: Tartiner de fromage frais, couvrir de fines rondelles de concombre et de saumon fumé
+: Arroser de quelques gouttes de citron et parsemer d'aneth
+
+= Œufs cocotte aux épinards | BREAKFAST,LUNCH,DINNER | 2
+22000 240 œufs (4)
+20059 200 épinards
+19432 60 crème légère à 4 %
+12118 20 emmental râpé
+11048 1 noix de muscade
+11058 1 sel
+: Faire tomber les épinards 2 minutes à la poêle et les répartir dans des ramequins
+: Casser deux œufs dans chaque ramequin, ajouter la crème, l'emmental, la muscade et le sel
+: Cuire 12 minutes au four à 180 °C dans un bain-marie
+
+= Frittata aux légumes | BREAKFAST,LUNCH,DINNER | 4
+22000 480 œufs (8)
+20020 200 courgette
+20087 150 poivron rouge
+20059 100 épinards
+20034 80 oignon
+12066 60 feta
+17270 10 huile d'olive
+11058 3 sel
+11015 1 poivre
+: Faire revenir l'oignon, la courgette et le poivron en dés 6 minutes dans une poêle allant au four, ajouter les épinards
+: Battre les œufs avec le sel et le poivre, verser sur les légumes et parsemer de feta
+: Cuire 5 minutes à feu doux puis 12 minutes au four à 180 °C
+
+= Salade d'endives, pomme et noix | LUNCH,DINNER | 2
+20026 400 endives
+13039 150 pomme
+15005 30 cerneaux de noix
+12812 50 chèvre
+17270 15 huile d'olive
+11018 8 vinaigre
+11013 4 moutarde
+11058 1 sel
+: Émincer les endives et couper la pomme en lamelles
+: Mélanger l'huile, le vinaigre, la moutarde et le sel
+: Ajouter les noix concassées et le chèvre émietté, puis la vinaigrette
+
+= Salade de betterave, chèvre et noix | LUNCH,DINNER | 2
+20003 400 betteraves cuites
+20099 60 mâche
+12805 80 chèvre frais
+15005 30 cerneaux de noix
+17270 15 huile d'olive
+11091 10 vinaigre balsamique
+11058 1 sel
+: Couper les betteraves en dés
+: Disposer sur la mâche avec le chèvre émietté et les noix
+: Arroser d'huile d'olive et de vinaigre balsamique, saler
+
+= Fenouil rôti au parmesan | LUNCH,DINNER | 2
+20028 600 fenouil
+12120 30 parmesan
+17270 15 huile d'olive
+13009 30 citron
+11058 2 sel
+11015 1 poivre
+: Couper les bulbes de fenouil en quartiers
+: Les arroser d'huile, de sel et de poivre et les rôtir 30 minutes à 200 °C
+: Parsemer de parmesan, gratiner 5 minutes et arroser de citron
+
+= Lentilles aux carottes et au cumin | LUNCH,DINNER | 4
+20585 300 lentilles vertes
+20009 300 carottes
+20034 100 oignon
+11000 5 ail
+11042 4 cumin
+17270 15 huile d'olive
+11041 8 bouillon de légumes
+18066 900 eau
+11014 10 persil
+11058 2 sel
+: Faire revenir l'oignon et les carottes en rondelles dans l'huile, ajouter l'ail et le cumin
+: Ajouter les lentilles, l'eau et le bouillon, cuire 25 minutes
+: Saler et parsemer de persil

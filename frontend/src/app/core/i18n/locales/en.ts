@@ -394,6 +394,9 @@ export const en: Dictionary = {
     evening: {
       title: 'Evening weigh-in',
       hint: 'Optional, to see what the day adds',
+      locked: 'From 5 pm, after your weigh-in of the day',
+      lockedHour: 'From 5 pm',
+      lockedMorning: 'After your weigh-in of the day',
       text: 'In the evening you often weigh 0.5 to 2 kg more than on waking up (water, meals): that is normal. Your curve, your flame and your goal follow the morning weigh-in',
       label: 'Weight tonight',
       diff: '{d} kg since this morning',

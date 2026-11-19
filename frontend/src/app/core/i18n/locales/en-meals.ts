@@ -195,6 +195,17 @@ export const enMeals: Widen<typeof frMeals> = {
     nutrition: 'Per serving · {g} g',
     totals: 'Per serving',
     pickTitle: 'Pick an ingredient',
+    lookalike: {
+      title: 'It may already exist',
+      text: 'These recipes look a lot like yours. Open one to add it to a meal or copy it, or create yours anyway',
+      MINE: 'In your recipes',
+      FRIENDS: 'By {name}',
+      COMMUNITY: 'Community',
+      common: '{n} ingredients in common',
+      commonOne: '1 ingredient in common',
+      create: 'Create my recipe anyway',
+      back: 'Back to my recipe',
+    },
     import: {
       cta: 'Import from a recipe site',
       ctaSub: 'Paste the link: name, servings, ingredients and steps are filled in for you',

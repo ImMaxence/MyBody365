@@ -11,15 +11,25 @@ import { localDay } from '../../core/tracking/tracking.store';
 import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
 
-type State = 'starting' | 'live' | 'denied' | 'unavailable' | 'preview' | 'saving';
+/** loading: a picture picked in the gallery from the Photos tab, on its way to the preview */
+type State = 'loading' | 'starting' | 'live' | 'denied' | 'unavailable' | 'preview' | 'saving';
 const TIMERS = [0, 3, 10] as const;
+type Timer = (typeof TIMERS)[number];
+
+/** the camera last used on this phone */
+const FACING_KEY = 'mb.cameraFacing';
+/** the self-timer last chosen on this phone (1.10: none until one is chosen) */
+const TIMER_KEY = 'mb.cameraTimer';
+
+function savedTimer(): Timer {
+  const n = Number(readPref(TIMER_KEY));
+  return TIMERS.find((t) => t === n) ?? 0;
+}
 
 /**
  * The daily photo, full screen: the live camera with the last photo of the same pose as an overlay
- * (same framing every day), a self-timer to step back, then a preview before keeping it.
+ * (same framing every day), a self-timer to step back if wanted, then a preview before keeping it.
  */
-/** the camera last used on this phone */
-const FACING_KEY = 'mb.cameraFacing';
 
 @Component({
   selector: 'app-camera',
@@ -58,11 +68,7 @@ const FACING_KEY = 'mb.cameraFacing';
             <button type="button" role="radio" [attr.aria-checked]="pose() === p" (click)="pose.set(p)">{{ 'photos.poses.' + p | t }}</button>
           }
         </div>
-        @if (state() === 'live' && cameras() > 1) {
-          <button type="button" class="round" [attr.aria-label]="'photos.camera.flip' | t" (click)="flip()"><app-icon name="switchCamera" /></button>
-        } @else {
-          <span class="round-space"></span>
-        }
+        <span class="round-space"></span>
       </header>
 
       @switch (state()) {
@@ -87,23 +93,36 @@ const FACING_KEY = 'mb.cameraFacing';
 
       <footer class="bottom">
         @if (state() === 'live') {
-          <p class="tip small">{{ (ghostOn() && ghostUrl() ? 'photos.camera.ghostTip' : 'photos.camera.tip') | t }}</p>
-          <div class="controls">
-            <button type="button" class="round" [class.on]="ghostOn()" [disabled]="!ghostUrl()" [attr.aria-pressed]="ghostOn()"
+          <p class="tip small">{{ tipKey() | t }}</p>
+          <!-- the two options in words, so that each says what it does and whether it is on -->
+          <div class="options">
+            <button type="button" class="pill" [class.on]="ghostOn() && !!ghostUrl()" [disabled]="!ghostUrl()" [attr.aria-pressed]="ghostOn() && !!ghostUrl()"
               [attr.aria-label]="'photos.camera.ghost' | t" (click)="ghostOn.set(!ghostOn())">
-              <app-icon name="layers" />
+              <app-icon name="layers" [size]="16" /> {{ 'photos.camera.ghostShort' | t }}
+            </button>
+            <button type="button" class="pill" [class.on]="timer() > 0" [attr.aria-label]="timerLabel()" (click)="cycleTimer()">
+              <app-icon name="timer" [size]="16" />
+              @if (timer() > 0) {
+                <span class="num">{{ 'photos.camera.timerShortOn' | t: { s: timer() } }}</span>
+              } @else {
+                {{ 'photos.camera.timerShort' | t }}
+              }
+            </button>
+          </div>
+          <!-- like the phone's camera: the gallery on the left, the shutter, the other camera on the right -->
+          <div class="controls">
+            <button type="button" class="round gallery" [attr.aria-label]="'photos.camera.import' | t" (click)="file.click()">
+              <app-icon name="image" />
             </button>
             <button type="button" class="shutter" [disabled]="countdown() > 0" [attr.aria-label]="'photos.camera.shutter' | t" (click)="shoot()">
               <span></span>
             </button>
-            <button type="button" class="round timer" [class.on]="timer() > 0" [attr.aria-label]="timerLabel()" (click)="cycleTimer()">
-              <app-icon name="timer" />
-              @if (timer() > 0) {
-                <b class="num">{{ timer() }}</b>
-              }
-            </button>
+            @if (cameras() > 1) {
+              <button type="button" class="round" [attr.aria-label]="'photos.camera.flip' | t" (click)="flip()"><app-icon name="switchCamera" /></button>
+            } @else {
+              <span class="round-space"></span>
+            }
           </div>
-          <button type="button" class="import small" (click)="file.click()"><app-icon name="image" [size]="16" /> {{ 'photos.camera.import' | t }}</button>
         } @else if (state() === 'preview' || state() === 'saving') {
           <div class="choices">
             <button type="button" class="btn btn-secondary" [disabled]="state() === 'saving'" (click)="retake()"><app-icon name="repeat" /> {{ 'photos.camera.retake' | t }}</button>
@@ -233,18 +252,44 @@ const FACING_KEY = 'mb.cameraFacing';
     .round:disabled {
       opacity: 0.35;
     }
-    .timer b {
-      position: absolute;
-      right: -2px;
-      top: -2px;
-      min-width: 20px;
-      height: 20px;
-      padding: 0 5px;
-      border-radius: 10px;
-      background: var(--accent);
-      color: var(--accent-ink);
-      font-size: 11px;
-      line-height: 20px;
+    /* the gallery, a square like the last picture on a phone's camera */
+    .round.gallery {
+      border-radius: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.85);
+    }
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--space-2);
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 0 14px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #fff;
+      font-size: var(--fs-s);
+      font-weight: 650;
+      transition:
+        background-color var(--dur-2),
+        color var(--dur-2),
+        transform var(--dur-2) var(--ease-out);
+    }
+    .pill:active {
+      transform: scale(0.95);
+    }
+    .pill.on {
+      background: #fff;
+      color: #111;
+    }
+    .pill:disabled {
+      opacity: 0.35;
     }
     .poses {
       justify-self: center;
@@ -301,13 +346,6 @@ const FACING_KEY = 'mb.cameraFacing';
     .shutter:disabled span {
       background: var(--accent);
       transform: scale(0.6);
-    }
-    .import {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: rgba(255, 255, 255, 0.86);
-      font-weight: 600;
     }
     .choices {
       display: grid;
@@ -377,11 +415,16 @@ export class CameraPage {
   private readonly video = viewChild.required<ElementRef<HTMLVideoElement>>('video');
 
   protected readonly poses = POSES;
-  protected readonly state = signal<State>('starting');
+  /** a picture already picked in the gallery (from the Photos tab): straight to its preview, no camera */
+  private readonly picked = this.store.takePicked();
+  protected readonly state = signal<State>(this.picked ? 'loading' : 'starting');
   protected readonly pose = signal<Pose>('FRONT');
   /** the back camera unless the front one was chosen last time on this phone (1.9: the back one is the better one) */
   protected readonly facing = signal<'user' | 'environment'>(readPref(FACING_KEY) === 'user' ? 'user' : 'environment');
-  protected readonly timer = signal<(typeof TIMERS)[number]>(3);
+  protected readonly timer = signal<Timer>(savedTimer());
+  protected readonly tipKey = computed(() =>
+    this.ghostOn() && this.ghostUrl() ? 'photos.camera.ghostTip' : this.timer() > 0 ? 'photos.camera.tip' : 'photos.camera.tipNoTimer',
+  );
   protected readonly ghostOn = signal(true);
   protected readonly countdown = signal(0);
   protected readonly flash = signal(false);
@@ -398,7 +441,7 @@ export class CameraPage {
 
   constructor() {
     void this.store.ensure().catch(() => undefined);
-    afterNextRender(() => void this.start());
+    afterNextRender(() => void (this.picked ? this.usePicked(this.picked) : this.start()));
     inject(DestroyRef).onDestroy(() => {
       this.stop();
       if (this.tick) clearInterval(this.tick);
@@ -445,9 +488,11 @@ export class CameraPage {
     void this.start();
   }
 
+  /** none → 3 s → 10 s, kept on this phone for the next photos */
   protected cycleTimer(): void {
     const i = TIMERS.indexOf(this.timer());
     this.timer.set(TIMERS[(i + 1) % TIMERS.length]);
+    writePref(TIMER_KEY, this.timer() ? String(this.timer()) : null);
   }
 
   protected shoot(): void {
@@ -521,6 +566,16 @@ export class CameraPage {
       await this.showPreview(await prepareImage(file));
     } catch (e) {
       this.toast.error(this.i18n.error(errorCode(e)));
+    }
+  }
+
+  /** the picture picked from the Photos tab: its preview, the pose still to choose; unreadable, the camera instead */
+  private async usePicked(file: File): Promise<void> {
+    try {
+      await this.showPreview(await prepareImage(file));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+      void this.start();
     }
   }
 

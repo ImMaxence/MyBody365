@@ -1,0 +1,826 @@
+# Recettes de la communauté, 1.10 : les cuisines du monde qu'on aime en France, d'Asie, d'Inde, du Maghreb et du
+# Liban, d'Afrique et des Antilles, d'Europe et des Amériques. Même format que les autres fichiers :
+#   = Nom | TYPES | parts
+#   code_ciqual grammes   (poids cru pour toute la recette ; le texte après les grammes n'est qu'un repère)
+#   : une étape
+
+= Poulet général Tao | LUNCH,DINNER | 2
+36024 350 hauts de cuisse de poulet sans peau
+9510 40 fécule de maïs
+11104 40 sauce soja
+31016 30 sucre
+11018 20 vinaigre
+11000 6 ail
+11074 8 gingembre frais
+20151 4 piment
+15010 6 graines de sésame
+17130 30 huile de colza
+9100 140 riz
+: Cuire le riz 12 minutes
+: Couper le poulet en morceaux, les enrober de fécule et les dorer 6 minutes dans l'huile bien chaude
+: Mélanger la sauce soja, le sucre, le vinaigre, l'ail, le gingembre, le piment et une cuillère de fécule délayée dans un peu d'eau
+: Verser la sauce sur le poulet, laisser épaissir 2 minutes, parsemer de sésame et servir avec le riz
+
+= Poulet aigre-doux | LUNCH,DINNER | 2
+36017 300 filets de poulet
+13002 200 ananas
+20041 150 poivron
+20034 80 oignon
+11163 80 sauce aigre-douce
+9510 15 fécule de maïs
+17130 15 huile de colza
+9100 140 riz
+: Cuire le riz 12 minutes
+: Couper le poulet en dés, l'enrober de fécule et le dorer 5 minutes dans l'huile
+: Ajouter l'oignon et le poivron en morceaux, sauter 4 minutes, puis l'ananas en dés
+: Verser la sauce aigre-douce, chauffer 2 minutes et servir avec le riz
+
+= Bœuf aux oignons à la chinoise | LUNCH,DINNER | 2
+6206 300 rumsteck
+20034 250 oignons
+11104 30 sauce soja
+11223 20 sauce d'huître
+9510 8 fécule de maïs
+11074 6 gingembre frais
+17130 15 huile de colza
+9100 140 riz
+: Cuire le riz 12 minutes
+: Couper le bœuf en fines lanières, le mélanger avec la fécule et la moitié de la sauce soja
+: Saisir le bœuf 2 minutes au wok bien chaud, le réserver
+: Faire sauter les oignons émincés et le gingembre 5 minutes, remettre le bœuf avec les sauces et servir avec le riz
+
+= Poulet aux noix de cajou | LUNCH,DINNER | 2
+36017 300 filets de poulet
+15054 60 noix de cajou
+20041 150 poivron
+20034 80 oignon
+11104 30 sauce soja
+11223 15 sauce d'huître
+9510 8 fécule de maïs
+17130 15 huile de colza
+9100 140 riz
+: Cuire le riz 12 minutes
+: Faire griller les noix de cajou à sec dans le wok, les réserver
+: Saisir le poulet en dés enrobé de fécule 5 minutes dans l'huile, ajouter l'oignon et le poivron et sauter 4 minutes
+: Ajouter les sauces et les noix de cajou, mélanger et servir avec le riz
+
+= Ramen au porc | LUNCH,DINNER | 2
+9863 160 nouilles asiatiques
+28302 250 échine de porc
+22000 120 œufs (2)
+20916 30 miso
+11104 30 sauce soja
+11174 12 bouillon de volaille
+18066 1000 eau
+20183 80 pousses de soja
+20056 80 champignons
+11003 10 ciboule
+11074 10 gingembre frais
+11000 5 ail
+20987 3 algue nori
+: Faire mijoter l'échine de porc 1 heure dans l'eau avec le bouillon, le gingembre et l'ail
+: Cuire les œufs 6 minutes 30, les rafraîchir et les écaler
+: Retirer le porc et le trancher, délayer le miso et la sauce soja dans le bouillon
+: Cuire les nouilles 3 minutes, les répartir dans les bols avec le bouillon, le porc, les œufs coupés en deux, les pousses de soja, les champignons, la ciboule et la nori
+
+= Phở au bœuf | LUNCH,DINNER | 2
+9900 140 vermicelles de riz
+6206 220 rumsteck très finement tranché
+11001 15 bouillon de bœuf
+18066 1200 eau
+20034 100 oignon
+11074 20 gingembre frais
+11025 1 cannelle
+11052 1 clous de girofle
+11194 25 sauce nuoc-mâm
+20183 100 pousses de soja
+11094 10 coriandre
+11027 8 menthe
+13067 40 citron vert
+: Griller l'oignon et le gingembre coupés en deux à sec dans une poêle
+: Les faire mijoter 30 minutes dans l'eau avec le bouillon, la cannelle, les clous de girofle et le nuoc-mâm, puis filtrer
+: Cuire les vermicelles 3 minutes et les répartir dans les bols avec le bœuf cru
+: Verser le bouillon bouillant dessus, il cuit le bœuf, et servir avec les pousses de soja, les herbes et le citron vert
+
+= Bibimbap | LUNCH,DINNER | 2
+9100 160 riz
+6206 200 rumsteck
+20059 150 épinards
+20009 120 carotte
+20020 120 courgette
+20183 100 pousses de soja
+20056 100 champignons
+22000 120 œufs (2)
+11104 30 sauce soja
+17400 15 huile de sésame
+15010 6 graines de sésame
+20151 5 piment
+31016 8 sucre
+11000 4 ail
+: Cuire le riz 12 minutes
+: Mariner le bœuf en lanières avec la moitié de la sauce soja, le sucre et l'ail, puis le saisir 2 minutes
+: Faire sauter séparément la carotte et la courgette en julienne, les champignons, les épinards et les pousses de soja avec un peu d'huile de sésame
+: Cuire les œufs au plat
+: Disposer le riz dans les bols, les légumes et le bœuf par-dessus, l'œuf au centre, le reste de sauce soja, le piment et le sésame
+
+= Curry japonais au poulet | LUNCH,DINNER | 4
+36024 500 hauts de cuisse de poulet sans peau
+4008 400 pommes de terre
+20009 250 carottes
+20034 200 oignons
+16400 40 beurre
+9440 40 farine
+11005 12 curry
+11174 10 bouillon de volaille
+18066 700 eau
+11104 15 sauce soja
+31008 15 miel
+9100 280 riz
+: Faire fondre le beurre, ajouter la farine et le curry et cuire 2 minutes en remuant pour faire un roux
+: Dorer le poulet en morceaux et les oignons émincés dans une cocotte
+: Ajouter les pommes de terre et les carottes en morceaux, l'eau et le bouillon, cuire 20 minutes
+: Incorporer le roux, la sauce soja et le miel, laisser épaissir 5 minutes et servir avec le riz
+
+= Yakitori | LUNCH,DINNER,SNACK | 2
+36024 400 hauts de cuisse de poulet sans peau
+11003 40 ciboule
+11104 40 sauce soja
+1026 30 saké
+31016 20 sucre
+15010 5 graines de sésame
+9100 140 riz
+: Faire réduire la sauce soja, le saké et le sucre 5 minutes à feu doux
+: Couper le poulet en cubes et la ciboule en tronçons, les enfiler sur des piques
+: Griller les brochettes 10 minutes en les badigeonnant de sauce plusieurs fois
+: Parsemer de sésame et servir avec le riz
+
+= Makis saumon avocat | LUNCH,DINNER | 2
+9100 200 riz
+26036 150 saumon très frais
+13004 100 avocat
+20987 10 feuilles de nori (4)
+11018 25 vinaigre
+31016 12 sucre
+11058 2 sel
+11104 20 sauce soja
+: Cuire le riz, puis le mélanger avec le vinaigre, le sucre et le sel et le laisser tiédir
+: Couper le saumon et l'avocat en bâtonnets
+: Étaler une couche de riz sur chaque feuille de nori, poser saumon et avocat, puis rouler serré avec une natte
+: Couper chaque rouleau en 8 et servir avec la sauce soja
+
+= Salade thaïe au bœuf | LUNCH,DINNER | 2
+6206 280 rumsteck
+20031 120 laitue
+20019 150 concombre
+20172 120 tomates cerises
+20238 50 oignon rouge
+11027 8 menthe
+11094 8 coriandre
+11194 20 sauce nuoc-mâm
+2031 30 jus de citron vert
+31016 8 sucre
+20151 3 piment
+15053 25 cacahuètes grillées
+: Saisir le bœuf 2 minutes de chaque côté, le laisser reposer puis le trancher finement
+: Mélanger le nuoc-mâm, le citron vert, le sucre et le piment haché
+: Disposer la salade, le concombre, les tomates, l'oignon et les herbes, ajouter le bœuf
+: Arroser de sauce et parsemer de cacahuètes concassées
+
+= Poulet satay | LUNCH,DINNER | 2
+36017 300 filets de poulet
+15202 50 beurre de cacahuète
+18041 100 lait de coco
+11104 25 sauce soja
+11005 4 curry
+2031 15 jus de citron vert
+31017 10 sucre roux
+11000 4 ail
+9100 140 riz
+: Mariner le poulet en lanières 30 minutes avec la moitié de la sauce soja, le curry et l'ail
+: Enfiler les lanières sur des piques et les griller 8 minutes
+: Chauffer le beurre de cacahuète avec le lait de coco, le reste de sauce soja, le sucre et le citron vert
+: Servir les brochettes nappées de sauce, avec le riz
+
+= Curry vert thaï au poulet | LUNCH,DINNER | 4
+36017 500 filets de poulet
+18041 400 lait de coco
+20020 250 courgette
+20061 150 haricots verts
+20087 120 poivron rouge
+20151 15 piments verts
+11094 20 coriandre
+11074 15 gingembre frais
+11000 8 ail
+13067 30 citron vert
+11194 25 sauce nuoc-mâm
+31017 10 sucre roux
+11033 8 basilic
+17130 10 huile de colza
+9100 280 riz
+: Mixer les piments, la coriandre, le gingembre, l'ail et le zeste du citron vert avec un peu d'huile pour faire la pâte de curry
+: Faire revenir la pâte 1 minute dans l'huile, ajouter le poulet en lanières et le dorer
+: Verser le lait de coco, ajouter les légumes et cuire 12 minutes
+: Assaisonner de nuoc-mâm, de sucre et de jus de citron vert, ajouter le basilic et servir avec le riz
+
+= Mapo tofu | LUNCH,DINNER | 2
+20904 400 tofu nature
+28472 150 porc haché
+11104 30 sauce soja
+20151 6 piment
+11000 6 ail
+11074 8 gingembre frais
+9510 8 fécule de maïs
+11003 10 ciboule
+18066 150 eau
+17130 10 huile de colza
+9100 140 riz
+: Cuire le riz 12 minutes
+: Faire revenir le porc dans l'huile avec l'ail, le gingembre et le piment hachés
+: Ajouter le tofu en cubes, la sauce soja et l'eau, laisser mijoter 5 minutes
+: Lier avec la fécule délayée, parsemer de ciboule et servir avec le riz
+
+= Bœuf lok lak | LUNCH,DINNER | 2
+6206 320 rumsteck
+11104 25 sauce soja
+11223 20 sauce d'huître
+31016 8 sucre
+11000 4 ail
+11015 2 poivre
+20031 80 laitue
+20385 150 tomate
+20238 50 oignon rouge
+13067 40 citron vert
+9100 140 riz
+: Couper le bœuf en cubes et le mariner 20 minutes avec les sauces, le sucre et l'ail
+: Cuire le riz 12 minutes
+: Saisir le bœuf 3 minutes au wok bien chaud
+: Servir sur la salade, avec la tomate, l'oignon, le riz et une sauce faite de jus de citron vert, de sel et de beaucoup de poivre
+
+= Banh mi au porc | LUNCH,SNACK | 2
+7001 250 baguette
+28204 200 filet mignon de porc
+20009 100 carotte
+20089 60 radis noir
+20019 80 concombre
+11094 8 coriandre
+11054 30 mayonnaise
+11104 20 sauce soja
+31008 10 miel
+11018 20 vinaigre
+31016 10 sucre
+20151 3 piment
+: Mariner le porc en fines tranches avec la sauce soja et le miel, puis le saisir 4 minutes
+: Mélanger la carotte et le radis en julienne avec le vinaigre et le sucre, laisser mariner 15 minutes
+: Ouvrir la baguette, la tartiner de mayonnaise, garnir de porc, de légumes marinés, de concombre, de coriandre et de piment
+
+= Butter chicken | LUNCH,DINNER | 4
+36017 600 filets de poulet
+19593 150 yaourt nature
+20260 300 coulis de tomate
+19417 150 crème
+16400 40 beurre
+20034 150 oignon
+11000 10 ail
+11074 15 gingembre frais
+11005 10 curry
+11049 4 paprika
+11042 3 cumin
+11058 3 sel
+9119 280 riz basmati
+: Mariner le poulet en morceaux au moins 1 heure avec le yaourt, la moitié des épices et le sel
+: Faire fondre le beurre, y dorer l'oignon, l'ail et le gingembre, ajouter le reste des épices
+: Ajouter le poulet, puis le coulis de tomate et cuire 15 minutes
+: Incorporer la crème, laisser mijoter 5 minutes et servir avec le riz basmati
+
+= Biryani au poulet | LUNCH,DINNER | 4
+9119 300 riz basmati
+36024 500 hauts de cuisse de poulet sans peau
+19593 150 yaourt nature
+20034 250 oignons
+17130 30 huile de colza
+11005 10 curry
+11075 2 cardamome
+11025 2 cannelle
+11052 1 clous de girofle
+11039 0,5 safran
+13046 30 raisins secs
+15041 30 amandes
+11094 10 coriandre
+11058 4 sel
+: Mariner le poulet avec le yaourt, le curry et le sel pendant 1 heure
+: Faire frire les oignons émincés dans l'huile jusqu'à ce qu'ils soient bien dorés
+: Cuire le riz 6 minutes à l'eau avec la cardamome, la cannelle et les clous de girofle, puis l'égoutter
+: Dans une cocotte, alterner le poulet mariné, les oignons et le riz, arroser du safran infusé dans un peu d'eau chaude
+: Couvrir et cuire 35 minutes à feu très doux, servir avec les raisins, les amandes et la coriandre
+
+= Aloo gobi | LUNCH,DINNER | 4
+4008 500 pommes de terre
+20016 600 chou-fleur
+20385 250 tomates
+20034 150 oignon
+11074 10 gingembre frais
+11000 6 ail
+11089 4 curcuma
+11042 4 cumin
+11005 4 curry
+17130 25 huile de colza
+11094 10 coriandre
+11058 3 sel
+: Faire revenir l'oignon, le gingembre et l'ail dans l'huile, ajouter les épices
+: Ajouter les pommes de terre en cubes et le chou-fleur en bouquets, bien les enrober
+: Ajouter les tomates en dés et un fond d'eau, couvrir et cuire 25 minutes
+: Saler et parsemer de coriandre
+
+= Curry d'agneau | LUNCH,DINNER | 4
+21505 600 épaule d'agneau
+19593 150 yaourt nature
+20137 400 tomates pelées
+20034 200 oignons
+11000 10 ail
+11074 15 gingembre frais
+11005 12 curry
+11042 3 cumin
+11025 2 cannelle
+17130 20 huile de colza
+11094 10 coriandre
+11058 3 sel
+9119 280 riz basmati
+: Faire dorer l'agneau en cubes dans l'huile, le réserver
+: Faire revenir les oignons, l'ail et le gingembre, ajouter les épices
+: Remettre l'agneau, ajouter les tomates et le yaourt, couvrir et mijoter 1 heure 30
+: Parsemer de coriandre et servir avec le riz basmati
+
+= Shawarma de poulet | LUNCH,DINNER | 4
+36024 600 hauts de cuisse de poulet sans peau
+19593 100 yaourt nature
+2028 30 jus de citron
+11000 8 ail
+11042 4 cumin
+11049 4 paprika
+11089 2 curcuma
+11025 1 cannelle
+17270 20 huile d'olive
+7180 280 pains pita (4)
+20385 200 tomates
+20031 100 laitue
+20238 60 oignon rouge
+15203 40 tahin
+11058 3 sel
+: Mariner le poulet au moins 2 heures avec le yaourt, le citron, l'ail, les épices, l'huile et le sel
+: Le rôtir 30 minutes à 220 °C, puis le trancher finement
+: Délayer le tahin avec un peu d'eau et de citron pour la sauce
+: Garnir les pains pita de poulet, de tomates, de salade et d'oignon, arroser de sauce
+
+= Kefta d'agneau | LUNCH,DINNER | 4
+21505 600 épaule d'agneau hachée
+20034 100 oignon
+11014 20 persil
+11094 15 coriandre
+11042 4 cumin
+11049 4 paprika
+11025 1 cannelle
+11058 4 sel
+19860 150 yaourt à la grecque
+11027 6 menthe
+: Mélanger l'agneau haché avec l'oignon râpé, les herbes ciselées, les épices et le sel
+: Former des boudins autour de piques
+: Griller les keftas 8 à 10 minutes en les retournant
+: Servir avec le yaourt mélangé à la menthe ciselée
+
+= Harira | LUNCH,DINNER | 6
+21505 300 épaule d'agneau
+20585 150 lentilles vertes
+20532 240 pois chiches
+20137 400 tomates pelées
+20068 30 concentré de tomate
+20034 150 oignon
+20023 100 céleri branche
+11014 20 persil
+11094 20 coriandre
+9440 30 farine
+11089 3 curcuma
+11074 6 gingembre frais
+11025 2 cannelle
+17270 15 huile d'olive
+18066 2000 eau
+11058 5 sel
+: Faire revenir l'agneau en petits dés, l'oignon et le céleri dans l'huile avec les épices
+: Ajouter les tomates, le concentré, les lentilles et l'eau, cuire 40 minutes
+: Ajouter les pois chiches et les herbes ciselées, cuire 10 minutes
+: Lier avec la farine délayée dans un peu d'eau froide, laisser épaissir 5 minutes en remuant
+
+= Couscous aux légumes | LUNCH,DINNER | 4
+9610 300 semoule
+20009 300 carottes
+20020 300 courgettes
+20064 200 navets
+20532 240 pois chiches
+20034 150 oignon
+20137 200 tomates pelées
+11042 3 cumin
+11025 2 cannelle
+11089 2 curcuma
+11041 10 bouillon de légumes
+18066 1200 eau
+17270 20 huile d'olive
+16400 15 beurre
+11058 3 sel
+: Faire revenir l'oignon dans l'huile avec les épices
+: Ajouter les carottes, les navets, les tomates, l'eau et le bouillon, cuire 20 minutes
+: Ajouter les courgettes et les pois chiches, cuire encore 15 minutes
+: Verser autant d'eau bouillante que de semoule sur la semoule, couvrir 5 minutes puis l'égrainer avec le beurre
+
+= Tajine de kefta aux œufs | LUNCH,DINNER | 4
+6254 500 bœuf haché
+20137 600 tomates pelées
+20034 150 oignon
+22000 240 œufs (4)
+11042 4 cumin
+11049 4 paprika
+11094 15 coriandre
+11014 15 persil
+11000 6 ail
+17270 15 huile d'olive
+11058 4 sel
+: Mélanger le bœuf avec la moitié des herbes et des épices et le sel, former de petites boulettes
+: Faire revenir l'oignon et l'ail dans l'huile, ajouter les tomates et le reste des épices, cuire 15 minutes
+: Ajouter les boulettes et cuire 15 minutes à couvert
+: Casser les œufs sur le dessus, couvrir et cuire 6 minutes, parsemer du reste des herbes
+
+= Pastilla au poulet | LUNCH,DINNER | 6
+51550 200 feuilles de brick (8)
+36024 700 hauts de cuisse de poulet sans peau
+20034 300 oignons
+15041 100 amandes
+22000 180 œufs (3)
+16400 60 beurre
+31016 30 sucre
+11025 4 cannelle
+11039 0,5 safran
+11074 6 gingembre frais
+11094 15 coriandre
+11058 4 sel
+: Cuire le poulet 45 minutes à couvert avec les oignons, le gingembre, le safran, la moitié de la cannelle et un fond d'eau, puis l'effilocher
+: Faire réduire la sauce, y ajouter les œufs battus en remuant pour les brouiller, puis la coriandre
+: Griller et concasser les amandes, les mélanger avec le sucre et le reste de cannelle
+: Superposer des feuilles de brick beurrées dans un moule, garnir de poulet puis d'amandes, refermer avec les feuilles
+: Dorer 25 minutes à 180 °C et saupoudrer de cannelle
+
+= Bricks au thon | LUNCH,DINNER,SNACK | 4
+51550 100 feuilles de brick (4)
+26039 140 thon au naturel
+22000 240 œufs (4)
+4008 150 pomme de terre
+11014 10 persil
+20034 40 oignon
+17440 60 huile de tournesol pour la friture
+11058 2 sel
+: Cuire la pomme de terre et l'écraser avec le thon, l'oignon haché, le persil et le sel
+: Déposer un peu de farce au centre d'une feuille de brick, casser un œuf dessus
+: Replier la feuille en triangle et dorer 2 minutes de chaque côté dans l'huile chaude
+
+= Baba ganoush | SNACK,LUNCH | 4
+20053 800 aubergines
+15203 50 tahin
+2028 30 jus de citron
+11000 6 ail
+17270 20 huile d'olive
+11042 2 cumin
+11014 8 persil
+11058 3 sel
+: Griller les aubergines entières 45 minutes à 220 °C jusqu'à ce que la peau noircisse
+: Récupérer la chair et l'égoutter
+: L'écraser avec le tahin, le citron, l'ail râpé, le cumin et le sel
+: Arroser d'huile d'olive et parsemer de persil
+
+= Taboulé libanais | LUNCH,DINNER,SNACK | 4
+11014 150 persil plat
+9690 60 boulgour fin
+20385 300 tomates
+20034 60 oignon
+11027 20 menthe
+2028 60 jus de citron
+17270 40 huile d'olive
+11058 3 sel
+: Faire gonfler le boulgour 15 minutes dans le jus de citron
+: Ciseler finement le persil et la menthe, couper les tomates et l'oignon en tout petits dés
+: Mélanger le tout avec l'huile d'olive et le sel
+
+= Fattoush | LUNCH,DINNER | 4
+20171 200 laitue romaine
+20385 250 tomates
+20019 250 concombre
+20045 100 radis
+20238 60 oignon rouge
+7180 120 pains pita
+11014 20 persil
+11027 10 menthe
+17270 40 huile d'olive
+2028 30 jus de citron
+11058 3 sel
+: Couper les pains pita en morceaux et les griller au four jusqu'à ce qu'ils soient croustillants
+: Couper la salade, les tomates, le concombre, les radis et l'oignon
+: Mélanger avec les herbes, l'huile, le citron et le sel, ajouter le pain grillé au moment de servir
+
+= Mujaddara | LUNCH,DINNER | 4
+20585 200 lentilles vertes
+9100 150 riz
+20034 400 oignons
+17270 50 huile d'olive
+11042 4 cumin
+11025 1 cannelle
+11058 4 sel
+19593 150 yaourt nature
+: Cuire les lentilles 15 minutes dans l'eau
+: Ajouter le riz, le cumin, la cannelle et le sel, et cuire encore 15 minutes jusqu'à absorption
+: Faire frire les oignons émincés dans l'huile jusqu'à ce qu'ils soient bien bruns
+: Servir les lentilles au riz couvertes d'oignons, avec le yaourt
+
+= Mafé de poulet | LUNCH,DINNER | 4
+36024 600 hauts de cuisse de poulet sans peau
+15202 120 beurre de cacahuète
+20068 50 concentré de tomate
+20137 200 tomates pelées
+20034 150 oignon
+20009 200 carottes
+4101 300 patate douce
+11000 6 ail
+20151 4 piment
+11174 10 bouillon de volaille
+18066 600 eau
+17130 20 huile de colza
+9100 280 riz
+: Dorer le poulet en morceaux dans l'huile, ajouter l'oignon et l'ail
+: Ajouter le concentré, les tomates, l'eau, le bouillon et le piment, puis les carottes et la patate douce en morceaux
+: Délayer le beurre de cacahuète dans un peu de sauce et l'incorporer, mijoter 40 minutes
+: Servir avec le riz
+
+= Poulet yassa | LUNCH,DINNER | 4
+36024 700 hauts de cuisse de poulet sans peau
+20034 600 oignons
+13009 150 citrons
+11013 30 moutarde
+11000 8 ail
+13033 60 olives vertes
+20151 4 piment
+17130 30 huile de colza
+11058 4 sel
+9100 280 riz
+: Mariner le poulet au moins 2 heures avec les oignons émincés, le jus des citrons, la moutarde, l'ail, le piment et le sel
+: Griller ou dorer le poulet égoutté
+: Faire fondre longuement les oignons de la marinade dans l'huile, ajouter la marinade et le poulet, cuire 30 minutes
+: Ajouter les olives et servir avec le riz
+
+= Thiéboudienne | LUNCH,DINNER | 6
+9100 450 riz
+26044 800 poisson blanc (merlu)
+20068 70 concentré de tomate
+20116 400 chou blanc
+20009 300 carottes
+20053 250 aubergine
+54031 250 manioc
+20034 200 oignons
+11000 10 ail
+11014 30 persil
+20151 6 piment
+17130 60 huile de colza
+18066 1500 eau
+11058 6 sel
+: Farcir le poisson d'un hachis d'ail, de persil, de piment et de sel, puis le dorer dans l'huile et le réserver
+: Faire revenir les oignons, ajouter le concentré de tomate et l'eau, puis les légumes en gros morceaux, cuire 30 minutes
+: Ajouter le poisson 15 minutes, puis retirer légumes et poisson
+: Cuire le riz dans le bouillon jusqu'à absorption et servir avec le poisson et les légumes
+
+= Colombo de poulet | LUNCH,DINNER | 4
+36024 600 hauts de cuisse de poulet sans peau
+4008 300 pommes de terre
+20053 250 aubergine
+20020 250 courgette
+20034 150 oignon
+11000 8 ail
+11005 15 poudre de colombo (curry)
+13067 40 citron vert
+11070 2 thym
+17130 20 huile de colza
+18066 400 eau
+11058 3 sel
+9100 280 riz
+: Mariner le poulet avec le jus de citron vert, l'ail et la moitié du colombo
+: Le dorer dans l'huile avec l'oignon, ajouter le reste du colombo et le thym
+: Ajouter les légumes en morceaux et l'eau, cuire 40 minutes à couvert
+: Servir avec le riz
+
+= Accras de morue | SNACK,LUNCH | 6
+26098 250 morue salée
+9440 200 farine
+22000 60 œuf (1)
+18066 150 eau
+11046 8 levure chimique
+11003 15 ciboule
+11014 10 persil
+11000 5 ail
+20151 4 piment
+17440 150 huile de tournesol pour la friture
+: Dessaler la morue 24 heures en changeant l'eau plusieurs fois, la pocher 10 minutes et l'effeuiller
+: Mélanger la farine, l'œuf, l'eau et la levure, ajouter la morue, les herbes, l'ail et le piment hachés
+: Laisser reposer 1 heure
+: Faire frire des cuillerées de pâte 3 minutes dans l'huile chaude et égoutter sur du papier
+
+= Rougail saucisse | LUNCH,DINNER | 4
+30102 600 saucisses fumées
+20385 600 tomates
+20034 200 oignons
+11000 8 ail
+11074 15 gingembre frais
+11089 3 curcuma
+20151 4 piment
+11070 2 thym
+17130 15 huile de colza
+9100 280 riz
+: Couper les saucisses en rondelles, les blanchir 5 minutes dans l'eau bouillante et les égoutter
+: Les dorer dans l'huile avec les oignons émincés
+: Ajouter l'ail, le gingembre, le curcuma, le piment et le thym, puis les tomates en dés
+: Mijoter 30 minutes et servir avec le riz
+
+= Bananes plantains frites | SNACK,LUNCH,DINNER | 2
+53100 400 bananes plantains bien mûres
+17440 40 huile de tournesol
+11058 2 sel
+: Éplucher les bananes plantains et les couper en rondelles en biais
+: Les faire frire 3 minutes de chaque côté dans l'huile chaude jusqu'à ce qu'elles soient dorées
+: Égoutter sur du papier et saler
+
+= Patatas bravas | SNACK,LUNCH,DINNER | 4
+4008 800 pommes de terre
+17270 40 huile d'olive
+20260 200 coulis de tomate
+11049 6 paprika
+11000 6 ail
+11088 1 piment de Cayenne
+11018 10 vinaigre
+11058 4 sel
+: Couper les pommes de terre en cubes, les mélanger avec la moitié de l'huile et le sel, et les rôtir 35 minutes à 220 °C
+: Faire revenir l'ail dans le reste d'huile, ajouter le paprika, le piment, le coulis et le vinaigre, et réduire 10 minutes
+: Servir les pommes de terre nappées de sauce
+
+= Souvlaki de porc | LUNCH,DINNER | 4
+28204 600 filet mignon de porc
+17270 30 huile d'olive
+2028 30 jus de citron
+11000 6 ail
+11035 3 origan
+7180 280 pains pita (4)
+19864 160 tzatziki
+20385 200 tomates
+20238 60 oignon rouge
+11058 3 sel
+: Couper le porc en cubes et le mariner 2 heures avec l'huile, le citron, l'ail, l'origan et le sel
+: Enfiler les cubes sur des piques et les griller 10 minutes
+: Servir dans les pains pita chauds avec le tzatziki, les tomates et l'oignon
+
+= Spanakopita | LUNCH,DINNER | 6
+23445 250 pâte filo
+20059 800 épinards
+12066 200 feta
+22000 120 œufs (2)
+20034 100 oignon
+11093 10 aneth
+16400 50 beurre fondu
+17270 15 huile d'olive
+11015 1 poivre
+: Faire revenir l'oignon dans l'huile, ajouter les épinards et les faire tomber, puis bien les égoutter
+: Mélanger les épinards avec la feta émiettée, les œufs, l'aneth et le poivre
+: Superposer la moitié des feuilles de filo beurrées dans un plat, étaler la farce et couvrir du reste des feuilles beurrées
+: Cuire 40 minutes à 180 °C
+
+= Goulash | LUNCH,DINNER | 4
+6270 700 paleron de bœuf
+20034 300 oignons
+20087 200 poivron rouge
+4008 400 pommes de terre
+20068 40 concentré de tomate
+11049 15 paprika
+11042 2 cumin
+11001 10 bouillon de bœuf
+18066 800 eau
+17130 20 huile de colza
+11058 3 sel
+: Dorer le bœuf en cubes dans l'huile, ajouter les oignons émincés et les faire fondre
+: Ajouter le paprika, le cumin et le concentré de tomate, puis l'eau et le bouillon
+: Mijoter 1 heure 30 à couvert
+: Ajouter les pommes de terre et le poivron en morceaux, cuire encore 30 minutes
+
+= Pâtes all'amatriciana | LUNCH,DINNER | 2
+9810 200 spaghettis
+28858 100 pancetta
+20137 300 tomates pelées
+12122 40 pecorino
+20034 50 oignon
+20151 2 piment
+17270 10 huile d'olive
+: Faire revenir la pancetta en lardons dans l'huile, ajouter l'oignon émincé et le piment
+: Ajouter les tomates et laisser mijoter 15 minutes
+: Cuire les pâtes al dente, les mélanger à la sauce et servir avec le pecorino râpé
+
+= Cacio e pepe | LUNCH,DINNER | 2
+9810 200 spaghettis
+12122 80 pecorino
+12120 20 parmesan
+11015 4 poivre noir
+16400 10 beurre
+: Cuire les pâtes dans peu d'eau salée et garder une louche d'eau de cuisson
+: Faire griller le poivre concassé avec le beurre dans une poêle
+: Ajouter les pâtes, puis les fromages râpés et l'eau de cuisson petit à petit en remuant vivement jusqu'à obtenir une sauce crémeuse
+
+= Pâtes alla norma | LUNCH,DINNER | 2
+9810 200 pâtes (penne ou spaghettis)
+20053 300 aubergine
+20137 400 tomates pelées
+11000 6 ail
+17270 30 huile d'olive
+11033 10 basilic
+12122 30 pecorino
+11058 2 sel
+: Couper l'aubergine en cubes et les dorer dans l'huile, les réserver
+: Faire revenir l'ail, ajouter les tomates et cuire 15 minutes, puis remettre l'aubergine
+: Mélanger avec les pâtes cuites al dente, le basilic et le pecorino râpé
+
+= Spaghettis aux palourdes | LUNCH,DINNER | 2
+9810 200 spaghettis
+10017 200 palourdes (1 kg avec les coquilles)
+11000 8 ail
+5215 80 vin blanc
+11014 15 persil
+17270 25 huile d'olive
+20151 2 piment
+: Laisser dégorger les palourdes 1 heure dans l'eau salée, puis les rincer
+: Faire revenir l'ail et le piment dans l'huile, ajouter les palourdes et le vin blanc, couvrir jusqu'à ce qu'elles s'ouvrent
+: Ajouter les spaghettis cuits al dente et le persil, mélanger 1 minute dans le jus
+
+= Tacos au bœuf | LUNCH,DINNER | 4
+7813 240 tortillas de maïs (8)
+6254 500 bœuf haché
+20034 100 oignon
+20385 200 tomates
+13004 140 avocat
+11094 15 coriandre
+13067 40 citron vert
+11042 4 cumin
+11049 4 paprika
+12726 60 cheddar
+17130 10 huile de colza
+11058 3 sel
+: Faire revenir l'oignon dans l'huile, ajouter le bœuf et les épices, cuire 8 minutes
+: Couper les tomates et l'avocat en dés, les mélanger avec la coriandre, le citron vert et le sel
+: Chauffer les tortillas à sec dans une poêle
+: Garnir de viande, de cheddar râpé et de la salsa à l'avocat
+
+= Enchiladas au poulet | LUNCH,DINNER | 4
+7815 320 tortillas de blé (4 grandes)
+36017 400 filets de poulet
+20524 200 haricots rouges
+20260 400 coulis de tomate
+20041 150 poivron
+20034 100 oignon
+12726 120 cheddar
+11042 4 cumin
+11049 4 paprika
+17130 10 huile de colza
+11058 3 sel
+: Faire revenir l'oignon et le poivron dans l'huile, ajouter le poulet en dés et les épices et cuire 8 minutes
+: Ajouter les haricots rouges et la moitié du coulis
+: Garnir et rouler les tortillas, les disposer dans un plat, napper du reste de coulis et de cheddar râpé
+: Gratiner 20 minutes à 200 °C
+
+= Pulled pork | LUNCH,DINNER | 6
+28009 1200 palette de porc
+11100 200 sauce barbecue
+31017 30 sucre roux
+11049 8 paprika
+11000 8 ail
+20034 150 oignon
+18066 200 eau
+7259 420 pains à burger (6)
+20116 250 chou blanc
+20009 150 carotte
+11054 40 mayonnaise
+11058 6 sel
+: Frotter la palette avec le sucre, le paprika, l'ail et le sel
+: La cuire 5 heures à 150 °C à couvert avec l'oignon et l'eau, puis l'effilocher à la fourchette
+: Mélanger la viande avec la sauce barbecue
+: Garnir les pains de porc et d'un coleslaw de chou et de carotte râpés à la mayonnaise
+
+= Mac and cheese | LUNCH,DINNER | 4
+9810 350 macaronis
+12726 200 cheddar
+12115 60 emmental
+19033 600 lait
+16400 40 beurre
+9440 40 farine
+11013 10 moutarde
+7500 20 chapelure
+11058 3 sel
+: Cuire les macaronis 2 minutes de moins que le temps indiqué
+: Faire fondre le beurre, ajouter la farine puis le lait en fouettant jusqu'à épaississement
+: Hors du feu, ajouter le cheddar, la moutarde et le sel
+: Mélanger avec les pâtes, verser dans un plat, couvrir d'emmental et de chapelure et gratiner 20 minutes à 200 °C

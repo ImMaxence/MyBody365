@@ -35,9 +35,11 @@ public class RecipeController {
     private final RecipeService recipes;
     private final UserService users;
     private final RecipeImporter importer;
+    private final RecipeLookalikes lookalikes;
 
-    public RecipeController(RecipeService recipes, UserService users, RecipeImporter importer) {
+    public RecipeController(RecipeService recipes, UserService users, RecipeImporter importer, RecipeLookalikes lookalikes) {
         this.importer = importer;
+        this.lookalikes = lookalikes;
         this.recipes = recipes;
         this.users = users;
     }
@@ -53,6 +55,12 @@ public class RecipeController {
         AppUser me = users.current(auth);
         communityCheck(me, body);
         return recipes.create(me.getId(), body);
+    }
+
+    /** 1.10: before a new recipe is saved, the ones the member can see that look like it (nothing saved) */
+    @PostMapping("/api/me/recipes/lookalikes")
+    public List<RecipeLookalikes.Lookalike> lookalikes(@Valid @RequestBody RecipeLookalikes.Query body, Authentication auth) {
+        return lookalikes.find(users.current(auth).getId(), body);
     }
 
     @PutMapping("/api/me/recipes/{id}")

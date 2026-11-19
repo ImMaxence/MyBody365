@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { closeSheet } from '../../core/ui/sheets';
 import { HapticDirective } from '../../core/ui/haptics';
@@ -220,17 +220,16 @@ function writeFlag(key: string): void {
           </span>
           <app-icon [name]="weighedIn() ? 'pencil' : 'plus'" />
         </button>
-        <!-- 1.9: an optional evening weigh-in, from 5 pm once the morning one is done -->
-        @if (eveningShown()) {
-          <button type="button" class="list-item task evening" [class.done]="eveningKg() != null" (click)="openEvening()">
-            <span class="list-icon"><app-icon [name]="eveningKg() != null ? 'check' : 'moon'" /></span>
-            <span class="list-body">
-              <span class="list-title">{{ 'today.evening.title' | t }}</span>
-              <span class="list-sub">{{ eveningLine() }}</span>
-            </span>
-            <app-icon [name]="eveningKg() != null ? 'pencil' : 'plus'" />
-          </button>
-        }
+        <!-- 1.9: an optional evening weigh-in, from 5 pm once the morning one is done; 1.10: always there, greyed until then -->
+        <button type="button" class="list-item task evening" [class.done]="eveningKg() != null" [class.locked]="eveningLocked()"
+          [disabled]="eveningLocked()" (click)="openEvening()">
+          <span class="list-icon"><app-icon [name]="eveningKg() != null ? 'check' : 'moon'" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'today.evening.title' | t }}</span>
+            <span class="list-sub" [class.wrap]="eveningLocked()">{{ eveningLine() }}</span>
+          </span>
+          <app-icon [name]="eveningLocked() ? 'lock' : eveningKg() != null ? 'pencil' : 'plus'" />
+        </button>
         @if (!account()?.waterGoal && !waterInviteHidden()) {
           <div class="list-item water-invite">
             <span class="list-icon water-ico"><app-icon name="droplet" /></span>
@@ -673,6 +672,18 @@ function writeFlag(key: string): void {
     .list-sub.wrap {
       white-space: normal;
     }
+    /* the evening weigh-in before 5 pm or before the morning one: there, greyed, saying when */
+    .task.locked {
+      cursor: default;
+    }
+    .task.locked .list-icon,
+    .task.locked .list-title {
+      opacity: 0.45;
+    }
+    /* an icon is display: contents (no opacity of its own): its colour, which its strokes follow */
+    .task.locked > app-icon:last-child {
+      color: var(--fg-3);
+    }
     .invite-on {
       --btn-h: 36px;
       flex: none;
@@ -775,8 +786,10 @@ export class TodayPage {
     const c = this.summary()?.current;
     return c?.day === localDay() ? (c.eveningKg ?? null) : null;
   });
-  /** from 5 pm, once weighed in this morning (or once noted) */
-  protected readonly eveningShown = computed(() => this.weighedIn() && (this.eveningKg() != null || new Date().getHours() >= 17));
+  /** the hour, kept up to date while the screen stays open (the evening weigh-in opens at 5 pm) */
+  private readonly hour = signal(new Date().getHours());
+  /** from 5 pm, once weighed in this morning (or once noted): greyed until then, saying what it waits for */
+  protected readonly eveningLocked = computed(() => this.eveningKg() == null && (!this.weighedIn() || this.hour() < 17));
   /** « +0,9 kg depuis ce matin », the evening one against the morning one */
   private diffText(evening: number): string {
     const morning = this.summary()?.current?.weightKg;
@@ -786,6 +799,10 @@ export class TodayPage {
   }
   protected readonly eveningLine = computed(() => {
     const kg = this.eveningKg();
+    if (this.eveningLocked()) {
+      const late = this.hour() >= 17;
+      return this.i18n.t(this.weighedIn() ? 'today.evening.lockedHour' : late ? 'today.evening.lockedMorning' : 'today.evening.locked');
+    }
     if (kg == null) return this.i18n.t('today.evening.hint');
     const diff = this.diffText(kg);
     return `${this.i18n.number(kg, 1)} kg${diff ? ' · ' + diff : ''}`;
@@ -919,6 +936,11 @@ export class TodayPage {
   });
 
   constructor() {
+    const destroy = inject(DestroyRef);
+    afterNextRender(() => {
+      const clock = setInterval(() => this.hour.set(new Date().getHours()), 60_000);
+      destroy.onDestroy(() => clearInterval(clock));
+    });
     void this.tracking.load();
     void this.photos.load().catch(() => undefined);
     void this.meals.loadToday();

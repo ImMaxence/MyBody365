@@ -259,6 +259,10 @@ test.describe('meals', () => {
     await adminPage.getByLabel('Calories par part').fill('180');
     await adminPage.getByRole('radio', { name: /Communauté/ }).click();
     await adminPage.getByRole('button', { name: 'Enregistrer' }).click();
+    // 1.10: the team's salads of the earlier runs look like it (on a database that kept them): created anyway
+    const adminLooks = adminPage.getByRole('dialog', { name: 'Elle existe peut-être déjà' });
+    await expect(adminPage.locator('.meta').getByText('Communauté').or(adminLooks)).toBeVisible();
+    if (await adminLooks.isVisible()) await adminLooks.getByRole('button', { name: 'Créer ma recette quand même' }).click();
     await expect(adminPage.locator('.meta').getByText('Communauté')).toBeVisible();
     await admin.close();
 
@@ -276,6 +280,26 @@ test.describe('meals', () => {
     await otherPage.goBack();
     await expect(otherPage.getByRole('searchbox', { name: 'Chercher parmi toutes les recettes' })).toHaveValue(shared.replace('équipe', 'EQUIPE'));
     await expect(otherPage.getByRole('link', { name: new RegExp(shared) })).toBeVisible();
+
+    // 1.10: writing it again, the community's is offered first; opened, then back to mine, as it was left
+    await otherPage.goto('/app/meals/recipes/new');
+    await otherPage.getByLabel('Nom de la recette').fill(shared);
+    await otherPage.getByRole('radio', { name: /À la main/ }).click();
+    await otherPage.getByLabel('Ingrédients, un par ligne').fill('250 g de tomates');
+    await otherPage.getByLabel('Calories par part').fill('150');
+    await otherPage.getByRole('button', { name: 'Enregistrer' }).click();
+    const looks = otherPage.getByRole('dialog', { name: 'Elle existe peut-être déjà' });
+    await expect(looks.getByRole('button', { name: new RegExp(shared) })).toContainText('Communauté');
+    await expectAccessible(otherPage);
+    await looks.getByRole('button', { name: new RegExp(shared) }).click();
+    await expect(otherPage.getByRole('heading', { name: shared, level: 1 })).toBeVisible();
+    await otherPage.goBack();
+    await expect(otherPage.getByLabel('Nom de la recette')).toHaveValue(shared);
+    await expect(otherPage.getByLabel('Calories par part')).toHaveValue('150');
+    // mine anyway: asked once, saved now
+    await otherPage.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(otherPage.getByRole('heading', { name: shared, level: 1 })).toBeVisible();
+    await expect(otherPage.getByText('250 g de tomates')).toBeVisible();
     await other.close();
     expect(errors).toEqual([]);
   });

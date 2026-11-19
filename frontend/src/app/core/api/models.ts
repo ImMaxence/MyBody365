@@ -476,6 +476,13 @@ export interface RecipeInput {
   sourceUrl?: string | null;
 }
 
+/** 1.10: a recipe that looks like the one being created: where it comes from, how many ingredients they share */
+export interface Lookalike {
+  recipe: Recipe;
+  origin: 'MINE' | 'FRIENDS' | 'COMMUNITY';
+  common: number;
+}
+
 /** a recipe read from a recipe site, nothing saved yet */
 export interface RecipeDraft {
   name: string;

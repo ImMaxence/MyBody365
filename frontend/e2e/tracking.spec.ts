@@ -193,6 +193,18 @@ test.describe('tracking', () => {
     await expect(page.getByRole('button', { name: /^Pesée du jour/ })).toContainText('75');
   });
 
+  test('before 5 pm, the evening weigh-in is there, greyed, saying when (1.10)', async ({ page }) => {
+    const morning = new Date();
+    morning.setHours(10, 0, 0, 0);
+    await page.clock.setFixedTime(morning);
+    await signIn(page, 'new');
+    await page.goto('/app');
+    const row = page.getByRole('button', { name: /^Pesée du soir/ });
+    await expect(row).toBeDisabled();
+    await expect(row).toContainText('Disponible dès 17 h');
+    await expectAccessible(page);
+  });
+
   test('a goal under a healthy weight is refused', async ({ page }) => {
     await openApp(page);
     await page.waitForLoadState('networkidle');

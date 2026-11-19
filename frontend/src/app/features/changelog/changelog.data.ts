@@ -7,6 +7,57 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.10.0",
+    "date": "2026-11-19",
+    "summary": [
+      {
+        "t": "Des recettes en double évitées, 200 de plus dans la communauté, la pesée du soir toujours en vue et la photo du jour depuis ta galerie"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "Nouvelle recette : avant de l'enregistrer, MyBody365 regarde si une recette qui lui ressemble existe déjà (dans la communauté, chez tes amis ou dans tes recettes), d'après ses ingrédients, leur poids et son nom. Tu peux l'ouvrir pour l'ajouter à un repas ou la copier, puis revenir à la tienne telle que tu l'avais laissée, ou créer la tienne quand même"
+            }
+          ],
+          [
+            {
+              "t": "200 nouvelles recettes dans la communauté, 529 en tout : 50 plats légers et rassasiants (poulet, patate douce et brocoli, veloutés, salades complètes, wok, bowls…), 50 recettes du monde (butter chicken, phở, bibimbap, poulet yassa, mafé, shawarma, pastilla, tacos…), 35 plats des régions (poule au pot, bouillabaisse, garbure, baeckeoffe, croziflette, pissaladière, welsh…), 45 petits-déjeuners, collations et desserts (pancakes protéinés, pudding de chia, English breakfast, charlotte aux fraises, baba au rhum, kouglof…) et 20 boissons, dont 10 sans alcool (lassi, golden latte, chaï, shake protéiné…)"
+            }
+          ],
+          [
+            {
+              "t": "Photos : « Importer depuis ma galerie », sur l'onglet Photos, pour faire d'une photo de ton téléphone la photo du jour. Tu choisis sa pose avant de la garder"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "Pesée du soir : toujours visible sur Aujourd'hui, grisée tant qu'elle n'est pas disponible, avec ce qu'elle attend (dès 17 h, après ta pesée du jour)"
+            }
+          ],
+          [
+            {
+              "t": "Photo du jour : plus de retardateur par défaut. Si tu en choisis un (3 ou 10 secondes), ton téléphone s'en souvient pour les prochaines photos"
+            }
+          ],
+          [
+            {
+              "t": "Caméra : la galerie en bas à gauche et l'autre caméra en bas à droite, comme sur l'appareil photo du téléphone, le calque et le retardateur écrits en toutes lettres"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.9.2",
     "date": "2026-11-18",
     "summary": [

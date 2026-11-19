@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-/** The community's recipes (resources/community): 200 in 1.7, 129 more in 1.9, every one complete and within the API's limits. */
+/** The community’s recipes (resources/community): 200 in 1.7, 129 more in 1.9, 200 more in 1.10, every one complete and within the API’s limits. */
 class CommunityRecipesFilesTest {
 
     @Test
@@ -21,7 +21,7 @@ class CommunityRecipesFilesTest {
         for (Resource f : new PathMatchingResourcePatternResolver().getResources("classpath:community/*.txt")) {
             all.addAll(CommunityRecipes.parse(f.getContentAsString(StandardCharsets.UTF_8)));
         }
-        assertThat(all).hasSize(329);
+        assertThat(all).hasSize(529);
         Set<String> keys = new HashSet<>();
         for (CommunityRecipes.Seed s : all) {
             assertThat(keys.add(s.key())).as("one key per recipe: " + s.name()).isTrue();
@@ -40,6 +40,9 @@ class CommunityRecipesFilesTest {
         // 1.9: the everyday dishes, the pastries (« Plaisir ») and the drinks
         assertThat(all).extracting(CommunityRecipes.Seed::name).contains("Cordon bleu et pâtes", "Jambon-beurre", "Burger frites maison",
                 "Steak haché purée", "Paris-Brest", "Éclairs au chocolat", "Mojito", "Virgin mojito");
+        // 1.10: light dishes, the world, the regions of France, more breakfasts and drinks
+        assertThat(all).extracting(CommunityRecipes.Seed::name).contains("Poulet, patate douce et brocoli", "Velouté de brocoli", "Butter chicken",
+                "Poulet yassa", "Phở au bœuf", "Poule au pot", "Bouillabaisse", "Pancakes protéinés au fromage blanc", "Moscow mule", "Lassi à la mangue");
         assertThat(all.stream().filter(s -> s.types().contains(RecipeService.Type.TREAT)).count()).isGreaterThanOrEqualTo(45);
         assertThat(all.stream().filter(s -> s.types().contains(RecipeService.Type.DRINK)).count()).isGreaterThanOrEqualTo(15);
     }

@@ -111,6 +111,52 @@ class CommunityRecipesTest extends AbstractIntegrationTest {
         mvc.perform(get("/api/recipes/community").with(as(lea))).andExpect(jsonPath("$[*].name", not(hasItem("Ratatouille"))));
     }
 
+    /** 1.10: before creating a recipe, the ones that look like it (here the community's), never the ones out of sight */
+    @Test
+    void aNewRecipeLikeOneOfTheCommunityIsPointedOut() throws Exception {
+        ciqual("90001", "Courgette, crue", "légumes", 17, 2, 0.1, 0.01);
+        ciqual("90002", "Huile d'olive", "huiles et graisses végétales", 899, 0, 15, 0);
+        ciqual("90003", "Sucre blanc", "sucres, miels et assimilés", 399, 99, 0, 0);
+        assertThat(community.seed(parse("""
+                = Ratatouille | LUNCH,DINNER | 2
+                90001 400 courgettes
+                90002 20 huile d'olive
+                : Cuire
+                = Confiture de courgettes | BREAKFAST | 6
+                90001 500 courgettes
+                90003 400 sucre
+                : Cuire
+                """))).isEqualTo(2);
+        String courgette = food("90001");
+        String oil = food("90002");
+        String sugar = food("90003");
+        String body = """
+                {"name":"%s","ingredients":[%s]}""";
+        mvc.perform(post("/api/me/recipes/lookalikes").with(as(lea)).with(csrf()).contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(body.formatted("Ma ratatouille du soleil", ing(courgette, 500) + "," + ing(oil, 30))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].recipe.name").value("Ratatouille"))
+                .andExpect(jsonPath("$[0].origin").value("COMMUNITY"))
+                .andExpect(jsonPath("$[0].common").value(2));
+        // nothing alike: nothing shown (a caramel is not a jam of courgettes)
+        mvc.perform(post("/api/me/recipes/lookalikes").with(as(lea)).with(csrf()).contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(body.formatted("Caramel", ing(sugar, 200))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        // hidden by an admin: out of sight, out of the lookalikes
+        jdbc.update("update recipe set hidden = true where name = 'Ratatouille'");
+        mvc.perform(post("/api/me/recipes/lookalikes").with(as(lea)).with(csrf()).contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content(body.formatted("Ratatouille", ing(courgette, 500) + "," + ing(oil, 30))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[*].recipe.name", not(hasItem("Ratatouille"))));
+    }
+
+    private String food(String code) {
+        return jdbc.queryForObject("select id from food where source = 'CIQUAL' and source_code = ?", UUID.class, code).toString();
+    }
+
+    private static String ing(String foodId, int grams) {
+        return "{\"foodId\":\"" + foodId + "\",\"grams\":" + grams + "}";
+    }
+
     @Test
     void withoutTheirCiqualFoodsNothingIsAdded() throws Exception {
         // without the Ciqual table, nothing is added and nothing fails
@@ -120,15 +166,15 @@ class CommunityRecipesTest extends AbstractIntegrationTest {
     @Test
     void theAdminsSeeWhereTheFirstRecipesStand() throws Exception {
         AppUser admin = account("admin@example.com", AppUser.Role.ADMIN);
-        // the real files: all 329 wait for the foods of the real Ciqual table, the missing codes are named
+        // the real files: all 529 wait for the foods of the real Ciqual table, the missing codes are named
         String status = mvc.perform(get("/api/admin/foods/community").with(as(admin))).andExpect(status().isOk())
-                .andExpect(jsonPath("$.total").value(329)).andReturn().getResponse().getContentAsString();
+                .andExpect(jsonPath("$.total").value(529)).andReturn().getResponse().getContentAsString();
         int waiting = com.jayway.jsonpath.JsonPath.read(status, "$.waiting");
         int added = com.jayway.jsonpath.JsonPath.read(status, "$.added");
-        assertThat(waiting + added).isEqualTo(329);
+        assertThat(waiting + added).isEqualTo(529);
         assertThat((java.util.List<?>) com.jayway.jsonpath.JsonPath.read(status, "$.missing")).isNotEmpty().hasSizeLessThanOrEqualTo(20);
         // publishing again is harmless; a member sees nothing of it
-        mvc.perform(post("/api/admin/foods/community").with(as(admin)).with(csrf())).andExpect(status().isOk()).andExpect(jsonPath("$.total").value(329));
+        mvc.perform(post("/api/admin/foods/community").with(as(admin)).with(csrf())).andExpect(status().isOk()).andExpect(jsonPath("$.total").value(529));
         mvc.perform(get("/api/admin/foods/community").with(as(lea))).andExpect(status().isForbidden());
     }
 

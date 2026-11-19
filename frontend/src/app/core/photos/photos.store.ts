@@ -15,6 +15,19 @@ export class PhotosStore {
   readonly todayPhotos = computed(() => (this.photos() ?? []).filter((p) => p.day === localDay()));
   readonly todayDone = computed(() => this.todayPhotos().length > 0);
 
+  /** a picture picked in the phone's gallery from the Photos tab (1.10), for the camera screen to preview at once */
+  private picked: File | null = null;
+
+  handOver(file: File): void {
+    this.picked = file;
+  }
+
+  takePicked(): File | null {
+    const f = this.picked;
+    this.picked = null;
+    return f;
+  }
+
   async load(): Promise<Photo[]> {
     const list = await this.api.photos();
     this.photos.set(list);

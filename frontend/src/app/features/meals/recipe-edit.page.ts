@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRe
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
-import type { Nutrients, RecipeDraft, RecipeType, RecipeVisibility } from '../../core/api/models';
+import type { Lookalike, Nutrients, RecipeDraft, RecipeType, RecipeVisibility } from '../../core/api/models';
+import { closeSheet } from '../../core/ui/sheets';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SessionStore } from '../../core/auth/session.store';
@@ -22,6 +23,24 @@ import { RECIPE_TYPES, TYPE_EMOJI } from './recipes.page';
 import { SegDirective } from '../../shared/seg.directive';
 
 const VISIBILITY_ICON: Record<RecipeVisibility, string> = { PRIVATE: 'lock', FRIENDS: 'users', PUBLIC: 'globe' };
+
+/** a new recipe left for a moment (to open one that looks like it): found again on coming back */
+interface Parked {
+  name: string;
+  notes: string;
+  picked: RecipeType[];
+  servings: number;
+  visibility: RecipeVisibility;
+  mode: 'computed' | 'manual';
+  lines: Line[];
+  unmatched: string[];
+  ingredientText: string;
+  kcal: string;
+  macros: Record<'proteinG' | 'carbsG' | 'fatG', string>;
+  source: { url: string; name: string } | null;
+  image: Blob | null;
+}
+let parked: Parked | null = null;
 
 interface Line {
   foodId: string;
@@ -216,6 +235,38 @@ interface Line {
         @if (pickerOpen()) {
           <app-food-picker [withExtras]="false" [start]="pickerQuery()" (picked)="addLine($event)" />
         }
+      </dialog>
+
+      <!-- 1.10: before a new recipe is created, the ones that look like it (the community's, a friend's, one's own) -->
+      <dialog class="sheet looks" #looksDialog [attr.aria-label]="'meals.recipe.lookalike.title' | t">
+        <div class="sheet-grip"></div>
+        <h2 class="h3">{{ 'meals.recipe.lookalike.title' | t }}</h2>
+        <p class="small muted">{{ 'meals.recipe.lookalike.text' | t }}</p>
+        <div class="list looks-list">
+          @for (l of lookalikes(); track l.recipe.id) {
+            <button type="button" class="list-item" (click)="openLookalike(l.recipe.id)">
+              <span class="look-pic">
+                @if (l.recipe.thumbUrl) {
+                  <img [src]="l.recipe.thumbUrl" alt="" />
+                } @else {
+                  <span aria-hidden="true">{{ emoji[l.recipe.type] }}</span>
+                }
+              </span>
+              <span class="list-body">
+                <span class="list-title">{{ l.recipe.name }}</span>
+                <span class="list-sub">{{ originOf(l) }} · {{ i18n.number(l.recipe.perServing.kcal) }} kcal {{ 'meals.perServing' | t }}</span>
+                @if (l.common) {
+                  <span class="list-sub common">{{ (l.common === 1 ? 'meals.recipe.lookalike.commonOne' : 'meals.recipe.lookalike.common') | t: { n: l.common } }}</span>
+                }
+              </span>
+              <app-icon name="chevronRight" />
+            </button>
+          }
+        </div>
+        <div class="looks-actions">
+          <button type="button" class="btn btn-secondary btn-block" (click)="createAnyway()"><app-icon name="plus" /> {{ 'meals.recipe.lookalike.create' | t }}</button>
+          <button type="button" class="btn btn-ghost btn-block" (click)="closeLooks()">{{ 'meals.recipe.lookalike.back' | t }}</button>
+        </div>
       </dialog>
     </main>
   `,
@@ -503,6 +554,38 @@ interface Line {
     .picker .h3 {
       margin-bottom: var(--space-3);
     }
+    .looks-list {
+      margin-top: var(--space-4);
+    }
+    /* where it comes from and its calories, whole, on two lines if need be */
+    .looks-list .list-sub {
+      white-space: normal;
+    }
+    .look-pic {
+      display: grid;
+      place-items: center;
+      width: 52px;
+      height: 52px;
+      flex: none;
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--accent-soft);
+      font-size: 1.6rem;
+    }
+    .look-pic img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .list-sub.common {
+      color: var(--accent-text);
+      font-weight: 600;
+    }
+    .looks-actions {
+      display: grid;
+      gap: var(--space-2);
+      margin-top: var(--space-5);
+    }
   `,
 })
 export class RecipeEditPage {
@@ -571,21 +654,56 @@ export class RecipeEditPage {
     return scaled({ kcal }, 1 / this.servings());
   });
 
+  /** came back to this screen (back button, swipe): a new recipe left to open a lookalike is found again */
+  private readonly cameBack = this.router.currentNavigation()?.trigger === 'popstate';
+
   constructor() {
     queueMicrotask(() => void this.load());
     afterNextRender(() => this.importAtOnce());
     inject(DestroyRef).onDestroy(() => this.objectUrl && URL.revokeObjectURL(this.objectUrl));
   }
 
+  private restoreChecked = false;
+  private restored = false;
+  /** once, as soon as the id is known: the parked new recipe back in the form, or forgotten */
+  private restoreOnce(): void {
+    if (this.restoreChecked || this.id()) return;
+    this.restoreChecked = true;
+    const p = parked;
+    parked = null;
+    if (!p || !this.cameBack) return;
+    this.restored = true;
+    this.looked = true;
+    this.name = p.name;
+    this.notes = p.notes;
+    this.picked.set(p.picked);
+    this.servings.set(p.servings);
+    this.visibility.set(p.visibility);
+    this.mode.set(p.mode);
+    this.lines.set(p.lines);
+    this.unmatched.set(p.unmatched);
+    this.ingredientText = p.ingredientText;
+    this.kcal = p.kcal;
+    this.macros = p.macros;
+    this.source.set(p.source);
+    if (p.image) {
+      this.image = p.image;
+      this.objectUrl = URL.createObjectURL(p.image);
+      this.preview.set(this.objectUrl);
+    }
+  }
+
   /** opened with a link (shared from the phone's browser, or ?import from the list): the import sheet at once */
   private importAtOnce(): void {
-    if (this.id()) return;
+    this.restoreOnce();
+    if (this.id() || this.restored) return;
     const shared = firstLink(this.importParam() ?? '') ?? firstLink(this.sharedUrl() ?? '') ?? firstLink(this.sharedText() ?? '');
     if (!shared && this.importParam() === undefined) return;
     this.importSheet().open(shared);
   }
 
   private async load(): Promise<void> {
+    this.restoreOnce();
     const id = this.id();
     if (!id) return;
     const r = await this.api.recipe(id);
@@ -762,6 +880,46 @@ export class RecipeEditPage {
     this.preview.set(null);
   }
 
+  // ── the recipes that look like a new one (1.10) ───────────────────────────
+  private readonly looksDialog = viewChild.required<ElementRef<HTMLDialogElement>>('looksDialog');
+  protected readonly lookalikes = signal<Lookalike[]>([]);
+  /** looked for once: shown, the member chooses, and is not asked again */
+  private looked = false;
+
+  protected originOf(l: Lookalike): string {
+    return this.i18n.t('meals.recipe.lookalike.' + l.origin, { name: l.recipe.author ?? '' });
+  }
+
+  /** the recipe that looks like it, on top; this one waits, found again with « back » */
+  protected openLookalike(id: string): void {
+    parked = {
+      name: this.name,
+      notes: this.notes,
+      picked: this.picked(),
+      servings: this.servings(),
+      visibility: this.visibility(),
+      mode: this.mode(),
+      lines: this.lines(),
+      unmatched: this.unmatched(),
+      ingredientText: this.ingredientText,
+      kcal: this.kcal,
+      macros: { ...this.macros },
+      source: this.source(),
+      image: this.image,
+    };
+    this.looksDialog().nativeElement.close();
+    void this.router.navigate(['/app/meals/recipes', id]);
+  }
+
+  protected createAnyway(): void {
+    closeSheet(this.looksDialog().nativeElement);
+    void this.save();
+  }
+
+  protected closeLooks(): void {
+    closeSheet(this.looksDialog().nativeElement);
+  }
+
   protected async save(): Promise<void> {
     if (!this.name.trim()) {
       this.toast.error(this.i18n.error('validation_failed'));
@@ -781,6 +939,20 @@ export class RecipeEditPage {
     if (!manual && !this.lines().length) {
       this.toast.error(this.i18n.error('recipe_empty'));
       return;
+    }
+    // a new recipe: the ones that look like it first, once (offline or failing, it is simply saved)
+    if (!this.id() && !this.looked) {
+      this.looked = true;
+      this.busy.set(true);
+      const found = await this.api
+        .lookalikes(this.name.trim(), manual ? [] : this.lines().map((l) => ({ foodId: l.foodId, grams: l.grams })))
+        .catch(() => [] as Lookalike[]);
+      this.busy.set(false);
+      if (found.length) {
+        this.lookalikes.set(found);
+        this.looksDialog().nativeElement.showModal();
+        return;
+      }
     }
     this.busy.set(true);
     try {
