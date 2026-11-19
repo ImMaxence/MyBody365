@@ -17,7 +17,8 @@ import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
 import { KcalRingComponent } from '../../shared/kcal-ring.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
-import { NutriscoreComponent } from '../../shared/nutriscore.component';
+import { HealthScoreComponent } from '../../shared/health-score.component';
+import { KnowCardComponent } from './know-card.component';
 import { DayScoreComponent } from './day-score.component';
 import { ShoppingStore } from '../../core/meals/shopping.store';
 import { FoodThumbComponent } from '../../shared/food-thumb.component';
@@ -31,7 +32,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
 @Component({
   selector: 'app-meals',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ShareSheetComponent, GuidesSheetComponent, TrendsCardComponent, DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, NutriscoreComponent, NumberStepperComponent, FoodThumbComponent, NutrientBarsComponent],
+  imports: [ShareSheetComponent, GuidesSheetComponent, TrendsCardComponent, DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, HealthScoreComponent, KnowCardComponent, NumberStepperComponent, FoodThumbComponent, NutrientBarsComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -155,8 +156,8 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
                           <span class="entry-sub small muted">{{ amount(e) }}{{ e.detail ? ' · ' + e.detail : '' }}</span>
                         }
                       </span>
-                      @if (e.nutriscore) {
-                        <app-nutriscore [grade]="e.nutriscore" />
+                      @if (e.health != null) {
+                        <app-health-score [score]="e.health" />
                       }
                       <span class="entry-kcal num">{{ i18n.number(e.nutrients.kcal) }}</span>
                     </button>
@@ -174,6 +175,8 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
             </div>
           </section>
         }
+        <!-- 1.13: one thing worth knowing to eat well, the one the day calls for -->
+        <app-know-card [day]="d" [kcal]="planKcal()" />
         <button type="button" class="guides-link tiny" (click)="guides.open()">
           <app-icon name="info" [size]="14" />
           <span>{{ 'meals.guides.link' | t: { p: plan().proteinG, c: plan().carbsG, f: plan().fatG, fi: plan().fiberG } }}</span>
@@ -251,7 +254,9 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
               </div>
             </div>
             <span class="label">{{ 'meals.entry.quantity' | t }}</span>
-            @if (e.grams != null) {
+            @if (e.grams != null && e.liquid) {
+              <app-number-stepper [(value)]="qty" [step]="10" [min]="1" [max]="5000" [decimals]="0" unit="ml" [label]="'meals.quantity.mlLabel' | t" />
+            } @else if (e.grams != null) {
               <app-number-stepper [(value)]="qty" [step]="5" [min]="1" [max]="5000" [decimals]="0" unit="g" [label]="'meals.quantity.gramsLabel' | t" />
             } @else {
               <app-number-stepper [(value)]="qty" [step]="0.5" [min]="0.25" [max]="20" [decimals]="2" [label]="'meals.quantity.servingsLabel' | t" />
@@ -1098,6 +1103,7 @@ export class MealsPage {
   }
 
   protected amount(e: MealEntry): string {
+    if (e.grams != null && e.liquid) return this.i18n.t('meals.ml', { ml: this.i18n.number(e.grams) });
     if (e.grams != null) return this.i18n.t('meals.grams', { g: this.i18n.number(e.grams) });
     return this.i18n.t('meals.servings', { n: this.i18n.number(e.servings ?? 1, (e.servings ?? 1) % 1 ? 1 : 0) });
   }

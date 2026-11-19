@@ -170,6 +170,8 @@ public class FriendPosts {
             l.put("name", e.name().length() > 120 ? e.name().substring(0, 120) : e.name());
             l.put("kcal", Math.round(e.nutrients().kcal()));
             l.put("nutriscore", e.nutriscore());
+            // 1.13: the health score, shown in place of the Nutri-Score
+            l.put("health", e.health());
             lines.add(l);
         }
         Map<String, Object> data = new LinkedHashMap<>();

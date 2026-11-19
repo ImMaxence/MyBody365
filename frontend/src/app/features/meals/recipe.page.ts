@@ -11,7 +11,7 @@ import { localDay } from '../../core/tracking/tracking.store';
 import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
-import { NutriscoreComponent } from '../../shared/nutriscore.component';
+import { HealthScoreComponent } from '../../shared/health-score.component';
 import { ReportSheetComponent } from '../../shared/report-sheet.component';
 import { FavoritesStore } from '../../core/meals/favorites.store';
 import { HapticDirective } from '../../core/ui/haptics';
@@ -25,7 +25,7 @@ import { TYPE_EMOJI } from './recipes.page';
 @Component({
   selector: 'app-recipe',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, NutriscoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective, NumberStepperComponent],
+  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective, NumberStepperComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -97,10 +97,20 @@ import { TYPE_EMOJI } from './recipes.page';
                 {{ 'meals.recipe.nutrition' | t: { g: i18n.number(r.servingG ?? 0) } }}
               }
             </h2>
-            @if (r.nutriscore) {
-              <app-nutriscore [grade]="r.nutriscore" [estimated]="true" size="full" />
+            @if (r.health) {
+              <app-health-score [score]="r.health.score" size="full" />
             }
           </div>
+          @if (r.health && (r.health.pros.length || r.health.cons.length)) {
+            <ul class="reasons" role="list">
+              @for (p of r.health.pros; track p) {
+                <li class="pro"><app-icon name="check" [size]="13" [stroke]="3" /> {{ 'meals.health.pros.' + p | t }}</li>
+              }
+              @for (c of r.health.cons; track c) {
+                <li class="con"><app-icon name="minus" [size]="13" [stroke]="3" /> {{ 'meals.health.cons.' + c | t }}</li>
+              }
+            </ul>
+          }
           <div class="kcal num">{{ i18n.number(r.perServing.kcal) }} <small>kcal</small></div>
           <dl>
             <div><dt>{{ 'meals.protein' | t }}</dt><dd class="num">{{ g(r.perServing.proteinG) }}</dd></div>
@@ -195,6 +205,32 @@ import { TYPE_EMOJI } from './recipes.page';
     </main>
   `,
   styles: `
+    /* 1.13: what makes the dish good, what costs it points */
+    .reasons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 0 0 var(--space-2);
+      padding: 0;
+      list-style: none;
+    }
+    .reasons li {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px 4px 7px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .reasons .pro {
+      background: color-mix(in srgb, var(--success, #1f9d55) 13%, transparent);
+      color: color-mix(in srgb, var(--success, #1f9d55) 55%, var(--fg));
+    }
+    .reasons .con {
+      background: color-mix(in srgb, #e2711d 13%, transparent);
+      color: color-mix(in srgb, #e2711d 50%, var(--fg));
+    }
     .hero {
       position: relative;
       margin: 0;
@@ -572,7 +608,7 @@ export class RecipePage {
   protected openAdd(r: Recipe): void {
     const slot: Slot = this.slot();
     this.sheet().open(
-      { name: r.name, detail: this.i18n.t('meals.addTo.' + slot), unit: 'serving', base: r.perServing, nutriscore: r.nutriscore, estimated: true, recipe: r },
+      { name: r.name, detail: this.i18n.t('meals.addTo.' + slot), unit: 'serving', base: r.perServing, recipe: r },
       this.slotParam() ? this.addLabel() : this.i18n.t('meals.addTo.' + slot),
     );
   }

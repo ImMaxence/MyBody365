@@ -64,7 +64,8 @@ final class BackupFormat {
             "notes", Type.TEXT, "shared", Type.BOOL, "visibility", Type.TEXT, "manual_nutrition", Type.BOOL, "ingredient_lines", Type.TEXT,
             "source_url", Type.TEXT, "kcal", Type.NUM, "protein_g", Type.NUM, "carbs_g", Type.NUM, "fat_g", Type.NUM,
             "sugars_g", Type.NUM, "fiber_g", Type.NUM, "sat_fat_g", Type.NUM, "salt_g", Type.NUM, "serving_g", Type.NUM, "nutriscore",
-            Type.TEXT, "image_format", Type.TEXT, "image_credit", Type.TEXT, "image_license", Type.TEXT, "image_source", Type.TEXT));
+            Type.TEXT, "image_format", Type.TEXT, "image_credit", Type.TEXT, "image_license", Type.TEXT, "image_source", Type.TEXT,
+            "fruit_veg", Type.NUM, "alcohol", Type.BOOL));
 
     static final Table INGREDIENTS = new Table("recipe_ingredient", cols("recipe_id", Type.UUID, "position", Type.INT, "food_id",
             Type.UUID, "name", Type.TEXT, "grams", Type.NUM, "kcal", Type.NUM, "protein_g", Type.NUM, "carbs_g", Type.NUM, "sugars_g",
@@ -73,7 +74,7 @@ final class BackupFormat {
     static final Table MEALS = new Table("meal_entry", cols("day", Type.DATE, "slot", Type.TEXT, "food_id", Type.UUID, "recipe_id",
             Type.UUID, "name", Type.TEXT, "detail", Type.TEXT, "grams", Type.NUM, "servings", Type.NUM, "kcal", Type.NUM, "protein_g",
             Type.NUM, "carbs_g", Type.NUM, "fat_g", Type.NUM, "sugars_g", Type.NUM, "fiber_g", Type.NUM, "sat_fat_g", Type.NUM, "salt_g",
-            Type.NUM, "nutriscore", Type.TEXT, "created_at", Type.TIMESTAMP));
+            Type.NUM, "nutriscore", Type.TEXT, "created_at", Type.TIMESTAMP, "health", Type.NUM, "liquid", Type.BOOL));
 
     static final Table PHOTOS = new Table("photo", cols("id", Type.UUID, "day", Type.DATE, "pose", Type.TEXT, "width", Type.INT,
             "height", Type.INT, "format", Type.TEXT));

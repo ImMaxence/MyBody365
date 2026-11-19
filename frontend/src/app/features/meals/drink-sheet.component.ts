@@ -4,7 +4,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { closeSheet } from '../../core/ui/sheets';
 import { IconComponent } from '../../shared/icon.component';
-import { NutriscoreComponent } from '../../shared/nutriscore.component';
+import { HealthScoreComponent } from '../../shared/health-score.component';
 import { ESTIMATE_STYLES, EstimatedItem } from './fast-food-sheet.component';
 
 /**
@@ -14,7 +14,7 @@ import { ESTIMATE_STYLES, EstimatedItem } from './fast-food-sheet.component';
 @Component({
   selector: 'app-drink-sheet',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NutriscoreComponent, TranslatePipe, IconComponent],
+  imports: [HealthScoreComponent, TranslatePipe, IconComponent],
   template: `
     <dialog class="sheet" #dialog [attr.aria-label]="d() ? ('meals.drinks.names.' + d()!.key | t) : ''">
       <div class="sheet-grip"></div>
@@ -89,10 +89,12 @@ import { ESTIMATE_STYLES, EstimatedItem } from './fast-food-sheet.component';
             <p class="tiny muted num">
               {{ 'meals.estimate.macros' | t: { p: i18n.number(total().proteinG, 1), c: i18n.number(total().carbsG, 1), f: i18n.number(total().fatG, 1) } }}
             </p>
-            <div class="total-ns">
-              <span class="small">{{ 'meals.drinks.grade' | t }}</span>
-              <app-nutriscore [grade]="total().grade" [estimated]="true" />
-            </div>
+            @if (total().health != null) {
+              <div class="total-ns">
+                <span class="small">{{ 'meals.drinks.grade' | t }}</span>
+                <app-health-score [score]="total().health!" />
+              </div>
+            }
           </section>
 
           <button type="button" class="btn btn-primary btn-block" [disabled]="busy()" (click)="add()">
@@ -179,6 +181,7 @@ export class DrinkSheetComponent {
         saltG: Math.round(t.saltG * 100) / 100,
         fiberG: r(t.fiberG),
         nutriscore: t.grade,
+        health: t.health,
       },
     ]);
   }

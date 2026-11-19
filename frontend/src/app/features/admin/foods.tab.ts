@@ -80,9 +80,10 @@ import { IconComponent } from '../../shared/icon.component';
       }
       @for (i of overview()?.offImports ?? []; track i.id) {
         <p class="tiny muted">
-          {{ i18n.dateTime(i.startedAt) }} · {{ 'adminFoods.status.' + i.status | t }}{{ i.products != null ? ' · ' + ('adminFoods.offProducts' | t: { n: i18n.number(i.products) }) : '' }}{{ i.status === 'FAILED' && i.message ? ' · ' + i.message : '' }}
+          {{ i18n.dateTime(i.startedAt) }} · {{ 'adminFoods.status.' + i.status | t }}{{ i.products != null ? ' · ' + ('adminFoods.offProducts' | t: { n: i18n.number(i.products) }) : '' }}{{ i.status === 'FAILED' && i.message ? ' · ' + i.message : '' }}{{ !i.startedBy ? ' · ' + ('adminFoods.auto' | t) : '' }}
         </p>
       }
+      <p class="tiny muted">{{ 'adminFoods.offAuto' | t }}</p>
       <p class="tiny muted">{{ 'adminFoods.offSource' | t }}</p>
     </section>
 

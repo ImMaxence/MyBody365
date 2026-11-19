@@ -1,4 +1,5 @@
 import { Grade, averageGrade, nutriscore } from './nutriscore';
+import { averageHealth, healthScore } from './health';
 
 /**
  * Fast food and restaurant meals by estimate: usual portions served in France, with their calories, macros
@@ -291,6 +292,55 @@ export function gradeOf(x: Portion): Grade | null {
   });
 }
 
+/** the chains' dishes, ultra-processed (buns, sauces, nuggets…); a restaurant's pizza, sushi or salad is only processed */
+const ULTRA = new Set(['burger', 'kebab', 'tacos', 'fries', 'nuggets']);
+const FRIED = new Set(['fries', 'nuggets']);
+/** drinks: ultra-processed sodas, with sweeteners, made of fruit */
+const DRINK_ULTRA = new Set(['cola', 'colaZero', 'soda50', 'iceTea', 'milkshake']);
+
+/**
+ * 1.13: the health score of a portion (per 100 g of it; a drink per 100 ml), or null (alcohol, nothing, unknown nutrients).
+ * The dish says how processed it is and whether it is fried
+ */
+export function healthOf(x: Portion, kind: 'main' | 'fries' | 'extra' | 'drink', dish?: string): number | null {
+  if (!x.grams || x.key === 'none') return null;
+  const f = 100 / x.grams;
+  if (kind === 'drink') {
+    if (x.grade === null) return null;
+    if (x.key === 'water') return 10;
+    return (
+      healthScore({
+        kcal: x.kcal * f,
+        proteinG: x.proteinG * f,
+        sugarsG: (x.sugarsG ?? 0) * f,
+        fatG: x.fatG * f,
+        satFatG: x.fatG * 0.6 * f,
+        saltG: 0,
+        drink: true,
+        nova: DRINK_ULTRA.has(x.key) ? 4 : 1,
+        sweeteners: x.key === 'colaZero',
+        fruitVeg: x.key === 'orangeJuice' ? 100 : 0,
+      })?.score ?? null
+    );
+  }
+  if (x.sugarsG == null || x.satFatG == null || x.saltG == null) return null;
+  const fried = kind === 'fries' || (kind === 'main' && FRIED.has(dish ?? ''));
+  return (
+    healthScore({
+      kcal: x.kcal * f,
+      proteinG: x.proteinG * f,
+      carbsG: x.carbsG * f,
+      sugarsG: x.sugarsG * f,
+      fatG: x.fatG * f,
+      satFatG: x.satFatG * f,
+      saltG: x.saltG * f,
+      fiberG: x.fiberG == null ? null : x.fiberG * f,
+      nova: kind === 'fries' || (kind === 'main' && ULTRA.has(dish ?? '')) ? 4 : 3,
+      fried,
+    })?.score ?? null
+  );
+}
+
 /** what is added, line by line, the total and the meal's grade (weighted by calories) */
 export function estimate(
   d: Dish,
@@ -301,7 +351,7 @@ export function estimate(
   choice?: string,
   /** the share of the dish eaten (1: all of it) */
   share = 1,
-): { lines: { kind: string; portion: Portion; grade: Grade | null }[]; total: Portion; grade: Grade | null } {
+): { lines: { kind: string; portion: Portion; grade: Grade | null; health: number | null }[]; total: Portion; grade: Grade | null; health: number | null } {
   const picked: { kind: string; portion: Portion }[] = [];
   const main = d.formats.find((f) => f.key === format) ?? d.formats[0];
   picked.push({ kind: 'main', portion: part(withChoice(main, d.choice?.options.find((o) => o.key === (choice ?? d.choice?.usual))), d.share ? share : 1) });
@@ -310,10 +360,19 @@ export function estimate(
   for (const e of d.extras.filter((x) => extras.includes(x.key))) picked.push({ kind: 'extra', portion: e });
   const dr = DRINKS.find((x) => x.key === drinkKey);
   if (dr && dr.key !== 'none') picked.push({ kind: 'drink', portion: dr });
-  const lines = picked.map((l) => ({ ...l, grade: gradeOf(l.portion) }));
+  const lines = picked.map((l) => ({
+    ...l,
+    grade: gradeOf(l.portion),
+    health: healthOf(l.portion, l.kind as 'main' | 'fries' | 'extra' | 'drink', d.key),
+  }));
   const total = lines.reduce(
     (t, l) => ({ ...t, kcal: t.kcal + l.portion.kcal, proteinG: t.proteinG + l.portion.proteinG, carbsG: t.carbsG + l.portion.carbsG, fatG: t.fatG + l.portion.fatG }),
     p('total', 0, 0, 0, 0),
   );
-  return { lines, total, grade: averageGrade(lines.map((l) => ({ grade: l.grade, kcal: l.portion.kcal }))) };
+  return {
+    lines,
+    total,
+    grade: averageGrade(lines.map((l) => ({ grade: l.grade, kcal: l.portion.kcal }))),
+    health: averageHealth(lines.map((l) => ({ health: l.health, kcal: l.portion.kcal }))),
+  };
 }

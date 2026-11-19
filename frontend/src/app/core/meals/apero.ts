@@ -1,4 +1,5 @@
 import { Grade, drinkScore } from './nutriscore';
+import { healthScore } from './health';
 
 /**
  * L'apéro (1.9): beers, wines, bubbles, spirits (with or without a mixer), cocktails, ciders and mocktails, by the
@@ -198,6 +199,8 @@ export interface AperoTotal extends Per100 {
   standard: number;
   /** none for an alcoholic drink (the Nutri-Score leaves them out) */
   grade: Grade | null;
+  /** 1.13: none for an alcoholic drink either */
+  health: number | null;
 }
 
 /** what the glasses bring, all of them */
@@ -233,5 +236,17 @@ export function aperoTotal(d: AperoDrink, c: AperoChoice): AperoTotal {
           fiberG: 0,
           proteinG: total.proteinG * per,
         });
-  return { ...total, alcoholG, standard: alcoholG / 10, grade };
+  const health =
+    abvAll > 1.2
+      ? null
+      : (healthScore({
+          kcal: total.kcal * per,
+          proteinG: total.proteinG * per,
+          sugarsG: total.sugarsG * per,
+          fatG: total.fatG * per,
+          satFatG: total.satFatG * per,
+          saltG: total.saltG * per,
+          drink: true,
+        })?.score ?? null);
+  return { ...total, alcoholG, standard: alcoholG / 10, grade, health };
 }

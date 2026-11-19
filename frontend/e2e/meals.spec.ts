@@ -48,7 +48,7 @@ test.describe('meals', () => {
     await expect(tacos.getByText(/≈ 385 kcal/).first()).toBeVisible();
     await tacos.getByRole('button', { name: 'Masquer le panneau' }).click();
 
-    // an everyday drink: a cappuccino with oat milk and a sugar, one line with its Nutri-Score
+    // an everyday drink: a cappuccino with oat milk and a sugar, one line with its health score
     await page.goto('/app/meals/add?slot=BREAKFAST');
     await page.getByRole('group', { name: 'Boissons' }).getByRole('button', { name: /Café/ }).click();
     const cup = page.getByRole('dialog', { name: 'Café' });
@@ -77,7 +77,7 @@ test.describe('meals', () => {
     await page.reload();
     await expect(page.getByRole('button', { name: /Pomme du métro/ })).toBeVisible();
 
-    // a drink at the apéro: two beers, no Nutri-Score for alcohol, the standard drinks said
+    // a drink at the apéro: two beers, no health score for alcohol, the standard drinks said
     await page.goto('/app/meals/add?slot=DINNER');
     await page.getByRole('group', { name: 'À l’apéro' }).getByRole('button', { name: /Bière/ }).click();
     const beer = page.getByRole('dialog', { name: 'Bière' });
@@ -85,7 +85,7 @@ test.describe('meals', () => {
     await beer.getByRole('radio', { name: '2 verres' }).click();
     await expect(beer.getByText(/≈ 257 kcal/)).toBeVisible();
     await expect(beer.getByText(/verre\(s\) standard/)).toBeVisible();
-    await expect(beer.getByText('Pas de Nutri-Score pour les boissons alcoolisées')).toBeVisible();
+    await expect(beer.getByText('Pas de note santé pour l’alcool : aucune quantité n’est bonne pour la santé')).toBeVisible();
     await expectAccessible(page);
     await beer.getByRole('button', { name: /Ajouter au dîner/ }).click();
     await expect(page.getByRole('button', { name: /Bière blonde, 33 cl × 2/ })).toBeVisible();
@@ -248,15 +248,15 @@ test.describe('meals', () => {
     await expect(picker.getByRole('searchbox')).toHaveValue(name);
     await picker.getByRole('button', { name: new RegExp(name) }).first().click();
     await expect(page.getByLabel(`Grammes de ${name}`)).toHaveValue('400');
-    // its Nutri-Score, live, from the ingredients
-    await expect(page.getByRole('img', { name: /^Nutri-Score [A-E], estimé/ })).toBeVisible();
+    // 1.13: its health score, live, from the ingredients
+    await expect(page.getByRole('img', { name: /^Note santé [0-9,]+ sur 10/ })).toBeVisible();
     await expect(page.getByText('Estimé d’après les ingrédients')).toBeVisible();
     // the community is published by the admins: a member shares with their friends
     await expect(page.getByRole('radio', { name: /Communauté/ })).toHaveCount(0);
     await page.getByRole('radio', { name: /Amis/ }).click();
     await page.getByRole('button', { name: 'Enregistrer' }).click();
     await expect(page.getByRole('heading', { name: recipe, level: 1 })).toBeVisible();
-    await expect(page.getByText('640 kcal').or(page.getByText(/^640\s*kcal$/))).toBeVisible();
+    await expect(page.locator('#main').getByText('640 kcal')).toBeVisible();
     await expect(page.locator('.meta').getByText('Amis')).toBeVisible();
     await expectAccessible(page);
 
@@ -367,6 +367,30 @@ test.describe('meals', () => {
     await page.goBack();
     await expect(page.getByRole('button', { name: 'Retirer Courgette' })).toBeVisible();
     expect(errors).toEqual([]);
+  });
+
+  test('a drink in millilitres with its health score, then the Healthy recipes first (1.13)', async ({ page }) => {
+    await signIn(page, 'new');
+    await page.goto('/app/meals/foods?slot=BREAKFAST');
+    await page.getByRole('searchbox').fill('lait demi');
+    await page.getByRole('button', { name: /^Lait demi-écrémé/ }).first().click();
+    const sheet = page.getByRole('dialog');
+    // a milk: a cup, a glass, a mug, a bowl, in millilitres; its health score and why
+    await expect(sheet.getByRole('img', { name: /^Note santé [0-9,]+ sur 10/ })).toBeVisible();
+    await sheet.getByRole('button', { name: /^Verre · 200 ml/ }).click();
+    await expect(sheet.getByRole('textbox', { name: 'Quantité en millilitres' })).toHaveValue('200');
+    await expectAccessible(page);
+    await sheet.getByRole('button', { name: 'Ajouter', exact: true }).click();
+    await expect(page.getByRole('button', { name: /Lait demi-écrémé/ }).first()).toContainText('200 ml');
+    // « Bon à savoir », and all the guidelines
+    await page.getByRole('button', { name: 'Tous les repères' }).click();
+    await expect(page.getByRole('dialog', { name: 'Bon à savoir' }).getByText(/^1\s*kg de graisse, c’est environ 7\s*700\s*kcal$/)).toBeVisible();
+    await page.keyboard.press('Escape');
+    // the recipes: « Healthy » first of the filters
+    await page.goto('/app/meals/recipes');
+    await page.getByRole('button', { name: 'Communauté' }).click();
+    await expect(page.locator('.filters .slide-chips button').nth(1)).toContainText('Healthy');
+    await expectNoHorizontalOverflow(page);
   });
 
   test('a food of my own that already exists is pointed out (1.11)', async ({ page }) => {

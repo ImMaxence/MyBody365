@@ -5,6 +5,8 @@ app:
   dev-login: false
   community-seed: false
   community-images: false
+  nutrition:
+    off-auto-refresh: false
   rate-limit:
     enabled: true
     api-per-minute: 5000

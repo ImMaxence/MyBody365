@@ -4,7 +4,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { closeSheet } from '../../core/ui/sheets';
 import { IconComponent } from '../../shared/icon.component';
-import { NutriscoreComponent } from '../../shared/nutriscore.component';
+import { HealthScoreComponent } from '../../shared/health-score.component';
 import { ESTIMATE_STYLES, EstimatedItem } from './fast-food-sheet.component';
 
 /**
@@ -15,7 +15,7 @@ import { ESTIMATE_STYLES, EstimatedItem } from './fast-food-sheet.component';
 @Component({
   selector: 'app-apero-sheet',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NutriscoreComponent, TranslatePipe, IconComponent],
+  imports: [HealthScoreComponent, TranslatePipe, IconComponent],
   template: `
     <dialog class="sheet" #dialog [attr.aria-label]="d() ? ('meals.apero.names.' + d()!.key | t) : ''">
       <div class="sheet-grip"></div>
@@ -87,9 +87,9 @@ import { ESTIMATE_STYLES, EstimatedItem } from './fast-food-sheet.component';
               </p>
             }
             <div class="total-ns">
-              @if (total().grade; as g) {
+              @if (total().health != null) {
                 <span class="small">{{ 'meals.drinks.grade' | t }}</span>
-                <app-nutriscore [grade]="g" [estimated]="true" />
+                <app-health-score [score]="total().health!" />
               } @else {
                 <span class="small muted">{{ 'meals.apero.noGrade' | t }}</span>
               }
@@ -187,6 +187,7 @@ export class AperoSheetComponent {
         saltG: Math.round(t.saltG * 100) / 100,
         fiberG: 0,
         nutriscore: t.grade ?? undefined,
+        health: t.health,
       },
     ]);
   }

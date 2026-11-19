@@ -50,7 +50,7 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
     <div class="edge" aria-hidden="true" (touchstart)="edgeStart($event)" (touchmove)="edgeMove($event)" (touchend)="edgeEnd($event)"
       (touchcancel)="edgeCancel()"></div>
     @if (showTabs() && (outbox.pending().length || timerAway())) {
-      <div class="floating">
+      <div class="floating" [class.low]="tabsAway()">
         @if (timerAway()) {
           <!-- the workout timer goes on while one looks at something else: one tap back to it -->
           <a class="timer-pill" routerLink="/app/timer" [attr.data-phase]="timer.state() === 'paused' ? 'paused' : timer.phase()"
@@ -67,7 +67,8 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
       </div>
     }
     @if (showTabs()) {
-      <nav class="tabbar" [attr.aria-label]="'nav.main' | t" [style.--i]="activeIndex()">
+      <!-- 1.13: out of the way while scrolling down a page, back as soon as one scrolls up (as YouTube's) -->
+      <nav class="tabbar" [class.away]="tabsAway()" [attr.aria-label]="'nav.main' | t" [style.--i]="activeIndex()" (focusin)="tabsAway.set(false)">
         <span class="indicator" [class.hidden]="activeIndex() < 0" aria-hidden="true"></span>
         @for (tab of tabs; track tab.path; let i = $index) {
           <a [routerLink]="tab.path" [replaceUrl]="true" [class.active]="activeIndex() === i" [attr.aria-current]="activeIndex() === i ? 'page' : null">
@@ -225,6 +226,22 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
         0 18px 40px -18px rgba(0, 0, 0, 0.55),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
+    /* 1.13: scrolling down a page: the capsule slides below the screen, and comes back on the way up */
+    .tabbar {
+      transition:
+        transform 320ms cubic-bezier(0.32, 0.72, 0, 1),
+        opacity 200ms ease;
+    }
+    .tabbar.away {
+      transform: translate(-50%, calc(100% + var(--tabbar-bottom) + 24px));
+      pointer-events: none;
+    }
+    .floating {
+      transition: bottom 320ms cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .floating.low {
+      bottom: calc(var(--tabbar-bottom) + 10px - var(--vv-stuck, 0px));
+    }
     /* the keyboard is up: out of the way */
     :host-context(.keyboard-open) .tabbar {
       opacity: 0;
@@ -329,6 +346,8 @@ export class ShellComponent {
   protected readonly todo = inject(TodoStore);
   private readonly screen = viewChild.required<ElementRef<HTMLElement>>('screen');
   private readonly url = signal(this.router.url);
+  /** 1.13: the tab bar slid away while scrolling down (back on the way up, at the top, on a new screen) */
+  protected readonly tabsAway = signal(false);
   private dotsAt = 0;
 
   protected readonly tabs = [
@@ -418,6 +437,7 @@ export class ShellComponent {
       const destroy = inject(DestroyRef);
       const doc = inject(DOCUMENT);
       this.lockZoom(doc, destroy);
+      this.hideOnScroll(doc, destroy);
       inject(AppBadge).watch(destroy);
       // the red dots: once signed in, then each time the app comes back (at most once a minute)
       let last = 0;
@@ -440,6 +460,73 @@ export class ShellComponent {
    * the page refuses double taps (touch-action, base.css), and Safari's own pinch events are cancelled:
    * iOS ignores user-scalable=no on its own.
    */
+  /**
+   * 1.13: like YouTube's: scrolling down a page slides the tab bar away (after 24 px in that direction), scrolling up
+   * brings it back (after 12 px), and it is always there near the top of a page and on a new screen. The rubber band
+   * of iOS beyond either end is not a direction. Only the member's own scrolling counts (a finger, a wheel, the keys,
+   * and the momentum after the finger): the scroll a screen is put back to, or a field brought into view, moves nothing.
+   */
+  private hideOnScroll(doc: Document, destroy: DestroyRef): void {
+    const win = doc.defaultView;
+    if (!win) return;
+    let lastY = win.scrollY;
+    let run = 0;
+    let quietUntil = 0;
+    let frame = 0;
+    let userUntil = 0;
+    const mark = (ms: number) => () => (userUntil = Math.max(userUntil, Date.now() + ms));
+    const onMove = mark(600);
+    const onEnd = mark(1500);
+    const onKey = mark(800);
+    win.addEventListener('touchmove', onMove, { passive: true });
+    win.addEventListener('wheel', onMove, { passive: true });
+    win.addEventListener('touchend', onEnd, { passive: true });
+    win.addEventListener('keydown', onKey);
+    const read = () => {
+      frame = 0;
+      const max = Math.max(0, doc.documentElement.scrollHeight - win.innerHeight);
+      const y = Math.min(Math.max(win.scrollY, 0), max);
+      const d = y - lastY;
+      lastY = y;
+      if (Date.now() < quietUntil || Date.now() > userUntil || this.stack.busy()) return;
+      if (y < 56) {
+        run = 0;
+        if (this.tabsAway()) this.tabsAway.set(false);
+        return;
+      }
+      if (d > 0) {
+        run = Math.max(0, run) + d;
+        if (run > 24 && !this.tabsAway()) this.tabsAway.set(true);
+      } else if (d < 0) {
+        run = Math.min(0, run) + d;
+        if (run < -12 && this.tabsAway()) this.tabsAway.set(false);
+      }
+    };
+    const onScroll = () => {
+      if (!frame) frame = win.requestAnimationFrame(read);
+    };
+    win.addEventListener('scroll', onScroll, { passive: true });
+    const sub = this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => {
+      // a new screen: the bar is there, and the scroll it is put back to says nothing
+      this.tabsAway.set(false);
+      run = 0;
+      quietUntil = Date.now() + 700;
+      lastY = win.scrollY;
+    });
+    // the toasts come down with it
+    effect(() => doc.documentElement.classList.toggle('tabs-away', this.tabsAway()));
+    destroy.onDestroy(() => {
+      win.removeEventListener('scroll', onScroll);
+      win.removeEventListener('touchmove', onMove);
+      win.removeEventListener('wheel', onMove);
+      win.removeEventListener('touchend', onEnd);
+      win.removeEventListener('keydown', onKey);
+      if (frame) win.cancelAnimationFrame(frame);
+      sub.unsubscribe();
+      doc.documentElement.classList.remove('tabs-away');
+    });
+  }
+
   private lockZoom(doc: Document, destroy: DestroyRef): void {
     const root = doc.documentElement;
     root.classList.add('app-mode');

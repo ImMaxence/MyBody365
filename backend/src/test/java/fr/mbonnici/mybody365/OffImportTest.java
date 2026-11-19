@@ -68,6 +68,15 @@ class OffImportTest extends AbstractIntegrationTest {
         assertThat(found).contains("Kebab poulet sauce blanche").contains("Pain à kebab").doesNotContain("Bratwurst");
         assertThat((String) JsonPath.read(found, "$[0].source")).isEqualTo("OFF");
         assertThat(found).contains("\"brand\":\"Snack Maison\"");
+        // 1.13: its size, its food group, how processed it is, and its health score (an ultra-processed dish)
+        assertThat(found).contains("\"quantity\":\"500 g\"");
+        assertThat(found).contains("\"kind\":\"One-dish meals\"").contains("\"nova\":4");
+        java.util.List<Double> score = JsonPath.read(found, "$[?(@.name == 'Kebab poulet sauce blanche')].health.score");
+        assertThat(score.getFirst()).isBetween(0.0, 6.0);
+        assertThat(jdbc.queryForObject("select sweeteners from food where source = 'OFF' and source_code = '3560070000001'", Boolean.class)).isTrue();
+        assertThat(jdbc.queryForObject("select scans from food where source = 'OFF' and source_code = '3560070000001'", Integer.class)).isEqualTo(42);
+        // « unknown » is no food group; 33 cl is a drink's size
+        assertThat(jdbc.queryForObject("select pnns from food where source = 'OFF' and source_code = '3560070000005'", String.class)).isNull();
         java.util.List<Double> bread = JsonPath.read(found, "$[?(@.name == 'Pain à kebab')].per100.kcal");
         assertThat(bread).hasSize(1);
         assertThat(bread.getFirst()).isCloseTo(262.9, org.assertj.core.data.Offset.offset(0.1));

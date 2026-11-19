@@ -8,6 +8,7 @@ import fr.mbonnici.mybody365.media.ImageProcessor.Processed;
 import fr.mbonnici.mybody365.nutrition.FoodService;
 import fr.mbonnici.mybody365.nutrition.FoodStore.Food;
 import fr.mbonnici.mybody365.nutrition.Nutrients;
+import fr.mbonnici.mybody365.nutrition.HealthScore;
 import fr.mbonnici.mybody365.nutrition.Nutriscore;
 import fr.mbonnici.mybody365.storage.ObjectStorage;
 import fr.mbonnici.mybody365.storage.QuotaService;
@@ -47,7 +48,8 @@ public class RecipeService {
     public static final int THUMB_SIDE = 400;
 
     /** TREAT (1.9): « Plaisir », the pastries and the treats */
-    public enum Type { BREAKFAST, LUNCH, DINNER, SNACK, DESSERT, TREAT, DRINK }
+    /** HEALTHY (1.13): « Healthy », light and balanced, put first on the recipes page */
+    public enum Type { BREAKFAST, LUNCH, DINNER, SNACK, DESSERT, TREAT, DRINK, HEALTHY }
 
     /** who sees a recipe besides its owner: nobody, the friends, every member */
     public enum Visibility { PRIVATE, FRIENDS, PUBLIC }
@@ -69,7 +71,7 @@ public class RecipeService {
             /** where the recipe comes from (the page it was imported from) */
             @Size(max = 500) String sourceUrl,
             /** every meal it is for, the main one (type) counting anyway; null: the main one only */
-            @Size(max = 7) List<Type> types) {
+            @Size(max = 8) List<Type> types) {
 
         /** the main type first, then the others in the usual order, each once: "BREAKFAST,SNACK" */
         String allTypes() {
@@ -104,12 +106,16 @@ public class RecipeService {
             /** the calories were entered by the owner (null in lists) */
             Boolean manualNutrition, List<String> ingredientLines, String sourceUrl, String sourceName,
             /** 1.11: a free photo (Wikimedia Commons): who took it, its licence, its page (null in lists) */
-            String imageCredit, String imageLicense, String imageSource) {}
+            String imageCredit, String imageLicense, String imageSource,
+            /** 1.13: the health score of a serving's dish, with its reasons (null: entered by hand, or with alcohol) */
+            FoodService.Health health) {}
 
     /** a recipe as stored */
     public record RecipeRow(UUID id, UUID ownerId, String ownerName, String name, Type type, List<Type> types, int servings, String notes, boolean shared,
             Visibility visibility, boolean hidden, String imageFormat, Long imageBytes, int imageVersion, Nutrients perServing, Double servingG,
-            String nutriscore, int score, Instant createdAt) {
+            String nutriscore, int score, Instant createdAt,
+            /** 1.13: the health score (null: no ingredient to judge it from, or alcohol in it) */
+            HealthScore.Result health) {
 
         String imageKey(boolean thumb) {
             return ObjectStorage.userPrefix(ownerId) + "r/" + id + "_" + imageVersion + (thumb ? "_t." : ".") + imageFormat;
@@ -140,7 +146,7 @@ public class RecipeService {
     private static final String SELECT = """
             select r.id, r.owner_id, u.display_name, r.name, r.type, r.types, r.servings, r.notes, r.shared, r.visibility, r.hidden, r.image_format, r.image_bytes,
               r.image_version, r.kcal, r.protein_g, r.carbs_g, r.sugars_g, r.fat_g, r.sat_fat_g, r.fiber_g, r.salt_g, r.serving_g,
-              r.nutriscore, r.score, r.created_at
+              r.nutriscore, r.score, r.created_at, r.fruit_veg, r.alcohol
             from recipe r join app_user u on u.id = r.owner_id""";
 
     private static RecipeRow map(ResultSet rs, int i) throws SQLException {
@@ -154,7 +160,22 @@ public class RecipeService {
                 rs.getBoolean("shared"), Visibility.valueOf(rs.getString("visibility")), rs.getBoolean("hidden"), rs.getString("image_format"),
                 noImage ? null : bytes,
                 rs.getInt("image_version"), Nutrients.from(rs), noServing ? null : serving, rs.getString("nutriscore"), rs.getInt("score"),
-                rs.getTimestamp("created_at").toInstant());
+                rs.getTimestamp("created_at").toInstant(), health(rs.getString("name"), types(rs.getString("type"), rs.getString("types")),
+                        Nutrients.from(rs), noServing ? null : serving, rs.getObject("fruit_veg") == null ? null : rs.getDouble("fruit_veg"),
+                        rs.getBoolean("alcohol")));
+    }
+
+    /**
+     * 1.13: a dish judged per 100 g (a drink per 100 ml) like a food: its nutrients, its share of fruit, vegetables, legumes
+     * and nuts, a fried name; cooked at home, so neither raw nor industrial
+     */
+    static HealthScore.Result health(String name, List<Type> types, Nutrients perServing, Double servingG, Double fruitVeg, boolean alcohol) {
+        if (servingG == null || servingG <= 0 || alcohol) {
+            return null;
+        }
+        boolean drink = types.size() == 1 && types.getFirst() == Type.DRINK;
+        return HealthScore.score(new HealthScore.Input(perServing.times(100 / servingG), drink, false, false, null, null, false, fruitVeg,
+                HealthScore.fried(name)));
     }
 
     public RecipeRow row(UUID id) {
@@ -200,7 +221,7 @@ public class RecipeService {
                 firstName(r.ownerName()), r.perServing().rounded(), r.servingG(), r.nutriscore(), r.score(), myVote,
                 r.imageFormat() == null ? null : base + "full" + v, r.imageFormat() == null ? null : base + "thumb" + v, ingredients,
                 r.createdAt(), manual, lines, source, source == null ? null : sourceName(source), r.imageFormat() == null ? null : credit,
-                r.imageFormat() == null ? null : license, r.imageFormat() == null ? null : imageSource);
+                r.imageFormat() == null ? null : license, r.imageFormat() == null ? null : imageSource, FoodService.Health.of(r.health()));
     }
 
     private List<IngredientDto> ingredients(UUID recipeId) {
@@ -210,7 +231,7 @@ public class RecipeService {
                 from recipe_ingredient ri left join food f on f.id = ri.food_id where ri.recipe_id = ? order by ri.position""",
                 (rs, i) -> new IngredientDto(rs.getObject("food_id", UUID.class), rs.getString("name"), rs.getDouble("grams"),
                         Math.round(rs.getDouble("kcal") * rs.getDouble("grams") / 100), Nutrients.from(rs).rounded(),
-                        Nutriscore.fruitVeg(rs.getString("category"))),
+                        HealthScore.fruitVegCategory(rs.getString("category"))),
                 recipeId);
     }
 
@@ -324,6 +345,7 @@ public class RecipeService {
         jdbc.update("""
                 update recipe set name = ?, type = ?, types = ?, servings = ?, notes = ?, shared = ?, visibility = ?, kcal = ?, protein_g = ?, carbs_g = ?,
                   sugars_g = null, fat_g = ?, sat_fat_g = null, fiber_g = null, salt_g = null, serving_g = null, nutriscore = null,
+                  fruit_veg = null, alcohol = false,
                   manual_nutrition = true, ingredient_lines = ?, source_url = ?, updated_at = now(),
                   shared_at = case when ? and not ? then now() else shared_at end
                 where id = ?""",
@@ -345,6 +367,8 @@ public class RecipeService {
         Nutrients total = Nutrients.ZERO;
         double grams = 0;
         double fruitVeg = 0;
+        double plants = 0;
+        boolean alcohol = false;
         int position = 0;
         for (IngredientInput ing : in.ingredients()) {
             Food f = foods.usable(ing.foodId(), userId);
@@ -359,6 +383,11 @@ public class RecipeService {
             if (Nutriscore.fruitVeg(f.category())) {
                 fruitVeg += ing.grams();
             }
+            // 1.13: the health score counts the nuts too, and has no word for a dish with alcohol in it
+            if (HealthScore.fruitVegCategory(f.category())) {
+                plants += ing.grams();
+            }
+            alcohol |= HealthScore.of(f).alcohol();
         }
         Nutrients perServing = total.times(1.0 / in.servings());
         // a ratatouille is mostly vegetables: their share counts, as on a packaging
@@ -373,7 +402,8 @@ public class RecipeService {
                 in.resolved() == Visibility.PUBLIC, in.resolved().name(), perServing.kcal(), perServing.proteinG(), perServing.carbsG(),
                 perServing.sugarsG(), perServing.fatG(), perServing.satFatG(), perServing.fiberG(), perServing.saltG(), grams / in.servings(), grade,
                 in.resolved() == Visibility.PUBLIC, wasShared, id);
-        jdbc.update("update recipe set manual_nutrition = false, ingredient_lines = null, source_url = ? where id = ?", source(in.sourceUrl()), id);
+        jdbc.update("update recipe set manual_nutrition = false, ingredient_lines = null, source_url = ?, fruit_veg = ?, alcohol = ? where id = ?",
+                source(in.sourceUrl()), Math.round(1000 * plants / grams) / 10.0, alcohol, id);
     }
 
     /**
@@ -406,9 +436,9 @@ public class RecipeService {
         UUID copy = UUID.randomUUID();
         jdbc.update("""
                 insert into recipe (id, owner_id, name, type, types, servings, notes, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g,
-                  salt_g, serving_g, nutriscore, manual_nutrition, ingredient_lines, source_url)
+                  salt_g, serving_g, nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol)
                 select ?, ?, name, type, types, servings, notes, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g, salt_g, serving_g,
-                  nutriscore, manual_nutrition, ingredient_lines, source_url from recipe where id = ?""", copy, userId, id);
+                  nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol from recipe where id = ?""", copy, userId, id);
         jdbc.update("""
                 insert into recipe_ingredient (id, recipe_id, position, food_id, name, grams, kcal, protein_g, carbs_g, sugars_g, fat_g,
                   sat_fat_g, fiber_g, salt_g)
@@ -423,7 +453,7 @@ public class RecipeService {
                 RecipeRow c = row(copy);
                 RecipeRow withImage = new RecipeRow(c.id(), c.ownerId(), c.ownerName(), c.name(), c.type(), c.types(), c.servings(), c.notes(), false,
                         Visibility.PRIVATE, false, r.imageFormat(), (long) (full.length + thumb.length), 1, c.perServing(), c.servingG(), c.nutriscore(), 0,
-                        c.createdAt());
+                        c.createdAt(), c.health());
                 storage.put(withImage.imageKey(false), full, contentType(r.imageFormat()));
                 storage.put(withImage.imageKey(true), thumb, contentType(r.imageFormat()));
                 // the photo goes with its credit
@@ -450,7 +480,7 @@ public class RecipeService {
         quota.check(userId, size, r.imageBytes() == null ? 0 : r.imageBytes());
         int version = r.imageVersion() + 1;
         RecipeRow next = new RecipeRow(r.id(), r.ownerId(), r.ownerName(), r.name(), r.type(), r.types(), r.servings(), r.notes(), r.shared(),
-                r.visibility(), r.hidden(), img.format(), size, version, r.perServing(), r.servingG(), r.nutriscore(), r.score(), r.createdAt());
+                r.visibility(), r.hidden(), img.format(), size, version, r.perServing(), r.servingG(), r.nutriscore(), r.score(), r.createdAt(), r.health());
         storage.put(next.imageKey(false), img.full(), img.contentType());
         storage.put(next.imageKey(true), img.thumb(), img.contentType());
         jdbc.update("""
@@ -471,7 +501,7 @@ public class RecipeService {
         long size = img.full().length + img.thumb().length;
         int version = r.imageVersion() + 1;
         RecipeRow next = new RecipeRow(r.id(), r.ownerId(), r.ownerName(), r.name(), r.type(), r.types(), r.servings(), r.notes(), r.shared(),
-                r.visibility(), r.hidden(), img.format(), size, version, r.perServing(), r.servingG(), r.nutriscore(), r.score(), r.createdAt());
+                r.visibility(), r.hidden(), img.format(), size, version, r.perServing(), r.servingG(), r.nutriscore(), r.score(), r.createdAt(), r.health());
         storage.put(next.imageKey(false), img.full(), img.contentType());
         storage.put(next.imageKey(true), img.thumb(), img.contentType());
         jdbc.update("""

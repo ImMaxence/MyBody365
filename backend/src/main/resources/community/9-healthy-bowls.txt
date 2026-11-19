@@ -1,0 +1,736 @@
+# Recettes de la communauté, 1.13 : Healthy, les bowls et les salades. Ce qui tourne sur Instagram et TikTok en 2025-2026
+# (bowls protéinés au fromage blanc, salades de légumineuses « dense », poke, green goddess, saumon-riz…), refait avec
+# des aliments simples : des légumes à chaque assiette, des protéines, de bonnes graisses, peu de sel et de sucre.
+# Même format que les autres fichiers :
+#   = Nom | TYPES | parts
+#   code_ciqual grammes   (poids cru pour toute la recette ; le texte après les grammes n'est qu'un repère)
+#   : une étape
+
+= Bowl patate douce, bœuf haché et fromage blanc | LUNCH,DINNER,HEALTHY | 2
+4101 400 patates douces
+6250 250 steak haché 5 %
+19644 200 fromage blanc 0 %
+20172 150 tomates cerises
+20171 60 laitue romaine
+31008 10 miel
+11088 1 piment de Cayenne
+11049 2 paprika
+17270 10 huile d'olive
+11058 2 sel
+: Couper les patates douces en cubes, les arroser d'huile et de paprika, et les rôtir 25 minutes à 200 °C
+: Saisir le bœuf haché 5 minutes à la poêle avec le sel
+: Mélanger le miel et le piment pour un miel pimenté
+: Dresser la salade, les patates douces, le bœuf, les tomates et une grosse cuillère de fromage blanc, puis arroser de miel pimenté
+
+= Dense bean salad pois chiches, haricots et feta | LUNCH,HEALTHY | 3
+20532 250 pois chiches égouttés
+20511 250 haricots blancs égouttés
+20019 200 concombre
+20087 150 poivron rouge
+20238 60 oignon rouge
+12066 80 feta
+11014 15 persil
+2028 30 jus de citron
+17270 20 huile d'olive
+11058 2 sel
+: Rincer et égoutter les pois chiches et les haricots
+: Couper le concombre, le poivron et l'oignon en petits dés, ciseler le persil
+: Mélanger le jus de citron, l'huile et le sel, puis tout mélanger avec la feta émiettée
+: Laisser reposer 15 minutes au frais : elle se garde 3 jours
+
+= Salade green goddess au chou et concombre | LUNCH,DINNER,HEALTHY | 2
+20116 300 chou blanc
+20019 250 concombre
+11003 10 ciboulette
+11033 15 basilic
+11014 15 persil
+19860 120 yaourt à la grecque
+13004 80 avocat
+2028 25 jus de citron
+15000 30 amandes
+11058 2 sel
+: Émincer très finement le chou et couper le concombre en petits dés
+: Mixer le yaourt, l'avocat, les herbes, le jus de citron et le sel en une sauce verte
+: Mélanger le chou et le concombre avec la sauce
+: Parsemer d'amandes concassées
+
+= Bowl saumon teriyaki maison, riz complet et brocoli | LUNCH,DINNER,HEALTHY | 2
+26036 250 saumon
+9102 120 riz complet
+20057 250 brocoli
+11104 20 sauce soja
+31008 10 miel
+11074 5 gingembre frais
+11000 4 ail
+15010 6 graines de sésame
+20238 30 oignon rouge
+: Cuire le riz complet 30 minutes dans l'eau bouillante
+: Mélanger la sauce soja, le miel, le gingembre et l'ail râpés
+: Cuire le saumon 10 minutes au four à 200 °C, nappé de la moitié de la sauce
+: Cuire le brocoli 6 minutes à la vapeur, puis dresser avec le riz, le saumon, le reste de sauce, l'oignon et le sésame
+
+= Poke bowl thon, mangue et edamame | LUNCH,HEALTHY | 2
+26053 220 thon cru très frais
+9119 120 riz basmati
+13025 150 mangue
+20541 120 fèves surgelées (à la place des edamame)
+20019 150 concombre
+13004 80 avocat
+11104 20 sauce soja
+2031 15 jus de citron vert
+17400 5 huile de sésame
+15010 5 graines de sésame
+: Cuire le riz, puis le laisser tiédir
+: Couper le thon en cubes et le mariner 10 minutes dans la sauce soja, le citron vert et l'huile de sésame
+: Cuire les fèves 4 minutes à l'eau bouillante, les rafraîchir
+: Dresser le riz, le thon, la mangue, le concombre, l'avocat et les fèves, et parsemer de sésame
+
+= Buddha bowl pois chiches rôtis, chou kale et tahini | LUNCH,DINNER,HEALTHY | 2
+20532 240 pois chiches égouttés
+20346 120 chou kale
+9340 100 quinoa
+20009 150 carotte
+20003 150 betterave cuite
+15203 30 tahin
+2028 25 jus de citron
+11042 2 cumin
+17270 10 huile d'olive
+11058 2 sel
+: Rôtir les pois chiches 25 minutes à 200 °C avec l'huile, le cumin et le sel
+: Cuire le quinoa 12 minutes, puis l'égoutter
+: Masser le chou kale émincé avec un peu de jus de citron, râper la carotte, couper la betterave
+: Délayer le tahin avec le reste du citron et un peu d'eau, puis dresser le tout et napper de sauce
+
+= Salade de lentilles, saumon fumé et aneth | LUNCH,HEALTHY | 2
+20585 150 lentilles vertes
+26037 100 saumon fumé
+20019 150 concombre
+20097 30 échalote
+11093 10 aneth
+19860 80 yaourt à la grecque
+13009 30 citron
+11013 10 moutarde
+17270 10 huile d'olive
+: Cuire les lentilles 20 minutes dans l'eau non salée, puis les égoutter
+: Mélanger le yaourt, la moutarde, le jus du citron, l'huile et l'aneth ciselé
+: Ajouter l'échalote émincée et le concombre en dés aux lentilles tièdes
+: Napper de sauce et poser le saumon fumé en lanières
+
+= Bowl poulet, quinoa, avocat et maïs grillé | LUNCH,DINNER,HEALTHY | 2
+36017 250 filets de poulet
+9340 100 quinoa
+13004 100 avocat
+20066 100 maïs doux
+20524 120 haricots rouges égouttés
+20172 150 tomates cerises
+2031 20 jus de citron vert
+11094 10 coriandre
+11049 2 paprika
+11058 2 sel
+: Cuire le quinoa 12 minutes, l'égoutter
+: Saisir le poulet assaisonné de paprika et de sel, 6 minutes de chaque côté, puis le trancher
+: Griller le maïs 3 minutes à la poêle sèche
+: Dresser le quinoa, le poulet, les haricots, le maïs, les tomates et l'avocat, arroser de citron vert et parsemer de coriandre
+
+= Salade de pois chiches façon taboulé, menthe et grenade | LUNCH,HEALTHY | 3
+20532 300 pois chiches égouttés
+9690 80 boulgour
+20385 250 tomates
+20019 200 concombre
+13018 80 grenade
+11027 15 menthe
+11014 20 persil
+2028 30 jus de citron
+17270 15 huile d'olive
+11058 2 sel
+: Couvrir le boulgour d'eau bouillante, laisser gonfler 10 minutes et égrener
+: Couper les tomates et le concombre en petits dés, ciseler les herbes
+: Mélanger tous les ingrédients avec le citron, l'huile et le sel
+: Parsemer de grains de grenade
+
+= Bowl tofu croustillant, chou rouge et sauce cacahuète | LUNCH,DINNER,HEALTHY | 2
+20904 250 tofu ferme
+9102 100 riz complet
+20014 150 chou rouge
+20009 120 carotte
+20019 120 concombre
+15202 25 beurre de cacahuète
+11104 15 sauce soja
+2031 15 jus de citron vert
+9510 10 fécule de maïs
+17130 10 huile de colza
+: Cuire le riz complet 30 minutes
+: Couper le tofu en dés, l'enrober de fécule et le dorer 10 minutes à la poêle dans l'huile
+: Délayer le beurre de cacahuète avec la sauce soja, le citron vert et un peu d'eau chaude
+: Dresser le riz, les légumes en lanières et le tofu, puis napper de sauce
+
+= Salade niçoise légère au thon | LUNCH,HEALTHY | 2
+26039 140 thon au naturel
+22000 120 oeufs
+20061 200 haricots verts
+20385 250 tomates
+4008 200 pommes de terre
+20171 80 laitue romaine
+13032 30 olives noires
+26000 15 anchois
+17270 15 huile d'olive
+11018 10 vinaigre
+: Cuire les pommes de terre 20 minutes et les haricots verts 8 minutes à l'eau, et les œufs 9 minutes
+: Couper les tomates en quartiers, les pommes de terre en rondelles, écaler les œufs
+: Mélanger l'huile et le vinaigre
+: Dresser la salade, les légumes, le thon émietté, les œufs, les olives et les anchois, et assaisonner
+
+= Bowl crevettes, mangue et quinoa | LUNCH,HEALTHY | 2
+10061 220 crevettes cuites décortiquées
+9340 100 quinoa
+13025 150 mangue
+13004 80 avocat
+20087 100 poivron rouge
+2031 20 jus de citron vert
+11094 10 coriandre
+11088 1 piment de Cayenne
+17270 10 huile d'olive
+: Cuire le quinoa 12 minutes, l'égoutter et le laisser tiédir
+: Couper la mangue, l'avocat et le poivron en dés
+: Mélanger le citron vert, l'huile, le piment et la coriandre ciselée
+: Dresser le quinoa, les crevettes et les légumes, et arroser de sauce
+
+= Salade de chou kale, pomme, noix et parmesan | LUNCH,DINNER,HEALTHY | 2
+20346 150 chou kale
+13039 200 pomme
+15005 30 cerneaux de noix
+12120 25 parmesan
+13046 20 raisins secs
+2028 20 jus de citron
+11013 5 moutarde
+17270 15 huile d'olive
+: Retirer les côtes du chou kale, l'émincer et le masser une minute avec le jus de citron
+: Couper la pomme en fines tranches
+: Mélanger l'huile et la moutarde, puis la salade
+: Ajouter les noix, les raisins secs et des copeaux de parmesan
+
+= Bowl œufs mollets, épinards, champignons et patate douce | BREAKFAST,LUNCH,HEALTHY | 2
+22000 240 oeufs
+4101 300 patates douces
+20059 150 épinards
+20056 150 champignons de Paris
+13004 60 avocat
+17270 10 huile d'olive
+11049 1 paprika
+11058 1 sel
+: Rôtir la patate douce en cubes 25 minutes à 200 °C avec la moitié de l'huile et le paprika
+: Cuire les œufs 6 minutes à l'eau bouillante, les passer sous l'eau froide et les écaler
+: Faire revenir les champignons dans le reste d'huile, puis les épinards une minute
+: Dresser le tout, couper les œufs en deux et saler légèrement
+
+= Salade de quinoa, feta, concombre et menthe | LUNCH,HEALTHY | 2
+9340 120 quinoa
+12066 70 feta
+20019 200 concombre
+20172 150 tomates cerises
+11027 10 menthe
+20238 30 oignon rouge
+2028 25 jus de citron
+17270 15 huile d'olive
+: Cuire le quinoa 12 minutes, l'égoutter et le refroidir
+: Couper le concombre, les tomates et l'oignon, ciseler la menthe
+: Mélanger le tout avec le citron et l'huile
+: Émietter la feta par-dessus
+
+= Bowl bibimbap léger au bœuf et aux légumes | LUNCH,DINNER,HEALTHY | 2
+6206 200 rumsteck
+9119 120 riz
+20059 150 épinards
+20009 120 carotte
+20183 100 pousses de soja
+20020 150 courgette
+22000 120 oeufs
+11104 20 sauce soja
+17400 5 huile de sésame
+15010 5 graines de sésame
+: Cuire le riz
+: Émincer le bœuf et le saisir 2 minutes avec la moitié de la sauce soja
+: Faire sauter séparément la carotte et la courgette en bâtonnets, puis les épinards et les pousses de soja
+: Cuire les œufs au plat, puis dresser chaque bol avec le riz, les légumes, le bœuf, un œuf, l'huile de sésame et le sésame
+
+= Salade de lentilles corail, carottes et cumin | LUNCH,HEALTHY | 2
+20535 140 lentilles corail
+20009 250 carottes
+20238 40 oignon rouge
+11094 10 coriandre
+11042 2 cumin
+2028 25 jus de citron
+17270 15 huile d'olive
+11058 2 sel
+: Cuire les lentilles corail 8 minutes, elles doivent rester un peu fermes, puis les égoutter
+: Râper les carottes, émincer l'oignon et ciseler la coriandre
+: Mélanger le citron, l'huile, le cumin et le sel
+: Tout mélanger et servir frais
+
+= Bowl saumon, riz et concombre façon TikTok | LUNCH,DINNER,HEALTHY | 2
+26036 220 saumon
+9119 120 riz
+20019 200 concombre
+13004 80 avocat
+20987 4 feuilles de nori
+11104 20 sauce soja
+19860 40 yaourt à la grecque
+11088 1 piment de Cayenne
+15010 5 graines de sésame
+: Cuire le riz et le saumon 10 minutes au four à 200 °C
+: Émietter le saumon sur le riz chaud avec la sauce soja
+: Mélanger le yaourt et le piment pour une sauce pimentée
+: Servir avec le concombre, l'avocat, la sauce, le sésame et des morceaux de nori pour faire des bouchées
+
+= Salade de haricots verts, œufs et thon | LUNCH,HEALTHY | 2
+20061 300 haricots verts
+22000 120 oeufs
+26039 120 thon au naturel
+20097 30 échalote
+11013 10 moutarde
+11018 10 vinaigre
+17270 15 huile d'olive
+11014 10 persil
+: Cuire les haricots verts 8 minutes à l'eau bouillante, les rafraîchir
+: Cuire les œufs 9 minutes, les écaler et les couper en quartiers
+: Mélanger la moutarde, le vinaigre, l'huile et l'échalote émincée
+: Mélanger les haricots, le thon et la sauce, poser les œufs et le persil
+
+= Bowl falafels au four, houmous et crudités | LUNCH,DINNER,HEALTHY | 2
+20532 250 pois chiches égouttés
+20034 50 oignon
+11014 20 persil
+11000 4 ail
+11042 2 cumin
+9580 20 farine de pois chiche
+25621 80 houmous
+20019 150 concombre
+20385 200 tomates
+20014 100 chou rouge
+: Mixer les pois chiches, l'oignon, l'ail, le persil, le cumin et la farine en une pâte
+: Former des petites boules, les aplatir et les cuire 20 minutes à 200 °C en les retournant à mi-cuisson
+: Couper les crudités
+: Servir les falafels avec les crudités et le houmous
+
+= Salade de pâtes complètes, pesto, tomates et mozzarella | LUNCH,HEALTHY | 2
+9877 300 pâtes semi-complètes cuites
+20172 200 tomates cerises
+19590 100 mozzarella
+20217 50 roquette
+11179 30 pesto
+20155 100 cœurs d'artichaut
+: Laisser refroidir les pâtes cuites
+: Couper les tomates en deux et la mozzarella en dés, égoutter les artichauts
+: Mélanger les pâtes avec le pesto
+: Ajouter les tomates, la mozzarella, les artichauts et la roquette
+
+= Bowl dinde, boulgour, courgettes grillées et yaourt | LUNCH,DINNER,HEALTHY | 2
+36304 250 escalopes de dinde
+9690 100 boulgour
+20020 300 courgettes
+19860 100 yaourt à la grecque
+11027 10 menthe
+13009 30 citron
+11000 3 ail
+17270 10 huile d'olive
+11058 2 sel
+: Gonfler le boulgour 10 minutes dans l'eau bouillante
+: Griller les courgettes en lamelles et la dinde avec l'huile et le sel
+: Mélanger le yaourt, l'ail râpé, la menthe et le jus du citron
+: Dresser le boulgour, les courgettes, la dinde tranchée et la sauce
+
+= Salade de betteraves, chèvre frais et noix | LUNCH,DINNER,HEALTHY | 2
+20003 300 betteraves cuites
+12805 80 chèvre frais
+15005 30 cerneaux de noix
+20099 80 mâche
+11091 15 vinaigre balsamique
+17270 10 huile d'olive
+11003 5 ciboulette
+: Couper les betteraves en dés
+: Mélanger le vinaigre balsamique et l'huile
+: Dresser la mâche et les betteraves, émietter le chèvre
+: Parsemer de noix concassées et de ciboulette
+
+= Bowl tempeh, riz sauvage, brocoli et sésame | LUNCH,DINNER,HEALTHY | 2
+20917 200 tempeh
+9108 100 riz sauvage
+20057 250 brocoli
+20009 100 carotte
+11104 20 sauce soja
+31034 10 sirop d'érable
+11074 5 gingembre frais
+17400 5 huile de sésame
+15010 6 graines de sésame
+: Cuire le riz sauvage 40 minutes
+: Couper le tempeh en tranches et le dorer à la poêle, puis le laquer avec la sauce soja, le sirop d'érable et le gingembre
+: Cuire le brocoli et la carotte 6 minutes à la vapeur
+: Dresser, arroser d'huile de sésame et parsemer de sésame
+
+= Salade grecque au poulet grillé | LUNCH,DINNER,HEALTHY | 2
+36017 220 filets de poulet
+20385 250 tomates
+20019 200 concombre
+20041 100 poivron
+20238 40 oignon rouge
+12066 60 feta
+13032 30 olives noires
+11035 2 origan
+17270 15 huile d'olive
+11018 10 vinaigre
+: Griller le poulet 6 minutes de chaque côté avec un peu d'origan, puis le trancher
+: Couper les légumes en morceaux
+: Mélanger l'huile, le vinaigre et le reste d'origan
+: Dresser les légumes, le poulet, la feta et les olives, et arroser de sauce
+
+= Bowl sarrasin, champignons, œuf poché et roquette | LUNCH,DINNER,HEALTHY | 2
+9380 120 sarrasin
+20056 250 champignons de Paris
+22000 120 oeufs
+20217 60 roquette
+20097 30 échalote
+11070 3 thym
+17270 10 huile d'olive
+11058 2 sel
+: Cuire le sarrasin 12 minutes à l'eau, l'égoutter
+: Faire revenir les champignons et l'échalote dans l'huile avec le thym et le sel
+: Pocher les œufs 3 minutes dans l'eau frémissante
+: Dresser le sarrasin, les champignons, la roquette et l'œuf poché
+
+= Salade fraîcheur pastèque, feta et menthe | LUNCH,SNACK,HEALTHY | 2
+13036 500 pastèque
+12066 70 feta
+20019 150 concombre
+11027 10 menthe
+2031 15 jus de citron vert
+15064 15 graines de courge
+: Couper la pastèque et le concombre en cubes
+: Émietter la feta et ciseler la menthe
+: Mélanger avec le citron vert
+: Parsemer de graines de courge
+
+= Bowl cabillaud, purée de petits pois et quinoa | LUNCH,DINNER,HEALTHY | 2
+26043 280 cabillaud
+20084 300 petits pois surgelés
+9340 90 quinoa
+11027 10 menthe
+13009 30 citron
+17270 10 huile d'olive
+11058 2 sel
+: Cuire le quinoa 12 minutes
+: Cuire les petits pois 6 minutes, puis les écraser avec la menthe, l'huile et le sel
+: Cuire le cabillaud 12 minutes au four à 180 °C arrosé de citron
+: Dresser la purée, le quinoa et le poisson
+
+= Salade de riz complet, thon, maïs et poivrons | LUNCH,HEALTHY | 3
+9102 150 riz complet
+26039 200 thon au naturel
+20066 140 maïs doux
+20087 150 poivron rouge
+20385 200 tomates
+22000 120 oeufs
+11014 15 persil
+11013 10 moutarde
+17270 15 huile d'olive
+11018 10 vinaigre
+: Cuire le riz 30 minutes, le rincer à l'eau froide
+: Cuire les œufs 9 minutes et les couper
+: Couper le poivron et les tomates en dés
+: Mélanger tout avec la moutarde, l'huile et le vinaigre
+
+= Bowl fromage blanc, concombre, œuf et graines | BREAKFAST,LUNCH,HEALTHY | 1
+19644 200 fromage blanc 0 %
+20019 120 concombre
+20172 80 tomates cerises
+22000 60 oeuf
+15064 10 graines de courge
+11003 5 ciboulette
+7110 40 pain complet
+11015 1 poivre
+: Cuire l'œuf 7 minutes, l'écaler
+: Verser le fromage blanc dans un bol, ajouter le concombre et les tomates en dés
+: Ajouter l'œuf coupé, les graines, la ciboulette et le poivre
+: Servir avec le pain complet grillé
+
+= Salade de fèves, petits pois et chèvre | LUNCH,HEALTHY | 2
+20541 250 fèves surgelées
+20084 150 petits pois surgelés
+12805 70 chèvre frais
+11027 10 menthe
+20217 50 roquette
+13009 30 citron
+17270 15 huile d'olive
+: Cuire les fèves et les petits pois 5 minutes, les rafraîchir et retirer la peau des fèves
+: Mélanger le jus de citron, l'huile et la menthe ciselée
+: Mélanger avec la roquette
+: Émietter le chèvre par-dessus
+
+= Bowl porc effiloché léger, chou et pomme | LUNCH,DINNER,HEALTHY | 3
+28204 450 filet mignon de porc
+9119 150 riz
+20014 200 chou rouge
+13039 150 pomme
+11100 30 sauce barbecue
+11049 3 paprika
+2031 20 jus de citron vert
+19860 60 yaourt à la grecque
+: Cuire le filet mignon 30 minutes à couvert à 180 °C avec le paprika, puis l'effilocher et le mélanger à la sauce barbecue
+: Cuire le riz
+: Émincer le chou et la pomme et les mélanger avec le citron vert et le yaourt
+: Dresser le riz, le porc et la salade de chou
+
+= Salade de chou-fleur rôti, pois chiches et grenade | LUNCH,DINNER,HEALTHY | 2
+20016 400 chou-fleur
+20532 200 pois chiches égouttés
+13018 60 grenade
+11014 15 persil
+15203 20 tahin
+13009 30 citron
+11089 2 curcuma
+17270 15 huile d'olive
+11058 2 sel
+: Rôtir le chou-fleur en fleurettes et les pois chiches 25 minutes à 200 °C avec l'huile, le curcuma et le sel
+: Délayer le tahin avec le jus du citron et un peu d'eau
+: Dresser, napper de sauce
+: Parsemer de grenade et de persil
+
+= Bowl maquereau, pommes de terre, concombre et aneth | LUNCH,DINNER,HEALTHY | 2
+26051 220 filets de maquereau
+4008 350 pommes de terre
+20019 200 concombre
+19860 80 yaourt à la grecque
+11093 10 aneth
+13009 30 citron
+11058 2 sel
+: Cuire les pommes de terre 20 minutes à l'eau
+: Cuire le maquereau 8 minutes au four à 200 °C
+: Mélanger le yaourt, l'aneth, le jus du citron et le sel avec le concombre en dés
+: Dresser les pommes de terre tièdes, le maquereau et la salade de concombre
+
+= Salade vietnamienne au poulet et vermicelles | LUNCH,HEALTHY | 2
+36017 220 filets de poulet
+9900 80 vermicelles de riz
+20009 150 carotte
+20019 150 concombre
+20183 80 pousses de soja
+11027 10 menthe
+11094 10 coriandre
+11194 20 nuoc-mâm
+2031 25 jus de citron vert
+15053 20 cacahuètes
+: Cuire le poulet 12 minutes à l'eau frémissante, puis l'effilocher
+: Réhydrater les vermicelles 5 minutes à l'eau chaude et les égoutter
+: Couper la carotte et le concombre en julienne
+: Mélanger le nuoc-mâm et le citron vert, puis tout assembler avec les herbes et les cacahuètes concassées
+
+= Bowl lentilles, patate douce rôtie et feta | LUNCH,DINNER,HEALTHY | 2
+20585 120 lentilles vertes
+4101 300 patates douces
+20059 100 jeunes épinards
+12066 60 feta
+20238 40 oignon rouge
+11042 2 cumin
+11091 10 vinaigre balsamique
+17270 15 huile d'olive
+: Rôtir la patate douce en cubes avec la moitié de l'huile et le cumin, 25 minutes à 200 °C
+: Cuire les lentilles 20 minutes
+: Mélanger les lentilles tièdes, les épinards et l'oignon émincé avec le balsamique et le reste d'huile
+: Ajouter la patate douce et la feta émiettée
+
+= Salade d'œufs au fromage blanc et ciboulette | LUNCH,SNACK,HEALTHY | 2
+22000 300 oeufs
+19644 150 fromage blanc 0 %
+11013 10 moutarde
+11003 10 ciboulette
+20023 60 céleri branche
+7110 80 pain complet
+11015 1 poivre
+11058 1 sel
+: Cuire les œufs 10 minutes, les écaler et les hacher grossièrement
+: Mélanger le fromage blanc, la moutarde, le sel et le poivre
+: Ajouter les œufs, le céleri en petits dés et la ciboulette
+: Servir sur le pain complet grillé
+
+= Bowl tofu, sarrasin, chou kale et miso | LUNCH,DINNER,HEALTHY | 2
+20904 220 tofu ferme
+9380 100 sarrasin
+20346 120 chou kale
+20009 120 carotte
+20916 20 miso
+2028 15 jus de citron
+31034 5 sirop d'érable
+17130 10 huile de colza
+: Cuire le sarrasin 12 minutes
+: Dorer le tofu en dés dans l'huile
+: Délayer le miso avec le citron, le sirop d'érable et un peu d'eau
+: Faire tomber le chou kale une minute, puis dresser avec la carotte râpée et napper de sauce miso
+
+= Salade crevettes, pomelo, avocat et coriandre | LUNCH,DINNER,HEALTHY | 2
+10061 200 crevettes cuites
+13040 250 pamplemousse
+13004 120 avocat
+20031 80 laitue
+11094 10 coriandre
+2031 15 jus de citron vert
+17270 10 huile d'olive
+: Peler le pamplemousse à vif et le couper en quartiers
+: Couper l'avocat en tranches
+: Mélanger le citron vert et l'huile
+: Dresser la laitue, les crevettes, le pamplemousse et l'avocat, et parsemer de coriandre
+
+= Bowl burrito au poulet sans tortilla | LUNCH,DINNER,HEALTHY | 2
+36017 250 filets de poulet
+9102 100 riz complet
+20524 150 haricots rouges égouttés
+20066 100 maïs doux
+20385 200 tomates
+13004 80 avocat
+19860 60 yaourt à la grecque
+11042 2 cumin
+11049 2 paprika
+2031 20 jus de citron vert
+: Cuire le riz complet 30 minutes
+: Saisir le poulet en lanières avec le cumin et le paprika
+: Couper les tomates et l'avocat en dés, les mélanger avec le citron vert
+: Dresser le riz, les haricots, le maïs, le poulet, la salsa et une cuillère de yaourt
+
+= Salade de concombre, radis et skyr | SNACK,LUNCH,HEALTHY | 2
+20019 300 concombre
+20045 120 radis
+19724 200 skyr
+11093 8 aneth
+13009 20 citron
+11015 1 poivre
+11058 1 sel
+: Couper le concombre et les radis en fines rondelles
+: Mélanger le skyr, le jus du citron, l'aneth, le sel et le poivre
+: Mélanger avec les légumes
+: Servir frais
+
+= Bowl merlu, riz basmati et légumes au curry | LUNCH,DINNER,HEALTHY | 2
+26044 280 merlu
+9119 100 riz basmati
+20020 200 courgette
+20087 150 poivron rouge
+18041 80 lait de coco
+11005 4 curry
+20034 60 oignon
+17130 5 huile de colza
+: Cuire le riz
+: Faire revenir l'oignon dans l'huile, ajouter la courgette et le poivron en dés et le curry
+: Verser le lait de coco et poser le poisson en morceaux, cuire 8 minutes à couvert
+: Servir sur le riz
+
+= Salade d'endives, poire, roquefort et noix | LUNCH,DINNER,HEALTHY | 2
+20026 300 endives
+13037 200 poire
+12500 40 roquefort
+15005 25 cerneaux de noix
+11013 5 moutarde
+11018 10 vinaigre
+17130 10 huile de colza
+: Émincer les endives et couper la poire en lamelles
+: Mélanger la moutarde, le vinaigre et l'huile
+: Mélanger la salade
+: Émietter le roquefort et parsemer de noix
+
+= Bowl haricots blancs, thon, tomates et basilic | LUNCH,HEALTHY | 2
+20511 250 haricots blancs égouttés
+26039 140 thon au naturel
+20172 200 tomates cerises
+20238 40 oignon rouge
+11033 10 basilic
+11091 10 vinaigre balsamique
+17270 15 huile d'olive
+: Rincer les haricots
+: Couper les tomates en deux et émincer l'oignon
+: Mélanger avec le thon émietté, le balsamique et l'huile
+: Parsemer de basilic
+
+= Salade de chou rouge, carotte et sésame façon asiatique | LUNCH,DINNER,HEALTHY | 3
+20014 300 chou rouge
+20009 200 carotte
+20173 120 pois gourmands
+36017 250 filets de poulet
+11104 20 sauce soja
+2031 20 jus de citron vert
+17400 8 huile de sésame
+15010 10 graines de sésame
+11094 10 coriandre
+: Cuire le poulet 12 minutes à l'eau frémissante puis l'effilocher
+: Émincer le chou, la carotte et les pois gourmands en fines lanières
+: Mélanger la sauce soja, le citron vert et l'huile de sésame
+: Tout mélanger et parsemer de sésame et de coriandre
+
+= Bowl épeautre, légumes rôtis et mozzarella | LUNCH,DINNER,HEALTHY | 2
+9001 120 épeautre
+20053 200 aubergine
+20020 200 courgette
+20087 150 poivron rouge
+19590 100 mozzarella
+11033 10 basilic
+17270 15 huile d'olive
+11058 2 sel
+: Cuire l'épeautre 25 minutes à l'eau
+: Rôtir les légumes en dés 30 minutes à 200 °C avec l'huile et le sel
+: Mélanger l'épeautre et les légumes
+: Ajouter la mozzarella en morceaux et le basilic
+
+= Salade de saumon, asperges vertes et œuf | LUNCH,DINNER,HEALTHY | 2
+26036 200 saumon
+20279 300 asperges vertes
+22000 120 oeufs
+20272 60 mesclun
+11013 5 moutarde
+13009 30 citron
+17270 10 huile d'olive
+11093 5 aneth
+: Cuire les asperges 6 minutes à l'eau bouillante et les œufs 7 minutes
+: Cuire le saumon 10 minutes à la poêle, puis l'émietter
+: Mélanger la moutarde, le jus du citron, l'huile et l'aneth
+: Dresser la salade, les asperges, le saumon et les œufs coupés en deux
+
+= Bowl açaï-style aux fruits rouges et skyr | BREAKFAST,SNACK,HEALTHY | 2
+13028 150 myrtilles
+13015 100 framboises
+13005 120 banane
+19724 200 skyr
+32140 40 flocons d'avoine
+15000 20 amandes
+15047 10 graines de chia
+: Mixer les myrtilles, la moitié des framboises, la banane et le skyr en une crème épaisse
+: Verser dans deux bols
+: Parsemer de flocons d'avoine, d'amandes concassées, du reste des framboises et de chia
+: Servir tout de suite, bien frais
+
+= Bowl riz de chou-fleur, poulet tikka et yaourt | LUNCH,DINNER,HEALTHY | 2
+36017 260 filets de poulet
+20016 450 chou-fleur
+19860 150 yaourt à la grecque
+11005 4 curry
+11089 2 curcuma
+11000 4 ail
+11074 5 gingembre frais
+20385 150 tomates
+11094 10 coriandre
+17270 10 huile d'olive
+11058 2 sel
+: Mariner le poulet en morceaux 15 minutes avec la moitié du yaourt, le curry, le curcuma, l'ail et le gingembre râpés
+: Râper le chou-fleur en grains et le faire sauter 6 minutes à la poêle dans l'huile avec le sel
+: Cuire le poulet 12 minutes au four à 220 °C
+: Dresser le riz de chou-fleur, le poulet, les tomates en dés, le reste du yaourt et la coriandre
+
+= Salade tiède de patate douce, pois chiches et épinards | LUNCH,DINNER,HEALTHY | 2
+4101 350 patates douces
+20532 200 pois chiches égouttés
+20059 120 jeunes épinards
+20238 40 oignon rouge
+15064 15 graines de courge
+11042 2 cumin
+13009 30 citron
+17270 15 huile d'olive
+11058 2 sel
+: Rôtir la patate douce en cubes et les pois chiches 25 minutes à 200 °C avec l'huile, le cumin et le sel
+: Émincer l'oignon rouge
+: Mélanger les épinards avec le jus du citron, puis les légumes rôtis encore chauds
+: Parsemer de graines de courge

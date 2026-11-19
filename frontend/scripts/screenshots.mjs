@@ -389,7 +389,7 @@ await compose(
     ${[
       ['calendar-dark', 'Le calendrier', 'Chaque jour : dans l’objectif, au-dessus, en dessous'],
       ['stats-light', 'Les statistiques', 'Moyenne, bilan du mois, calories jour par jour'],
-      ['stats2-dark', 'Les conseils', 'Ce que tu manges le plus, par repas, Nutri-Score'],
+      ['stats2-dark', 'Les conseils', 'Ce que tu manges le plus, par repas, note santé'],
       ['recipes-light', 'Les recettes', 'Les tiennes, celles des amis, la communauté'],
     ]
       .map(([k, t, s]) => `<div style="width:320px"><div class="phone"><img src="${img(k)}"></div><div class="cap">${t}<small>${s}</small></div></div>`)

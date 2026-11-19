@@ -11,7 +11,8 @@ import { FavoritesStore } from '../../core/meals/favorites.store';
 import { MealsApi } from '../../core/meals/meals-api';
 import { DISHES } from '../../core/meals/fast-food';
 import { IconComponent } from '../../shared/icon.component';
-import { NutriscoreComponent } from '../../shared/nutriscore.component';
+import { HealthScoreComponent } from '../../shared/health-score.component';
+import { kindKey } from '../../core/meals/products';
 import { FoodThumbComponent } from '../../shared/food-thumb.component';
 import { TYPE_EMOJI } from './recipes.page';
 
@@ -34,15 +35,20 @@ const PREVIEW = 5;
 @Component({
   selector: 'app-food-picker',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, NutriscoreComponent, FoodThumbComponent],
+  imports: [NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, HealthScoreComponent, FoodThumbComponent],
   template: `
-    <div class="search">
+    <!-- 1.13: a search form (role="search", name="q"): iOS offers no contact to fill in, Enter closes the keyboard -->
+    <form class="search" role="search" action="" (submit)="$event.preventDefault(); blur($event)">
       <app-icon name="search" [size]="20" />
       <input
         class="input"
         type="search"
+        name="q"
         enterkeyhint="search"
         autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
         [attr.aria-label]="'meals.search.label' | t"
         [placeholder]="placeholder() || ('meals.search.placeholderAll' | t)"
         [value]="query()"
@@ -53,7 +59,7 @@ const PREVIEW = 5;
           <app-icon name="barcode" />
         </a>
       }
-    </div>
+    </form>
 
     @if (words() < 2) {
       @if (withExtras()) {
@@ -139,8 +145,8 @@ const PREVIEW = 5;
                   <span class="list-title">{{ r.name }}</span>
                   <span class="list-sub">{{ recentAmount(r) }} · {{ i18n.number(r.kcal) }} kcal</span>
                 </span>
-                @if (r.nutriscore) {
-                  <app-nutriscore [grade]="r.nutriscore" />
+                @if (r.health != null) {
+                  <app-health-score [score]="r.health" />
                 }
               </button>
             }
@@ -170,10 +176,14 @@ const PREVIEW = 5;
       @for (g of shownGroups(); track g) {
         @switch (g) {
           @case ('ciqual') {
-            <h2 class="section-title group"><span class="dot ciqual"></span> {{ 'meals.sources.ciqual.title' | t }}</h2>
+            <h2 class="section-title group"><span class="dot ciqual"></span> {{ 'meals.sources.ciqual.title' | t }}
+              @if (localBusy()) {
+                <span class="spinner" aria-hidden="true"></span>
+              }
+            </h2>
             @if (local(); as list) {
               @if (list.length) {
-                <div class="list">
+                <div class="list" [class.stale]="localBusy()">
                   @for (f of cut(list); track f.id) {
                     <ng-container *ngTemplateOutlet="foodRow; context: { $implicit: f }" />
                   }
@@ -204,25 +214,39 @@ const PREVIEW = 5;
             }
           }
           @case ('off') {
-            <h2 class="section-title group"><span class="dot off"></span> {{ 'meals.sources.off.title' | t }}</h2>
-            @switch (offState()) {
-              @case ('loading') {
-                <p class="small muted none"><span class="spinner" aria-hidden="true"></span> {{ 'meals.search.offLoading' | t }}</p>
+            <h2 class="section-title group"><span class="dot off"></span> {{ 'meals.sources.off.title' | t }}
+              @if (offState() === 'loading' && offDone()) {
+                <span class="spinner" aria-hidden="true"></span>
               }
-              @case ('error') {
-                <p class="small muted none">{{ i18n.error(offError()) }}</p>
-              }
-              @default {
-                @if (off().length) {
-                  <div class="list">
-                    @for (f of cut(off()); track f.id) {
-                      <ng-container *ngTemplateOutlet="foodRow; context: { $implicit: f }" />
-                    }
-                  </div>
-                  <ng-container *ngTemplateOutlet="more; context: { $implicit: g, n: off().length }" />
-                } @else {
-                  <p class="small muted none">{{ 'meals.search.offNone' | t }}</p>
+            </h2>
+            @if (offState() === 'error') {
+              <p class="small muted none">{{ i18n.error(offError()) }}</p>
+            } @else if (offState() === 'loading' && !offDone()) {
+              <p class="small muted none"><span class="spinner" aria-hidden="true"></span> {{ 'meals.search.offLoading' | t }}</p>
+            } @else {
+              <!-- 1.13: the brands of the products found, the one typed in the search picked by itself -->
+              @if (brandsShown() && brands().length > 1) {
+                <div class="slide-chips brands" role="group" [attr.aria-label]="'meals.search.brands' | t">
+                  <button type="button" [attr.aria-pressed]="brand() === null" (click)="brand.set(null)">{{ 'meals.search.allBrands' | t }}</button>
+                  @for (b of brands(); track b.key) {
+                    <button type="button" [attr.aria-pressed]="brand() === b.key" (click)="brand.set(b.key)">{{ b.name }} <span class="n">{{ b.n }}</span></button>
+                  }
+                </div>
+                @if (detected(); as d) {
+                  @if (brand() === d.key) {
+                    <p class="tiny muted found"><app-icon name="check" [size]="13" /> {{ 'meals.search.brandFound' | t: { brand: d.name } }}</p>
+                  }
                 }
+              }
+              @if (offShown().length) {
+                <div class="list" [class.stale]="offState() === 'loading'">
+                  @for (f of cut(offShown()); track f.id) {
+                    <ng-container *ngTemplateOutlet="foodRow; context: { $implicit: f }" />
+                  }
+                </div>
+                <ng-container *ngTemplateOutlet="more; context: { $implicit: g, n: offShown().length }" />
+              } @else {
+                <p class="small muted none">{{ 'meals.search.offNone' | t }}</p>
               }
             }
           }
@@ -266,11 +290,14 @@ const PREVIEW = 5;
           <app-food-thumb class="row-thumb" [url]="f.imageUrl" [group]="f.category ?? (f.source === 'OFF' ? 'PRODUCT' : null)" />
         }
         <span class="list-body">
+          @if (f.brand && f.source === 'OFF') {
+            <span class="brand">{{ f.brand }}</span>
+          }
           <span class="list-title">{{ f.name }}</span>
-          <span class="list-sub">{{ f.brand || f.category || ('meals.search.sources.' + f.source | t) }} · {{ i18n.number(f.per100.kcal) }} kcal / 100 g</span>
+          <span class="list-sub food-sub">{{ subOf(f) }}</span>
         </span>
-        @if (f.nutriscore) {
-          <app-nutriscore [grade]="f.nutriscore" [estimated]="f.nutriscoreEstimated" />
+        @if (f.health) {
+          <app-health-score [score]="f.health.score" />
         }
       </button>
     </ng-template>
@@ -290,8 +317,8 @@ const PREVIEW = 5;
           <span class="list-title">{{ r.name }}</span>
           <span class="list-sub">{{ i18n.number(r.perServing.kcal) }} kcal {{ 'meals.perServing' | t }}{{ r.mine ? '' : ' · ' + (r.shared ? ('meals.recipe.community' | t) : (r.author ?? '')) }}</span>
         </span>
-        @if (r.nutriscore) {
-          <app-nutriscore [grade]="r.nutriscore" [estimated]="true" />
+        @if (r.health) {
+          <app-health-score [score]="r.health.score" />
         }
       </button>
     </ng-template>
@@ -367,6 +394,46 @@ const PREVIEW = 5;
     .focus {
       margin: 0;
     }
+    /* 1.13: what tells a food apart, on two lines when it needs them (the calories never cut off) */
+    .food-sub {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      white-space: normal;
+    }
+    /* 1.13: the brand above the name, the way a shelf shows it */
+    .brand {
+      display: block;
+      overflow: hidden;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent-text);
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .brands {
+      margin: 0;
+    }
+    .brands .n {
+      margin-left: 2px;
+      font-size: 11px;
+      opacity: 0.6;
+    }
+    .found {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin: calc(var(--space-2) * -1) 0 0;
+      color: var(--success, #1f9d55);
+    }
+    /* the list stays while the next search runs, a touch dimmed */
+    .list.stale {
+      opacity: 0.6;
+      transition: opacity var(--dur-2) var(--ease-out) 150ms;
+    }
     .search {
       position: sticky;
       top: calc(var(--safe-top) + 4px);
@@ -432,6 +499,11 @@ const PREVIEW = 5;
       align-items: center;
       gap: 8px;
       padding: 4px 4px 8px;
+    }
+    .group .spinner {
+      width: 13px;
+      height: 13px;
+      margin-left: 4px;
     }
     .spinner {
       width: 16px;
@@ -499,8 +571,45 @@ export class FoodPickerComponent {
   readonly start = input('');
   protected readonly query = linkedSignal(() => this.start());
   protected readonly local = signal<Food[] | null>(null);
+  protected readonly localBusy = signal(false);
   protected readonly off = signal<Food[]>([]);
   protected readonly offState = signal<'idle' | 'loading' | 'error'>('idle');
+  /** a first search of products came back (the next ones keep its list in view while they run) */
+  protected readonly offDone = signal(false);
+
+  /** 1.13: the brands of the products found, the most frequent first */
+  protected readonly brands = computed(() => {
+    const by = new Map<string, { key: string; name: string; n: number }>();
+    for (const f of this.off()) {
+      if (!f.brand) continue;
+      const key = plain(f.brand);
+      const b = by.get(key);
+      if (b) b.n++;
+      else by.set(key, { key, name: f.brand, n: 1 });
+    }
+    return [...by.values()].sort((a, b) => b.n - a.n).slice(0, 8);
+  });
+  /**
+   * a brand typed in the search with more words (« lotus biscoff »): picked by itself. A search that is only a brand's name
+   * (« biscoff ») is the product's name too: every brand stays in view
+   */
+  protected readonly detected = computed(() => {
+    const words = plain(this.query()).split(' ').filter(Boolean);
+    return (
+      this.brands().find((b) => {
+        const bw = b.key.split(' ');
+        return bw.every((w) => words.includes(w)) && words.length > bw.length;
+      }) ?? null
+    );
+  });
+  /** the brand the products are narrowed to (null: all); a new search picks the brand it names, if any */
+  protected readonly brand = linkedSignal<string | null>(() => this.detected()?.key ?? null);
+  /** the brands show when the products are the only group in view */
+  protected readonly brandsShown = computed(() => this.shownGroups().length === 1 && this.shownGroups()[0] === 'off');
+  protected readonly offShown = computed(() => {
+    const b = this.brand();
+    return b && this.brandsShown() ? this.off().filter((f) => f.brand && plain(f.brand) === b) : this.off();
+  });
   protected readonly offError = signal('generic');
   protected readonly foundRecipes = signal<Recipe[] | null>(null);
   protected readonly words = computed(() => this.query().trim().length);
@@ -548,11 +657,13 @@ export class FoodPickerComponent {
     const n = ++this.seq;
     const groups = this.groups();
     if (groups.includes('ciqual')) {
-      this.local.set(null);
+      // the list in view stays until the next one is there: the page keeps its height while typing
+      this.localBusy.set(true);
       this.api
         .search(q, 'ciqual')
         .then((list) => n === this.seq && this.local.set(list))
-        .catch(() => n === this.seq && this.local.set([]));
+        .catch(() => n === this.seq && this.local.set([]))
+        .finally(() => n === this.seq && this.localBusy.set(false));
     }
     if (groups.includes('recipes')) {
       this.foundRecipes.set(null);
@@ -564,6 +675,7 @@ export class FoodPickerComponent {
       const list = await this.api.search(q, 'off');
       if (n !== this.seq) return;
       this.off.set(list);
+      this.offDone.set(true);
       this.offState.set('idle');
     } catch (e) {
       if (n !== this.seq) return;
@@ -584,7 +696,30 @@ export class FoodPickerComponent {
     this.foundRecipes.set(all);
   }
 
+  /**
+   * 1.13: what tells a food apart under its name: what it is (its generic name, else its food group, else its Ciqual
+   * group), its size on the shelf, its calories per 100 g (100 ml for a drink)
+   */
+  protected subOf(f: Food): string {
+    const kind = f.genericName && f.genericName.length <= 40 ? f.genericName : this.kindLabel(f) ?? f.category;
+    const parts = [kind, f.quantity].filter((x): x is string => !!x);
+    if (!parts.length) parts.push(f.brand && f.source !== 'OFF' ? f.brand : this.i18n.t('meals.search.sources.' + f.source));
+    parts.push(this.i18n.t('meals.search.per100', { kcal: this.i18n.number(f.per100.kcal), u: f.liquid ? 'ml' : 'g' }));
+    return parts.join(' · ');
+  }
+
+  private kindLabel(f: Food): string | null {
+    const k = kindKey(f.kind);
+    return k ? this.i18n.t('meals.kinds.' + k) : null;
+  }
+
+  /** Enter closes the keyboard (the search runs as one types) */
+  protected blur(e: Event): void {
+    ((e.target as HTMLFormElement).querySelector('input') as HTMLInputElement | null)?.blur();
+  }
+
   protected recentAmount(r: RecentItem): string {
+    if (r.grams != null && r.liquid) return this.i18n.t('meals.ml', { ml: this.i18n.number(r.grams) });
     if (r.grams != null) return this.i18n.t('meals.grams', { g: this.i18n.number(r.grams) });
     return this.i18n.t('meals.servings', { n: this.i18n.number(r.servings ?? 1, (r.servings ?? 1) % 1 ? 1 : 0) });
   }

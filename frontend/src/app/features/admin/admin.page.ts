@@ -129,6 +129,8 @@ export class AdminPage {
     { path: 'feedback', icon: 'mail' },
     { path: 'errors', icon: 'alert' },
     { path: 'journal', icon: 'list' },
+    // 1.13: what the project takes on the server
+    { path: 'stats', icon: 'gauge' },
   ];
 
   /** what waits on a tab: requests to decide, feedback to read, errors to look at */

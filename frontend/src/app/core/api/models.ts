@@ -288,6 +288,13 @@ export interface Nutrients {
 }
 
 export type FoodSource = 'CIQUAL' | 'OFF' | 'USER';
+
+/** 1.13: the health score, out of 10 by halves, with what makes it good and what costs it points (core/meals/health.ts) */
+export interface HealthDto {
+  score: number;
+  pros: string[];
+  cons: string[];
+}
 export type Grade = 'a' | 'b' | 'c' | 'd' | 'e';
 
 export interface Food {
@@ -304,6 +311,16 @@ export interface Food {
   /** 1.12: a product's picture (through the server), and when Open Food Facts last changed its page */
   imageUrl?: string;
   dataUpdatedAt?: string;
+  /** 1.13: the health score; a product's size (« 400 g »), generic name and food group (PNNS, in English) */
+  health?: HealthDto | null;
+  quantity?: string;
+  genericName?: string;
+  kind?: string;
+  /** measured in millilitres (a drink, a milk, a soup), and the millilitres of its can or bottle */
+  liquid?: boolean;
+  packageMl?: number;
+  /** NOVA group, 1 (raw) to 4 (ultra-processed) */
+  nova?: number;
 }
 
 export interface FoodInput {
@@ -338,6 +355,9 @@ export interface MealEntry {
   /** 1.12: a small picture (the recipe's photo, the product's), and what it is (recipe type, Ciqual category) for its emoji */
   thumbUrl?: string;
   group?: string;
+  /** 1.13: its health score out of 10, and an amount in millilitres */
+  health?: number | null;
+  liquid?: boolean;
 }
 
 export interface MealDay {
@@ -415,6 +435,8 @@ export interface QuickPortion {
   saltG?: number | null;
   fiberG?: number | null;
   nutriscore?: Grade | null;
+  /** 1.13: its estimated health score, out of 10 */
+  health?: number | null;
 }
 
 export interface RecentItem {
@@ -431,10 +453,12 @@ export interface RecentItem {
   quick?: Nutrients;
   thumbUrl?: string;
   group?: string;
+  health?: number | null;
+  liquid?: boolean;
 }
 
-/** TREAT (1.9): « Plaisir », pastries and treats */
-export type RecipeType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'DESSERT' | 'TREAT' | 'DRINK';
+/** TREAT (1.9): « Plaisir », pastries and treats; HEALTHY (1.13): « Healthy », put first */
+export type RecipeType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'DESSERT' | 'TREAT' | 'DRINK' | 'HEALTHY';
 
 export interface Recipe {
   id: string;
@@ -466,6 +490,8 @@ export interface Recipe {
   imageCredit?: string;
   imageLicense?: string;
   imageSource?: string;
+  /** 1.13: the health score of its dish (none when entered by hand, or with alcohol) */
+  health?: HealthDto | null;
   /** each line: its calories for the weight, its food's values per 100 g, whether it counts as fruit and vegetables */
   ingredients?: { foodId?: string; name: string; grams: number; kcal: number; per100?: Nutrients; fruitVeg?: boolean }[];
   createdAt: string;

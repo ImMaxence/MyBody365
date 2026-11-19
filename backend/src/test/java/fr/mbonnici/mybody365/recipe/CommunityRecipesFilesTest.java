@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-/** The community’s recipes (resources/community): 200 in 1.7, 129 more in 1.9, 200 more in 1.10, every one complete and within the API’s limits. */
+/** The community’s recipes (resources/community): 200 in 1.7, 129 more in 1.9, 200 more in 1.10, 200 « Healthy » in 1.13, every one complete and within the API’s limits. */
 class CommunityRecipesFilesTest {
 
     @Test
@@ -21,7 +21,9 @@ class CommunityRecipesFilesTest {
         for (Resource f : new PathMatchingResourcePatternResolver().getResources("classpath:community/*.txt")) {
             all.addAll(CommunityRecipes.parse(f.getContentAsString(StandardCharsets.UTF_8)));
         }
-        assertThat(all).hasSize(529);
+        assertThat(all).hasSize(729);
+        // 1.13: the « Healthy » ones, put first on the recipes page
+        assertThat(all.stream().filter(s -> s.types().contains(fr.mbonnici.mybody365.recipe.RecipeService.Type.HEALTHY)).count()).isEqualTo(200);
         Set<String> keys = new HashSet<>();
         for (CommunityRecipes.Seed s : all) {
             assertThat(keys.add(s.key())).as("one key per recipe: " + s.name()).isTrue();

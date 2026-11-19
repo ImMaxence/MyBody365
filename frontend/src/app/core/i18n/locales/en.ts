@@ -1,4 +1,4 @@
-import { enAdminFoods, enAdminModeration } from './en-admin';
+import { enAdminFoods, enAdminModeration, enAdminStats } from './en-admin';
 import { enBackup } from './en-backup';
 import { enEngage } from './en-engage';
 import { enFriends } from './en-friends';
@@ -160,7 +160,7 @@ export const en: Dictionary = {
       {
         day: '2',
         title: 'Your meals in three taps',
-        text: 'Scan a barcode, pick an everyday food or one of your recipes: calories and Nutri-Score are worked out for you',
+        text: 'Scan a barcode, pick an everyday food or one of your recipes: calories and a health score out of 10 are worked out for you',
       },
       {
         day: '7',
@@ -607,11 +607,12 @@ export const en: Dictionary = {
   friends: enFriends,
   backup: enBackup,
   adminFoods: enAdminFoods,
+  adminStats: enAdminStats,
   adminModeration: enAdminModeration,
 
   soon: {
     title: 'Coming soon',
-    meals: 'Log your meals in three taps: barcode, everyday foods, your recipes and Nutri-Score',
+    meals: 'Log your meals in three taps: barcode, everyday foods, your recipes and a health score out of 10',
     photos: 'Your photo of the day, a before / after comparison and the time-lapse of your year',
     progress: 'Your curves, your trend and the estimated date of your goal',
   },
@@ -818,7 +819,7 @@ export const en: Dictionary = {
       form: 'Contact form',
     },
     title: 'Administration',
-    tabs: { users: 'Accounts', requests: 'Requests', links: 'Links', foods: 'Foods', moderation: 'Moderation', feedback: 'Feedback', errors: 'Errors', journal: 'Journal' },
+    tabs: { users: 'Accounts', requests: 'Requests', links: 'Links', foods: 'Foods', moderation: 'Moderation', feedback: 'Feedback', errors: 'Errors', journal: 'Journal', stats: 'Statistics' },
     summary: '{users} account(s) · {admins} admin(s)',
     users: {
       search: 'Search an account',
@@ -961,7 +962,7 @@ export const en: Dictionary = {
         {
           h: 'Liability',
           p: [
-            'MyBody365 is not a medical device. Calories, Nutri-Score, trends and forecasts are estimates for information only; they do not replace the advice of a health professional.',
+            'MyBody365 is not a medical device. Calories, health scores, Nutri-Score, trends and forecasts are estimates for information only; they do not replace the advice of a health professional.',
             'The publisher acts as the host of the content added by users and promptly removes any manifestly unlawful content reported to it.',
           ],
         },

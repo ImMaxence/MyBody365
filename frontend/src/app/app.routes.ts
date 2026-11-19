@@ -82,6 +82,7 @@ export const routes: Routes = [
               { path: 'feedback', loadComponent: () => import('./features/admin/feedback.tab').then((m) => m.AdminFeedbackTab) },
               { path: 'errors', loadComponent: () => import('./features/admin/errors.tab').then((m) => m.AdminErrorsTab) },
               { path: 'journal', loadComponent: () => import('./features/admin/journal.tab').then((m) => m.AdminJournalTab) },
+              { path: 'stats', loadComponent: () => import('./features/admin/stats.tab').then((m) => m.AdminStatsTab) },
             ],
           },
         ],

@@ -9,11 +9,12 @@ import { RecipesView } from '../../core/meals/recipes-view';
 import { FavoritesStore } from '../../core/meals/favorites.store';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
-import { NutriscoreComponent } from '../../shared/nutriscore.component';
+import { HealthScoreComponent } from '../../shared/health-score.component';
 import { SegDirective } from '../../shared/seg.directive';
 
-export const RECIPE_TYPES: RecipeType[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK', 'DESSERT', 'TREAT', 'DRINK'];
-export const TYPE_EMOJI: Record<RecipeType, string> = { BREAKFAST: '🥣', LUNCH: '🥗', DINNER: '🍲', SNACK: '🍎', DESSERT: '🍰', TREAT: '🧁', DRINK: '🍹' };
+/** 1.13: « Healthy » first, before every other filter */
+export const RECIPE_TYPES: RecipeType[] = ['HEALTHY', 'BREAKFAST', 'LUNCH', 'DINNER', 'SNACK', 'DESSERT', 'TREAT', 'DRINK'];
+export const TYPE_EMOJI: Record<RecipeType, string> = { HEALTHY: '🥑', BREAKFAST: '🥣', LUNCH: '🥗', DINNER: '🍲', SNACK: '🍎', DESSERT: '🍰', TREAT: '🧁', DRINK: '🍹' };
 
 /** My recipes, my friends' recipes, and the community's (best first or newest, by type). */
 /** a name as compared by the search: lower case, no accents, words separated by single spaces (as the server) */
@@ -31,7 +32,7 @@ function plain(s: string): string {
 @Component({
   selector: 'app-recipes',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, NutriscoreComponent],
+  imports: [SegDirective, NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -160,8 +161,8 @@ function plain(s: string): string {
             } @else {
               <span class="emoji" aria-hidden="true">{{ emojiOf(r) }}</span>
             }
-            @if (r.nutriscore) {
-              <app-nutriscore class="grade" [grade]="r.nutriscore" [estimated]="true" />
+            @if (r.health) {
+              <app-health-score class="grade" [score]="r.health.score" />
             }
           </span>
           <span class="rbody">
@@ -188,6 +189,11 @@ function plain(s: string): string {
     </main>
   `,
   styles: `
+    /* the cards entering from the side of a tab never widen the page (iOS would zoom out) */
+    :host {
+      display: block;
+      overflow-x: clip;
+    }
     .add {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -360,12 +366,13 @@ function plain(s: string): string {
       font-size: 2.6rem;
     }
     /* the Nutri-Score in a corner of the picture, as on a packaging */
+    /* 1.13: the health score on the photo, on a solid tint so it reads on any picture */
     .pic .grade {
       position: absolute;
       left: 8px;
       bottom: 8px;
-      width: 54px;
-      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+      background: color-mix(in srgb, var(--hs) 20%, var(--surface));
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
     .rbody {
       display: grid;

@@ -47,13 +47,22 @@ public class OffImporter {
     private static final Logger log = LoggerFactory.getLogger(OffImporter.class);
     /** marks that the local copy is there: searches and barcodes stop asking Open Food Facts live */
     static final String STATE_KEY = "off_local_at";
+    /**
+     * 1.13: the shape of the local copy, written by each import that went through: a copy without it predates the pictures
+     * and the product details (size, food group, processing, scans) and is imported again by itself
+     */
+    static final String FORMAT_KEY = "off_format";
+    static final String FORMAT = "1.13";
+    /** a month: Open Food Facts changes every day, the local copy follows once a month */
+    private static final Duration REFRESH_AFTER = Duration.ofDays(30);
     private static final int BATCH = 1000;
 
     public record ImportDto(UUID id, String status, String step, int progress, Integer products, String message, Instant startedAt,
             Instant finishedAt, String startedBy) {}
 
     /** what is kept of a line of the export */
-    record Row(String code, String name, String brand, Nutrients per100, String nutriscore, Double servingG, String imagePath, Instant modifiedAt) {}
+    record Row(String code, String name, String brand, Nutrients per100, String nutriscore, Double servingG, String imagePath, Instant modifiedAt,
+            ProductInfo info) {}
 
     private final JdbcTemplate jdbc;
     private final TaskExecutor executor;
@@ -81,6 +90,35 @@ public class OffImporter {
     public Instant localAt() {
         return jdbc.queryForList("select updated_at from app_state where name = ?", Timestamp.class, STATE_KEY).stream().findFirst()
                 .map(Timestamp::toInstant).orElse(null);
+    }
+
+    /**
+     * 1.13: the local copy updates itself, without an admin: a few minutes after a start when it predates the pictures and the
+     * product details, then once a month. Never twice at once, and not again within a day of a failed try.
+     */
+    @org.springframework.scheduling.annotation.Scheduled(initialDelayString = "${app.nutrition.off-auto-delay:PT10M}", fixedDelayString = "PT6H")
+    public void autoRefresh() {
+        if (!props.nutrition().offAutoRefresh() || !local()) {
+            return;
+        }
+        boolean oldFormat = !FORMAT.equals(jdbc.queryForList("select value from app_state where name = ?", String.class, FORMAT_KEY).stream()
+                .findFirst().orElse(null));
+        Instant at = localAt();
+        boolean stale = at == null || at.isBefore(Instant.now().minus(REFRESH_AFTER));
+        if (!oldFormat && !stale) {
+            return;
+        }
+        Integer recentFailure = jdbc.queryForObject(
+                "select count(*) from off_import where status = 'FAILED' and started_at > now() - interval '1 day'", Integer.class);
+        if (recentFailure != null && recentFailure > 0) {
+            return;
+        }
+        try {
+            start(null);
+            log.info("Open Food Facts: the local copy updates itself ({})", oldFormat ? "older format" : "a month old");
+        } catch (ApiException e) {
+            // an import already running
+        }
     }
 
     public synchronized ImportDto start(UUID adminId) {
@@ -126,6 +164,9 @@ public class OffImporter {
             jdbc.update("""
                     insert into app_state (name, value, updated_at) values (?, ?, now())
                     on conflict (name) do update set value = excluded.value, updated_at = now()""", STATE_KEY, Integer.toString(saved));
+            jdbc.update("""
+                    insert into app_state (name, value, updated_at) values (?, ?, now())
+                    on conflict (name) do update set value = excluded.value, updated_at = now()""", FORMAT_KEY, FORMAT);
             finish(id, "DONE", saved, null);
             log.info("Open Food Facts imported: {} products", saved);
         } catch (Exception e) {
@@ -268,8 +309,23 @@ public class OffImporter {
         // 1.12: the front picture and when the page last changed (columns an older export may not have)
         String image = OpenFoodFacts.imagePath(get(v, col, "image_url") != null ? get(v, col, "image_url") : get(v, col, "image_small_url"));
         Instant modified = OpenFoodFacts.epoch(num(get(v, col, "last_modified_t"), 4_000_000_000d));
+        // 1.13: to tell the products apart and judge them (columns an older export may not have)
+        Double nova = num(get(v, col, "nova_group"), 4);
+        Double additives = num(get(v, col, "additives_n"), 200);
+        Double scans = num(get(v, col, "unique_scans_n"), 100_000_000);
+        String pnns = clean(get(v, col, "pnns_groups_2"));
+        ProductInfo info = new ProductInfo(shortText(get(v, col, "quantity"), 60), shortText(get(v, col, "generic_name"), 200),
+                pnns == null || pnns.equalsIgnoreCase("unknown") ? null : cut(pnns, 40), nova == null || nova < 1 ? null : (int) Math.round(nova),
+                additives == null ? null : (int) Math.round(additives), ProductInfo.sweeteners(get(v, col, "additives_tags")),
+                num(get(v, col, "fruits-vegetables-legumes_100g"), 100), scans == null ? null : (int) Math.round(scans));
         return new Row(code, cut(name.strip(), 200), brand == null || brand.isEmpty() ? null : brand, n, grade,
-                num(get(v, col, "serving_quantity"), 5000), image, modified);
+                num(get(v, col, "serving_quantity"), 5000), image, modified, info);
+    }
+
+    /** a free text of the export, cleaned and cut, or null */
+    static String shortText(String s, int max) {
+        String c = clean(s);
+        return c == null || c.isEmpty() ? null : cut(c, max);
     }
 
     /** added, or updated by barcode; a Nutri-Score computed when the export has none */
@@ -284,7 +340,8 @@ public class OffImporter {
             Nutrients n = r.per100();
             args.add(new Object[] {UUID.randomUUID(), r.code(), r.name(), r.brand(), FoodStore.searchName(r.name(), null, r.brand()), n.kcal(),
                     n.proteinG(), n.carbsG(), n.sugarsG(), n.fatG(), n.satFatG(), n.fiberG(), n.saltG(), grade, estimated, r.servingG(), r.imagePath(),
-                    r.modifiedAt() == null ? null : Timestamp.from(r.modifiedAt())});
+                    r.modifiedAt() == null ? null : Timestamp.from(r.modifiedAt()), r.info().quantity(), r.info().genericName(), r.info().pnns(),
+                    r.info().nova(), r.info().additives(), r.info().sweeteners(), r.info().fruitVeg(), r.info().scans()});
         }
         try {
             jdbc.batchUpdate(UPSERT, args);
@@ -306,14 +363,17 @@ public class OffImporter {
 
     private static final String UPSERT = """
             insert into food (id, source, source_code, name, brand, search_name, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g,
-              fiber_g, salt_g, nutriscore, nutriscore_estimated, serving_g, image_path, source_updated_at)
-            values (?, 'OFF', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              fiber_g, salt_g, nutriscore, nutriscore_estimated, serving_g, image_path, source_updated_at, quantity, generic_name, pnns, nova,
+              additives, sweeteners, fruit_veg, scans)
+            values (?, 'OFF', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             on conflict (source_code) where source = 'OFF' do update set name = excluded.name, brand = excluded.brand,
               search_name = excluded.search_name, kcal = excluded.kcal, protein_g = excluded.protein_g, carbs_g = excluded.carbs_g,
               sugars_g = excluded.sugars_g, fat_g = excluded.fat_g, sat_fat_g = excluded.sat_fat_g, fiber_g = excluded.fiber_g,
               salt_g = excluded.salt_g, nutriscore = excluded.nutriscore, nutriscore_estimated = excluded.nutriscore_estimated,
               serving_g = excluded.serving_g, image_path = coalesce(excluded.image_path, food.image_path),
-              source_updated_at = coalesce(excluded.source_updated_at, food.source_updated_at), updated_at = now()""";
+              source_updated_at = coalesce(excluded.source_updated_at, food.source_updated_at), quantity = excluded.quantity,
+              generic_name = excluded.generic_name, pnns = excluded.pnns, nova = excluded.nova, additives = excluded.additives,
+              sweeteners = excluded.sweeteners, fruit_veg = excluded.fruit_veg, scans = excluded.scans, updated_at = now()""";
 
     /** the reason itself (« invalid byte sequence… »), not the statement around it */
     static String cause(Throwable e) {
@@ -338,7 +398,8 @@ public class OffImporter {
                 b.append(c);
             }
         }
-        return b.toString().replaceAll("\\s+", " ").strip();
+        // 1.13: the export writes some apostrophes escaped (« J\'aime le lait d\'ici »)
+        return b.toString().replace("\\'", "'").replaceAll("\\s+", " ").strip();
     }
 
     private static String get(String[] v, Map<String, Integer> col, String name) {

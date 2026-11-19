@@ -137,4 +137,26 @@ test.describe('stack navigation', () => {
     await page.waitForTimeout(400);
     await expect(page).toHaveURL(/\/app\/account\/security$/);
   });
+
+  test('the tab bar slides away while scrolling down and comes back on the way up (1.13)', async ({ page, browserName }) => {
+    // headless WebKit never runs animation frames: the scroll is read in one
+    test.skip(browserName === 'webkit', 'no animation frames in headless WebKit');
+    await signIn(page, 'user');
+    await page.goto('/app/meals');
+    const bar = page.getByRole('navigation', { name: 'Navigation principale' });
+    await expect(bar).not.toHaveClass(/away/);
+    await page.mouse.move(200, 400);
+    for (let i = 0; i < 4; i++) {
+      await page.mouse.wheel(0, 200);
+      await page.waitForTimeout(80);
+    }
+    await expect(bar).toHaveClass(/away/);
+    await page.mouse.wheel(0, -120);
+    await expect(bar).not.toHaveClass(/away/);
+    // a new screen: always there
+    await page.mouse.wheel(0, 600);
+    await expect(bar).toHaveClass(/away/);
+    await page.goto('/app/progress');
+    await expect(bar).not.toHaveClass(/away/);
+  });
 });

@@ -14,8 +14,9 @@ import { SegDirective } from '../../shared/seg.directive';
 type Period = 7 | 30 | 90;
 const PERIODS: Period[] = [7, 30, 90];
 const SLOT_ICON: Record<Slot, string> = { BREAKFAST: 'sun', LUNCH: 'utensils', DINNER: 'moon', SNACK: 'leaf' };
-const GRADES = ['A', 'B', 'C', 'D', 'E'];
-const GRADE_COLOR: Record<string, string> = { A: '#038141', B: '#4a7a12', C: '#8a6900', D: '#a84309', E: '#c7290f' };
+const GRADES = ['great', 'good', 'fair', 'weak', 'poor'];
+/** 1.13: the health bands, best first, in their colours (as the health score's) */
+const GRADE_COLOR: Record<string, string> = { great: '#1f9d55', good: '#5fae2e', fair: '#d19a00', weak: '#e2711d', poor: '#e5484d' };
 
 /** the bar chart's frame (viewBox units) */
 const W = 320;
@@ -275,7 +276,7 @@ function niceStep(max: number): number {
                 </div>
                 <div class="legend tiny">
                   @for (p of g.parts; track p.grade) {
-                    <span><i class="sw" [style.background]="p.color"></i>{{ p.grade === '?' ? ('meals.stats.unknown' | t) : p.grade }} · <b class="num">{{ p.pct }} %</b></span>
+                    <span><i class="sw" [style.background]="p.color"></i>{{ p.grade === '?' ? ('meals.stats.unknown' | t) : ('meals.health.bands.' + p.grade | t) }} · <b class="num">{{ p.pct }} %</b></span>
                   }
                 </div>
                 @if (g.good !== null) {
@@ -885,8 +886,8 @@ export class MealStatsPage {
       })
       .filter((p) => p.pct > 0);
     const rated = s.grades.filter((g) => g.grade).reduce((sum, g) => sum + g.kcal, 0);
-    const ab = s.grades.filter((g) => g.grade === 'A' || g.grade === 'B').reduce((sum, g) => sum + g.kcal, 0);
-    return { parts, good: rated > 0 ? Math.round((ab / rated) * 100) : null, de: rated > 0 ? 1 - (ab + this.kcalOf(s, 'C')) / rated : 0 };
+    const ab = s.grades.filter((g) => g.grade === 'great' || g.grade === 'good').reduce((sum, g) => sum + g.kcal, 0);
+    return { parts, good: rated > 0 ? Math.round((ab / rated) * 100) : null, de: rated > 0 ? 1 - (ab + this.kcalOf(s, 'fair')) / rated : 0 };
   });
 
   /** a few tips, the most useful first, from the figures above */
@@ -956,7 +957,7 @@ export class MealStatsPage {
     (this.macros() ?? []).map((p) => this.i18n.t('meals.stats.macroShare', { name: this.i18n.t(p.label), pct: p.pct, g: p.gPerDay })).join(', '),
   );
   protected readonly gradesLabel = computed(() =>
-    (this.grades()?.parts ?? []).map((p) => `${p.grade === '?' ? this.i18n.t('meals.stats.unknown') : p.grade} ${p.pct} %`).join(', '),
+    (this.grades()?.parts ?? []).map((p) => `${p.grade === '?' ? this.i18n.t('meals.stats.unknown') : this.i18n.t('meals.health.bands.' + p.grade)} ${p.pct} %`).join(', '),
   );
 
   constructor() {

@@ -1,0 +1,731 @@
+# Recettes de la communauté, 1.13 : Healthy, les plats chauds. Les classiques « meal prep » et « one pan » des réseaux
+# (plaque au four, wok, curry léger, papillote, boulettes de dinde, poivrons farcis…) : beaucoup de légumes, une
+# protéine maigre ou des légumineuses, un féculent complet, peu de matières grasses et de sel.
+# Même format que les autres fichiers :
+#   = Nom | TYPES | parts
+#   code_ciqual grammes   (poids cru pour toute la recette ; le texte après les grammes n'est qu'un repère)
+#   : une étape
+
+= Poulet et légumes sur une plaque, citron et romarin | LUNCH,DINNER,HEALTHY | 3
+36017 450 filets de poulet
+20020 300 courgettes
+20087 200 poivron rouge
+20238 100 oignon rouge
+4008 400 pommes de terre grenaille
+13009 60 citron
+11068 3 romarin
+11000 6 ail
+17270 20 huile d'olive
+11058 3 sel
+: Couper les pommes de terre en deux et les rôtir 15 minutes à 210 °C avec la moitié de l'huile
+: Ajouter les légumes en morceaux, le poulet en gros dés, l'ail, le romarin, le reste d'huile et le sel
+: Rôtir encore 20 minutes
+: Arroser du jus du citron en sortant du four
+
+= Wok de bœuf, brocoli et gingembre | LUNCH,DINNER,HEALTHY | 2
+6206 250 rumsteck
+20057 300 brocoli
+20087 120 poivron rouge
+9102 100 riz complet
+11074 10 gingembre frais
+11000 4 ail
+11104 20 sauce soja
+9510 5 fécule de maïs
+17130 10 huile de colza
+: Cuire le riz complet 30 minutes
+: Émincer le bœuf et le mélanger à la fécule et à la moitié de la sauce soja
+: Saisir le bœuf 2 minutes dans le wok bien chaud avec l'huile, le réserver
+: Faire sauter le brocoli et le poivron 4 minutes avec l'ail et le gingembre, remettre le bœuf et le reste de sauce soja, servir sur le riz
+
+= Curry de pois chiches et épinards au lait de coco léger | LUNCH,DINNER,HEALTHY | 3
+20532 400 pois chiches égouttés
+20059 250 épinards
+20137 400 tomates pelées
+18041 100 lait de coco
+20034 100 oignon
+11000 6 ail
+11074 10 gingembre frais
+11005 6 curry
+9119 150 riz basmati
+11058 3 sel
+: Faire revenir l'oignon, l'ail et le gingembre avec un peu d'eau, puis le curry
+: Ajouter les tomates, les pois chiches et le sel, laisser mijoter 15 minutes
+: Verser le lait de coco et ajouter les épinards, cuire 3 minutes
+: Servir avec le riz basmati
+
+= Saumon en papillote, fenouil et citron | LUNCH,DINNER,HEALTHY | 2
+26036 260 pavés de saumon
+20028 300 fenouil
+13009 60 citron
+11093 8 aneth
+17270 10 huile d'olive
+9340 100 quinoa
+11058 2 sel
+: Émincer finement le fenouil et le répartir sur deux feuilles de papier cuisson
+: Poser le saumon, des rondelles de citron, l'aneth, l'huile et le sel, puis fermer les papillotes
+: Cuire 18 minutes à 200 °C
+: Servir avec le quinoa cuit 12 minutes
+
+= Boulettes de dinde, sauce tomate et courgettes | LUNCH,DINNER,HEALTHY | 3
+36304 450 escalopes de dinde hachées
+22000 60 oeuf
+32140 30 flocons d'avoine
+20260 400 coulis de tomate
+20020 400 courgettes
+20034 80 oignon
+11000 4 ail
+11033 10 basilic
+11058 3 sel
+: Mixer la dinde, mélanger avec l'œuf, les flocons, la moitié de l'oignon haché et le sel, puis former des boulettes
+: Dorer les boulettes 8 minutes à la poêle antiadhésive
+: Ajouter le reste d'oignon, l'ail, le coulis et les courgettes en dés, mijoter 15 minutes à couvert
+: Parsemer de basilic
+
+= Poivrons farcis au quinoa, haricots rouges et maïs | LUNCH,DINNER,HEALTHY | 2
+20087 400 poivrons rouges
+9340 80 quinoa
+20524 150 haricots rouges égouttés
+20066 80 maïs doux
+20137 200 tomates pelées
+12726 40 cheddar
+11042 2 cumin
+11049 2 paprika
+11058 2 sel
+: Cuire le quinoa 12 minutes
+: Mélanger le quinoa, les haricots, le maïs, les tomates, les épices et le sel
+: Couper le chapeau des poivrons, les vider et les remplir de farce
+: Parsemer de cheddar râpé et cuire 35 minutes à 190 °C
+
+= Dahl de lentilles corail à la patate douce | LUNCH,DINNER,HEALTHY | 3
+20535 200 lentilles corail
+4101 300 patates douces
+20137 400 tomates pelées
+18041 80 lait de coco
+20034 100 oignon
+11089 3 curcuma
+11042 3 cumin
+11074 10 gingembre frais
+20059 100 épinards
+11058 3 sel
+: Faire revenir l'oignon avec le gingembre et les épices dans un peu d'eau
+: Ajouter les lentilles, la patate douce en dés, les tomates et 600 ml d'eau
+: Cuire 20 minutes à feu doux en remuant
+: Ajouter le lait de coco, les épinards et le sel, cuire 2 minutes
+
+= Cabillaud rôti, purée de chou-fleur et haricots verts | LUNCH,DINNER,HEALTHY | 2
+26043 300 cabillaud
+20016 500 chou-fleur
+20061 250 haricots verts
+19033 60 lait demi-écrémé
+13009 30 citron
+11014 10 persil
+17270 10 huile d'olive
+11058 2 sel
+: Cuire le chou-fleur 15 minutes à l'eau, puis le mixer avec le lait et la moitié du sel
+: Cuire les haricots verts 8 minutes
+: Rôtir le cabillaud 12 minutes à 200 °C avec l'huile, le citron et le reste du sel
+: Servir avec la purée, les haricots et le persil
+
+= Chili sin carne aux lentilles et haricots | LUNCH,DINNER,HEALTHY | 4
+20585 150 lentilles vertes
+20524 300 haricots rouges égouttés
+20137 800 tomates pelées
+20087 200 poivron rouge
+20034 150 oignon
+20066 140 maïs doux
+11042 4 cumin
+11049 4 paprika
+11088 1 piment de Cayenne
+11058 3 sel
+9102 200 riz complet
+: Faire revenir l'oignon et le poivron en dés avec un peu d'eau et les épices
+: Ajouter les lentilles, les tomates et 400 ml d'eau, cuire 25 minutes
+: Ajouter les haricots, le maïs et le sel, cuire encore 10 minutes
+: Servir avec le riz complet cuit 30 minutes
+
+= Poulet tandoori au yaourt, riz et concombre | LUNCH,DINNER,HEALTHY | 3
+36017 450 filets de poulet
+19593 250 yaourt nature
+11005 5 curry
+11049 3 paprika
+11000 6 ail
+11074 10 gingembre frais
+2028 20 jus de citron
+9119 150 riz basmati
+20019 250 concombre
+11027 10 menthe
+: Mariner le poulet en morceaux 30 minutes avec 150 g de yaourt, les épices, l'ail, le gingembre et le citron
+: Cuire 20 minutes au four à 220 °C
+: Cuire le riz
+: Servir avec le concombre en dés mélangé au reste du yaourt et à la menthe
+
+= Crevettes sautées à l'ail, courgettes et spaghettis complets | LUNCH,DINNER,HEALTHY | 2
+10021 250 crevettes crues décortiquées
+9877 250 pâtes semi-complètes cuites
+20020 300 courgettes
+11000 6 ail
+20151 10 piment
+13009 30 citron
+11014 10 persil
+17270 15 huile d'olive
+11058 2 sel
+: Couper les courgettes en fins rubans
+: Faire sauter les crevettes 3 minutes avec l'huile, l'ail et le piment
+: Ajouter les courgettes 2 minutes, puis les pâtes chaudes, le jus du citron et le sel
+: Parsemer de persil
+
+= Gratin léger de légumes et poulet au fromage blanc | LUNCH,DINNER,HEALTHY | 3
+36017 350 filets de poulet
+20057 300 brocoli
+20016 300 chou-fleur
+19644 250 fromage blanc 0 %
+22000 60 oeuf
+12118 40 emmental râpé
+11048 1 muscade
+11058 3 sel
+: Cuire le brocoli et le chou-fleur 6 minutes à la vapeur
+: Couper le poulet en dés et le saisir 5 minutes
+: Mélanger le fromage blanc, l'œuf, la muscade et le sel
+: Répartir légumes et poulet dans un plat, napper, parsemer d'emmental et gratiner 20 minutes à 200 °C
+
+= Tofu sauté, pak choï et nouilles de riz | LUNCH,DINNER,HEALTHY | 2
+20904 250 tofu ferme
+20340 300 pak choï
+9900 100 vermicelles de riz
+20009 100 carotte
+11104 20 sauce soja
+11074 8 gingembre frais
+11000 4 ail
+17400 5 huile de sésame
+17130 10 huile de colza
+: Réhydrater les nouilles 5 minutes à l'eau chaude
+: Dorer le tofu en dés dans l'huile de colza
+: Ajouter l'ail, le gingembre, la carotte en julienne et le pak choï, sauter 3 minutes
+: Ajouter les nouilles, la sauce soja et l'huile de sésame, mélanger 1 minute
+
+= Papillote de dorade, tomates cerises et olives | LUNCH,DINNER,HEALTHY | 2
+26080 300 filets de dorade
+20172 250 tomates cerises
+13032 30 olives noires
+20020 200 courgette
+11033 10 basilic
+17270 10 huile d'olive
+9690 100 boulgour
+11058 2 sel
+: Couper la courgette en rondelles et les tomates en deux
+: Répartir légumes, poisson, olives, basilic, huile et sel sur du papier cuisson et fermer
+: Cuire 15 minutes à 200 °C
+: Servir avec le boulgour gonflé 10 minutes dans l'eau bouillante
+
+= Ratatouille au four et œufs cocotte | LUNCH,DINNER,HEALTHY | 2
+20053 250 aubergine
+20020 250 courgette
+20087 150 poivron rouge
+20385 300 tomates
+20034 80 oignon
+22000 240 oeufs
+11060 3 herbes de Provence
+17270 15 huile d'olive
+11058 2 sel
+: Couper tous les légumes en dés et les rôtir 35 minutes à 200 °C avec l'huile, les herbes et le sel
+: Creuser quatre nids dans les légumes et y casser les œufs
+: Remettre au four 8 minutes, jusqu'à ce que les blancs soient pris
+: Servir aussitôt
+
+= Escalopes de poulet panées aux flocons d'avoine, au four | LUNCH,DINNER,HEALTHY | 2
+36017 300 filets de poulet
+32140 60 flocons d'avoine
+22000 60 oeuf
+12120 15 parmesan
+11049 2 paprika
+20057 300 brocoli
+11058 2 sel
+: Aplatir les filets, les passer dans l'œuf battu puis dans les flocons mixés avec le parmesan, le paprika et le sel
+: Cuire 20 minutes au four à 210 °C sur du papier cuisson, en les retournant à mi-cuisson
+: Cuire le brocoli 6 minutes à la vapeur
+: Servir ensemble
+
+= Bœuf mijoté aux carottes, version légère | LUNCH,DINNER,HEALTHY | 4
+6270 600 paleron
+20009 600 carottes
+20034 150 oignon
+20137 400 tomates pelées
+11001 5 bouillon de bœuf
+11070 3 thym
+11053 1 laurier
+4008 500 pommes de terre
+11015 1 poivre
+: Couper le bœuf en gros cubes et le saisir dans une cocotte antiadhésive
+: Ajouter l'oignon, les carottes en rondelles, les tomates, le bouillon, le thym, le laurier et 500 ml d'eau
+: Mijoter 2 heures à couvert à feu doux
+: Ajouter les pommes de terre en morceaux 30 minutes avant la fin, poivrer
+
+= Truite au four, asperges et pommes de terre | LUNCH,DINNER,HEALTHY | 2
+27009 300 filets de truite
+20279 300 asperges vertes
+4008 350 pommes de terre
+13009 30 citron
+11093 6 aneth
+17270 10 huile d'olive
+11058 2 sel
+: Cuire les pommes de terre en morceaux 15 minutes au four à 210 °C avec l'huile
+: Ajouter les asperges et la truite, saler, et cuire encore 12 minutes
+: Arroser de citron
+: Parsemer d'aneth
+
+= Lasagnes de courgettes à la bolognaise de lentilles | LUNCH,DINNER,HEALTHY | 4
+20020 800 courgettes
+20585 150 lentilles vertes
+20260 500 coulis de tomate
+20009 150 carotte
+20034 100 oignon
+19590 125 mozzarella
+19644 200 fromage blanc 0 %
+11035 2 origan
+11058 3 sel
+: Cuire les lentilles 20 minutes, puis les mélanger au coulis, à la carotte et l'oignon hachés, l'origan et le sel, et mijoter 10 minutes
+: Couper les courgettes en fines tranches dans la longueur et les griller 2 minutes de chaque côté
+: Monter en couches courgettes, bolognaise et fromage blanc, finir par la mozzarella
+: Cuire 35 minutes à 190 °C
+
+= Poulet citron et olives, semoule complète | LUNCH,DINNER,HEALTHY | 3
+36017 450 filets de poulet
+13033 60 olives vertes
+13009 100 citron
+20034 120 oignon
+11089 2 curcuma
+11042 2 cumin
+11174 4 bouillon de volaille
+9681 150 semoule
+17270 10 huile d'olive
+: Faire revenir l'oignon dans l'huile avec les épices
+: Ajouter le poulet en morceaux, le citron en quartiers, le bouillon et 200 ml d'eau, mijoter 25 minutes
+: Ajouter les olives 5 minutes avant la fin
+: Servir avec la semoule gonflée dans l'eau bouillante
+
+= Sauté de porc maigre aux poivrons et ananas | LUNCH,DINNER,HEALTHY | 2
+28204 280 filet mignon de porc
+13002 150 ananas
+20041 200 poivrons
+20034 60 oignon
+11104 20 sauce soja
+11018 10 vinaigre
+31008 8 miel
+9119 100 riz
+17130 10 huile de colza
+: Cuire le riz
+: Saisir le porc en lanières dans l'huile 3 minutes
+: Ajouter l'oignon, les poivrons et l'ananas en morceaux, sauter 4 minutes
+: Ajouter la sauce soja, le vinaigre et le miel, laquer 1 minute
+
+= Curry vert de légumes et crevettes | LUNCH,DINNER,HEALTHY | 2
+10021 220 crevettes crues
+20020 200 courgette
+20061 150 haricots verts
+20173 100 pois gourmands
+18041 120 lait de coco
+11094 10 coriandre
+11074 8 gingembre frais
+20151 10 piment vert
+11194 10 nuoc-mâm
+9119 100 riz
+: Cuire le riz
+: Faire revenir le gingembre et le piment hachés, verser le lait de coco et 100 ml d'eau
+: Ajouter les légumes, cuire 6 minutes, puis les crevettes 3 minutes
+: Assaisonner de nuoc-mâm et de coriandre
+
+= Galettes de lentilles et carottes au four | LUNCH,DINNER,HEALTHY | 3
+20589 400 lentilles corail cuites
+20009 200 carottes
+22000 120 oeufs
+9580 40 farine de pois chiche
+11042 2 cumin
+11094 10 coriandre
+19860 120 yaourt à la grecque
+20031 100 laitue
+11058 2 sel
+: Râper les carottes et les mélanger aux lentilles écrasées, aux œufs, à la farine, au cumin, à la coriandre et au sel
+: Former des galettes sur une plaque recouverte de papier cuisson
+: Cuire 25 minutes à 200 °C en les retournant à mi-cuisson
+: Servir avec le yaourt et la salade
+
+= Filet mignon, purée de patate douce et haricots verts | LUNCH,DINNER,HEALTHY | 3
+28204 450 filet mignon de porc
+4101 600 patates douces
+20061 300 haricots verts
+11013 15 moutarde
+11070 3 thym
+19033 60 lait demi-écrémé
+11058 3 sel
+: Badigeonner le filet de moutarde et de thym, le rôtir 30 minutes à 190 °C
+: Cuire les patates douces 20 minutes à l'eau, les écraser avec le lait et le sel
+: Cuire les haricots verts 8 minutes
+: Trancher le filet et servir
+
+= Moules marinières légères | LUNCH,DINNER,HEALTHY | 2
+10014 1200 moules
+20097 60 échalotes
+5215 100 vin blanc
+11014 15 persil
+11000 4 ail
+11015 1 poivre
+: Gratter et laver les moules
+: Faire suer les échalotes et l'ail hachés dans une grande cocotte avec un peu d'eau
+: Ajouter les moules et le vin blanc, couvrir et cuire 6 minutes en secouant
+: Poivrer et parsemer de persil
+
+= Omelette aux épinards, champignons et feta | BREAKFAST,LUNCH,HEALTHY | 2
+22000 300 oeufs
+20059 150 épinards
+20056 150 champignons de Paris
+12066 50 feta
+11003 5 ciboulette
+17270 5 huile d'olive
+11015 1 poivre
+: Faire revenir les champignons dans l'huile, puis les épinards une minute
+: Battre les œufs avec le poivre
+: Verser sur les légumes et cuire à feu doux
+: Parsemer de feta et de ciboulette, plier l'omelette
+
+= Thon mi-cuit, wok de légumes et sésame | LUNCH,DINNER,HEALTHY | 2
+26053 280 thon albacore
+20173 150 pois gourmands
+20009 150 carotte
+20087 120 poivron rouge
+20183 100 pousses de soja
+11104 20 sauce soja
+15010 10 graines de sésame
+17400 5 huile de sésame
+17130 5 huile de colza
+: Enrober le thon de sésame
+: Le saisir 1 minute de chaque côté à feu très vif, puis le trancher
+: Faire sauter les légumes en lanières 4 minutes dans l'huile de colza
+: Ajouter la sauce soja et l'huile de sésame, servir avec le thon
+
+= Hachis parmentier léger à la patate douce | LUNCH,DINNER,HEALTHY | 4
+6250 500 steak haché 5 %
+4101 800 patates douces
+20009 200 carottes
+20034 120 oignon
+20260 200 coulis de tomate
+19033 100 lait demi-écrémé
+12118 40 emmental râpé
+11058 3 sel
+: Cuire les patates douces 20 minutes à l'eau et les écraser avec le lait et un peu de sel
+: Faire revenir l'oignon et les carottes râpées, ajouter le bœuf et le coulis, cuire 10 minutes
+: Étaler la viande dans un plat, couvrir de purée et d'emmental
+: Gratiner 20 minutes à 200 °C
+
+= Brochettes de poulet citronnées et taboulé de chou-fleur | LUNCH,DINNER,HEALTHY | 2
+36017 300 filets de poulet
+20016 300 chou-fleur
+20385 150 tomates
+20019 150 concombre
+11014 15 persil
+11027 10 menthe
+13009 60 citron
+17270 15 huile d'olive
+11058 2 sel
+: Mariner le poulet en cubes 15 minutes avec la moitié du citron, la moitié de l'huile et le sel, puis le piquer sur des brochettes
+: Griller les brochettes 12 minutes en les tournant
+: Râper le chou-fleur cru en semoule et le mélanger aux légumes en dés, aux herbes, au reste du citron et de l'huile
+: Servir ensemble
+
+= Saumon laqué au miso et riz sauvage | LUNCH,DINNER,HEALTHY | 2
+26036 260 saumon
+20916 20 miso
+31008 8 miel
+11104 10 sauce soja
+9108 100 riz sauvage
+20340 200 pak choï
+15010 5 graines de sésame
+: Cuire le riz sauvage 40 minutes
+: Mélanger le miso, le miel et la sauce soja, en badigeonner le saumon
+: Cuire 10 minutes au four à 200 °C
+: Cuire le pak choï 3 minutes à la vapeur et servir avec le riz et le sésame
+
+= Courge spaghetti bolognaise de dinde | LUNCH,DINNER,HEALTHY | 2
+20145 800 courge spaghetti
+36304 250 escalope de dinde hachée
+20260 300 coulis de tomate
+20034 60 oignon
+11000 4 ail
+11035 2 origan
+12120 15 parmesan
+11058 2 sel
+: Couper la courge en deux, la vider et la cuire 40 minutes à 200 °C face coupée sur la plaque
+: Faire revenir l'oignon et l'ail, ajouter la dinde puis le coulis, l'origan et le sel, mijoter 15 minutes
+: Gratter la chair de la courge à la fourchette en filaments
+: Servir avec la sauce et le parmesan
+
+= Wok de crevettes, ananas et riz complet | LUNCH,DINNER,HEALTHY | 2
+10021 250 crevettes crues
+13002 150 ananas
+20087 120 poivron rouge
+20084 100 petits pois surgelés
+9102 100 riz complet
+22000 60 oeuf
+11104 20 sauce soja
+20034 60 oignon
+17130 10 huile de colza
+: Cuire le riz complet 30 minutes la veille ou le refroidir
+: Sauter l'oignon et le poivron 3 minutes dans l'huile, puis les crevettes 2 minutes
+: Ajouter le riz, les petits pois et l'ananas, puis l'œuf battu en remuant
+: Assaisonner de sauce soja
+
+= Rôti de dinde aux herbes et légumes rôtis | LUNCH,DINNER,HEALTHY | 4
+36304 700 rôti de dinde
+20009 400 carottes
+20181 300 panais
+20238 150 oignons rouges
+11070 3 thym
+11068 3 romarin
+17270 20 huile d'olive
+11058 3 sel
+: Disposer la dinde et les légumes en morceaux dans un plat
+: Arroser d'huile, parsemer d'herbes et de sel
+: Rôtir 50 minutes à 190 °C en arrosant de temps en temps
+: Laisser reposer 10 minutes avant de trancher
+
+= Steak, bâtonnets de patate douce au four et salade | LUNCH,DINNER,HEALTHY | 2
+6206 300 rumsteck
+4101 450 patates douces
+20272 100 mesclun
+11049 2 paprika
+17270 15 huile d'olive
+11091 10 vinaigre balsamique
+11058 2 sel
+: Couper les patates douces en bâtonnets, les enrober de la moitié de l'huile et du paprika
+: Les cuire 30 minutes au four à 220 °C en les retournant
+: Saisir les steaks 2 à 3 minutes de chaque côté, saler
+: Servir avec la salade assaisonnée du reste d'huile et du balsamique
+
+= Couscous de légumes et pois chiches | LUNCH,DINNER,HEALTHY | 4
+9681 200 semoule
+20532 300 pois chiches égouttés
+20009 300 carottes
+20020 300 courgettes
+20064 200 navets
+20137 400 tomates pelées
+20034 100 oignon
+11041 6 bouillon de légumes
+11042 3 cumin
+11112 10 harissa
+: Faire revenir l'oignon avec le cumin dans un peu d'eau
+: Ajouter les légumes en gros morceaux, les tomates, le bouillon et 800 ml d'eau, cuire 30 minutes
+: Ajouter les pois chiches 10 minutes avant la fin
+: Servir avec la semoule gonflée et la harissa à part
+
+= Merlu à la tomate et au fenouil | LUNCH,DINNER,HEALTHY | 2
+26044 300 merlu
+20028 250 fenouil
+20137 300 tomates pelées
+20034 60 oignon
+11000 4 ail
+13032 25 olives noires
+17270 10 huile d'olive
+4008 300 pommes de terre
+: Faire revenir l'oignon, l'ail et le fenouil émincés dans l'huile 8 minutes
+: Ajouter les tomates et les olives, mijoter 10 minutes
+: Poser le poisson sur la sauce, couvrir et cuire 8 minutes
+: Servir avec les pommes de terre cuites à l'eau
+
+= Quiche sans pâte aux légumes et thon | LUNCH,DINNER,HEALTHY | 4
+22000 240 oeufs
+19644 250 fromage blanc 0 %
+26039 140 thon au naturel
+20020 250 courgette
+20041 150 poivron
+20034 60 oignon
+12118 40 emmental râpé
+9440 30 farine
+11058 2 sel
+: Faire revenir les légumes en dés 8 minutes
+: Battre les œufs avec le fromage blanc, la farine et le sel
+: Ajouter les légumes, le thon émietté et l'emmental
+: Verser dans un moule et cuire 35 minutes à 180 °C
+
+= Poulet au paprika, poivrons et riz complet | LUNCH,DINNER,HEALTHY | 3
+36017 450 filets de poulet
+20087 300 poivrons rouges
+20034 120 oignon
+20137 400 tomates pelées
+11049 6 paprika
+19436 60 crème légère
+9102 150 riz complet
+11058 3 sel
+: Cuire le riz complet 30 minutes
+: Faire revenir l'oignon et les poivrons en lanières avec le paprika
+: Ajouter le poulet en morceaux, les tomates et le sel, mijoter 20 minutes
+: Ajouter la crème légère et servir avec le riz
+
+= Tagine de légumes, abricots et pois chiches | LUNCH,DINNER,HEALTHY | 4
+20532 400 pois chiches égouttés
+20009 300 carottes
+4101 400 patates douces
+20020 300 courgettes
+13001 60 abricots secs
+20034 150 oignon
+11042 3 cumin
+11025 2 cannelle
+11094 15 coriandre
+11041 6 bouillon de légumes
+: Faire revenir l'oignon avec les épices dans un peu d'eau
+: Ajouter les légumes en morceaux, les abricots, le bouillon et 500 ml d'eau
+: Mijoter 30 minutes à couvert, ajouter les pois chiches 10 minutes avant la fin
+: Parsemer de coriandre
+
+= Pavé de saumon, lentilles beluga et poireaux | LUNCH,DINNER,HEALTHY | 2
+26036 260 saumon
+20585 120 lentilles
+20039 300 poireaux
+11013 10 moutarde
+19436 40 crème légère
+11058 2 sel
+: Cuire les lentilles 20 minutes
+: Faire fondre les poireaux émincés 10 minutes avec un peu d'eau, puis ajouter la crème et la moutarde
+: Cuire le saumon 4 minutes de chaque côté à la poêle
+: Servir le saumon sur les lentilles et la fondue de poireaux
+
+= Burger maison léger au poulet et galette complète | LUNCH,DINNER,HEALTHY | 2
+36017 260 filets de poulet
+7110 120 pain complet
+20385 120 tomate
+20031 40 laitue
+20238 30 oignon rouge
+19860 60 yaourt à la grecque
+11013 10 moutarde
+11049 2 paprika
+11058 1 sel
+: Aplatir les filets et les assaisonner de paprika et de sel
+: Les griller 5 minutes de chaque côté
+: Mélanger le yaourt et la moutarde
+: Monter les burgers dans le pain complet grillé avec la sauce, la salade, la tomate et l'oignon
+
+= Gnocchis de patate douce, sauge et épinards | LUNCH,DINNER,HEALTHY | 2
+26264 300 gnocchis
+20059 200 épinards
+20172 150 tomates cerises
+12120 20 parmesan
+11000 3 ail
+17270 10 huile d'olive
+15041 15 amandes effilées
+: Cuire les gnocchis à l'eau bouillante jusqu'à ce qu'ils remontent
+: Faire revenir l'ail dans l'huile, ajouter les tomates puis les épinards
+: Ajouter les gnocchis égouttés et les dorer 2 minutes
+: Servir avec le parmesan et les amandes
+
+= Fajitas de poulet aux légumes, tortillas complètes | LUNCH,DINNER,HEALTHY | 2
+36017 280 filets de poulet
+20041 250 poivrons
+20238 100 oignon rouge
+7815 120 tortillas
+19860 60 yaourt à la grecque
+13004 60 avocat
+11042 2 cumin
+11049 3 paprika
+2031 15 jus de citron vert
+17130 10 huile de colza
+: Émincer le poulet, les poivrons et l'oignon
+: Faire sauter le tout 8 minutes à feu vif dans l'huile avec les épices
+: Arroser de citron vert
+: Garnir les tortillas chaudes avec le poulet, le yaourt et l'avocat
+
+= Soupe-repas miso, tofu, champignons et nouilles | LUNCH,DINNER,HEALTHY | 2
+20904 200 tofu
+20916 40 miso
+20212 150 shiitakés cuits
+9900 80 vermicelles de riz
+20340 150 pak choï
+20999 4 wakamé
+11003 5 ciboulette
+18066 800 eau
+: Porter l'eau à frémissement, ajouter le wakamé et les champignons
+: Ajouter les nouilles et le pak choï, cuire 4 minutes
+: Hors du feu, délayer le miso dans un peu de bouillon et le remettre
+: Ajouter le tofu en dés et la ciboulette
+
+= Clafoutis salé de tomates cerises et chèvre | LUNCH,DINNER,HEALTHY | 4
+22000 240 oeufs
+19033 250 lait demi-écrémé
+9440 60 farine
+20172 400 tomates cerises
+12805 80 chèvre frais
+11033 10 basilic
+11058 2 sel
+: Battre les œufs avec la farine, puis le lait et le sel
+: Répartir les tomates et le chèvre émietté dans un plat
+: Verser la pâte et parsemer de basilic
+: Cuire 35 minutes à 180 °C
+
+= Cocotte de lapin à la moutarde et légumes | LUNCH,DINNER,HEALTHY | 4
+34001 800 lapin
+11013 40 moutarde
+20009 300 carottes
+20056 250 champignons de Paris
+20034 120 oignon
+5215 150 vin blanc
+11070 3 thym
+19436 60 crème légère
+11058 3 sel
+: Badigeonner le lapin de moutarde et le dorer dans une cocotte antiadhésive
+: Ajouter l'oignon, les carottes, les champignons, le vin, le thym et le sel
+: Mijoter 50 minutes à couvert
+: Ajouter la crème légère en fin de cuisson
+
+= Buddha bowl chaud de légumes rôtis et tofu | LUNCH,DINNER,HEALTHY | 2
+20904 220 tofu ferme
+20138 350 courge butternut
+20058 200 choux de Bruxelles
+20238 60 oignon rouge
+9340 90 quinoa
+15203 20 tahin
+13009 30 citron
+17270 15 huile d'olive
+11058 2 sel
+: Rôtir la courge en cubes, les choux de Bruxelles coupés en deux, l'oignon et le tofu 30 minutes à 200 °C avec l'huile et le sel
+: Cuire le quinoa 12 minutes
+: Délayer le tahin avec le jus du citron et un peu d'eau
+: Dresser et napper de sauce
+
+= Pâtes complètes au thon, tomates et câpres | LUNCH,DINNER,HEALTHY | 2
+9877 350 pâtes semi-complètes cuites
+26039 140 thon au naturel
+20137 300 tomates pelées
+13032 30 olives noires
+20034 50 oignon
+11000 4 ail
+11014 10 persil
+17270 10 huile d'olive
+: Faire revenir l'oignon et l'ail dans l'huile
+: Ajouter les tomates et les olives, mijoter 10 minutes
+: Ajouter le thon émietté et les pâtes chaudes
+: Parsemer de persil
+
+= Blanquette de poulet légère aux champignons | LUNCH,DINNER,HEALTHY | 4
+36017 600 filets de poulet
+20009 300 carottes
+20056 250 champignons de Paris
+20034 120 oignon
+11174 6 bouillon de volaille
+19436 100 crème légère
+9510 15 fécule de maïs
+13009 30 citron
+9119 200 riz basmati
+: Cuire le poulet en morceaux 25 minutes dans 800 ml d'eau avec le bouillon, l'oignon et les carottes
+: Ajouter les champignons 10 minutes avant la fin
+: Prélever 300 ml de bouillon, le lier avec la fécule et la crème, puis ajouter le citron et remettre sur le poulet
+: Servir avec le riz
+
+= Endives au jambon de poulet, béchamel légère | LUNCH,DINNER,HEALTHY | 3
+20026 600 endives
+28963 180 jambon de poulet
+19033 400 lait demi-écrémé
+9510 30 fécule de maïs
+12118 40 emmental râpé
+11048 1 muscade
+11058 2 sel
+: Cuire les endives 20 minutes à la vapeur et bien les égoutter
+: Chauffer le lait, le lier avec la fécule, ajouter la muscade et le sel
+: Rouler chaque endive dans une tranche de jambon et les ranger dans un plat
+: Napper de sauce, parsemer d'emmental et gratiner 20 minutes à 200 °C

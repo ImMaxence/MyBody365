@@ -1,4 +1,5 @@
 import { Grade, drinkScore } from './nutriscore';
+import { healthScore } from './health';
 
 /**
  * Everyday drinks by estimate: a coffee, a tea, an infusion, a matcha, a hot chocolate, with the milk (which one
@@ -140,7 +141,7 @@ export interface DrinkChoice {
 }
 
 /** the whole cup: its values, its volume and its grade (beverages' scale, per 100 ml) */
-export function drinkTotal(d: HotDrink, c: DrinkChoice): Part & { milkMl: number; grade: Grade } {
+export function drinkTotal(d: HotDrink, c: DrinkChoice): Part & { milkMl: number; grade: Grade; health: number | null } {
   const f = d.formats.find((x) => x.key === c.format) ?? d.formats[0];
   const milkMl = f.milkMl + (c.dash && d.dash && !f.milkMl ? DASH_ML : 0);
   const milk = MILKS[c.milk];
@@ -173,5 +174,17 @@ export function drinkTotal(d: HotDrink, c: DrinkChoice): Part & { milkMl: number
     fiberG: total.fiberG * per,
     proteinG: total.proteinG * per,
   });
-  return { ...total, grade };
+  // 1.13: the health score on the drinks' scale (a coffee, a tea: 10; sugar and syrup take points away)
+  const health =
+    healthScore({
+      kcal: total.kcal * per,
+      proteinG: total.proteinG * per,
+      sugarsG: total.sugarsG * per,
+      fatG: total.fatG * per,
+      satFatG: total.satFatG * per,
+      saltG: total.saltG * per,
+      fiberG: total.fiberG * per,
+      drink: true,
+    })?.score ?? null;
+  return { ...total, grade, health };
 }

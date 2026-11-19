@@ -6,6 +6,7 @@ import { HapticDirective } from '../core/ui/haptics';
 import { AvatarImgComponent } from './avatar-img.component';
 import { IconComponent } from './icon.component';
 import { NutriscoreComponent } from './nutriscore.component';
+import { HealthScoreComponent } from './health-score.component';
 import type { Grade } from '../core/api/models';
 
 const SLOT_EMOJI: Record<string, string> = { BREAKFAST: '🥣', LUNCH: '🥗', DINNER: '🍲', SNACK: '🍎' };
@@ -17,7 +18,7 @@ const SLOT_EMOJI: Record<string, string> = { BREAKFAST: '🥣', LUNCH: '🥗', D
 @Component({
   selector: 'app-post-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, AvatarImgComponent, NutriscoreComponent, HapticDirective],
+  imports: [TranslatePipe, IconComponent, AvatarImgComponent, NutriscoreComponent, HealthScoreComponent, HapticDirective],
   template: `
     @let p = post();
     <article class="post card" [class.progress]="p.kind === 'PROGRESS'">
@@ -86,7 +87,10 @@ const SLOT_EMOJI: Record<string, string> = { BREAKFAST: '🥣', LUNCH: '🥗', D
             <li>
               <span class="slot" aria-hidden="true">{{ slotEmoji(l.slot) }}</span>
               <span class="name">{{ l.name }}</span>
-              @if (l.nutriscore) {
+              <!-- 1.13: the health score; a day shared before has its Nutri-Score -->
+              @if (l.health != null) {
+                <app-health-score [score]="l.health" />
+              } @else if (l.nutriscore) {
                 <app-nutriscore [grade]="grade(l.nutriscore)" />
               }
               <span class="num muted">{{ i18n.number(l.kcal) }}</span>
@@ -247,6 +251,7 @@ const SLOT_EMOJI: Record<string, string> = { BREAKFAST: '🥣', LUNCH: '🥗', D
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    .lines app-health-score,
     .lines app-nutriscore {
       width: 40px;
     }

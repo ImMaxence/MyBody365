@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
-import { DRINKS, Dish, FRIES, Portion, SHARES, dish, estimate, gradeOf, part, withChoice } from '../../core/meals/fast-food';
+import { DRINKS, Dish, FRIES, Portion, SHARES, dish, estimate, healthOf, part, withChoice } from '../../core/meals/fast-food';
+import { healthBand } from '../../core/meals/health';
 import type { Grade } from '../../core/meals/nutriscore';
-import { NutriscoreComponent } from '../../shared/nutriscore.component';
+import { HealthScoreComponent } from '../../shared/health-score.component';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { closeSheet } from '../../core/ui/sheets';
@@ -19,6 +20,8 @@ export interface EstimatedItem {
   saltG?: number;
   fiberG?: number;
   nutriscore?: Grade;
+  /** 1.13: the estimated health score, out of 10 */
+  health?: number | null;
 }
 
 /** the look of the estimate sheets (fast food, drinks): choices as cards and chips, the total */
@@ -73,6 +76,35 @@ export const ESTIMATE_STYLES = `
       font-size: 11px;
       font-weight: 800;
       color: #fff;
+    }
+    /* 1.13: the health score of an option, on the tint of its band */
+    .hs {
+      display: inline-grid;
+      place-items: center;
+      min-width: 26px;
+      height: 20px;
+      padding: 0 5px;
+      flex: none;
+      align-self: center;
+      border-radius: 999px;
+      font: 800 11px var(--font-ui);
+      font-style: normal;
+      --hs: #1f9d55;
+      /* opaque, and the text half-way to the ink: readable on a chosen chip too (contrast 4.5:1) */
+      background: color-mix(in srgb, var(--hs) 16%, var(--surface));
+      color: color-mix(in srgb, var(--hs) 50%, var(--fg));
+    }
+    .hs[data-band='good'] {
+      --hs: #5fae2e;
+    }
+    .hs[data-band='fair'] {
+      --hs: #d19a00;
+    }
+    .hs[data-band='weak'] {
+      --hs: #e2711d;
+    }
+    .hs[data-band='poor'] {
+      --hs: #e5484d;
     }
     .ns[data-g='a'] {
       background: #038141;
@@ -169,7 +201,7 @@ export const ESTIMATE_STYLES = `
 @Component({
   selector: 'app-fast-food-sheet',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NutriscoreComponent, TranslatePipe, IconComponent],
+  imports: [HealthScoreComponent, TranslatePipe, IconComponent],
   template: `
     <dialog class="sheet" #dialog [attr.aria-label]="d() ? ('meals.quick.dishes.' + d()!.key | t) : ''">
       <div class="sheet-grip"></div>
@@ -187,8 +219,9 @@ export const ESTIMATE_STYLES = `
                 <span class="opt-name">{{ 'meals.estimate.formats.' + dish.key + '.' + f.key | t }}</span>
                 <span class="opt-foot">
                   <span class="opt-kcal num">≈ {{ i18n.number(chosen(f).kcal) }} kcal</span>
-                  @if (grade(chosen(f)); as g) {
-                    <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
+                  @let h = health(chosen(f), 'main');
+                  @if (h != null) {
+                    <i class="hs" [attr.data-band]="band(h)" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: i18n.number(h, 1) }">{{ i18n.number(h, h % 1 ? 1 : 0) }}</i>
                   }
                 </span>
               </button>
@@ -229,8 +262,9 @@ export const ESTIMATE_STYLES = `
                   @if (f.kcal) {
                     <small class="num">{{ i18n.number(f.kcal) }}</small>
                   }
-                  @if (grade(f); as g) {
-                    <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
+                  @let h = health(f, 'fries');
+                  @if (h != null) {
+                    <i class="hs" [attr.data-band]="band(h)" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: i18n.number(h, 1) }">{{ i18n.number(h, h % 1 ? 1 : 0) }}</i>
                   }
                 </button>
               }
@@ -243,8 +277,9 @@ export const ESTIMATE_STYLES = `
               @for (x of dish.extras; track x.key) {
                 <button type="button" class="chip-opt" [attr.aria-pressed]="extras().includes(x.key)" (click)="toggle(x.key)">
                   {{ 'meals.estimate.extraNames.' + x.key | t }} <small class="num">+{{ i18n.number(x.kcal) }}</small>
-                  @if (grade(x); as g) {
-                    <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
+                  @let h = health(x, 'extra');
+                  @if (h != null) {
+                    <i class="hs" [attr.data-band]="band(h)" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: i18n.number(h, 1) }">{{ i18n.number(h, h % 1 ? 1 : 0) }}</i>
                   }
                 </button>
               }
@@ -259,8 +294,9 @@ export const ESTIMATE_STYLES = `
                 @if (x.kcal > 1) {
                   <small class="num">{{ i18n.number(x.kcal) }}</small>
                 }
-                @if (grade(x); as g) {
-                  <i class="ns" [attr.data-g]="g" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: g.toUpperCase() }">{{ g.toUpperCase() }}</i>
+                @let h = health(x, 'drink');
+                  @if (h != null) {
+                  <i class="hs" [attr.data-band]="band(h)" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: i18n.number(h, 1) }">{{ i18n.number(h, h % 1 ? 1 : 0) }}</i>
                 }
               </button>
             }
@@ -275,10 +311,10 @@ export const ESTIMATE_STYLES = `
             <p class="tiny muted num">
               {{ 'meals.estimate.macros' | t: { p: i18n.number(result().total.proteinG), c: i18n.number(result().total.carbsG), f: i18n.number(result().total.fatG) } }}
             </p>
-            @if (result().grade; as g) {
+            @if (result().health != null) {
               <div class="total-ns">
                 <span class="small">{{ 'meals.estimate.mealGrade' | t }}</span>
-                <app-nutriscore [grade]="g" [estimated]="true" />
+                <app-health-score [score]="result().health!" />
               </div>
             }
           </section>
@@ -320,7 +356,7 @@ export class FastFoodSheetComponent {
     const d = this.d();
     return d
       ? estimate(d, this.format(), this.fries(), this.extras(), this.drink(), this.choice() || undefined, this.share())
-      : { lines: [], total: { key: 'total', kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 }, grade: null };
+      : { lines: [], total: { key: 'total', kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 }, grade: null, health: null };
   });
 
   open(key: string): void {
@@ -341,8 +377,14 @@ export class FastFoodSheetComponent {
     closeSheet(this.dialog().nativeElement);
   }
 
-  protected grade(x: Portion): Grade | null {
-    return gradeOf(x);
+  /** 1.13: the health score of an option (0 counts: a « 0 » shows) */
+  protected health(x: Portion, kind: 'main' | 'fries' | 'extra' | 'drink'): number | null {
+    const h = healthOf(x, kind, this.d()?.key);
+    return h;
+  }
+
+  protected band(h: number): string {
+    return healthBand(h);
   }
 
   /** a format as chosen (without its cheese sauce, on a cream base…) */
@@ -393,6 +435,7 @@ export class FastFoodSheetComponent {
         saltG: l.portion.saltG,
         fiberG: l.portion.fiberG,
         nutriscore: l.grade ?? undefined,
+        health: l.health,
       })),
     );
   }

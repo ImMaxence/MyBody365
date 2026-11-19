@@ -46,7 +46,7 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
         <div class="about-copy">
           <p class="small">{{ 'meals.sources.' + source() + '.page' | t }}</p>
           <p class="tiny muted fresh">
-            <app-icon name="refresh" [size]="13" />
+            <app-icon name="refresh" [size]="17" />
             @if (freshness(); as f) {
               {{ f }}
             } @else {
@@ -113,10 +113,17 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
     .about-copy p {
       margin: 0;
     }
+    /* 1.13: the date on its own line under the text, the icon as tall as the line */
     .fresh {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
+    }
+    .fresh app-icon {
+      flex: none;
+      align-self: flex-start;
+      margin-top: 1px;
+      color: var(--fg-2);
     }
     .line {
       display: inline-block;
@@ -188,12 +195,10 @@ export class FoodSourcePage {
     this.current = { id: f.id, name: f.name, base: f.per100 };
     this.sheet().open({
       name: f.name,
-      detail: f.brand ?? f.category ?? this.i18n.t('meals.search.sources.' + f.source),
+      detail: [f.brand, f.quantity].filter(Boolean).join(' · ') || f.category || this.i18n.t('meals.search.sources.' + f.source),
       unit: 'g',
       base: f.per100,
       servingG: f.servingG,
-      nutriscore: f.nutriscore,
-      estimated: f.nutriscoreEstimated,
       food: f,
       day: this.day(),
     });

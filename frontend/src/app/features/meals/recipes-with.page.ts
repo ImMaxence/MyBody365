@@ -8,7 +8,7 @@ import { MealsApi } from '../../core/meals/meals-api';
 import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
-import { NutriscoreComponent } from '../../shared/nutriscore.component';
+import { HealthScoreComponent } from '../../shared/health-score.component';
 import { TYPE_EMOJI } from './recipes.page';
 
 const MAX = 6;
@@ -32,7 +32,7 @@ const plain = (s: string) =>
 @Component({
   selector: 'app-recipes-with',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, NutriscoreComponent],
+  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -102,8 +102,8 @@ const plain = (s: string) =>
                     </span>
                     <span class="list-sub">{{ i18n.number(f.recipe.perServing.kcal) }} kcal {{ 'meals.perServing' | t }}</span>
                   </span>
-                  @if (f.recipe.nutriscore) {
-                    <app-nutriscore [grade]="f.recipe.nutriscore" [estimated]="true" />
+                  @if (f.recipe.health) {
+                    <app-health-score [score]="f.recipe.health.score" />
                   }
                 </a>
               }

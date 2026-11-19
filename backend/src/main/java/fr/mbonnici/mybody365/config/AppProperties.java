@@ -114,5 +114,10 @@ public record AppProperties(
             /** the products kept from it: those sold in this country */
             @DefaultValue("en:france") String offCountry,
             /** with the local copy: a barcode it does not know yet is still asked live (false: never) */
-            @DefaultValue("true") boolean offLive) {}
+            @DefaultValue("true") boolean offLive,
+            /**
+             * 1.13: the local copy refreshes itself: at start when it predates the pictures and the product details (1.12,
+             * 1.13), then when it is a month old (false: only when an admin asks)
+             */
+            @DefaultValue("true") boolean offAutoRefresh) {}
 }

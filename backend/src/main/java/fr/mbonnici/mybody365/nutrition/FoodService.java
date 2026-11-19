@@ -34,7 +34,19 @@ public class FoodService {
     public record FoodDto(UUID id, Source source, String name, String brand, String category, Nutrients per100, String nutriscore,
             boolean nutriscoreEstimated, Double servingG, boolean mine,
             /** 1.12: a product's picture (through the server) and when Open Food Facts last changed its page */
-            String imageUrl, Instant dataUpdatedAt) {}
+            String imageUrl, Instant dataUpdatedAt,
+            /**
+             * 1.13: the health score and its reasons; a product's size, generic name and food group (to tell twenty « Biscoff »
+             * apart); measured in millilitres (a drink, a milk, a soup) and the millilitres of its can or bottle
+             */
+            Health health, String quantity, String genericName, String kind, boolean liquid, Integer packageMl, Integer nova) {}
+
+    /** 1.13: out of 10 by halves; what makes it good, what costs it points (codes the app words) */
+    public record Health(double score, List<String> pros, List<String> cons) {
+        public static Health of(HealthScore.Result r) {
+            return r == null ? null : new Health(r.score(), r.pros(), r.cons());
+        }
+    }
 
     public record FoodInput(
             @NotBlank @Size(max = 200) String name,
@@ -66,8 +78,81 @@ public class FoodService {
     }
 
     public FoodDto dto(Food f, UUID viewer) {
+        ProductInfo info = f.info() == null ? ProductInfo.NONE : f.info();
+        boolean liquid = HealthScore.liquid(f.source(), f.name(), f.category(), f.per100(), info);
         return new FoodDto(f.id(), f.source(), f.name(), f.brand(), f.category(), f.per100().rounded(), f.nutriscore(),
-                f.nutriscoreEstimated(), f.servingG(), viewer != null && viewer.equals(f.ownerId()), imageUrl(f), f.sourceUpdatedAt());
+                f.nutriscoreEstimated(), f.servingG(), viewer != null && viewer.equals(f.ownerId()), imageUrl(f), f.sourceUpdatedAt(),
+                Health.of(HealthScore.score(HealthScore.of(f))), info.quantity(), info.genericName(), info.pnns(), liquid,
+                liquid ? ProductInfo.millilitres(info.quantity()) : null, info.nova());
+    }
+
+    /** 1.13: a food's health score as a meal line keeps it (null when it cannot be judged) */
+    public static Double health(Food f) {
+        HealthScore.Result r = HealthScore.score(HealthScore.of(f));
+        return r == null ? null : r.score();
+    }
+
+    public static boolean liquid(Food f) {
+        return HealthScore.liquid(f.source(), f.name(), f.category(), f.per100(), f.info());
+    }
+
+    /**
+     * 1.13: the best of the candidates first: what this member eats often, what the members note the most, their own foods,
+     * a name starting with the first word or holding every word whole, a brand typed in the search; for the products, the
+     * most scanned and the complete ones (a picture, a brand, an official grade), never a page without its calories
+     */
+    List<Food> rank(List<Food> candidates, List<String> words, UUID viewer, int limit) {
+        Map<UUID, Integer> mine = viewer == null ? Map.of() : foods.usesBy(viewer, candidates.stream().map(Food::id).toList());
+        record Scored(Food f, double score) {}
+        List<Scored> scored = new ArrayList<>();
+        for (Food f : candidates) {
+            String name = SearchText.normalize(f.name());
+            List<String> nameWords = List.of(name.split(" "));
+            String brand = f.brand() == null ? "" : SearchText.normalize(f.brand());
+            List<String> brandWords = brand.isEmpty() ? List.of() : List.of(brand.split(" "));
+            double s = 3 * log2(1 + mine.getOrDefault(f.id(), 0)) + 1.5 * log2(1 + f.uses());
+            if (f.source() == Source.USER) {
+                s += 2;
+            }
+            if (!words.isEmpty() && name.startsWith(words.getFirst())) {
+                s += 3;
+            }
+            if (words.stream().allMatch(w -> nameWords.contains(w) || brandWords.contains(w))) {
+                s += 1.5;
+            }
+            if (words.stream().anyMatch(brandWords::contains)) {
+                s += 2.5;
+            }
+            if (f.source() == Source.OFF) {
+                ProductInfo info = f.info() == null ? ProductInfo.NONE : f.info();
+                s += 1.2 * Math.log10(1 + (info.scans() == null ? 0 : info.scans()));
+                s += f.imagePath() != null ? 0.8 : 0;
+                s += f.brand() != null ? 0.4 : 0;
+                s += f.nutriscore() != null && !f.nutriscoreEstimated() ? 0.3 : 0;
+                HealthScore.Input in = HealthScore.of(f);
+                if (f.per100().kcal() <= 0.5 && !in.water() && !in.drink()) {
+                    s -= 4;
+                }
+            }
+            s -= f.name().length() / 30.0;
+            scored.add(new Scored(f, s));
+        }
+        scored.sort(java.util.Comparator.comparingDouble(Scored::score).reversed());
+        return scored.stream().limit(limit).map(Scored::f).toList();
+    }
+
+    private static double log2(double v) {
+        return Math.log(v) / Math.log(2);
+    }
+
+    /** 1.13: every hour, how many members noted each food this year: the popularity the searches rank by */
+    @org.springframework.scheduling.annotation.Scheduled(initialDelayString = "PT2M", fixedDelayString = "PT1H")
+    public void countUses() {
+        try {
+            foods.countUses();
+        } catch (RuntimeException e) {
+            log.warn("Food popularity not counted", e);
+        }
     }
 
     /** the picture of a product through the server; the path in the URL changes with the picture, so it may be kept */
@@ -126,12 +211,14 @@ public class FoodService {
     /** the account's foods, Ciqual and the products already known, instantly */
     public List<FoodDto> searchLocal(UUID userId, String query) {
         // with the local copy, the products have their own list (below): "foods" stay the account's and Ciqual's
-        return foods.search(userId, SearchText.words(query), !offLocal.local(), 30).stream().map(f -> dto(f, userId)).toList();
+        List<String> words = SearchText.words(query);
+        return rank(foods.search(userId, words, !offLocal.local(), 90), words, userId, 30).stream().map(f -> dto(f, userId)).toList();
     }
 
     /** the account's foods and Ciqual, without any product (the page « Aliments bruts ») */
     public List<FoodDto> searchCiqual(UUID userId, String query) {
-        return foods.search(userId, SearchText.words(query), false, 40).stream().map(f -> dto(f, userId)).toList();
+        List<String> words = SearchText.words(query);
+        return rank(foods.search(userId, words, false, 120), words, userId, 40).stream().map(f -> dto(f, userId)).toList();
     }
 
     /**
@@ -149,7 +236,7 @@ public class FoodService {
             if (words.stream().noneMatch(w -> w.length() >= 3)) {
                 return List.of();
             }
-            return foods.searchOff(words, 25).stream().map(f -> dto(f, userId)).toList();
+            return rank(foods.searchOff(words, 200), words, userId, 40).stream().map(f -> dto(f, userId)).toList();
         }
         Cached c = searchCache.get(key);
         List<OpenFoodFacts.Product> products;
@@ -213,11 +300,14 @@ public class FoodService {
         if (existing.isPresent()) {
             foods.update(existing.get().id(), p.name(), p.brand(), p.per100(), grade, estimated, p.servingG());
             foods.productPage(existing.get().id(), p.imagePath() != null ? p.imagePath() : existing.get().imagePath(), p.modifiedAt());
+            if (p.info() != null) {
+                foods.productInfo(existing.get().id(), p.info());
+            }
             return foods.find(existing.get().id()).orElseThrow();
         }
         try {
             UUID id = foods.insert(Source.OFF, p.code(), null, null, p.name(), null, p.brand(), null, p.per100(), grade, estimated,
-                    p.servingG());
+                    p.servingG(), p.info() == null ? ProductInfo.NONE : p.info());
             foods.productPage(id, p.imagePath(), p.modifiedAt());
             return foods.find(id).orElseThrow();
         } catch (DuplicateKeyException e) {

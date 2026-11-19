@@ -444,6 +444,10 @@ public class BackupService {
                 if (v.get("name") == null || v.get("type") == null || v.get("servings") == null) {
                     continue;
                 }
+                // 1.13: a backup made before has no alcohol flag
+                if (v.get("alcohol") == null) {
+                    v.put("alcohol", false);
+                }
                 // its types (1.7): only the known ones, the main one at least; a backup made before has none
                 Object ts = v.get("types");
                 String known = ts == null ? "" : java.util.Arrays.stream(ts.toString().split(",")).map(String::strip)
@@ -586,6 +590,13 @@ public class BackupService {
                 v.put("recipe_id", recipe == null ? null : recipeIds.get(recipe.toString()));
                 if (v.get("created_at") == null) {
                     v.put("created_at", Timestamp.from(Instant.now()));
+                }
+                // 1.13: a backup made before has neither the health score nor the millilitres; a score is out of 10
+                if (v.get("liquid") == null) {
+                    v.put("liquid", false);
+                }
+                if (v.get("health") instanceof Number h && (h.doubleValue() < 0 || h.doubleValue() > 10)) {
+                    v.put("health", null);
                 }
                 insert("meal_entry", v, Map.of("id", UUID.randomUUID(), "user_id", userId));
                 meals++;

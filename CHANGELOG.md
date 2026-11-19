@@ -2,6 +2,32 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.13.0] - 2026-11-19
+
+Une note santé sur 10 à la place du Nutri-Score, les produits enfin faciles à distinguer, les boissons au verre, 200 recettes Healthy, une barre d'onglets qui s'efface quand tu fais défiler et une page Statistiques pour les admins
+
+### Ajouté
+- Une note santé sur 10, calculée par MyBody365, à la place du Nutri-Score : sur les produits, les aliments, les recettes, tes repas, les boissons, le fast-food et ce que tu montres à tes amis. Elle lit les nutriments comme le Nutri-Score, et ajoute ce qu'il oublie : les produits ultra-transformés, la friture, les édulcorants, les additifs, et la qualité des graisses. L'huile d'olive a 8,5, le beurre 1,5, des frites industrielles 2,5 à 5, des céréales au chocolat 3, un filet de poulet 9,5. Chaque fiche dit pourquoi (« Riche en fibres », « Ultra-transformé », « Beaucoup de sucre »…), et le Nutri-Score officiel d'un produit reste écrit en dessous
+- Un avertissement sur les produits riches en graisses saturées (ce sont elles qui font le plus monter le mauvais cholestérol), très sucrés ou très salés, avec le repère à retenir
+- Repas : « Bon à savoir », un conseil choisi d'après ta journée (trop de graisses saturées, de sucre ou de sel déjà), sinon un nouveau chaque jour. Tous les repères en un tap : les graisses saturées à limiter, faire baisser le mauvais cholestérol, le sucre (surtout celui qui se boit), le sel, les produits ultra-transformés, et 1 kg de graisse, c'est environ 7 700 kcal
+- Les boissons au verre : le lait, les jus, les sodas, les soupes se comptent en millilitres, avec une tasse (150 ml), un verre (200 ml), un mug (300 ml), un bol (400 ml) et la canette ou la bouteille du produit. Pour l'alcool, un verre, un demi ou une pinte
+- Produits industriels : la marque au-dessus du nom, puis ce que c'est (pâte à tartiner, biscuits, boisson sucrée…), la contenance du paquet et les calories, pour distinguer vingt « Biscoff » d'un coup d'œil. Les marques trouvées se choisissent en un tap, et une marque tapée dans la recherche (« lotus biscoff ») est reconnue toute seule
+- 200 recettes Healthy dans la communauté, 729 en tout : 50 bowls et salades (bowl patate douce et fromage blanc, dense bean salad, green goddess, poke, buddha bowl…), 50 plats (poulet et légumes sur une plaque, dahl, chili sin carne, boulettes de dinde, curry vert…), 50 petits-déjeuners, collations et desserts (baked oats, overnight oats, chia pudding, yogurt bark, nice cream, energy balls…) et 50 soupes, entrées et boissons sans alcool (gaspacho, pho, golden milk, lassi…). Toutes sont notées 6,5 sur 10 ou plus
+- Recettes : la catégorie « Healthy », en premier devant tous les autres filtres
+- Recettes de la communauté : 137 nouvelles photos libres de Wikimedia Commons, choisies une à une, pour les recettes Healthy et les anciennes qui n'en avaient pas. 602 recettes sur 729 ont maintenant la leur, les autres gardent leur dessin plutôt qu'une photo qui ne leur ressemble pas
+- La barre d'onglets glisse hors de l'écran quand tu fais défiler une page vers le bas, et revient dès que tu remontes un peu, comme sur YouTube. Elle est toujours là en haut d'une page et quand tu changes d'écran
+- Administration : une page Statistiques, avec ce que le projet prend sur le serveur. Le stockage (la base de données, les photos, la part du disque), la mémoire et le processeur de l'app, du stockage des photos et du serveur entier, leurs courbes sur 24 heures, et quelques chiffres (comptes, aliments notés, photos, recettes)
+- Open Food Facts se met à jour tout seul : une fois par mois, et quelques minutes après cette nouvelle version, pour ramener la photo, la contenance et la catégorie de chaque produit
+
+### Modifié
+- La recherche montre les meilleurs résultats d'abord : ce que tu manges souvent, ce que les membres notent le plus, puis les produits les plus scannés et les plus complets (avec une photo et une marque). Une fiche sans calories passe à la fin
+- La note du jour juge la qualité de ce que tu as mangé avec la note santé moyenne de tes aliments, et les statistiques des repas montrent la note santé de tes calories
+- L'icône de la date de mise à jour des données, en haut des pages Produits industriels et Aliments bruts, est plus grande
+
+### Corrigé
+- Produits industriels : la page ne remonte plus tout en haut à chaque lettre tapée. La liste reste affichée pendant la recherche suivante, un peu estompée, au lieu de disparaître
+- La recherche des aliments est un vrai champ de recherche : la touche Rechercher du clavier le ferme
+
 ## [1.12.1] - 2026-11-19
 
 Des changements d'écran sans à-coup, les Nouveautés dans l'app et les poses sans photo expliquées

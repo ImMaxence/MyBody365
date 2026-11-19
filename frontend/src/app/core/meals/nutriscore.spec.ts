@@ -9,7 +9,8 @@ describe('nutriscore', () => {
     expect(nutriscore(ratatouille, 85)).toBe('a');
     expect(isFruitVeg('légumes')).toBe(true);
     expect(isFruitVeg('Légumineuses')).toBe(true);
-    expect(isFruitVeg('fruits à coque et graines oléagineuses')).toBe(false);
+    // 1.13: the nuts count too (the health score counts them, as fruit and vegetables)
+    expect(isFruitVeg('fruits à coque et graines oléagineuses')).toBe(true);
     expect(isFruitVeg(undefined)).toBe(false);
   });
 

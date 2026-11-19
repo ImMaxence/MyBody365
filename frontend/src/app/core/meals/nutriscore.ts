@@ -25,7 +25,7 @@ const PROTEIN = [2.4, 4.8, 7.2, 9.6, 12, 14, 17];
 const points = (v: number, thresholds: number[]) => thresholds.filter((t) => v > t).length;
 
 /** Ciqual's plain fruits, vegetables and legumes: what counts as fruit and vegetables in a recipe (as the server says) */
-const FRUIT_VEG = new Set(['fruits', 'légumes', 'légumineuses']);
+const FRUIT_VEG = new Set(['fruits', 'légumes', 'légumineuses', 'fruits à coque et graines oléagineuses']);
 
 export function isFruitVeg(category?: string | null): boolean {
   return !!category && FRUIT_VEG.has(category.trim().toLowerCase());

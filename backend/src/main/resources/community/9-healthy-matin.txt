@@ -1,0 +1,604 @@
+# Recettes de la communauté, 1.13 : Healthy, le matin, les collations et les desserts. Les stars des réseaux (baked
+# oats, overnight oats, pancakes protéinés, chia pudding, yogurt bark, energy balls, glace « nice cream »…) sans sucre
+# ajouté ou presque : des fruits, de l'avoine, des laitages riches en protéines, des fruits à coque.
+# Même format que les autres fichiers :
+#   = Nom | TYPES | parts
+#   code_ciqual grammes   (poids cru pour toute la recette ; le texte après les grammes n'est qu'un repère)
+#   : une étape
+
+= Baked oats myrtilles et banane | BREAKFAST,SNACK,HEALTHY | 2
+32140 100 flocons d'avoine
+13005 120 banane
+22000 60 oeuf
+19724 150 skyr
+13028 120 myrtilles
+11046 4 levure chimique
+11025 1 cannelle
+: Mixer les flocons, la banane, l'œuf, le skyr, la levure et la cannelle
+: Verser dans deux ramequins et enfoncer les myrtilles
+: Cuire 25 minutes à 180 °C
+: Laisser tiédir 5 minutes : le cœur reste fondant
+
+= Overnight oats pomme, cannelle et noix | BREAKFAST,HEALTHY | 2
+32140 90 flocons d'avoine
+19033 200 lait demi-écrémé
+19860 120 yaourt à la grecque
+13039 150 pomme
+15005 20 cerneaux de noix
+15047 10 graines de chia
+11025 2 cannelle
+: Mélanger les flocons, le lait, le yaourt, la chia et la cannelle
+: Répartir dans deux bocaux et laisser au réfrigérateur toute la nuit
+: Le matin, ajouter la pomme râpée
+: Parsemer de noix concassées
+
+= Pancakes protéinés banane et fromage blanc | BREAKFAST,SNACK,HEALTHY | 2
+32140 80 flocons d'avoine
+13005 120 banane
+22000 120 oeufs
+19644 150 fromage blanc 0 %
+11046 4 levure chimique
+13015 100 framboises
+17130 3 huile de colza
+: Mixer les flocons, la banane, les œufs, le fromage blanc et la levure
+: Cuire des petits pancakes 2 minutes de chaque côté dans une poêle à peine huilée
+: Servir avec les framboises
+: Ils se gardent 2 jours au réfrigérateur
+
+= Chia pudding mangue et coco | BREAKFAST,DESSERT,HEALTHY | 2
+15047 40 graines de chia
+18107 250 boisson à l'amande
+18041 50 lait de coco
+13025 200 mangue
+15007 10 noix de coco râpée
+: Mélanger la chia, la boisson à l'amande et le lait de coco
+: Laisser prendre au moins 4 heures au réfrigérateur, en remuant au bout de 10 minutes
+: Mixer la moitié de la mangue en coulis et couper le reste en dés
+: Servir le pudding avec la mangue et la noix de coco
+
+= Yogurt bark fruits rouges et chocolat noir | SNACK,DESSERT,HEALTHY | 4
+19724 400 skyr
+13014 150 fraises
+13015 80 framboises
+13028 80 myrtilles
+31085 30 chocolat noir
+31008 15 miel
+15000 20 amandes
+: Mélanger le skyr et le miel, l'étaler sur 1 cm d'épaisseur sur une plaque recouverte de papier cuisson
+: Parsemer des fruits coupés et des amandes concassées
+: Arroser de chocolat fondu et congeler 3 heures
+: Casser en morceaux et garder au congélateur
+
+= Energy balls cacahuète, avoine et cacao | SNACK,HEALTHY | 6
+32140 120 flocons d'avoine
+15202 60 beurre de cacahuète
+13011 60 dattes
+18100 15 cacao non sucré
+15047 10 graines de chia
+19033 40 lait demi-écrémé
+: Mixer les dattes dénoyautées avec le lait en purée
+: Mélanger avec les flocons, le beurre de cacahuète, le cacao et la chia
+: Former 18 boules entre les mains mouillées
+: Garder au réfrigérateur une semaine
+
+= Nice cream banane et beurre de cacahuète | DESSERT,SNACK,HEALTHY | 2
+13005 300 bananes bien mûres
+15202 20 beurre de cacahuète
+19033 40 lait demi-écrémé
+18100 5 cacao non sucré
+: Couper les bananes en rondelles et les congeler au moins 4 heures
+: Mixer les bananes congelées avec le lait jusqu'à une texture de glace
+: Ajouter le beurre de cacahuète et mixer encore quelques secondes
+: Servir aussitôt saupoudré de cacao
+
+= Bol de skyr, fruits rouges et granola maison | BREAKFAST,SNACK,HEALTHY | 2
+19724 300 skyr
+13015 100 framboises
+13028 100 myrtilles
+32140 40 flocons d'avoine
+15004 20 noisettes
+31034 10 sirop d'érable
+: Mélanger les flocons, les noisettes concassées et le sirop d'érable, les griller 10 minutes à 170 °C
+: Laisser refroidir pour qu'ils croustillent
+: Répartir le skyr dans deux bols, ajouter les fruits
+: Parsemer de granola
+
+= Muffins aux œufs, épinards et poivrons | BREAKFAST,SNACK,HEALTHY | 6
+22000 360 oeufs
+20059 100 épinards
+20087 120 poivron rouge
+20238 40 oignon rouge
+12066 50 feta
+19033 60 lait demi-écrémé
+11015 1 poivre
+: Battre les œufs avec le lait et le poivre
+: Ajouter les épinards hachés, le poivron et l'oignon en petits dés, et la feta émiettée
+: Répartir dans 12 moules à muffins
+: Cuire 20 minutes à 180 °C : ils se gardent 3 jours
+
+= Tartine avocat, œuf poché et graines | BREAKFAST,LUNCH,HEALTHY | 2
+7110 100 pain complet
+13004 120 avocat
+22000 120 oeufs
+2028 10 jus de citron
+15064 10 graines de courge
+11088 1 piment de Cayenne
+11058 1 sel
+: Griller le pain complet
+: Écraser l'avocat avec le citron et le sel
+: Pocher les œufs 3 minutes dans l'eau frémissante
+: Tartiner, poser l'œuf, parsemer de graines et de piment
+
+= Porridge protéiné cacao et banane | BREAKFAST,HEALTHY | 2
+32140 90 flocons d'avoine
+19033 350 lait demi-écrémé
+19724 100 skyr
+13005 120 banane
+18100 10 cacao non sucré
+15202 15 beurre de cacahuète
+: Cuire les flocons dans le lait 5 minutes en remuant
+: Hors du feu, ajouter le cacao et le skyr
+: Répartir dans deux bols
+: Ajouter la banane en rondelles et le beurre de cacahuète
+
+= Smoothie bowl vert kiwi, épinards et banane | BREAKFAST,SNACK,HEALTHY | 2
+13021 200 kiwis
+20059 60 épinards
+13005 150 banane
+19860 150 yaourt à la grecque
+18107 100 boisson à l'amande
+32140 30 flocons d'avoine
+15047 10 graines de chia
+: Mixer la banane, la moitié des kiwis, les épinards, le yaourt et la boisson à l'amande
+: Verser dans deux bols
+: Ajouter le reste des kiwis en rondelles
+: Parsemer de flocons et de chia
+
+= Crêpes de sarrasin, œuf et champignons | BREAKFAST,LUNCH,HEALTHY | 2
+9540 80 farine de sarrasin
+18066 180 eau
+22000 120 oeufs
+20056 150 champignons de Paris
+20059 80 épinards
+12805 40 chèvre frais
+11058 1 sel
+: Mélanger la farine, l'eau et le sel, laisser reposer 30 minutes
+: Faire revenir les champignons puis les épinards à la poêle
+: Cuire deux grandes galettes, casser un œuf sur chacune et cuire jusqu'à ce que le blanc soit pris
+: Ajouter les légumes et le chèvre, replier les bords
+
+= Barres d'avoine aux fruits secs, sans sucre ajouté | SNACK,HEALTHY | 8
+32140 200 flocons d'avoine
+13005 200 bananes mûres
+13001 60 abricots secs
+15000 50 amandes
+15064 30 graines de courge
+11025 2 cannelle
+: Écraser les bananes et les mélanger aux flocons, aux abricots coupés, aux amandes concassées, aux graines et à la cannelle
+: Tasser la pâte sur 2 cm dans un plat recouvert de papier cuisson
+: Cuire 25 minutes à 180 °C
+: Laisser refroidir avant de couper en barres
+
+= Fromage blanc, poire rôtie et noisettes | DESSERT,SNACK,HEALTHY | 2
+19644 300 fromage blanc 0 %
+13037 300 poires
+15004 20 noisettes
+31008 10 miel
+11025 1 cannelle
+: Couper les poires en quartiers et les rôtir 20 minutes à 190 °C avec la cannelle
+: Répartir le fromage blanc dans deux bols
+: Ajouter les poires tièdes et le miel
+: Parsemer de noisettes concassées
+
+= Gaufres protéinées à l'avoine | BREAKFAST,SNACK,HEALTHY | 3
+32140 100 flocons d'avoine
+22000 120 oeufs
+19644 200 fromage blanc 0 %
+13005 100 banane
+11046 5 levure chimique
+13014 200 fraises
+: Mixer les flocons, les œufs, le fromage blanc, la banane et la levure
+: Cuire la pâte dans un gaufrier chaud, 4 minutes par gaufre
+: Servir avec les fraises
+: Elles se réchauffent au grille-pain
+
+= Compote pomme-poire sans sucre et amandes | DESSERT,SNACK,HEALTHY | 4
+13039 500 pommes
+13037 400 poires
+11025 2 cannelle
+11098 5 extrait de vanille
+15041 30 amandes effilées
+18066 60 eau
+: Éplucher et couper les fruits en morceaux
+: Les cuire 20 minutes à couvert avec l'eau, la cannelle et la vanille
+: Écraser à la fourchette
+: Servir tiède ou froid avec les amandes grillées
+
+= Mousse au chocolat légère au skyr | DESSERT,HEALTHY | 4
+31085 60 chocolat noir
+19724 350 skyr
+22001 120 blancs d'oeufs
+11098 5 extrait de vanille
+13015 100 framboises
+: Faire fondre le chocolat et le mélanger au skyr et à la vanille
+: Monter les blancs en neige ferme
+: Incorporer délicatement les blancs au mélange
+: Laisser prendre 3 heures au réfrigérateur et servir avec les framboises
+
+= Cheesecake express en verrine, fromage blanc et fraises | DESSERT,HEALTHY | 4
+19644 400 fromage blanc 0 %
+13014 300 fraises
+24430 40 boudoirs
+13009 30 citron
+31008 20 miel
+11098 5 extrait de vanille
+: Émietter les boudoirs au fond de quatre verrines
+: Mélanger le fromage blanc, le miel, la vanille et le zeste du citron
+: Répartir sur les biscuits
+: Ajouter les fraises coupées et réserver au frais
+
+= Toast complet, fromage frais, saumon fumé et concombre | BREAKFAST,LUNCH,HEALTHY | 2
+7110 100 pain complet
+19644 100 fromage blanc 0 %
+26037 80 saumon fumé
+20019 100 concombre
+11093 4 aneth
+13009 15 citron
+: Griller le pain
+: Mélanger le fromage blanc, l'aneth et le jus du citron
+: Tartiner, ajouter le concombre en fines rondelles
+: Poser le saumon fumé
+
+= Granola maison aux noix et à l'érable | BREAKFAST,SNACK,HEALTHY | 8
+32140 250 flocons d'avoine
+15005 60 cerneaux de noix
+15000 50 amandes
+15064 40 graines de courge
+31034 50 sirop d'érable
+17130 20 huile de colza
+11025 3 cannelle
+: Mélanger les flocons, les noix et amandes concassées, les graines et la cannelle
+: Ajouter le sirop d'érable et l'huile, bien enrober
+: Étaler sur une plaque et cuire 25 minutes à 160 °C en remuant à mi-cuisson
+: Laisser refroidir pour qu'il croustille, garder en bocal
+
+= Pain perdu protéiné aux fruits rouges | BREAKFAST,HEALTHY | 2
+7110 120 pain complet
+22000 120 oeufs
+19033 100 lait demi-écrémé
+11025 1 cannelle
+19860 100 yaourt à la grecque
+13015 100 framboises
+13028 80 myrtilles
+: Battre les œufs avec le lait et la cannelle
+: Tremper les tranches de pain et les dorer 3 minutes de chaque côté dans une poêle antiadhésive
+: Servir avec le yaourt
+: Ajouter les fruits rouges
+
+= Œufs brouillés crémeux au fromage blanc et ciboulette | BREAKFAST,HEALTHY | 2
+22000 240 oeufs
+19644 60 fromage blanc 0 %
+11003 8 ciboulette
+7110 80 pain complet
+20172 120 tomates cerises
+11058 1 sel
+: Battre les œufs avec le sel
+: Les cuire à feu très doux en remuant sans cesse
+: Hors du feu, ajouter le fromage blanc et la ciboulette
+: Servir avec le pain grillé et les tomates
+
+= Pommes au four, flocons et cannelle | DESSERT,SNACK,HEALTHY | 4
+13039 600 pommes
+32140 40 flocons d'avoine
+15005 30 cerneaux de noix
+31008 15 miel
+11025 2 cannelle
+13046 20 raisins secs
+: Évider les pommes
+: Mélanger les flocons, les noix concassées, les raisins, le miel et la cannelle
+: Remplir les pommes et les poser dans un plat avec un fond d'eau
+: Cuire 35 minutes à 180 °C
+
+= Verrine skyr, mangue et passion | DESSERT,SNACK,HEALTHY | 2
+19724 250 skyr
+13025 200 mangue
+13016 60 fruit de la passion
+15007 8 noix de coco râpée
+: Couper la mangue en dés
+: Répartir la moitié du skyr dans deux verres, puis la mangue
+: Ajouter le reste de skyr et la pulpe de passion
+: Parsemer de coco
+
+= Bowl de fromage blanc, pêches et pistaches d'amandes | BREAKFAST,SNACK,HEALTHY | 2
+19644 300 fromage blanc 0 %
+13043 300 pêches
+15041 20 amandes effilées
+31008 10 miel
+11098 3 extrait de vanille
+: Mélanger le fromage blanc et la vanille
+: Couper les pêches en quartiers
+: Répartir dans deux bols
+: Ajouter les amandes grillées et le miel
+
+= Crumble léger aux fruits rouges et avoine | DESSERT,HEALTHY | 4
+13015 200 framboises
+13028 200 myrtilles
+13039 200 pomme
+32140 70 flocons d'avoine
+15000 30 amandes
+16400 20 beurre
+31017 20 sucre roux
+: Répartir les fruits dans un plat
+: Mélanger du bout des doigts les flocons, les amandes concassées, le beurre et le sucre
+: Parsemer sur les fruits
+: Cuire 30 minutes à 180 °C
+
+= Smoothie protéiné fraise et avoine | BREAKFAST,SNACK,HEALTHY | 2
+13014 250 fraises
+19724 200 skyr
+19033 200 lait demi-écrémé
+32140 30 flocons d'avoine
+13005 100 banane
+: Mettre tous les ingrédients dans le blender
+: Mixer jusqu'à ce que ce soit lisse
+: Ajouter un peu d'eau si c'est trop épais
+: Servir bien frais
+
+= Galettes de patate douce et œuf au petit-déjeuner | BREAKFAST,HEALTHY | 2
+4101 300 patates douces
+22000 180 oeufs
+9580 30 farine de pois chiche
+11003 5 ciboulette
+20059 80 épinards
+17270 10 huile d'olive
+11058 1 sel
+: Râper la patate douce et la mélanger avec un œuf, la farine, la ciboulette et le sel
+: Former quatre galettes et les dorer 4 minutes de chaque côté dans l'huile
+: Cuire les autres œufs au plat
+: Servir avec les épinards juste tombés
+
+= Brownie aux haricots rouges, sans farine | DESSERT,SNACK,HEALTHY | 8
+20524 400 haricots rouges égouttés
+22000 120 oeufs
+18100 40 cacao non sucré
+13011 120 dattes
+31085 50 chocolat noir
+15005 40 cerneaux de noix
+11046 4 levure chimique
+: Rincer les haricots
+: Mixer les haricots, les œufs, le cacao, les dattes et la levure jusqu'à une pâte lisse
+: Ajouter le chocolat haché et les noix
+: Cuire 25 minutes à 180 °C dans un moule carré
+
+= Clafoutis aux cerises léger | DESSERT,HEALTHY | 6
+13008 500 cerises
+22000 180 oeufs
+19033 300 lait demi-écrémé
+9440 60 farine
+31016 30 sucre
+11098 5 extrait de vanille
+: Battre les œufs avec le sucre, puis la farine, le lait et la vanille
+: Disposer les cerises dans un plat
+: Verser la pâte dessus
+: Cuire 40 minutes à 180 °C
+
+= Bircher muesli aux pommes et au yaourt | BREAKFAST,HEALTHY | 2
+32140 90 flocons d'avoine
+19593 250 yaourt nature
+13039 200 pomme
+2028 15 jus de citron
+15004 20 noisettes
+13046 15 raisins secs
+: Mélanger les flocons et le yaourt et laisser gonfler une nuit au frais
+: Le matin, râper la pomme et l'arroser de citron
+: L'ajouter aux flocons avec les raisins
+: Parsemer de noisettes concassées
+
+= Fraises, yaourt grec et basilic | DESSERT,SNACK,HEALTHY | 2
+13014 300 fraises
+19860 200 yaourt à la grecque
+11033 5 basilic
+11091 5 vinaigre balsamique
+31008 8 miel
+: Couper les fraises en quartiers
+: Les mélanger avec le balsamique et le basilic ciselé
+: Répartir le yaourt dans deux coupes
+: Ajouter les fraises et le miel
+
+= Cookies à la banane et à l'avoine | SNACK,HEALTHY | 6
+13005 250 bananes mûres
+32140 150 flocons d'avoine
+31085 40 chocolat noir
+15005 30 cerneaux de noix
+11025 2 cannelle
+: Écraser les bananes à la fourchette
+: Ajouter les flocons, la cannelle, le chocolat et les noix hachés
+: Former 12 petits tas sur une plaque recouverte de papier cuisson
+: Cuire 15 minutes à 180 °C
+
+= Bol tiède de quinoa au lait, pomme et cannelle | BREAKFAST,HEALTHY | 2
+9340 80 quinoa
+19033 350 lait demi-écrémé
+13039 150 pomme
+11025 2 cannelle
+15000 20 amandes
+31034 10 sirop d'érable
+: Rincer le quinoa et le cuire 20 minutes dans le lait à feu doux
+: Ajouter la pomme en dés et la cannelle 5 minutes avant la fin
+: Répartir dans deux bols
+: Ajouter les amandes concassées et le sirop d'érable
+
+= Petits flans coco et ananas | DESSERT,HEALTHY | 4
+22000 180 oeufs
+18041 50 lait de coco
+19033 300 lait demi-écrémé
+13002 250 ananas
+31008 15 miel
+: Battre les œufs avec le miel, puis les deux laits
+: Répartir l'ananas en dés dans quatre ramequins
+: Verser la crème dessus
+: Cuire 30 minutes à 160 °C au bain-marie, puis refroidir
+
+= Mug cake protéiné au cacao | SNACK,DESSERT,HEALTHY | 1
+32140 30 flocons d'avoine
+22000 60 oeuf
+19644 60 fromage blanc 0 %
+18100 8 cacao non sucré
+13005 60 banane
+11046 2 levure chimique
+: Mixer les flocons en farine
+: Mélanger tous les ingrédients dans une grande tasse
+: Cuire 90 secondes au micro-ondes
+: Laisser reposer une minute avant de déguster
+
+= Houmous de betterave et crudités | SNACK,HEALTHY | 4
+20532 240 pois chiches égouttés
+20003 150 betterave cuite
+15203 30 tahin
+2028 30 jus de citron
+11000 3 ail
+20009 200 carottes
+20019 200 concombre
+11058 2 sel
+: Mixer les pois chiches, la betterave, le tahin, le citron, l'ail et le sel
+: Allonger avec un peu d'eau si besoin
+: Couper les crudités en bâtonnets
+: Servir le houmous avec les crudités
+
+= Pois chiches grillés aux épices | SNACK,HEALTHY | 4
+20532 400 pois chiches égouttés
+11049 3 paprika
+11042 2 cumin
+17270 10 huile d'olive
+11058 2 sel
+: Rincer et bien sécher les pois chiches
+: Les enrober d'huile et d'épices
+: Les rôtir 35 minutes à 200 °C en remuant toutes les 10 minutes
+: Saler et laisser refroidir pour qu'ils croustillent
+
+= Edamame à la fleur de sel façon apéro healthy | SNACK,HEALTHY | 2
+20541 300 fèves surgelées
+11058 2 sel
+2031 10 jus de citron vert
+11088 1 piment de Cayenne
+: Cuire les fèves 5 minutes à l'eau bouillante
+: Les égoutter
+: Les assaisonner de sel, de citron vert et de piment
+: Servir tiède
+
+= Tzatziki maison et pain pita complet | SNACK,HEALTHY | 4
+19860 300 yaourt à la grecque
+20019 250 concombre
+11000 4 ail
+11093 6 aneth
+2028 15 jus de citron
+7180 120 pain pita
+11058 2 sel
+: Râper le concombre, le saler et le presser pour retirer l'eau
+: Le mélanger au yaourt, à l'ail râpé, à l'aneth et au citron
+: Laisser reposer 30 minutes au frais
+: Servir avec le pain pita grillé en triangles
+
+= Chips de chou kale au four | SNACK,HEALTHY | 2
+20346 200 chou kale
+17270 10 huile d'olive
+11049 1 paprika
+11058 1 sel
+: Retirer les côtes du chou et déchirer les feuilles
+: Les masser avec l'huile, le paprika et le sel
+: Les étaler sans qu'elles se chevauchent
+: Cuire 15 minutes à 150 °C en surveillant, elles doivent rester vertes
+
+= Riz au lait léger à la vanille et aux fruits | DESSERT,HEALTHY | 4
+9100 80 riz rond
+19033 600 lait demi-écrémé
+11098 5 extrait de vanille
+31016 25 sucre
+13014 200 fraises
+: Cuire le riz dans le lait vanillé 35 minutes à feu très doux en remuant souvent
+: Ajouter le sucre en fin de cuisson
+: Laisser refroidir
+: Servir avec les fraises
+
+= Tartines de pain complet, ricotta-style et figues | BREAKFAST,SNACK,HEALTHY | 2
+7110 100 pain complet
+19644 120 fromage blanc 0 %
+13012 150 figues
+31008 10 miel
+15005 15 cerneaux de noix
+: Griller le pain
+: Tartiner de fromage blanc
+: Ajouter les figues en tranches et les noix
+: Arroser d'un filet de miel
+
+= Muffins aux myrtilles, avoine et yaourt | BREAKFAST,SNACK,HEALTHY | 6
+32140 150 flocons d'avoine
+19593 250 yaourt nature
+22000 120 oeufs
+13005 120 banane
+13028 150 myrtilles
+11046 8 levure chimique
+31034 30 sirop d'érable
+: Mixer les flocons en farine
+: Mélanger avec le yaourt, les œufs, la banane écrasée, la levure et le sirop d'érable
+: Ajouter les myrtilles et répartir dans 12 moules
+: Cuire 22 minutes à 180 °C
+
+= Salade de fruits frais, menthe et citron vert | DESSERT,SNACK,HEALTHY | 4
+13002 300 ananas
+13025 250 mangue
+13021 200 kiwis
+13014 200 fraises
+11027 8 menthe
+2031 20 jus de citron vert
+: Couper tous les fruits en morceaux
+: Ciseler la menthe
+: Mélanger avec le citron vert
+: Servir bien frais
+
+= Tartine beurre de cacahuète, banane et chia | BREAKFAST,SNACK,HEALTHY | 2
+7110 100 pain complet
+15202 30 beurre de cacahuète
+13005 150 banane
+15047 6 graines de chia
+11025 1 cannelle
+: Griller le pain complet
+: Tartiner une fine couche de beurre de cacahuète
+: Ajouter la banane en rondelles
+: Parsemer de chia et de cannelle
+
+= Frozen yogurt maison au skyr et framboises | DESSERT,SNACK,HEALTHY | 4
+19724 400 skyr
+13015 250 framboises
+31008 25 miel
+2028 10 jus de citron
+: Congeler les framboises au moins 4 heures
+: Mixer les framboises congelées avec le skyr, le miel et le citron
+: Servir aussitôt comme une glace à l'italienne
+: Ou remettre 1 heure au congélateur pour une texture plus ferme
+
+= Porridge salé aux œufs et épinards | BREAKFAST,LUNCH,HEALTHY | 2
+32140 80 flocons d'avoine
+18066 350 eau
+20059 120 épinards
+22000 120 oeufs
+12120 15 parmesan
+11015 1 poivre
+11058 1 sel
+: Cuire les flocons dans l'eau salée 5 minutes en remuant
+: Ajouter les épinards hachés 1 minute
+: Pocher ou cuire les œufs au plat
+: Servir le porridge avec l'œuf, le parmesan et le poivre
+
+= Overnight oats carrot cake | BREAKFAST,HEALTHY | 2
+32140 90 flocons d'avoine
+20009 120 carotte
+19033 200 lait demi-écrémé
+19860 100 yaourt à la grecque
+13046 20 raisins secs
+15005 20 cerneaux de noix
+11025 2 cannelle
+: Râper finement la carotte
+: La mélanger aux flocons, au lait, au yaourt, aux raisins et à la cannelle
+: Laisser une nuit au réfrigérateur
+: Parsemer de noix concassées le matin

@@ -26,7 +26,68 @@ class NutritionUnitTest {
         assertThat(Nutriscore.fruitVeg("légumes")).isTrue();
         assertThat(Nutriscore.fruitVeg("Légumineuses")).isTrue();
         assertThat(Nutriscore.fruitVeg("fruits à coque et graines oléagineuses")).isFalse();
+        assertThat(HealthScore.fruitVegCategory("fruits à coque et graines oléagineuses")).isTrue();
         assertThat(Nutriscore.fruitVeg(null)).isFalse();
+    }
+
+    /** the same foods as the app's test (frontend core/meals/health.spec.ts): both sides must agree */
+    @Test
+    void healthScore() {
+        // olive oil judged on its fat, butter on its saturated fat
+        assertThat(score(new Nutrients(900, 0d, 0d, 0d, 100d, 14d, null, 0d), false, 2, null, false, null, false)).isEqualTo(8.5);
+        assertThat(score(new Nutrients(745, 0.7, 0.6, 0.6, 82d, 54d, null, 0.04), false, 2, null, false, null, false)).isEqualTo(1.5);
+        // industrial fries (an A on the Nutri-Score), sweet cereals, chicken, a hazelnut spread
+        assertThat(score(new Nutrients(312, 3.4, null, 0.3, 15d, 2.3, 3.8, 0.5), false, 4, null, false, null, true)).isEqualTo(2.5);
+        assertThat(score(new Nutrients(389, 9d, null, 23.5, 4.5, 2.1, 8.5, 0.2), false, 4, 1, false, null, false)).isEqualTo(3);
+        assertThat(score(new Nutrients(150, 30d, null, 0d, 3d, 1d, 0d, 0.2), false, 1, null, false, null, false)).isEqualTo(9.5);
+        assertThat(score(new Nutrients(539, 6.3, null, 56.3, 30.9, 10.6, 3.4, 0.1), false, 4, 2, false, null, false)).isEqualTo(0);
+        // drinks against water: a cola, a cola with sweeteners
+        assertThat(score(new Nutrients(42, null, null, 10.6, null, 0d, null, 0d), true, 4, null, false, null, false)).isEqualTo(0.5);
+        assertThat(score(new Nutrients(0.2, null, null, 0d, null, 0d, null, 0.02), true, 4, 4, true, null, false)).isEqualTo(5.5);
+        // nothing good said of a poor food, the claims kept to what is true
+        HealthScore.Result spread = HealthScore.score(new HealthScore.Input(new Nutrients(539, 6.3, null, 56.3, 30.9, 10.6, 3.4, 0.1), false, false,
+                false, 4, null, false, null, false));
+        assertThat(spread.pros()).isEmpty();
+        assertThat(spread.cons().getFirst()).isEqualTo("sugars");
+        HealthScore.Result lentils = HealthScore.score(new HealthScore.Input(new Nutrients(116, 9d, null, 1d, 0.4, 0.1, 7.9, 0.01), false, false,
+                false, null, null, false, 100d, false));
+        assertThat(lentils.pros()).contains("fruitVeg", "fiber", "protein");
+        // unknown sugars, alcohol: no score
+        assertThat(HealthScore.score(new HealthScore.Input(new Nutrients(300, 10d, null, null, null, null, null, null), false, false, false, null,
+                null, false, null, false))).isNull();
+        assertThat(HealthScore.fried("Frites surgelées")).isTrue();
+        assertThat(HealthScore.fried("Pain complet")).isFalse();
+
+        // what a source tells: Ciqual's water, its plain vegetables (raw), an alcohol; a product's drink by its food group
+        assertThat(HealthScore.of(FoodStore.Source.CIQUAL, "Eau minérale", "eaux", new Nutrients(0, 0d, 0d, 0d, 0d, 0d, 0d, 0d), null).water()).isTrue();
+        HealthScore.Input carrot = HealthScore.of(FoodStore.Source.CIQUAL, "Carotte, crue", "légumes", new Nutrients(36, 0.8, 7d, 5d, 0.3, 0d, 2.7, 0.1), null);
+        assertThat(carrot.nova()).isEqualTo(1);
+        assertThat(carrot.fruitVeg()).isEqualTo(100d);
+        assertThat(HealthScore.of(FoodStore.Source.CIQUAL, "Vin rouge", "boisson alcoolisées", new Nutrients(70, 0d, 0d, 0d, 0d, 0d, 0d, 0d), null).alcohol())
+                .isTrue();
+        ProductInfo soda = new ProductInfo("33 cl", null, "Sweetened beverages", 4, 2, false, null, 10);
+        assertThat(HealthScore.of(FoodStore.Source.OFF, "Soda", null, new Nutrients(42, 0d, 10.6, 10.6, 0d, 0d, 0d, 0d), soda).drink()).isTrue();
+        // in millilitres: a soda, a milk, a soup; an oil and a cream stay in grams
+        assertThat(HealthScore.liquid(FoodStore.Source.OFF, "Soda", null, new Nutrients(42, 0d, 10.6, 10.6, 0d, 0d, 0d, 0d), soda)).isTrue();
+        assertThat(HealthScore.liquid(FoodStore.Source.CIQUAL, "Lait demi-écrémé", "laits", new Nutrients(46, 3.2, 4.8, 4.8, 1.6, 1d, 0d, 0.1), null))
+                .isTrue();
+        ProductInfo oil = new ProductInfo("1 L", null, "Fats", 2, 0, false, null, 5);
+        assertThat(HealthScore.liquid(FoodStore.Source.OFF, "Huile d'olive", null, new Nutrients(900, 0d, 0d, 0d, 100d, 14d, 0d, 0d), oil)).isFalse();
+        assertThat(HealthScore.liquid(FoodStore.Source.OFF, "Biscuits", null, new Nutrients(480, 6d, 70d, 30d, 20d, 9d, 2d, 0.8),
+                new ProductInfo("250 g", null, "Biscuits and cakes", 4, 3, false, null, 10))).isFalse();
+        // sizes and sweeteners as the export writes them
+        assertThat(ProductInfo.millilitres("6 x 33 cl")).isEqualTo(330);
+        assertThat(ProductInfo.millilitres("1,5 L")).isEqualTo(1500);
+        assertThat(ProductInfo.millilitres("500ml")).isEqualTo(500);
+        assertThat(ProductInfo.millilitres("400 g")).isNull();
+        assertThat(ProductInfo.sweeteners("en:e330,en:e951")).isTrue();
+        assertThat(ProductInfo.sweeteners("en:e330,en:e150d")).isFalse();
+        assertThat(HealthScore.fromGrade("B")).isEqualTo(7d);
+    }
+
+    private static Double score(Nutrients n, boolean drink, Integer nova, Integer additives, boolean sweeteners, Double fruitVeg, boolean fried) {
+        HealthScore.Result r = HealthScore.score(new HealthScore.Input(n, drink, false, false, nova, additives, sweeteners, fruitVeg, fried));
+        return r == null ? null : r.score();
     }
 
     @Test

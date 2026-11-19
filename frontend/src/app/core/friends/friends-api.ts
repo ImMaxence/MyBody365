@@ -80,7 +80,7 @@ export interface DayData {
   proteinG?: number | null;
   carbsG?: number | null;
   fatG?: number | null;
-  lines: { slot: string; name: string; kcal: number; nutriscore?: string | null }[];
+  lines: { slot: string; name: string; kcal: number; nutriscore?: string | null; health?: number | null }[];
   more: number;
 }
 

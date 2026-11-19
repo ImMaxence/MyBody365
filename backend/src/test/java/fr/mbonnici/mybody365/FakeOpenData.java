@@ -127,16 +127,21 @@ public final class FakeOpenData {
     static byte[] offExport() throws IOException {
         String header = String.join("\t", "code", "url", "product_name", "generic_name", "brands", "countries_tags", "nutriscore_grade",
                 "serving_quantity", "energy_100g", "energy-kcal_100g", "fat_100g", "saturated-fat_100g", "carbohydrates_100g", "sugars_100g",
-                "fiber_100g", "proteins_100g", "salt_100g");
+                "fiber_100g", "proteins_100g", "salt_100g",
+                // 1.13: size, food group, processing, additives, scans
+                "quantity", "pnns_groups_2", "nova_group", "additives_n", "additives_tags", "unique_scans_n");
+        String none = "\t\t\t\t\t";
         String[] lines = {
             row("3560070000001", "Kebab poulet sauce blanche", "", "Snack Maison,Autre", "en:france,en:belgium", "c", "250", "", "185", "8", "2.5",
-                    "15", "2", "1.2", "12", "1.4"),
-            row("3560070000002", "", "Pain à kebab", "Boulangerie", "en:france", "", "", "1100", "", "1.5", "0.3", "52", "3", "2.4", "9", "1.1"),
-            row("4000000000003", "Bratwurst", "", "Wurst", "en:germany", "d", "", "", "290", "25", "9", "1", "0.5", "", "14", "2"),
-            row("3560070000004", "Sans énergie", "", "", "en:france", "", "", "", "", "", "", "", "", "", "", ""),
-            row("3560070000005", "Erreur de saisie", "", "", "en:france", "", "", "", "120", "1", "1", "20", "1000000", "1", "3", "0.1"),
+                    "15", "2", "1.2", "12", "1.4") + "\t500 g\tOne-dish meals\t4\t3\ten:e250,en:e955\t42",
+            row("3560070000002", "", "Pain à kebab", "Boulangerie", "en:france", "", "", "1100", "", "1.5", "0.3", "52", "3", "2.4", "9", "1.1")
+                    + "\t" + none,
+            row("4000000000003", "Bratwurst", "", "Wurst", "en:germany", "d", "", "", "290", "25", "9", "1", "0.5", "", "14", "2") + "\t" + none,
+            row("3560070000004", "Sans énergie", "", "", "en:france", "", "", "", "", "", "", "", "", "", "", "") + "\t" + none,
+            row("3560070000005", "Erreur de saisie", "", "", "en:france", "", "", "", "120", "1", "1", "20", "1000000", "1", "3", "0.1")
+                    + "\t33 cl\tunknown\t\t\t\t",
             row("3560070000001", "Kebab poulet sauce blanche", "", "Snack Maison", "en:france", "c", "250", "", "185", "8", "2.5", "15", "2",
-                    "1.2", "12", "1.4"),
+                    "1.2", "12", "1.4") + "\t500 g\tOne-dish meals\t4\t3\ten:e250,en:e955\t42",
         };
         java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
         try (java.util.zip.GZIPOutputStream gz = new java.util.zip.GZIPOutputStream(bytes)) {

@@ -1,4 +1,4 @@
-import { frAdminFoods, frAdminModeration } from './fr-admin';
+import { frAdminFoods, frAdminModeration, frAdminStats } from './fr-admin';
 import { frBackup } from './fr-backup';
 import { frEngage } from './fr-engage';
 import { frFriends } from './fr-friends';
@@ -161,7 +161,7 @@ export const fr = {
       {
         day: '2',
         title: 'Tes repas en trois taps',
-        text: 'Scanne un code-barres, choisis un aliment du quotidien ou une de tes recettes : calories et Nutri-Score sont calculés pour toi',
+        text: 'Scanne un code-barres, choisis un aliment du quotidien ou une de tes recettes : calories et note santé sur 10 sont calculées pour toi',
       },
       {
         day: '7',
@@ -608,11 +608,12 @@ export const fr = {
   friends: frFriends,
   backup: frBackup,
   adminFoods: frAdminFoods,
+  adminStats: frAdminStats,
   adminModeration: frAdminModeration,
 
   soon: {
     title: 'Bientôt ici',
-    meals: 'Note tes repas en trois taps : code-barres, aliments du quotidien, recettes perso et Nutri-Score',
+    meals: 'Note tes repas en trois taps : code-barres, aliments du quotidien, recettes perso et note santé sur 10',
     photos: 'Ta photo du jour, un comparateur avant / après et le time-lapse de ton année',
     progress: 'Tes courbes, ta tendance et la date estimée de ton objectif',
   },
@@ -819,7 +820,7 @@ export const fr = {
       form: 'Formulaire de contact',
     },
     title: 'Administration',
-    tabs: { users: 'Comptes', requests: 'Demandes', links: 'Liens', foods: 'Aliments', moderation: 'Modération', feedback: 'Retours', errors: 'Erreurs', journal: 'Journal' },
+    tabs: { users: 'Comptes', requests: 'Demandes', links: 'Liens', foods: 'Aliments', moderation: 'Modération', feedback: 'Retours', errors: 'Erreurs', journal: 'Journal', stats: 'Statistiques' },
     summary: '{users} compte(s) · {admins} admin(s)',
     users: {
       search: 'Rechercher un compte',
@@ -962,7 +963,7 @@ export const fr = {
         {
           h: 'Responsabilité',
           p: [
-            'MyBody365 n’est pas un dispositif médical. Les calories, Nutri-Score, tendances et prévisions sont des estimations fournies à titre indicatif ; elles ne remplacent pas l’avis d’un professionnel de santé.',
+            'MyBody365 n’est pas un dispositif médical. Les calories, notes santé, Nutri-Score, tendances et prévisions sont des estimations fournies à titre indicatif ; elles ne remplacent pas l’avis d’un professionnel de santé.',
             'L’éditeur agit en qualité d’hébergeur des contenus ajoutés par les utilisateurs et retire promptement tout contenu manifestement illicite qui lui est signalé.',
           ],
         },

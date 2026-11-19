@@ -9,8 +9,9 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { SessionStore } from '../../core/auth/session.store';
 import { MealsApi } from '../../core/meals/meals-api';
 import { scaled } from '../../core/meals/meals.store';
-import { isFruitVeg, recipeGrade } from '../../core/meals/nutriscore';
-import { NutriscoreComponent } from '../../shared/nutriscore.component';
+import { isFruitVeg } from '../../core/meals/nutriscore';
+import { recipeHealth } from '../../core/meals/health';
+import { HealthScoreComponent } from '../../shared/health-score.component';
 import { StackNavigation } from '../../core/nav/stack-navigation';
 import { prepareImage } from '../../core/photos/image-tools';
 import { ToastService } from '../../core/ui/toast.service';
@@ -61,7 +62,7 @@ interface Line {
 @Component({
   selector: 'app-recipe-edit',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RecipeImportSheetComponent, SegDirective, FormsModule, TranslatePipe, IconComponent, BackButtonComponent, NumberStepperComponent, FoodPickerComponent, NutriscoreComponent],
+  imports: [RecipeImportSheetComponent, SegDirective, FormsModule, TranslatePipe, IconComponent, BackButtonComponent, NumberStepperComponent, FoodPickerComponent, HealthScoreComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -181,7 +182,7 @@ interface Line {
           <div class="totals-row">
             @if (grade(); as g) {
               <span class="grade">
-                <app-nutriscore [grade]="g" [estimated]="true" />
+                <app-health-score [score]="g.score" />
                 <span class="tiny muted">{{ 'meals.recipe.gradeHint' | t }}</span>
               </span>
             }
@@ -631,7 +632,10 @@ export class RecipeEditPage {
   protected readonly visibility = signal<RecipeVisibility>('PRIVATE');
   /** every meal it is for (one at least); the main one: the first of them in the usual order */
   protected readonly picked = signal<RecipeType[]>(['LUNCH']);
-  protected readonly type = computed<RecipeType>(() => RECIPE_TYPES.find((t) => this.picked().includes(t)) ?? 'LUNCH');
+  /** 1.13: « Healthy » is never the main type when a meal is ticked too (its emoji, its place) */
+  protected readonly type = computed<RecipeType>(
+    () => RECIPE_TYPES.find((t) => t !== 'HEALTHY' && this.picked().includes(t)) ?? (this.picked().includes('HEALTHY') ? 'HEALTHY' : 'LUNCH'),
+  );
 
   protected toggleType(t: RecipeType): void {
     this.picked.update((list) => (list.includes(t) ? (list.length > 1 ? list.filter((x) => x !== t) : list) : [...list, t]));
@@ -645,8 +649,10 @@ export class RecipeEditPage {
   private imageRemoved = false;
   private objectUrl: string | null = null;
 
-  /** the Nutri-Score as the lines stand (the server works out the same one on saving) */
-  protected readonly grade = computed(() => (this.lines().length ? recipeGrade(this.lines()) : null));
+  /** 1.13: the health score as the lines stand (the server works out the same one on saving) */
+  protected readonly grade = computed(() =>
+    this.lines().length ? recipeHealth(this.lines(), this.name, this.picked().length === 1 && this.picked()[0] === 'DRINK') : null,
+  );
 
   protected readonly perServing = computed<Nutrients>(() => {
     let kcal = 0;

@@ -234,7 +234,7 @@ export class MealAddPage {
     sheet.busy.set(true);
     try {
       for (const i of lines) {
-        const { name, nutriscore, ...nutrients } = i;
+        const { name, nutriscore, health, ...nutrients } = i;
         await this.store.add({ day: this.day(), slot: this.slot(), quick: { ...i } }, { name, nutrients });
       }
       sheet.close();
@@ -260,12 +260,10 @@ export class MealAddPage {
     this.current = { kind: 'FOOD', id: f.id, name: f.name, base: f.per100 };
     this.sheet().open({
       name: f.name,
-      detail: f.brand ?? f.category ?? this.i18n.t('meals.search.sources.' + f.source),
+      detail: [f.brand, f.quantity].filter(Boolean).join(' · ') || f.category || this.i18n.t('meals.search.sources.' + f.source),
       unit: 'g',
       base: f.per100,
       servingG: f.servingG,
-      nutriscore: f.nutriscore,
-      estimated: f.nutriscoreEstimated,
       initial,
       food: f,
       day: this.day(),
@@ -274,7 +272,7 @@ export class MealAddPage {
 
   private openRecipe(r: Recipe, initial?: number): void {
     this.current = { kind: 'RECIPE', id: r.id, name: r.name, base: r.perServing };
-    this.sheet().open({ name: r.name, detail: this.i18n.t('meals.perServing'), unit: 'serving', base: r.perServing, nutriscore: r.nutriscore, estimated: true, initial, recipe: r, day: this.day() });
+    this.sheet().open({ name: r.name, detail: this.i18n.t('meals.perServing'), unit: 'serving', base: r.perServing, initial, recipe: r, day: this.day() });
   }
 
   protected async add(qty: number): Promise<void> {

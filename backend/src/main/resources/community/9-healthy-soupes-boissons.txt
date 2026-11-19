@@ -1,0 +1,638 @@
+# Recettes de la communauté, 1.13 : Healthy, les soupes, les entrées légères et les boissons sans alcool. Des veloutés
+# sans crème ou presque, des soupes-repas, des gaspachos, des légumes à grignoter, des smoothies et des boissons maison
+# (eaux aromatisées, golden milk, kombucha-style…) avec peu ou pas de sucre ajouté.
+# Même format que les autres fichiers :
+#   = Nom | TYPES | parts
+#   code_ciqual grammes   (poids cru pour toute la recette ; le texte après les grammes n'est qu'un repère)
+#   : une étape
+
+= Velouté de butternut au gingembre | LUNCH,DINNER,HEALTHY | 4
+20138 1000 courge butternut
+20034 120 oignon
+11074 15 gingembre frais
+11041 6 bouillon de légumes
+19436 60 crème légère
+15064 20 graines de courge
+18066 700 eau
+: Faire revenir l'oignon avec un peu d'eau
+: Ajouter la courge en cubes, le gingembre, le bouillon et l'eau, cuire 25 minutes
+: Mixer avec la crème légère
+: Servir avec les graines de courge grillées
+
+= Soupe de lentilles corail, carotte et cumin | LUNCH,DINNER,HEALTHY | 4
+20535 200 lentilles corail
+20009 400 carottes
+20034 120 oignon
+20137 400 tomates pelées
+11042 3 cumin
+11041 6 bouillon de légumes
+13009 40 citron
+18066 1000 eau
+: Faire revenir l'oignon et le cumin avec un peu d'eau
+: Ajouter les carottes en rondelles, les lentilles, les tomates, le bouillon et l'eau
+: Cuire 25 minutes, puis mixer
+: Ajouter le jus du citron au moment de servir
+
+= Gaspacho de tomates et poivrons | LUNCH,DINNER,HEALTHY | 4
+20385 1000 tomates bien mûres
+20087 200 poivron rouge
+20019 250 concombre
+20034 50 oignon
+11000 4 ail
+11018 20 vinaigre
+17270 20 huile d'olive
+11058 3 sel
+: Couper tous les légumes en morceaux
+: Mixer longuement avec l'ail, le vinaigre, l'huile et le sel
+: Passer au chinois si l'on veut une texture lisse
+: Servir très frais
+
+= Minestrone aux haricots blancs | LUNCH,DINNER,HEALTHY | 6
+20511 400 haricots blancs égouttés
+20009 250 carottes
+20020 300 courgettes
+20023 150 céleri branche
+20039 200 poireau
+20137 400 tomates pelées
+9810 100 petites pâtes
+11041 8 bouillon de légumes
+11033 15 basilic
+18066 1500 eau
+: Faire revenir le poireau et le céleri avec un peu d'eau
+: Ajouter les carottes, les courgettes en dés, les tomates, le bouillon et l'eau, cuire 25 minutes
+: Ajouter les pâtes et les haricots, cuire 10 minutes
+: Parsemer de basilic
+
+= Velouté de brocoli, épinards et petits pois | LUNCH,DINNER,HEALTHY | 4
+20057 500 brocoli
+20059 150 épinards
+20084 200 petits pois surgelés
+20034 100 oignon
+11041 6 bouillon de légumes
+12805 60 chèvre frais
+18066 900 eau
+: Faire revenir l'oignon avec un peu d'eau
+: Ajouter le brocoli, les petits pois, le bouillon et l'eau, cuire 15 minutes
+: Ajouter les épinards 2 minutes, puis mixer
+: Servir avec un peu de chèvre émietté
+
+= Soupe thaï au poulet et lait de coco léger | LUNCH,DINNER,HEALTHY | 4
+36017 400 filets de poulet
+18041 150 lait de coco
+20056 200 champignons de Paris
+20087 150 poivron rouge
+11074 15 gingembre frais
+11194 20 nuoc-mâm
+2031 30 jus de citron vert
+11094 15 coriandre
+11174 6 bouillon de volaille
+18066 900 eau
+: Porter l'eau et le bouillon à ébullition avec le gingembre émincé
+: Ajouter le poulet en fines lamelles, les champignons et le poivron, cuire 10 minutes
+: Ajouter le lait de coco, le nuoc-mâm et le citron vert
+: Parsemer de coriandre
+
+= Soupe de légumes d'hiver, poireaux et pommes de terre | LUNCH,DINNER,HEALTHY | 6
+20039 500 poireaux
+4008 400 pommes de terre
+20009 300 carottes
+20064 200 navets
+20034 100 oignon
+11041 8 bouillon de légumes
+18066 1500 eau
+: Émincer les légumes
+: Les faire suer 5 minutes avec un peu d'eau
+: Ajouter le bouillon et l'eau, cuire 30 minutes
+: Mixer plus ou moins finement
+
+= Velouté de chou-fleur au curcuma | LUNCH,DINNER,HEALTHY | 4
+20016 800 chou-fleur
+20034 100 oignon
+11089 3 curcuma
+11041 6 bouillon de légumes
+19033 200 lait demi-écrémé
+15041 20 amandes effilées
+18066 700 eau
+: Faire revenir l'oignon et le curcuma avec un peu d'eau
+: Ajouter le chou-fleur, le bouillon et l'eau, cuire 20 minutes
+: Mixer avec le lait
+: Servir avec les amandes grillées
+
+= Soupe miso express au tofu et wakamé | LUNCH,DINNER,HEALTHY | 2
+20916 40 miso
+20906 200 tofu soyeux
+20999 4 wakamé
+11003 8 ciboule
+20056 80 champignons de Paris
+18066 700 eau
+: Faire frémir l'eau avec les champignons émincés et le wakamé
+: Hors du feu, délayer le miso dans un peu de bouillon et le reverser
+: Ajouter le tofu en dés
+: Parsemer de ciboule
+
+= Harira légère aux pois chiches et lentilles | LUNCH,DINNER,HEALTHY | 6
+20532 300 pois chiches égouttés
+20585 100 lentilles vertes
+20137 800 tomates pelées
+20023 150 céleri branche
+20034 150 oignon
+11094 20 coriandre
+11014 20 persil
+11089 3 curcuma
+11025 2 cannelle
+11041 8 bouillon de légumes
+18066 1500 eau
+: Faire revenir l'oignon et le céleri avec un peu d'eau et les épices
+: Ajouter les lentilles, les tomates, le bouillon et l'eau, cuire 30 minutes
+: Ajouter les pois chiches et les herbes, cuire encore 10 minutes
+: Servir avec un trait de citron si l'on aime
+
+= Velouté de champignons sans crème | LUNCH,DINNER,HEALTHY | 4
+20056 700 champignons de Paris
+20034 100 oignon
+4008 150 pomme de terre
+11070 3 thym
+11041 6 bouillon de légumes
+19033 200 lait demi-écrémé
+11014 10 persil
+18066 600 eau
+: Faire revenir l'oignon et les champignons émincés
+: Ajouter la pomme de terre en dés, le thym, le bouillon et l'eau, cuire 20 minutes
+: Mixer avec le lait
+: Parsemer de persil
+
+= Soupe froide concombre, yaourt et menthe | LUNCH,DINNER,HEALTHY | 4
+20019 800 concombre
+19593 400 yaourt nature
+11027 15 menthe
+11000 3 ail
+2028 20 jus de citron
+11058 3 sel
+: Éplucher et couper le concombre
+: Mixer avec le yaourt, la menthe, l'ail, le citron et le sel
+: Réserver au moins une heure au frais
+: Servir bien froid
+
+= Pho léger au bœuf et herbes fraîches | LUNCH,DINNER,HEALTHY | 2
+6206 200 rumsteck
+9900 100 vermicelles de riz
+20183 100 pousses de soja
+11094 15 coriandre
+11027 10 menthe
+11074 10 gingembre frais
+11001 8 bouillon de bœuf
+11194 15 nuoc-mâm
+2031 20 jus de citron vert
+18066 1000 eau
+: Faire frémir l'eau avec le bouillon et le gingembre 15 minutes
+: Réhydrater les vermicelles et les répartir dans deux bols avec le bœuf cru en tranches très fines
+: Verser le bouillon bouillant dessus : il cuit la viande
+: Ajouter les pousses de soja, les herbes, le nuoc-mâm et le citron vert
+
+= Soupe de petits pois à la menthe | LUNCH,DINNER,HEALTHY | 4
+20084 600 petits pois surgelés
+20034 100 oignon
+11027 15 menthe
+11041 6 bouillon de légumes
+19860 80 yaourt à la grecque
+18066 800 eau
+: Faire revenir l'oignon avec un peu d'eau
+: Ajouter les petits pois, le bouillon et l'eau, cuire 10 minutes
+: Mixer avec la menthe
+: Servir avec une cuillère de yaourt
+
+= Velouté de carottes, orange et coriandre | LUNCH,DINNER,HEALTHY | 4
+20009 800 carottes
+13034 200 orange
+20034 100 oignon
+11094 15 coriandre
+11042 2 cumin
+11041 6 bouillon de légumes
+18066 800 eau
+: Faire revenir l'oignon et le cumin avec un peu d'eau
+: Ajouter les carottes, le bouillon et l'eau, cuire 25 minutes
+: Mixer avec le jus et la pulpe de l'orange
+: Parsemer de coriandre
+
+= Soupe de poisson express, tomate et fenouil | LUNCH,DINNER,HEALTHY | 4
+26043 400 cabillaud
+20028 250 fenouil
+20137 400 tomates pelées
+20034 100 oignon
+11000 4 ail
+11039 0.5 safran
+4008 250 pommes de terre
+17270 10 huile d'olive
+18066 900 eau
+11058 3 sel
+: Faire revenir l'oignon, l'ail et le fenouil dans l'huile
+: Ajouter les tomates, les pommes de terre en dés, le safran, le sel et l'eau, cuire 20 minutes
+: Ajouter le poisson en morceaux, cuire 6 minutes
+: Servir tel quel ou mixer pour une soupe lisse
+
+= Velouté de potiron et lentilles corail | LUNCH,DINNER,HEALTHY | 4
+20044 800 potiron
+20535 100 lentilles corail
+20034 100 oignon
+11041 6 bouillon de légumes
+11048 1 muscade
+18066 900 eau
+: Faire revenir l'oignon avec un peu d'eau
+: Ajouter le potiron en cubes, les lentilles, le bouillon et l'eau
+: Cuire 25 minutes et mixer
+: Ajouter la muscade
+
+= Bouillon de poule et légumes, version minceur | LUNCH,DINNER,HEALTHY | 4
+36017 400 filets de poulet
+20009 250 carottes
+20039 200 poireau
+20023 100 céleri branche
+20064 150 navet
+11174 6 bouillon de volaille
+11070 3 thym
+11014 10 persil
+18066 1500 eau
+: Mettre le poulet, les légumes en morceaux, le bouillon et le thym dans l'eau froide
+: Porter à frémissement et cuire 40 minutes
+: Effilocher le poulet
+: Servir le bouillon avec les légumes, le poulet et le persil
+
+= Salade de carottes râpées au citron et cumin | LUNCH,DINNER,HEALTHY | 4
+20009 600 carottes
+13046 30 raisins secs
+11014 15 persil
+11042 2 cumin
+2028 40 jus de citron
+17270 20 huile d'olive
+11058 2 sel
+: Râper les carottes
+: Mélanger le citron, l'huile, le cumin et le sel
+: Ajouter les raisins et le persil ciselé
+: Laisser reposer 15 minutes avant de servir
+
+= Tomates farcies au thon et fromage blanc | LUNCH,DINNER,HEALTHY | 2
+20385 500 grosses tomates
+26039 140 thon au naturel
+19644 100 fromage blanc 0 %
+11003 8 ciboulette
+20020 100 courgette
+2028 10 jus de citron
+11058 1 sel
+: Couper le chapeau des tomates et les vider
+: Mélanger le thon émietté, le fromage blanc, la courgette râpée, la ciboulette, le citron et le sel
+: Remplir les tomates
+: Servir frais
+
+= Carpaccio de courgettes, citron et parmesan | LUNCH,DINNER,HEALTHY | 2
+20020 400 courgettes
+12120 25 parmesan
+13009 30 citron
+11033 8 basilic
+17270 15 huile d'olive
+15041 15 amandes effilées
+11058 1 sel
+: Couper les courgettes en très fines lamelles
+: Les étaler sur un plat
+: Arroser d'huile et du jus du citron, saler
+: Ajouter des copeaux de parmesan, le basilic et les amandes
+
+= Rouleaux de printemps aux crevettes | LUNCH,DINNER,HEALTHY | 2
+10061 160 crevettes cuites
+9900 60 vermicelles de riz
+20009 100 carotte
+20031 60 laitue
+11027 8 menthe
+11094 8 coriandre
+20019 120 concombre
+11194 8 nuoc-mâm
+2031 15 jus de citron vert
+: Réhydrater les vermicelles et couper la carotte et le concombre en julienne
+: Préparer les rouleaux dans des feuilles de laitue avec les crevettes, les vermicelles, la carotte et les herbes
+: Mélanger le nuoc-mâm, le citron vert et un peu d'eau
+: Tremper les rouleaux dans la sauce
+
+= Bâtonnets de légumes, sauce yaourt aux herbes | SNACK,HEALTHY | 4
+20009 300 carottes
+20019 300 concombre
+20023 150 céleri branche
+20087 150 poivron rouge
+19860 200 yaourt à la grecque
+11003 8 ciboulette
+11014 8 persil
+11000 2 ail
+11058 2 sel
+: Couper les légumes en bâtonnets
+: Mélanger le yaourt, l'ail râpé, les herbes ciselées et le sel
+: Servir les bâtonnets avec la sauce
+: Ils se gardent 3 jours dans une boîte avec un papier humide
+
+= Champignons farcis au fromage frais et herbes | LUNCH,DINNER,HEALTHY | 2
+20056 400 gros champignons de Paris
+19644 120 fromage blanc 0 %
+12805 40 chèvre frais
+11000 3 ail
+11014 10 persil
+7500 15 chapelure
+: Retirer les pieds des champignons et les hacher
+: Mélanger les pieds, le fromage blanc, le chèvre, l'ail et le persil
+: Remplir les chapeaux et parsemer de chapelure
+: Cuire 20 minutes à 200 °C
+
+= Salade de tomates anciennes, oignon rouge et basilic | LUNCH,DINNER,HEALTHY | 2
+20385 500 tomates
+20238 50 oignon rouge
+11033 10 basilic
+11091 10 vinaigre balsamique
+17270 15 huile d'olive
+11058 2 sel
+: Couper les tomates en tranches
+: Émincer finement l'oignon
+: Disposer, assaisonner de sel, de balsamique et d'huile
+: Parsemer de basilic
+
+= Smoothie vert épinards, pomme et gingembre | BREAKFAST,SNACK,DRINK,HEALTHY | 2
+20059 80 épinards
+13039 200 pomme
+13021 100 kiwi
+19593 125 yaourt nature
+11074 5 gingembre frais
+18066 150 eau
+: Couper la pomme et le kiwi en morceaux
+: Mixer tous les ingrédients jusqu'à ce que ce soit lisse
+: Ajouter un peu d'eau si c'est trop épais
+: Servir aussitôt
+
+= Golden milk au curcuma | DRINK,SNACK,HEALTHY | 2
+19033 400 lait demi-écrémé
+11089 4 curcuma
+11074 5 gingembre frais
+11025 2 cannelle
+11015 0.5 poivre
+31008 10 miel
+: Chauffer le lait sans le faire bouillir
+: Ajouter le curcuma, le gingembre râpé, la cannelle et le poivre
+: Laisser infuser 5 minutes à feu très doux
+: Filtrer et sucrer d'un peu de miel
+
+= Eau infusée concombre, citron et menthe | DRINK,HEALTHY | 4
+18066 1500 eau
+20019 150 concombre
+13009 60 citron
+11027 8 menthe
+: Couper le concombre et le citron en fines rondelles
+: Les mettre dans une carafe avec la menthe
+: Couvrir d'eau froide
+: Laisser infuser au moins une heure au réfrigérateur
+
+= Smoothie fraise, banane et skyr | BREAKFAST,SNACK,DRINK,HEALTHY | 2
+13014 250 fraises
+13005 120 banane
+19724 150 skyr
+19033 150 lait demi-écrémé
+: Mettre tous les ingrédients dans le blender
+: Mixer jusqu'à ce que ce soit mousseux
+: Ajouter des glaçons si l'on veut
+: Servir aussitôt
+
+= Thé glacé maison au citron, sans sucre | DRINK,HEALTHY | 4
+18154 1000 thé noir infusé
+13009 60 citron
+11027 8 menthe
+13024 150 clémentines
+: Laisser refroidir le thé
+: Ajouter le jus du citron et des clémentines
+: Ajouter la menthe
+: Servir sur des glaçons
+
+= Matcha latte léger au lait d'avoine | DRINK,BREAKFAST,HEALTHY | 2
+18155 200 thé vert infusé très fort
+18899 300 boisson à l'avoine
+11098 3 extrait de vanille
+: Préparer un thé vert très concentré
+: Chauffer et faire mousser la boisson à l'avoine
+: Verser le thé dans deux tasses, puis la mousse
+: Parfumer d'une goutte de vanille
+
+= Smoothie mangue, ananas et passion | BREAKFAST,SNACK,DRINK,HEALTHY | 2
+13025 200 mangue
+13002 150 ananas
+13016 50 fruit de la passion
+19593 125 yaourt nature
+18066 100 eau
+: Couper les fruits en morceaux
+: Mixer avec le yaourt et l'eau
+: Ajouter la pulpe de passion
+: Servir bien frais
+
+= Lait d'amande chocolaté maison, sans sucre ajouté | DRINK,SNACK,HEALTHY | 2
+18107 400 boisson à l'amande
+18100 15 cacao non sucré
+13011 30 dattes
+11025 1 cannelle
+: Mixer la boisson à l'amande avec les dattes dénoyautées
+: Ajouter le cacao et la cannelle
+: Mixer encore
+: Servir froid ou tiède
+
+= Infusion gingembre et curcuma au citron | DRINK,HEALTHY | 2
+18066 500 eau
+11074 20 gingembre frais
+11089 2 curcuma
+13009 60 citron
+31008 10 miel
+: Faire frémir l'eau avec le gingembre en tranches et le curcuma 10 minutes
+: Ajouter le jus du citron
+: Sucrer d'un peu de miel
+: Boire chaud
+
+= Smoothie myrtille, avoine et amande | BREAKFAST,DRINK,HEALTHY | 2
+13028 200 myrtilles
+32140 30 flocons d'avoine
+18107 300 boisson à l'amande
+19724 100 skyr
+15000 15 amandes
+: Mixer les flocons et les amandes
+: Ajouter les myrtilles, le skyr et la boisson à l'amande
+: Mixer jusqu'à ce que ce soit lisse
+: Servir aussitôt
+
+= Eau pétillante pastèque et citron vert | DRINK,HEALTHY | 4
+13036 500 pastèque
+18430 800 eau gazeuse
+2031 30 jus de citron vert
+11027 6 menthe
+: Mixer la pastèque et la passer au tamis
+: Ajouter le citron vert
+: Allonger d'eau gazeuse au moment de servir
+: Décorer de menthe
+
+= Lassi à la mangue léger | DRINK,SNACK,HEALTHY | 2
+13025 200 mangue
+19593 250 yaourt nature
+19033 100 lait demi-écrémé
+11075 1 cardamome
+: Couper la mangue en morceaux
+: Mixer avec le yaourt, le lait et la cardamome
+: Servir bien frais
+: Saupoudrer d'un peu de cardamome
+
+= Café frappé protéiné | DRINK,SNACK,HEALTHY | 1
+18071 60 café expresso
+19033 150 lait demi-écrémé
+19724 100 skyr
+18100 3 cacao non sucré
+: Laisser refroidir le café
+: Mixer avec le lait, le skyr et des glaçons
+: Verser dans un grand verre
+: Saupoudrer de cacao
+
+= Jus vert concombre, céleri et pomme | DRINK,HEALTHY | 2
+20019 300 concombre
+20023 150 céleri branche
+13039 200 pomme
+13009 40 citron
+11074 5 gingembre frais
+18066 100 eau
+: Couper les légumes et la pomme en morceaux
+: Mixer avec l'eau, le citron et le gingembre
+: Filtrer pour un jus ou garder la pulpe pour plus de fibres
+: Servir aussitôt
+
+= Velouté glacé de petits pois et courgette | LUNCH,DINNER,HEALTHY | 4
+20084 300 petits pois surgelés
+20020 500 courgettes
+20034 80 oignon
+11027 10 menthe
+11041 6 bouillon de légumes
+19593 125 yaourt nature
+18066 700 eau
+: Faire revenir l'oignon avec un peu d'eau
+: Ajouter les courgettes, les petits pois, le bouillon et l'eau, cuire 15 minutes
+: Mixer avec la menthe et le yaourt
+: Refroidir au moins 2 heures
+
+= Soupe de haricots rouges, tomate et épices douces | LUNCH,DINNER,HEALTHY | 4
+20524 500 haricots rouges égouttés
+20137 400 tomates pelées
+20087 150 poivron rouge
+20034 120 oignon
+11042 3 cumin
+11049 3 paprika
+11041 6 bouillon de légumes
+19860 80 yaourt à la grecque
+18066 800 eau
+: Faire revenir l'oignon et le poivron avec un peu d'eau et les épices
+: Ajouter les haricots, les tomates, le bouillon et l'eau, cuire 20 minutes
+: Mixer à moitié pour garder des morceaux
+: Servir avec une cuillère de yaourt
+
+= Salade de fenouil, orange et olives | LUNCH,DINNER,HEALTHY | 2
+20028 300 fenouil
+13034 250 oranges
+13032 30 olives noires
+20238 30 oignon rouge
+17270 15 huile d'olive
+11058 1 sel
+: Émincer finement le fenouil et l'oignon
+: Peler les oranges à vif et les couper en rondelles
+: Disposer avec les olives
+: Assaisonner d'huile et de sel
+
+= Asperges vertes rôties et œuf mollet | LUNCH,DINNER,HEALTHY | 2
+20279 400 asperges vertes
+22000 120 oeufs
+12120 20 parmesan
+13009 30 citron
+17270 10 huile d'olive
+11058 1 sel
+: Rôtir les asperges 12 minutes à 210 °C avec l'huile et le sel
+: Cuire les œufs 6 minutes à l'eau bouillante, les écaler
+: Arroser les asperges de citron
+: Servir avec les œufs et des copeaux de parmesan
+
+= Velouté de céleri-rave et pomme | LUNCH,DINNER,HEALTHY | 4
+20055 700 céleri-rave
+13039 200 pomme
+20034 100 oignon
+11041 6 bouillon de légumes
+19033 200 lait demi-écrémé
+15005 20 cerneaux de noix
+18066 700 eau
+: Faire revenir l'oignon avec un peu d'eau
+: Ajouter le céleri et la pomme en dés, le bouillon et l'eau, cuire 25 minutes
+: Mixer avec le lait
+: Servir avec les noix concassées
+
+= Smoothie betterave, fruits rouges et orange | BREAKFAST,SNACK,DRINK,HEALTHY | 2
+20003 100 betterave cuite
+13015 150 framboises
+13034 200 orange
+19593 125 yaourt nature
+18066 100 eau
+: Peler l'orange
+: Mixer tous les ingrédients
+: Ajouter un peu d'eau si besoin
+: Servir aussitôt
+
+= Bouillon miso aux légumes et sarrasin | LUNCH,DINNER,HEALTHY | 2
+20916 35 miso
+9380 60 sarrasin
+20009 100 carotte
+20340 150 pak choï
+20056 100 champignons de Paris
+11074 8 gingembre frais
+18066 800 eau
+: Cuire le sarrasin 12 minutes
+: Faire frémir l'eau avec le gingembre, la carotte en julienne et les champignons 6 minutes
+: Ajouter le pak choï 2 minutes
+: Hors du feu, délayer le miso, ajouter le sarrasin et servir
+
+= Soupe de tomates rôties au basilic | LUNCH,DINNER,HEALTHY | 4
+20385 1000 tomates
+20087 150 poivron rouge
+20034 100 oignon
+11000 6 ail
+11033 15 basilic
+11041 6 bouillon de légumes
+17270 15 huile d'olive
+18066 500 eau
+: Rôtir les tomates coupées en deux, le poivron, l'oignon et l'ail 35 minutes à 200 °C avec l'huile
+: Les mettre dans une casserole avec le bouillon et l'eau, cuire 10 minutes
+: Mixer avec le basilic
+: Servir chaud ou froid
+
+= Crème de courgettes au fromage frais | LUNCH,DINNER,HEALTHY | 4
+20020 900 courgettes
+20034 100 oignon
+12068 60 fromage frais
+11041 6 bouillon de légumes
+11033 10 basilic
+18066 500 eau
+: Faire revenir l'oignon avec un peu d'eau
+: Ajouter les courgettes en rondelles, le bouillon et l'eau, cuire 15 minutes
+: Mixer avec le fromage frais et le basilic
+: Servir chaud ou bien frais
+
+= Boisson protéinée cacao et banane | DRINK,BREAKFAST,HEALTHY | 1
+19033 250 lait demi-écrémé
+19724 100 skyr
+13005 100 banane
+18100 8 cacao non sucré
+32140 20 flocons d'avoine
+: Mettre tous les ingrédients dans le blender
+: Mixer jusqu'à ce que ce soit lisse
+: Ajouter des glaçons si l'on veut
+: Boire aussitôt, après le sport par exemple
+
+= Velouté de patate douce et poivron rouge | LUNCH,DINNER,HEALTHY | 4
+4101 600 patates douces
+20087 250 poivrons rouges
+20034 100 oignon
+11049 2 paprika
+11041 6 bouillon de légumes
+19593 125 yaourt nature
+18066 900 eau
+: Faire revenir l'oignon et les poivrons avec un peu d'eau et le paprika
+: Ajouter la patate douce en cubes, le bouillon et l'eau, cuire 25 minutes
+: Mixer
+: Servir avec une cuillère de yaourt

@@ -26,7 +26,9 @@ public class OpenFoodFacts {
     /** what the app keeps of a product */
     public record Product(String code, String name, String brand, Nutrients per100, String nutriscore, Double servingG,
             /** 1.12: the front picture (its path on images.openfoodfacts.org) and when the page last changed */
-            String imagePath, java.time.Instant modifiedAt) {}
+            String imagePath, java.time.Instant modifiedAt,
+            /** 1.13: size, generic name, food group, processing, additives, sweeteners, fruit and vegetables, scans */
+            ProductInfo info) {}
 
     /** where the pictures of the products are; only paths under it are ever fetched */
     static final String IMAGES = "https://images.openfoodfacts.org/images/products/";
@@ -40,7 +42,8 @@ public class OpenFoodFacts {
     }
 
     private static final String FIELDS = "code,product_name,product_name_fr,generic_name_fr,brands,nutriments,nutriscore_grade,serving_quantity,"
-            + "image_front_url,image_url,image_front_small_url,image_small_url,last_modified_t";
+            + "image_front_url,image_url,image_front_small_url,image_small_url,last_modified_t,quantity,pnns_groups_2,nova_group,additives_n,"
+            + "additives_tags,unique_scans_n";
 
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5))
             .followRedirects(HttpClient.Redirect.NORMAL).build();
@@ -136,8 +139,20 @@ public class OpenFoodFacts {
         String image = imagePath(firstNonBlank(text(p.path("image_front_url")), text(p.path("image_url")), text(p.path("image_front_small_url")),
                 text(p.path("image_small_url"))));
         Double modified = number(p.path("last_modified_t"));
+        String pnns = text(p.path("pnns_groups_2"));
+        Double nova = number(p.path("nova_group"));
+        Double additives = number(p.path("additives_n"));
+        Double scans = number(p.path("unique_scans_n"));
+        StringBuilder tags = new StringBuilder();
+        p.path("additives_tags").forEach(t -> tags.append(text(t)).append(','));
+        Double fruitVeg = number(n.path("fruits-vegetables-legumes_100g"));
+        ProductInfo info = new ProductInfo(cutOrNull(text(p.path("quantity")), 60), cutOrNull(text(p.path("generic_name_fr")), 200),
+                pnns == null || pnns.equalsIgnoreCase("unknown") ? null : cut(pnns, 40),
+                nova == null || nova < 1 || nova > 4 ? null : (int) Math.round(nova), additives == null || additives < 0 ? null : (int) Math.round(additives),
+                ProductInfo.sweeteners(tags.toString()), fruitVeg == null || fruitVeg < 0 || fruitVeg > 100 ? null : fruitVeg,
+                scans == null || scans < 0 ? null : (int) Math.min(Integer.MAX_VALUE, Math.round(scans)));
         return Optional.of(new Product(code, cut(name, 200), brand == null || brand.isBlank() ? null : cut(brand, 160), per100, grade,
-                serving, image, epoch(modified)));
+                serving, image, epoch(modified), info));
     }
 
     /** « https://images.openfoodfacts.org/images/products/301/762/042/2003/front_fr.633.400.jpg » → its path; null otherwise */
@@ -238,6 +253,10 @@ public class OpenFoodFacts {
             }
         }
         return null;
+    }
+
+    private static String cutOrNull(String s, int max) {
+        return s == null || s.isBlank() ? null : cut(s.strip(), max);
     }
 
     private static String cut(String s, int max) {

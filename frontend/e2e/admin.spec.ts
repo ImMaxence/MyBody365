@@ -3,6 +3,8 @@ import { expectAccessible, expectNoHorizontalOverflow, signIn, tab } from './hel
 
 test.describe('admin area', () => {
   test('approve an access request, open the invitation link, revoke a link, read the journal', async ({ page, browser }) => {
+    // two browsers and every admin tab: longer than the others, all the more on a local database full of test accounts
+    test.setTimeout(90_000);
     // someone asks for access (public form, as a visitor would)
     const email = `invite-${Date.now()}@example.com`;
     const xsrf = await page.request.get('/api/auth/me');
@@ -122,7 +124,19 @@ test.describe('admin area', () => {
     await expect(page.getByText(/^Dernière mise à jour le /).or(page.getByText('Aucune table importée'))).toBeVisible();
     // the first recipes: how many are in (the local stack has the real Ciqual table: all of them)
     await expect(page.getByRole('heading', { name: 'Recettes de départ de la communauté' })).toBeVisible();
-    await expect(page.getByText(/^\d+ recettes publiées sur 529$/)).toBeVisible();
+    await expect(page.getByText(/^\d+ recettes publiées sur 729$/)).toBeVisible();
+    await expectAccessible(page);
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test('the statistics: what the project takes on the server (1.13)', async ({ page }) => {
+    await signIn(page, 'admin');
+    await page.goto('/app/admin/stats');
+    await expect(page.getByRole('heading', { name: 'Stockage' })).toBeVisible();
+    await expect(page.getByText('Base de données', { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Mémoire (RAM)' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Processeur' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Les données' })).toBeVisible();
     await expectAccessible(page);
     await expectNoHorizontalOverflow(page);
   });

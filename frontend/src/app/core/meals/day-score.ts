@@ -1,4 +1,5 @@
 import type { MealDay } from '../api/models';
+import { GRADE_SCORE } from './health';
 
 export type ScorePart = 'kcal' | 'macros' | 'quality' | 'nutrients';
 
@@ -47,7 +48,6 @@ export interface DayScore {
   tip: ScoreTip;
 }
 
-const GRADE: Record<string, number> = { a: 1, b: 2, c: 3, d: 4, e: 5 };
 
 /** the daily guides: at most 50 g of sugars and 5 g of salt, saturated fat under 10 % of the calories, 25 g of fibre */
 const SUGARS_MAX = 50;
@@ -56,8 +56,8 @@ const FIBER_MIN = 25;
 
 /**
  * How balanced and healthy a day of meals is, out of 10, from what is known:
- * calories against the target (3), protein / carbs / fat against the member's split (25 / 45 / 30 % by default) (2), the Nutri-Score of
- * the foods weighted by their calories (3), fibre, sugars, salt and saturated fat (2). A part without the
+ * calories against the target (3), protein / carbs / fat against the member's split (25 / 45 / 30 % by default) (2), the health score
+ * of the foods weighted by their calories (3, 1.13: in place of their Nutri-Score), fibre, sugars, salt and saturated fat (2). A part without the
  * data it needs is left out and the rest brought back to 10. Null when nothing was logged.
  *
  * Today, still going on (1.9): only what is already sure is judged, the quality of what was eaten (its Nutri-Score,
@@ -106,20 +106,20 @@ export function dayScore(day: MealDay, today: string, shares: { p: number; c: nu
     }
   }
 
-  // quality: the Nutri-Score of what was eaten, weighted by the calories (when most of them are rated)
+  // quality: the health score of what was eaten, weighted by the calories (when most of them are rated); a line noted
+  // before 1.13 has its Nutri-Score read as a score
   let rated = 0;
   let weighted = 0;
   for (const e of day.entries) {
-    const g = e.nutriscore ? GRADE[e.nutriscore.toLowerCase()] : undefined;
-    if (g && e.nutrients.kcal > 0) {
+    const h = e.health ?? (e.nutriscore ? GRADE_SCORE[e.nutriscore.toLowerCase()] : undefined);
+    if (h != null && e.nutrients.kcal > 0) {
       rated += e.nutrients.kcal;
-      weighted += g * e.nutrients.kcal;
+      weighted += h * e.nutrients.kcal;
     }
   }
   if (rated >= t.kcal * 0.4) {
     const avg = weighted / rated;
-    const letter = 'ABCDE'[Math.min(4, Math.max(0, Math.round(avg) - 1))];
-    parts.push({ key: 'quality', max: 3, points: avg <= 1.8 ? 3 : avg <= 2.6 ? 2 : avg <= 3.4 ? 1 : 0, values: { grade: letter } });
+    parts.push({ key: 'quality', max: 3, points: avg >= 7 ? 3 : avg >= 5.5 ? 2 : avg >= 4 ? 1 : 0, values: { grade: Math.round(avg * 2) / 2 } });
   }
 
   // nutrients: the usual daily guides (fibre is only judged once the day is over)

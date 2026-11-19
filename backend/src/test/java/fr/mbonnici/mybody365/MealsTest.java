@@ -233,7 +233,8 @@ class MealsTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.topByCount[0].name").value("Pâte à tartiner noisettes"))
                 .andExpect(jsonPath("$.slots[0].slot").value("BREAKFAST"))
                 .andExpect(jsonPath("$.slots[0].days").value(3))
-                .andExpect(jsonPath("$.grades[0].grade").value("E"))
+                // 1.13: by health band, the spread (an E) in « poor »
+                .andExpect(jsonPath("$.grades[*].grade", org.hamcrest.Matchers.hasItem("poor")))
                 .andExpect(jsonPath("$.totals.kcal").value(closeTo(593.0, 1)))
                 // what brought the most sugar this week, for the trends
                 .andExpect(jsonPath("$.sugarSources[0].name").value("Pâte à tartiner noisettes"))
