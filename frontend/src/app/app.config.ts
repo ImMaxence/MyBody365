@@ -17,7 +17,11 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const i18n = inject(I18nService);
       const path = inject(DOCUMENT).location?.pathname ?? '/';
-      return i18n.load(path === '/en' || path.startsWith('/en/') ? 'en' : i18n.preferred());
+      const lang = path === '/en' || path.startsWith('/en/') ? 'en' : i18n.preferred();
+      // 1.14: the app (its sign-in screen included) speaks the device's language until one is chosen; the site's pages
+      // set their own
+      if (path.startsWith('/app')) i18n.set(lang);
+      return i18n.load(lang);
     }),
     // unhandled errors also go to the admins' error journal
     { provide: ErrorHandler, useClass: ReportingErrorHandler },

@@ -275,4 +275,19 @@ class SocialTest extends AbstractIntegrationTest {
         assertThat(storage.get(key)).isNull();
         assertThat(jdbc.queryForObject("select count(*) from avatar_cleanup", Integer.class)).isZero();
     }
+
+    /** 1.14: the language follows the device until one is chosen in the app; the notifications speak it all along */
+    @Test
+    void theLanguageFollowsTheDeviceUntilOneIsChosen() throws Exception {
+        AppUser max = account("max@example.com", AppUser.Role.USER);
+        java.util.function.Supplier<MockHttpServletRequestBuilder> patch = () -> org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/me");
+        // none chosen: the app gets none (it follows the device) and tells the device's, kept for the notifications
+        json(patch.get(), max, "{\"deviceLocale\":\"en\"}").andExpect(status().isOk()).andExpect(jsonPath("$.locale").doesNotExist());
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject("select locale || ':' || locale_chosen from app_user where id = ?", String.class, max.getId()))
+                .isEqualTo("en:false");
+        // chosen in the app: it wins, the device's no longer changes it
+        json(patch.get(), max, "{\"locale\":\"fr\"}").andExpect(jsonPath("$.locale").value("fr"));
+        json(patch.get(), max, "{\"deviceLocale\":\"en\"}").andExpect(jsonPath("$.locale").value("fr"));
+        json(patch.get(), max, "{\"deviceLocale\":\"de\"}").andExpect(status().isBadRequest());
+    }
 }

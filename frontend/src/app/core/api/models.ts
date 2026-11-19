@@ -28,7 +28,8 @@ export interface Account {
   /** glasses of water a day; absent: the water tracker is off */
   waterGoal?: number;
   role: 'USER' | 'ADMIN';
-  locale: 'fr' | 'en';
+  /** 1.14: the language chosen in the app; null until one is (the device's then) */
+  locale?: 'fr' | 'en' | null;
   onboarded: boolean;
   /** the body profile (height, weight, goal) has been filled in */
   profileComplete: boolean;

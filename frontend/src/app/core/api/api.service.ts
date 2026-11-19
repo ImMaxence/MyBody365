@@ -116,7 +116,7 @@ export class ApiService {
   }
 
   /** waterGoal 0 turns the water tracker off */
-  updateMe(patch: { displayName?: string; locale?: 'fr' | 'en'; discoverable?: boolean; waterGoal?: number; streakIcon?: string; streakColor?: string }): Promise<Account> {
+  updateMe(patch: { displayName?: string; locale?: 'fr' | 'en'; deviceLocale?: 'fr' | 'en'; discoverable?: boolean; waterGoal?: number; streakIcon?: string; streakColor?: string }): Promise<Account> {
     return firstValueFrom(this.http.patch<Account>('/api/me', patch));
   }
 

@@ -45,10 +45,23 @@ const YEAR = [82.4, 81.1, 79.9, 78.6, 77.8, 76.9, 75.8, 75.1, 74.2, 73.4, 72.6, 
               <li [style.--i]="$index">
                 <span>{{ item }}</span>
                 <span class="kcal num">{{ kcal[$index] }}</span>
-                <span class="ns" [class]="'ns ns-' + scores[$index]">{{ scores[$index] }}</span>
+                <!-- 1.14: the health score out of 10, drawn as in the app (the Nutri-Score letters went in 1.13) -->
+                <span class="hs" [attr.data-band]="scores[$index] >= 8.5 ? 'great' : 'good'"><b class="num">{{ i18n.number(scores[$index], scores[$index] % 1 ? 1 : 0) }}</b><small>/10</small></span>
               </li>
             }
           </ul>
+          <!-- 1.14: the vitamins and minerals of the day, and what ran low this week -->
+          <div class="vits">
+            <span class="vits-head">{{ 'landing.vignette.vitamins' | t }}</span>
+            @for (m of vitamins(); track m.name) {
+              <span class="vit" [class.low]="m.pct < 50" [style.--p]="m.pct">
+                <span class="vit-name">{{ m.name }}</span>
+                <span class="vit-bar"><i></i></span>
+                <span class="vit-pct num">{{ m.pct }} %</span>
+              </span>
+            }
+            <span class="vit-alert"><app-icon name="alert" [size]="13" [stroke]="2.4" /> {{ 'landing.vignette.vitaminLow' | t }}</span>
+          </div>
         </div>
       }
       @case ('7') {
@@ -514,21 +527,79 @@ const YEAR = [82.4, 81.1, 79.9, 78.6, 77.8, 76.9, 75.8, 75.1, 74.2, 73.4, 72.6, 
       color: var(--fg-2);
       font-size: var(--fs-xs);
     }
-    .ns {
-      display: grid;
-      place-items: center;
-      width: 20px;
-      height: 20px;
-      border-radius: 6px;
-      color: #fff;
-      font-size: 11px;
+    .hs {
+      --hs: #5fae2e;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 1px;
+      flex: none;
+      min-width: 46px;
+      justify-content: center;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--hs) 15%, var(--surface));
+      color: color-mix(in srgb, var(--hs) 50%, var(--fg));
+      line-height: 1;
+    }
+    .hs[data-band='great'] {
+      --hs: #1f9d55;
+    }
+    .hs b {
+      font-size: 13px;
       font-weight: 800;
     }
-    .ns-A {
-      background: #027d3e;
+    .hs small {
+      font-size: 9px;
+      font-weight: 700;
     }
-    .ns-B {
-      background: #4a7d0f;
+    /* the vitamins under the meals, across the whole vignette */
+    .vits {
+      grid-column: 1 / -1;
+      display: grid;
+      gap: 6px;
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--line);
+      font-size: var(--fs-xs);
+    }
+    .vits-head {
+      font-weight: 700;
+    }
+    .vit {
+      display: grid;
+      grid-template-columns: 6.5rem minmax(0, 1fr) 2.8rem;
+      align-items: center;
+      gap: 8px;
+    }
+    .vit-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--surface-3, color-mix(in srgb, var(--fg) 10%, transparent));
+      overflow: hidden;
+    }
+    .vit-bar i {
+      display: block;
+      width: calc(min(100, var(--p)) * 1%);
+      height: 100%;
+      border-radius: 3px;
+      background: #1f9d55;
+    }
+    .vit.low .vit-bar i {
+      background: #e2711d;
+    }
+    .vit-pct {
+      text-align: right;
+      color: var(--fg-2);
+    }
+    .vit-alert {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      background: color-mix(in srgb, #e2711d 12%, transparent);
+      color: color-mix(in srgb, #e2711d 55%, var(--fg));
+      font-weight: 600;
     }
 
     /* day 7: the streak */
@@ -1002,9 +1073,13 @@ export class JourneyVignetteComponent {
   protected readonly i18n = inject(I18nService);
 
   protected readonly mealItems = computed(() => this.i18n.get<string[]>('landing.vignette.mealItems') ?? []);
+  /** 1.14: a day of vitamins and minerals, in % of their daily reference */
+  protected readonly vitamins = computed(() =>
+    (this.i18n.get<string[]>('landing.vignette.vitaminNames') ?? []).map((name, i) => ({ name, pct: [128, 74, 38][i] ?? 0 })),
+  );
   protected readonly friends = computed(() => this.i18n.get<string[]>('landing.vignette.friends') ?? []);
   protected readonly kcal = [540, 57, 72];
-  protected readonly scores = ['B', 'A', 'A'];
+  protected readonly scores = [7.5, 9, 10];
   protected readonly streaks = [182, 175, 96];
   protected readonly hues = [24, 210, 280];
   protected readonly year = YEAR;

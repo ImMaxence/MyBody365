@@ -44,6 +44,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class MeController {
 
     public record UpdateProfile(@Size(min = 1, max = 40) String displayName, @Pattern(regexp = "fr|en") String locale, Boolean discoverable,
+            /** 1.14: the language of the device, kept for the notifications while none was chosen */
+            @Pattern(regexp = "fr|en") String deviceLocale,
             /** glasses of water a day, 0 to turn the tracker off */
             @jakarta.validation.constraints.Min(0) @jakarta.validation.constraints.Max(30) Integer waterGoal,
             /** the streak's look (1.8): one of the app's icons and colours */
@@ -99,6 +101,9 @@ public class MeController {
         }
         if (body.locale() != null) {
             user.setLocale(body.locale());
+            user.setLocaleChosen(true);
+        } else if (body.deviceLocale() != null && !user.isLocaleChosen()) {
+            user.setLocale(body.deviceLocale());
         }
         if (body.discoverable() != null) {
             user.setDiscoverable(body.discoverable());

@@ -719,6 +719,8 @@ export const enMeals: Widen<typeof frMeals> = {
     richIn: 'Rich in {list}',
     sort: 'Rich in',
     sortAll: 'All',
+    perServing: 'Vitamins and minerals · per serving',
+    perServingNote: 'As a share of the reference intakes of a whole day (those on labels). A value missing from the tables is not shown',
     sortEmpty: 'No recipe rich in {name} here for now',
     sortClear: 'See all the recipes',
   },

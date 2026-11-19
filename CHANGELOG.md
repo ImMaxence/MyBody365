@@ -2,6 +2,25 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.14.1] - 2026-11-20
+
+Les dépendances de sécurité à jour (dont PostgreSQL 18.7 et ses 52 failles corrigées), la langue de ton téléphone tant que tu n'en choisis pas une, et les vitamines sur la fiche des recettes et sur le site
+
+### Ajouté
+- Détail d'une recette : toutes les vitamines et tous les minéraux connus d'une part, en barres, les plus riches en gras
+- Site : les vitamines et minéraux dans l'aperçu de l'app (la note du jour et ce qui manque) et dans le parcours
+
+### Corrigé
+- La langue suit celle de ton téléphone ou de ton navigateur tant que tu n'en as pas choisi une : l'app dès l'écran de connexion (un compte repassait en français à la connexion), ses notifications, et le site (un navigateur en anglais arrive sur la page en anglais, le drapeau retient ton choix)
+- Site : la vignette des repas montrait encore des lettres du Nutri-Score, elle montre la note santé sur 10 et les vitamines de la journée. Les lignes des listes s'affichent entièrement dès qu'elles sont à l'écran (la dernière restait pâle)
+- Détail d'un repas : « Ta journée pour l'instant » a une icône lisible, dans un rond, sur un fond coloré
+
+### Sécurité
+- PostgreSQL 18.7, sorti le 12 novembre avec 52 failles corrigées (une mise à jour mineure : les données restent telles quelles)
+- Node 24.22.3 (correctifs de sécurité de novembre) pour construire l'app, Java 25.0.5 pour le serveur, nginx 1.30.6 sur sa branche stable (la 1.29 ne recevait plus de correctifs depuis mai)
+- Spring Boot 4.1.3, Angular 22.3, le client S3 (AWS SDK 2.59.5) et les décodeurs d'images qui lisent les photos envoyées (TwelveMonkeys 3.15.3) à jour. Plus aucune faille connue dans les dépendances de l'app (npm audit)
+- Les images Docker sont fixées à une version exacte : une mise à jour de sécurité se voit, et une image gardée en cache ne retient plus une ancienne version
+
 ## [1.14.0] - 2026-11-19
 
 Les vitamines et les minéraux de tes repas, une recherche de recettes qui comprend chaque mot, le calcul de ton objectif en calories, une page Recettes pour les admins et une barre d'onglets qui suit ton doigt

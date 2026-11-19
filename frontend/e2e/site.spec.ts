@@ -40,4 +40,25 @@ test.describe('site extras', () => {
     await page.goto('/legal/mentions');
     await expect(page.locator('section p').first()).toHaveText(/\.\s*$/);
   });
+
+  test('an English browser gets the English site and app until a language is chosen (1.14)', async ({ browser }) => {
+    const ctx = await browser.newContext({ locale: 'en-US', viewport: { width: 393, height: 852 } });
+    // a person, not a robot (Playwright says it drives the browser: the site would leave it on the page asked)
+    await ctx.addInitScript(() => Object.defineProperty(Navigator.prototype, 'webdriver', { get: () => false }));
+    const page = await ctx.newPage();
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/en$/);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('One year to');
+    // the sign-in screen of the app speaks it too
+    await page.goto('/app/login?browser=1');
+    await expect(page.getByText('Your transformation starts here')).toBeVisible();
+    // French chosen with the flag: kept, the French page stays
+    await page.goto('/en');
+    await page.getByRole('link', { name: 'Passer en français' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Un an pour');
+    await ctx.close();
+  });
 });

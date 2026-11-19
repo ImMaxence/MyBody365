@@ -285,8 +285,8 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
               <p class="alert small"><app-icon name="alert" [size]="16" /> <span>{{ 'meals.health.alerts.' + a.key | t: { v: i18n.number(a.value, 1), u: e.liquid ? 'ml' : 'g' } }}</span></p>
             }
             @if (dayNow(); as dn) {
-              <p class="small muted day-now">
-                <app-icon name="sparkles" [size]="15" />
+              <p class="small day-now">
+                <span class="dn-ico"><app-icon name="sparkles" [size]="18" /></span>
                 <span>{{ (dn.ongoing ? 'meals.entry.dayOngoing' : 'meals.entry.dayDone') | t: { score: i18n.number(dn.score, dn.score % 1 ? 1 : 0), share: dn.share } }}</span>
               </p>
             }
@@ -369,8 +369,21 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
     .day-now {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
       margin: 0;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: var(--accent-soft);
+    }
+    .dn-ico {
+      display: grid;
+      place-items: center;
+      flex: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--accent-text);
     }
     .spacer {
       flex: 1;

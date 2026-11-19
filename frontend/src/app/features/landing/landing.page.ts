@@ -60,7 +60,7 @@ const CALENDAR: Cell[] = Array.from({ length: 28 }, (_, i) => {
           <a href="#privacy">{{ 'landing.nav.privacy' | t }}</a>
           <a href="#faq">{{ 'landing.nav.faq' | t }}</a>
         </nav>
-        <a class="lang" [routerLink]="otherHome()" [attr.hreflang]="i18n.other()" [attr.aria-label]="'common.switchToLabel' | t">
+        <a class="lang" [routerLink]="otherHome()" [attr.hreflang]="i18n.other()" [attr.aria-label]="'common.switchToLabel' | t" (click)="i18n.set(i18n.other(), true)">
           <app-flag [lang]="i18n.other()" /> <span class="lang-code">{{ i18n.other().toUpperCase() }}</span>
         </a>
         <app-theme-toggle />
@@ -613,6 +613,11 @@ const CALENDAR: Cell[] = Array.from({ length: 28 }, (_, i) => {
           animation: reveal linear both;
           animation-timeline: view();
           animation-range: entry 0% cover 28%;
+        }
+        /* 1.14: a line of a list is fully shown once it is fully on screen (the last one, low on the screen, stayed pale) */
+        li.reveal,
+        details.reveal {
+          animation-range: entry 0% entry 100%;
         }
         .marker {
           animation: marker-lit linear both;
@@ -1303,6 +1308,14 @@ export class LandingPage {
   private readonly seo = inject(SeoService);
   private readonly install = inject(InstallService);
   private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
+
+  /** 1.14: the language a first visit should get (null: a choice was made, a robot, or the server prerendering) */
+  private browserLang(): 'fr' | 'en' | null {
+    if (typeof navigator === 'undefined' || this.i18n.chosen()) return null;
+    if (navigator.webdriver || /bot|crawl|spider|slurp|lighthouse|headless|preview/i.test(navigator.userAgent)) return null;
+    return this.i18n.device();
+  }
 
   protected readonly calendar = CALENDAR;
   protected readonly home = computed(() => (this.i18n.lang() === 'en' ? '/en' : '/'));
@@ -1340,6 +1353,11 @@ export class LandingPage {
   }
 
   ngOnInit(): void {
+    // 1.14: the French page, opened by a browser in another language and no language chosen yet: the English one
+    // (never for a search engine's robot, which indexes both)
+    if (this.lang() === 'fr' && this.browserLang() === 'en') {
+      void this.router.navigate(['/en'], { replaceUrl: true, fragment: this.document.location.hash.slice(1) || undefined });
+    }
     this.i18n.set(this.lang());
     const en = this.lang() === 'en';
     this.seo.set({

@@ -12,7 +12,7 @@ import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 import { HealthScoreComponent } from '../../shared/health-score.component';
-import { RichInComponent } from './rich-in.component';
+import { MicrosListComponent } from './micros-list.component';
 import { ReportSheetComponent } from '../../shared/report-sheet.component';
 import { FavoritesStore } from '../../core/meals/favorites.store';
 import { HapticDirective } from '../../core/ui/haptics';
@@ -27,7 +27,7 @@ import { SessionStore } from '../../core/auth/session.store';
 @Component({
   selector: 'app-recipe',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective, NumberStepperComponent, RichInComponent],
+  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective, NumberStepperComponent, MicrosListComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -120,9 +120,16 @@ import { SessionStore } from '../../core/auth/session.store';
             <div><dt>{{ 'meals.fat' | t }}</dt><dd class="num">{{ g(r.perServing.fatG) }}</dd></div>
             <div><dt>{{ 'meals.fiber' | t }}</dt><dd class="num">{{ g(r.perServing.fiberG) }}</dd></div>
           </dl>
-          <!-- 1.14: the vitamins and minerals a serving brings the most of -->
-          <app-rich-in class="rich-in" [micros]="r.micros" />
         </section>
+
+        <!-- 1.14: the vitamins and minerals of a serving, all those known, against the reference of a day -->
+        @if (hasMicros(r)) {
+          <h2 class="section-title">{{ 'meals.micros.perServing' | t }}</h2>
+          <section class="card micros-card">
+            <app-micros-list [micros]="r.micros" />
+            <p class="tiny muted">{{ 'meals.micros.perServingNote' | t }}</p>
+          </section>
+        }
 
         <div class="main-actions">
           <button type="button" class="btn btn-primary grow" (click)="openAdd(r)"><app-icon name="plus" /> {{ addLabel() }}</button>
@@ -222,6 +229,14 @@ import { SessionStore } from '../../core/auth/session.store';
     </main>
   `,
   styles: `
+    .micros-card {
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-4);
+    }
+    .micros-card p {
+      margin: 0;
+    }
     /* 1.13: what makes the dish good, what costs it points */
     .reasons {
       display: flex;
@@ -542,6 +557,10 @@ export class RecipePage {
   private readonly day = computed(() => (this.dayParam() && /^\d{4}-\d{2}-\d{2}$/.test(this.dayParam()!) ? this.dayParam()! : localDay()));
   private readonly api = inject(MealsApi);
   protected readonly isAdmin = inject(SessionStore).isAdmin;
+
+  protected hasMicros(r: Recipe): boolean {
+    return !!r.micros && Object.keys(r.micros).length > 0;
+  }
   private readonly meals = inject(MealsStore);
   private readonly toast = inject(ToastService);
   private readonly stack = inject(StackNavigation);

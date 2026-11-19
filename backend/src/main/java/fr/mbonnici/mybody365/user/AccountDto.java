@@ -17,6 +17,7 @@ public record AccountDto(
         /** glasses of water a day; null: the water tracker is off */
         Integer waterGoal,
         String role,
+        /** the language chosen in the app; null until one is (the app then follows the device) */
         String locale,
         boolean onboarded,
         /** the body profile (height, weight, goal) has been filled in */
@@ -34,6 +35,6 @@ public record AccountDto(
     public static AccountDto of(AppUser user, boolean admin, boolean profileComplete) {
         return new AccountDto(user.getId(), user.getEmail(), user.getDisplayName(), user.getUsername(), user.getPictureUrl(),
                 user.getAvatarVersion() != null, user.isDiscoverable(), user.getWaterGoal(),
-                admin ? "ADMIN" : "USER", user.getLocale(), user.isOnboarded(), profileComplete, admin, user.getStreakIcon(), user.getStreakColor());
+                admin ? "ADMIN" : "USER", user.isLocaleChosen() ? user.getLocale() : null, user.isOnboarded(), profileComplete, admin, user.getStreakIcon(), user.getStreakColor());
     }
 }

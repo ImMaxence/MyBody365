@@ -145,6 +145,8 @@ test.describe('stack navigation', () => {
     await page.goto('/app/meals');
     const bar = page.getByRole('navigation', { name: 'Navigation principale' });
     await expect(bar).not.toHaveClass(/away/);
+    // a new screen ignores the scroll for 0.7 s (the one it is put back to): the member's scrolling comes after
+    await page.waitForTimeout(900);
     await page.mouse.move(200, 400);
     for (let i = 0; i < 4; i++) {
       await page.mouse.wheel(0, 200);

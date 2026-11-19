@@ -72,13 +72,22 @@ export class SessionStore {
     this.me.set(me);
     // the entries noted offline by this account go; another account's never do
     if (me.account?.id) this.outbox.setOwner(me.account.id);
-    // the account language wins over the device, unless a choice was made on this device
+    // the language chosen by the account wins over the device, unless a choice was made on this device
     const locale = me.account?.locale;
     if (locale) {
+      if (!this.i18n.chosen()) this.i18n.set(locale);
+    } else if (me.account) {
+      // 1.14: none chosen yet: the app speaks the device's, and the server gets it for the notifications (once per change)
+      const lang = this.i18n.lang();
       try {
-        if (!localStorage.getItem('mb.lang')) this.i18n.set(locale);
+        if (localStorage.getItem('mb.lang.device') !== lang) {
+          void this.api
+            .updateMe({ deviceLocale: lang })
+            .then(() => localStorage.setItem('mb.lang.device', lang))
+            .catch(() => undefined);
+        }
       } catch {
-        this.i18n.set(locale);
+        /* storage blocked: told next time */
       }
     }
   }

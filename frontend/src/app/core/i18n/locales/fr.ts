@@ -163,7 +163,7 @@ export const fr = {
       {
         day: '2',
         title: 'Tes repas en trois taps',
-        text: 'Scanne un code-barres, choisis un aliment du quotidien ou une de tes recettes : calories et note santé sur 10 sont calculées pour toi',
+        text: 'Scanne un code-barres, choisis un aliment du quotidien ou une de tes recettes : calories, note santé sur 10, vitamines et minéraux sont calculés pour toi, et l’app te dit ce qui manque',
       },
       {
         day: '7',
@@ -197,6 +197,9 @@ export const fr = {
       taken: 'Prise',
       meals: 'Déjeuner',
       mealItems: ['Bowl poulet curry · 1 part', 'Skyr nature', 'Pomme'],
+      vitamins: 'Vitamines et minéraux du jour',
+      vitaminNames: ['Vitamine C', 'Fer', 'Calcium'],
+      vitaminLow: 'Peu de calcium cette semaine : pense aux laitages, aux amandes',
       kcalLeft: 'kcal restantes',
       streak: 'jours de flamme',
       before: 'Jour 1',
@@ -229,6 +232,7 @@ export const fr = {
     previewShots: [
       { key: 'today', title: 'Aujourd’hui', text: 'Ta flamme, ta pesée, ta photo : la journée d’un coup d’œil', alt: 'Écran Aujourd’hui : la flamme de 46 jours, la pesée et les repas du jour' },
       { key: 'meals', title: 'Repas', text: 'Calories et macros du jour, la semaine sous le pouce', alt: 'Écran Repas : l’anneau de calories, les macros et la semaine' },
+      { key: 'vitamins', title: 'Vitamines', text: 'Ce que tes repas t’apportent en vitamines et minéraux, et ce qui manque', alt: 'La note du jour : les vitamines et minéraux de la journée en barres' },
       { key: 'calendar', title: 'Calendrier', text: 'Chaque jour te dit si tu as mangé plus ou moins que prévu', alt: 'Calendrier des repas : chaque jour marqué dans l’objectif, au-dessus ou en dessous' },
       { key: 'stats', title: 'Statistiques', text: 'Ta moyenne, le bilan du mois et des conseils tirés de tes repas', alt: 'Statistiques des repas : moyenne par jour, bilan et calories jour par jour' },
       { key: 'progress', title: 'Progrès', text: 'La courbe lissée et la date estimée de ton objectif', alt: 'Écran Progrès : la courbe de poids, sa tendance et la prévision' },

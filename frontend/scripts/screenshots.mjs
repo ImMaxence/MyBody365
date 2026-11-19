@@ -177,6 +177,27 @@ await seed.close();
     `docker exec ${process.env.SHOTS_DB ?? 'mybody365-shots-db-1'} psql -U mybody365 -d mybody365 -c "update body_profile p set start_date = l.day, start_weight_kg = l.weight_kg from (select distinct on (user_id) user_id, day, weight_kg from body_log where weight_kg is not null order by user_id, day) l where l.user_id = p.user_id"`,
     { stdio: 'inherit' },
   );
+  // 1.14: the vitamins and minerals of the demo foods, per 100 g, as the Ciqual table gives them (foods of one's own have none)
+  // (0 where the table says none or traces: a value left out would be unknown, and not shown)
+  const micros = {
+    'Skyr nature': { a: 20, d: 0, e: 0, c: 0, b1: 0.03, b2: 0.2, b6: 0.05, b9: 10, b12: 0.5, ca: 110, fe: 0.1, mg: 11, k: 150, zn: 0.5 },
+    'Flocons d’avoine': { a: 0, d: 0, e: 0.7, c: 0, b1: 0.5, b2: 0.1, b6: 0.1, b9: 32, b12: 0, ca: 50, fe: 4, mg: 130, k: 360, zn: 3.6 },
+    Banane: { a: 3, d: 0, e: 0.1, c: 8.7, b1: 0.04, b2: 0.07, b6: 0.4, b9: 20, b12: 0, ca: 5, fe: 0.3, mg: 27, k: 360, zn: 0.15 },
+    'Blanc de poulet grillé': { a: 10, d: 0.2, e: 0.2, c: 0, b1: 0.07, b2: 0.15, b6: 0.6, b9: 4, b12: 0.3, ca: 10, fe: 0.5, mg: 28, k: 330, zn: 0.9 },
+    'Riz complet cuit': { a: 0, d: 0, e: 0.3, c: 0, b1: 0.1, b2: 0.02, b6: 0.15, b9: 9, b12: 0, ca: 10, fe: 0.4, mg: 43, k: 80, zn: 0.6 },
+    'Brocolis vapeur': { a: 31, d: 0, e: 1.4, c: 64, b1: 0.06, b2: 0.1, b6: 0.2, b9: 108, b12: 0, ca: 47, fe: 0.7, mg: 21, k: 293, zn: 0.4 },
+    Pomme: { a: 3, d: 0, e: 0.2, c: 4.6, b1: 0.02, b2: 0.03, b6: 0.04, b9: 3, b12: 0, ca: 6, fe: 0.1, mg: 5, k: 107, zn: 0.04 },
+    'Saumon au four': { a: 50, d: 11, e: 2.5, c: 0, b1: 0.2, b2: 0.15, b6: 0.6, b9: 25, b12: 3.2, ca: 12, fe: 0.4, mg: 30, k: 360, zn: 0.4 },
+    'Pâtes complètes cuites': { a: 0, d: 0, e: 0.3, c: 0, b1: 0.15, b2: 0.06, b6: 0.08, b9: 7, b12: 0, ca: 15, fe: 1.4, mg: 53, k: 120, zn: 1.1 },
+    'Yaourt grec': { a: 30, d: 0.1, e: 0.1, c: 0, b1: 0.03, b2: 0.2, b6: 0.05, b9: 10, b12: 0.4, ca: 100, fe: 0.05, mg: 11, k: 141, zn: 0.5 },
+    Amandes: { a: 0, d: 0, e: 25, c: 0, b1: 0.2, b2: 1.1, b6: 0.14, b9: 44, b12: 0, ca: 270, fe: 3.7, mg: 270, k: 730, zn: 3.1 },
+  };
+  execSync(`docker exec -i ${process.env.SHOTS_DB ?? 'mybody365-shots-db-1'} psql -U mybody365 -d mybody365`, {
+    input: Object.entries(micros)
+      .map(([n, m]) => `update food set micros = '${JSON.stringify(m)}'::jsonb where source = 'USER' and name = '${n.replace(/'/g, "''")}';`)
+      .join('\n'),
+    stdio: ['pipe', 'inherit', 'inherit'],
+  });
   // 1.14: what the friends show (their progress, without the kilos), Max's Bravo, and a challenge on the weigh-in
   for (const { f, name } of friendCtx) {
     if (name !== 'Hugo') await api(f, 'POST', '/api/me/posts', { kind: 'PROGRESS', weights: false });
@@ -221,6 +242,14 @@ for (const scheme of ['dark', 'light']) {
   await page.goto(BASE + '/app/meals', { waitUntil: 'networkidle' });
   await page.waitForTimeout(900);
   raw[`meals-${scheme}`] = await shot(page, `meals-${scheme}`);
+  // 1.14: the score of the day and its vitamins and minerals
+  await page.locator('app-day-score .pill').first().click();
+  await page.waitForTimeout(900);
+  await page.locator('.micro-title').evaluate((el) => el.scrollIntoView({ block: 'start' }));
+  await page.waitForTimeout(400);
+  raw[`vitamins-${scheme}`] = await shot(page, `vitamins-${scheme}`);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(600);
   await page.getByRole('button', { name: /Aujourd’hui/ }).click();
   await page.waitForTimeout(900);
   raw[`calendar-${scheme}`] = await shot(page, `calendar-${scheme}`);
@@ -371,7 +400,7 @@ async function toWebp(key, name) {
   console.log(`${SITE}/${name}.webp`);
 }
 for (const scheme of ['light', 'dark']) {
-  for (const k of ['today', 'meals', 'calendar', 'stats', 'progress', 'friends']) await toWebp(`${k}-${scheme}`, `${k}-${scheme}`);
+  for (const k of ['today', 'meals', 'vitamins', 'calendar', 'stats', 'progress', 'friends']) await toWebp(`${k}-${scheme}`, `${k}-${scheme}`);
 }
 
 await compose(
@@ -445,7 +474,7 @@ await compose(
     ${[
       ['calendar-dark', 'Le calendrier', 'Chaque jour : dans l’objectif, au-dessus, en dessous'],
       ['stats-light', 'Les statistiques', 'Moyenne, bilan du mois, calories jour par jour'],
-      ['stats2-dark', 'Les conseils', 'Ce que tu manges le plus, par repas, note santé'],
+      ['vitamins-dark', 'Vitamines et minéraux', 'Ce que tes repas t’apportent, et ce qui manque'],
       ['recipes-light', 'Les recettes', 'Les tiennes, celles des amis, la communauté'],
     ]
       .map(([k, t, s]) => `<div style="width:320px"><div class="phone"><img src="${img(k)}"></div><div class="cap">${t}<small>${s}</small></div></div>`)

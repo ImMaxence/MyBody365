@@ -716,6 +716,8 @@ export const frMeals = {
     richIn: 'Riche en {list}',
     sort: 'Riches en',
     sortAll: 'Toutes',
+    perServing: 'Vitamines et minéraux · par part',
+    perServingNote: 'En part des apports de référence d’une journée (ceux des étiquettes). Une valeur absente des tables n’est pas affichée',
     sortEmpty: 'Aucune recette riche en {name} ici pour le moment',
     sortClear: 'Voir toutes les recettes',
   },

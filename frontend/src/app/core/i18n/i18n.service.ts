@@ -29,14 +29,27 @@ export class I18nService {
 
   /** The language the app should use when no page imposes one: saved choice, then the device. */
   preferred(): Lang {
-    if (!this.browser) return 'fr';
+    return this.chosen() ?? this.device();
+  }
+
+  /** 1.14: the language chosen on this device (null: none yet) */
+  chosen(): Lang | null {
+    if (!this.browser) return null;
     try {
       const saved = localStorage.getItem(LANG_KEY);
       if (saved === 'fr' || saved === 'en') return saved;
     } catch {
       /* storage blocked */
     }
-    return (navigator.language || 'fr').toLowerCase().startsWith('fr') ? 'fr' : 'en';
+    return null;
+  }
+
+  /** 1.14: the language of the browser or the system, among the app's (French for any French, English otherwise) */
+  device(): Lang {
+    if (!this.browser) return 'fr';
+    const langs = navigator.languages?.length ? navigator.languages : [navigator.language || 'fr'];
+    const first = langs.map((l) => l.toLowerCase()).find((l) => l.startsWith('fr') || l.startsWith('en'));
+    return first ? (first.startsWith('fr') ? 'fr' : 'en') : 'en';
   }
 
   /** the texts of a language, ready (the app waits for them before its first screen) */

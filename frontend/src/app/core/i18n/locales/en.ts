@@ -162,7 +162,7 @@ export const en: Dictionary = {
       {
         day: '2',
         title: 'Your meals in three taps',
-        text: 'Scan a barcode, pick an everyday food or one of your recipes: calories and a health score out of 10 are worked out for you',
+        text: 'Scan a barcode, pick an everyday food or one of your recipes: calories, a health score out of 10, vitamins and minerals are worked out for you, and the app tells you what is missing',
       },
       {
         day: '7',
@@ -196,6 +196,9 @@ export const en: Dictionary = {
       taken: 'Taken',
       meals: 'Lunch',
       mealItems: ['Chicken curry bowl · 1 serving', 'Plain skyr', 'Apple'],
+      vitamins: 'Vitamins and minerals of the day',
+      vitaminNames: ['Vitamin C', 'Iron', 'Calcium'],
+      vitaminLow: 'Little calcium this week: think of dairy, almonds',
       kcalLeft: 'kcal left',
       streak: 'day streak',
       before: 'Day 1',
@@ -228,6 +231,7 @@ export const en: Dictionary = {
     previewShots: [
       { key: 'today', title: 'Today', text: 'Your flame, your weigh-in, your photo: the day at a glance', alt: 'Today screen: a 46-day flame, the weigh-in and the day’s meals' },
       { key: 'meals', title: 'Meals', text: 'The day’s calories and macros, the week under your thumb', alt: 'Meals screen: the calorie ring, the macros and the week' },
+      { key: 'vitamins', title: 'Vitamins', text: 'The vitamins and minerals your meals bring you, and what is missing', alt: 'The score of the day: the vitamins and minerals of the day as bars' },
       { key: 'calendar', title: 'Calendar', text: 'Every day tells you whether you ate more or less than planned', alt: 'Meals calendar: each day marked on target, above or below' },
       { key: 'stats', title: 'Stats', text: 'Your average, the month’s balance and tips drawn from your meals', alt: 'Meal stats: daily average, balance and calories day by day' },
       { key: 'progress', title: 'Progress', text: 'The smoothed curve and the estimated date of your goal', alt: 'Progress screen: the weight curve, its trend and the forecast' },

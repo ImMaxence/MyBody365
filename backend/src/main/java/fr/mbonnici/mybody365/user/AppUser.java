@@ -73,6 +73,10 @@ public class AppUser {
     @Column(nullable = false)
     private String locale = "fr";
 
+    /** 1.14: the language was chosen in the app; until then it is the device's (sent by the app) */
+    @Column(nullable = false)
+    private boolean localeChosen;
+
     private Instant adultConfirmedAt;
     private Instant healthConsentAt;
 
@@ -175,6 +179,14 @@ public class AppUser {
 
     public void setLocale(String locale) {
         this.locale = locale;
+    }
+
+    public boolean isLocaleChosen() {
+        return localeChosen;
+    }
+
+    public void setLocaleChosen(boolean localeChosen) {
+        this.localeChosen = localeChosen;
     }
 
     public Instant getAdultConfirmedAt() {
