@@ -7,6 +7,27 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.15.1",
+    "date": "2026-11-21",
+    "summary": [
+      {
+        "t": "Des vitamines estimées plus justes pour les aliments que la table Ciqual laisse sans valeurs"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Vitamines et minéraux estimés d'après un aliment proche : un aliment non enrichi ne prend plus ceux d'un aliment enrichi en vitamines (les céréales du petit déjeuner non enrichies affichaient plusieurs fois trop de vitamines B et de fer), ni une viande ceux d'un abat. Les valeurs ne sont plus ajustées qu'entre un aliment cru, cuit ou séché : le sucre ajouté gonflait celles du fromage blanc sucré ou du pop-corn au caramel. Les recettes qui les utilisent sont recalculées"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.15.0",
     "date": "2026-11-20",
     "summary": [

@@ -166,22 +166,40 @@ class NutritionUnitTest {
     void aFoodWithoutVitaminsTakesThoseOfItsClosestSibling() {
         java.util.UUID raw = java.util.UUID.randomUUID();
         java.util.UUID samourai = java.util.UUID.randomUUID();
+        java.util.UUID cereal = java.util.UUID.randomUUID();
+        java.util.UUID leg = java.util.UUID.randomUUID();
+        java.util.UUID sweet = java.util.UUID.randomUUID();
         java.util.List<MicrosSiblings.Item> table = java.util.List.of(
                 item(raw, "Pâte à pizza, préemballée, crue", "pâtes à tarte", 240, 7, 45, java.util.Map.of()),
                 item(java.util.UUID.randomUUID(), "Pâte à pizza, préemballée, cuite", "pâtes à tarte", 280, 8.5, 53, java.util.Map.of("fe", 2.0)),
                 item(java.util.UUID.randomUUID(), "Riz blanc, cru", "pâtes, riz et céréales", 350, 7, 77.5, java.util.Map.of("mg", 25.0)),
                 item(java.util.UUID.randomUUID(), "Riz blanc, cuit", "pâtes, riz et céréales", 155, 3.2, 33.2, java.util.Map.of("mg", 11.0)),
                 item(samourai, "Sauce samouraï, préemballée", "sauces", 450, 1, 6, java.util.Map.of()),
-                item(java.util.UUID.randomUUID(), "Sauce soja, préemballée", "sauces", 60, 6, 6, java.util.Map.of("k", 200.0)));
-        java.util.List<MicrosSiblings.Guess> guesses = MicrosSiblings.guess(table);
-        // the raw dough takes the baked one's, for its own density (52 g of protein + carbs against 61.5)
-        assertThat(guesses).hasSize(1);
-        assertThat(guesses.getFirst().id()).isEqualTo(raw);
-        assertThat(guesses.getFirst().from()).isEqualTo("Pâte à pizza, préemballée, cuite");
-        assertThat(guesses.getFirst().micros().get("fe")).isCloseTo(2.0 * 52 / 61.5, org.assertj.core.data.Offset.offset(0.001));
-        // a mayonnaise sauce is not a soy sauce: it stays unknown
-        assertThat(guesses).noneMatch(g -> g.id().equals(samourai));
+                item(java.util.UUID.randomUUID(), "Sauce soja, préemballée", "sauces", 60, 6, 6, java.util.Map.of("k", 200.0)),
+                item(cereal, "Céréales pour petit déjeuner au miel, non enrichies en vitamines et minéraux", "céréales", 380, 7, 85, java.util.Map.of()),
+                item(java.util.UUID.randomUUID(), "Céréales pour petit déjeuner au miel, enrichies en vitamines et minéraux", "céréales", 380, 7, 85,
+                        java.util.Map.of("b1", 1.0)),
+                item(leg, "Agneau, gigot, cru", "viandes", 200, 19, 0, java.util.Map.of()),
+                item(java.util.UUID.randomUUID(), "Foie, agneau, cru", "viandes", 140, 21, 2, java.util.Map.of("b12", 90.0)),
+                item(sweet, "Fromage blanc, nature, 3% MG, sucré", "produits laitiers", 110, 7, 13, java.util.Map.of()),
+                item(java.util.UUID.randomUUID(), "Fromage blanc, nature, 0% MG", "produits laitiers", 50, 8, 4, java.util.Map.of("ca", 120.0)));
+        java.util.Map<java.util.UUID, MicrosSiblings.Guess> guesses = MicrosSiblings.guess(table).stream()
+                .collect(java.util.stream.Collectors.toMap(MicrosSiblings.Guess::id, g -> g));
+        assertThat(guesses.keySet()).containsExactlyInAnyOrder(raw, sweet);
+        // the raw dough takes the baked one's, for its own water (52 g of protein + carbs against 61.5)
+        assertThat(guesses.get(raw).from()).isEqualTo("Pâte à pizza, préemballée, cuite");
+        assertThat(guesses.get(raw).micros().get("fe")).isCloseTo(2.0 * 52 / 61.5, org.assertj.core.data.Offset.offset(0.001));
+        // added sugar is no calcium: taken as it is, not × 20/12
+        assertThat(guesses.get(sweet).micros().get("ca")).isEqualTo(120.0);
+        // a mayonnaise sauce is not a soy sauce, a plain cereal not an enriched one, a leg of lamb not its liver: unknown
+        assertThat(guesses).doesNotContainKeys(samourai, cereal, leg);
         assertThat(MicrosSiblings.words("Pâtes sèches, aux œufs, crues")).containsExactly("pat", "sech", "oeuf", "cru");
+        assertThat(MicrosSiblings.state("Pâte brisée, pur beurre, préemballée, crue")).isEqualTo(MicrosSiblings.State.RAW);
+        assertThat(MicrosSiblings.state("Haricot flageolet, vert, sec")).isEqualTo(MicrosSiblings.State.DRIED);
+        assertThat(MicrosSiblings.state("Soupe au cresson, déshydratée reconstituée")).isEqualTo(MicrosSiblings.State.COOKED);
+        assertThat(MicrosSiblings.state("Mélange apéritif de graines salées et raisins secs")).isEqualTo(MicrosSiblings.State.UNSAID);
+        assertThat(MicrosSiblings.enriched("Boisson au soja, nature, enrichie en calcium, préemballée")).isTrue();
+        assertThat(MicrosSiblings.enriched("Boisson au soja, nature, non enrichie, préemballée")).isFalse();
     }
 
     private static MicrosSiblings.Item item(java.util.UUID id, String name, String category, double kcal, double protein, double carbs,
