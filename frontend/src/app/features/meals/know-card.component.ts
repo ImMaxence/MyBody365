@@ -5,10 +5,11 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/icon.component';
 
-type Item = 'kcalKg' | 'satFat' | 'cholesterol' | 'sugars' | 'salt' | 'ultra' | 'fiber' | 'water' | 'fruits' | 'vitamins';
-const ITEMS: Item[] = ['satFat', 'cholesterol', 'sugars', 'fiber', 'kcalKg', 'vitamins', 'fruits', 'water', 'salt', 'ultra'];
+type Item = 'kcalKg' | 'volume' | 'satFat' | 'cholesterol' | 'sugars' | 'salt' | 'ultra' | 'fiber' | 'water' | 'fruits' | 'vitamins';
+const ITEMS: Item[] = ['satFat', 'cholesterol', 'sugars', 'fiber', 'kcalKg', 'volume', 'vitamins', 'fruits', 'water', 'salt', 'ultra'];
 const ICON: Record<Item, string> = {
   kcalKg: 'weight',
+  volume: 'utensils',
   satFat: 'alert',
   cholesterol: 'activity',
   sugars: 'zap',
@@ -23,7 +24,8 @@ const ICON: Record<Item, string> = {
 /**
  * 1.13: « Bon à savoir », on the Meals tab: one thing worth knowing to eat well, the one the day calls for (too much
  * saturated fat, sugar or salt already), else one a day in turn; « Tous les repères » opens them all: saturated fat and
- * the bad cholesterol, sugar, salt, ultra-processed products, and 1 kg of fat ≈ 7 700 kcal.
+ * the bad cholesterol, sugar, salt, ultra-processed products, and 1 kg of fat ≈ 7 700 kcal. 1.15: eating in volume (a bowl of
+ * potato salad rather than a small rich plate), said too on a day already over its calories.
  */
 @Component({
   selector: 'app-know-card',
@@ -129,6 +131,7 @@ const ICON: Record<Item, string> = {
       color: var(--cool);
     }
     .i-ico[data-k='fruits'],
+    .i-ico[data-k='volume'],
     .i-ico[data-k='fiber'] {
       background: color-mix(in srgb, var(--success, #1f9d55) 14%, transparent);
       color: var(--success, #1f9d55);
@@ -171,6 +174,8 @@ export class KnowCardComponent {
     if (t?.satFatG != null && t.kcal > 0 && t.satFatG * 9 > Math.max(t.kcal, this.kcal() * 0.5) * 0.1) return 'satFat';
     if (t?.sugarsG != null && t.sugarsG > 50) return 'sugars';
     if (t?.saltG != null && t.saltG > 5) return 'salt';
+    // 1.15: a day already over its calories: fill up on volume rather than on small rich plates
+    if (t && t.kcal > this.kcal() * 1.05) return 'volume';
     // 1.14: a day over with too little fibre
     const d0 = this.day();
     if (d0 && d0.day < new Date().toISOString().slice(0, 10) && t?.fiberG != null && t.kcal > 800 && t.fiberG < 20) return 'fiber';

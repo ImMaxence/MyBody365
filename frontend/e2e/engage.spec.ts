@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectAccessible, expectNoHorizontalOverflow, signIn, tab, watchErrors, press } from './helpers';
+import { expectAccessible, expectNoHorizontalOverflow, signIn, tab, watchErrors, press, pressTwice } from './helpers';
 
 test.describe('engagement', () => {
   test('the flame sheet: record, freezes and the last 28 days', async ({ page }) => {
@@ -149,14 +149,22 @@ test.describe('engagement', () => {
     await expect(page.getByText(/verres, soit/)).toBeVisible();
     await expectAccessible(page);
     await tab(page, 'Aujourd’hui').click();
-    // 1.9: big glasses, the next one with a « + »; a tap on a full one empties it
+    // 1.9: big glasses, the next one with a « + »; 1.15: a full one empties on a double tap only
     const card = page.locator('app-water-card');
     await expect(card.getByRole('button', { name: 'Verre 1 : le boire' })).toBeVisible();
     await press(card.getByRole('button', { name: 'Verre 1 : le boire' }));
     await press(card.getByRole('button', { name: 'Verre 2 : le boire' }));
     await press(card.getByRole('button', { name: 'Verre 3 : le boire' }));
     await expect(card).toContainText(/0,75\s*\/\s*[\d,]+ L/);
-    await press(card.getByRole('button', { name: 'Verre 3, bu : le retirer' }));
+    const third = card.getByRole('button', { name: 'Verre 3, bu : deux appuis pour le retirer' });
+    // a tap right after filling it would be the second tap of the same gesture (ignored)
+    await page.waitForTimeout(500);
+    await press(third);
+    await expect(card).toContainText('Touche deux fois un verre plein pour le vider');
+    await expect(card).toContainText(/0,75\s*\/\s*[\d,]+ L/);
+    // past the double tap's window: the next two taps are a double tap of their own
+    await page.waitForTimeout(500);
+    await pressTwice(third);
     await expect(card).toContainText(/0,5\s*\/\s*[\d,]+ L/);
     await expectAccessible(page);
     await page.reload();

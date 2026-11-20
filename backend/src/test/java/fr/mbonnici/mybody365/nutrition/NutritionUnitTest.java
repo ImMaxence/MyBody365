@@ -160,4 +160,32 @@ class NutritionUnitTest {
         assertThat(Micros.parse("{\"c\": 12.5, \"zz\": 3, \"fe\": -1}")).containsOnlyKeys("c");
         assertThat(Micros.json(java.util.Map.of())).isNull();
     }
+
+    /** 1.15: a Ciqual food without vitamins takes those of its closest sibling, scaled; none when no food is close enough */
+    @Test
+    void aFoodWithoutVitaminsTakesThoseOfItsClosestSibling() {
+        java.util.UUID raw = java.util.UUID.randomUUID();
+        java.util.UUID samourai = java.util.UUID.randomUUID();
+        java.util.List<MicrosSiblings.Item> table = java.util.List.of(
+                item(raw, "Pâte à pizza, préemballée, crue", "pâtes à tarte", 240, 7, 45, java.util.Map.of()),
+                item(java.util.UUID.randomUUID(), "Pâte à pizza, préemballée, cuite", "pâtes à tarte", 280, 8.5, 53, java.util.Map.of("fe", 2.0)),
+                item(java.util.UUID.randomUUID(), "Riz blanc, cru", "pâtes, riz et céréales", 350, 7, 77.5, java.util.Map.of("mg", 25.0)),
+                item(java.util.UUID.randomUUID(), "Riz blanc, cuit", "pâtes, riz et céréales", 155, 3.2, 33.2, java.util.Map.of("mg", 11.0)),
+                item(samourai, "Sauce samouraï, préemballée", "sauces", 450, 1, 6, java.util.Map.of()),
+                item(java.util.UUID.randomUUID(), "Sauce soja, préemballée", "sauces", 60, 6, 6, java.util.Map.of("k", 200.0)));
+        java.util.List<MicrosSiblings.Guess> guesses = MicrosSiblings.guess(table);
+        // the raw dough takes the baked one's, for its own density (52 g of protein + carbs against 61.5)
+        assertThat(guesses).hasSize(1);
+        assertThat(guesses.getFirst().id()).isEqualTo(raw);
+        assertThat(guesses.getFirst().from()).isEqualTo("Pâte à pizza, préemballée, cuite");
+        assertThat(guesses.getFirst().micros().get("fe")).isCloseTo(2.0 * 52 / 61.5, org.assertj.core.data.Offset.offset(0.001));
+        // a mayonnaise sauce is not a soy sauce: it stays unknown
+        assertThat(guesses).noneMatch(g -> g.id().equals(samourai));
+        assertThat(MicrosSiblings.words("Pâtes sèches, aux œufs, crues")).containsExactly("pat", "sech", "oeuf", "cru");
+    }
+
+    private static MicrosSiblings.Item item(java.util.UUID id, String name, String category, double kcal, double protein, double carbs,
+            java.util.Map<String, Double> micros) {
+        return new MicrosSiblings.Item(id, name, category, new Nutrients(kcal, protein, carbs, 0d, 0d, 0d, 0d, 0d), micros);
+    }
 }

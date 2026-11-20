@@ -1,16 +1,20 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, WritableSignal, computed, inject, input, signal } from '@angular/core';
 import { errorCode } from '../../core/api/api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { Outbox, isOffline } from '../../core/offline/outbox';
 import { WaterStore } from '../../core/tracking/water.store';
-import { HapticDirective } from '../../core/ui/haptics';
+import { HapticDirective, haptic } from '../../core/ui/haptics';
 import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
 
 /** a glass is 25 cl */
 const GLASS_L = 0.25;
 const MAX = 40;
+/** two taps closer than this on the same glass are a double tap */
+const DOUBLE_MS = 420;
+/** 4 glasses a row at most: below, they get too small to aim at with a thumb */
+const PER_ROW = 4;
 
 /** a first goal from the weight: about 33 ml per kg, 6 to 12 glasses (8 without a weight) */
 export function defaultWaterGoal(kg: number | null | undefined): number {
@@ -19,8 +23,10 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
 
 /**
  * Today's glasses of water (1.9), on the Today screen when the tracker is on: big glasses to tap, the next one with a
- * « + » inside. A tap fills a glass (the water rises with a wave and a few bubbles), a tap on a full one empties it
- * and the ones after. Each tap vibrates. The count of the day shows at once (WaterStore keeps the last one seen).
+ * « + » inside. A tap fills a glass (the water rises with a wave, splashes and a few bubbles). 1.15: a full glass
+ * empties on a double tap only (it pours out), with the ones after it: a single tap makes it wobble and says so, a
+ * thumb landing on the wrong glass no longer wipes the day. 4 glasses a row at most, the goal reached makes them all
+ * jump in turn. Each tap vibrates. The count of the day shows at once (WaterStore keeps the last one seen).
  */
 @Component({
   selector: 'app-water-card',
@@ -38,16 +44,17 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
         </span>
         <div class="titles">
           <h2 class="h3">{{ 'water.title' | t }}</h2>
-          <span class="small muted" aria-live="polite">{{ status() }}</span>
+          <span class="small muted" [class.hinting]="hint() !== null" aria-live="polite">{{ hint() !== null ? ('water.emptyHint' | t) : status() }}</span>
         </div>
         <span class="litres num"><b>{{ litres() }}</b> / {{ goalLitres() }} L</span>
       </div>
 
-      <div class="glasses" role="group" [attr.aria-label]="'water.glasses' | t" [style.--cols]="cols()">
+      <div class="glasses" role="group" [class.cheer]="cheer()" [attr.aria-label]="'water.glasses' | t" [style.--cols]="cols()">
         @for (s of slots(); track $index; let i = $index) {
           <span class="haptic box">
             <button type="button" class="glass" [class.on]="i < shown()" [class.next]="i === shown()" [class.just]="i === just()"
-              [class.extra]="i >= goal()" [disabled]="count() === null" [attr.aria-label]="glassLabel(i)" (click)="tap(i)">
+              [class.wobble]="i === hint()" [class.pour]="i === poured()" [class.extra]="i >= goal()" [style.--i]="i"
+              [disabled]="count() === null" [attr.aria-label]="glassLabel(i)" (click)="tap(i)">
               <svg viewBox="0 0 40 52" aria-hidden="true">
                 <defs>
                   <clipPath [attr.id]="'water-glass-' + i"><path d="M5.2 5h29.6l-3.7 39.7a3 3 0 0 1-3 2.7H11.9a3 3 0 0 1-3-2.7Z" /></clipPath>
@@ -63,11 +70,18 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
                 </g>
                 <path class="outline" d="M3.6 3h32.8a1.1 1.1 0 0 1 1.1 1.2l-3.9 40.8a4.8 4.8 0 0 1-4.8 4.4H11.2a4.8 4.8 0 0 1-4.8-4.4L2.5 4.2A1.1 1.1 0 0 1 3.6 3Z" />
                 <path class="shine" d="M8 9.5l2.6 30" />
+                <!-- 1.15: the splash over the brim when it fills -->
+                <g class="splash">
+                  <circle class="drop d1" cx="13" cy="4" r="1.7" />
+                  <circle class="drop d2" cx="20" cy="2.5" r="2.1" />
+                  <circle class="drop d3" cx="27" cy="4" r="1.6" />
+                  <circle class="drop d4" cx="17" cy="3.5" r="1.1" />
+                </g>
               </svg>
               @if (i === shown()) {
-                <span class="plus"><app-icon name="plus" [size]="18" [stroke]="2.8" /></span>
+                <span class="plus"><app-icon name="plus" [size]="22" [stroke]="2.8" /></span>
               }
-            </button><input appHaptic="soft" />
+            </button><input appHaptic="tap" />
           </span>
         }
       </div>
@@ -144,8 +158,9 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
     }
     .glasses {
       display: grid;
-      grid-template-columns: repeat(var(--cols, 8), minmax(0, 1fr));
-      gap: 6px 4px;
+      grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
+      gap: 12px 8px;
+      padding-top: 4px;
     }
     .box {
       display: grid;
@@ -156,12 +171,40 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
       display: grid;
       place-items: center;
       width: 100%;
-      max-width: 48px;
+      max-width: 60px;
       aspect-ratio: 40 / 52;
       padding: 0;
       background: none;
       color: var(--cool);
+      isolation: isolate;
       transition: transform 260ms var(--ease-out);
+    }
+    /* 1.15: a ring of water spreads behind the glass just filled */
+    .glass::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 55%;
+      width: 120%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, color-mix(in srgb, var(--cool) 30%, transparent), transparent);
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.4);
+      pointer-events: none;
+      z-index: -1;
+    }
+    .just::before {
+      animation: ripple 700ms var(--ease-out);
+    }
+    @keyframes ripple {
+      20% {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.25);
+      }
     }
     .glass svg {
       width: 100%;
@@ -242,6 +285,95 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
     .just svg {
       animation: pop 460ms var(--ease-out);
     }
+    .drop {
+      fill: var(--cool);
+      opacity: 0;
+    }
+    .just .drop {
+      animation: drop 620ms 120ms cubic-bezier(0.2, 0.7, 0.4, 1) both;
+    }
+    .just .d1 {
+      --dx: -9px;
+      --dy: -9px;
+    }
+    .just .d2 {
+      --dx: 0px;
+      --dy: -14px;
+      animation-delay: 160ms;
+    }
+    .just .d3 {
+      --dx: 9px;
+      --dy: -10px;
+      animation-delay: 140ms;
+    }
+    .just .d4 {
+      --dx: -4px;
+      --dy: -15px;
+      animation-delay: 200ms;
+    }
+    @keyframes drop {
+      15% {
+        opacity: 1;
+      }
+      60% {
+        opacity: 0.9;
+        transform: translate(var(--dx), var(--dy));
+      }
+      to {
+        opacity: 0;
+        transform: translate(calc(var(--dx) * 1.3), calc(var(--dy) * 0.4)) scale(0.6);
+      }
+    }
+    /* 1.15: a full glass tapped once wobbles (« tap twice »), emptied it tips over and pours out */
+    .wobble svg {
+      animation: wobble 480ms var(--ease-out);
+    }
+    @keyframes wobble {
+      20% {
+        transform: rotate(-9deg);
+      }
+      45% {
+        transform: rotate(7deg);
+      }
+      70% {
+        transform: rotate(-4deg);
+      }
+    }
+    .pour svg {
+      transform-origin: 80% 90%;
+      animation: pour 640ms var(--ease-out);
+    }
+    /* the water runs out while it tips, the « + » comes back once it stands again */
+    .pour .fill {
+      transition: transform 520ms ease-in;
+    }
+    .pour .plus {
+      animation: plus-in 320ms 520ms var(--ease-out) both;
+    }
+    @keyframes pour {
+      35% {
+        transform: rotate(24deg) translateY(-3px);
+      }
+      65% {
+        transform: rotate(20deg) translateY(-2px);
+      }
+    }
+    .hinting {
+      color: var(--cool);
+      font-weight: 650;
+    }
+    /* 1.15: the goal reached, the full glasses jump one after the other */
+    .cheer .on svg {
+      animation: cheer 520ms calc(var(--i, 0) * 55ms) var(--ease-out) both;
+    }
+    @keyframes cheer {
+      40% {
+        transform: translateY(-9px) scale(1.06);
+      }
+      75% {
+        transform: translateY(1px) scale(0.98);
+      }
+    }
     @keyframes pop {
       35% {
         transform: scale(1.14) translateY(-2px);
@@ -255,7 +387,7 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
       inset: 0;
       display: grid;
       place-items: center;
-      padding-top: 4px;
+      padding-top: 6px;
       color: var(--cool);
       animation: plus-in 320ms var(--ease-out);
     }
@@ -296,7 +428,12 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
       }
       .just .wave,
       .just .bubble,
+      .just .drop,
+      .just::before,
       .just svg,
+      .wobble svg,
+      .pour svg,
+      .cheer .on svg,
       .plus,
       .reached .ico {
         animation: none;
@@ -318,13 +455,25 @@ export class WaterCardComponent {
   /** the glass just filled: its wave, its bubbles */
   protected readonly just = signal<number | null>(null);
   private justTimer: ReturnType<typeof setTimeout> | null = null;
+  /** 1.15: the full glass tapped once (it wobbles, the status says to tap twice) */
+  protected readonly hint = signal<number | null>(null);
+  /** 1.15: the glass just emptied (it pours out) */
+  protected readonly poured = signal<number | null>(null);
+  /** 1.15: the goal just reached (the glasses jump in turn) */
+  protected readonly cheer = signal(false);
+  private readonly timers = new Map<string, ReturnType<typeof setTimeout>>();
+  /** the last tap on a glass: which one, when, and whether it already did something (filled or emptied it) */
+  private lastTap: { i: number; at: number; done: boolean } | null = null;
 
   /** the goal's glasses, and always one more to fill (40 at most) */
   protected readonly slots = computed(() => Array.from({ length: Math.min(MAX, Math.max(this.goal(), this.shown() + 1)) }));
-  /** as many glasses a row as the goal (two rows beyond 8): adding past the goal never reshuffles them */
+  /**
+   * 1.15: 4 glasses a row at most, the rows as even as can be (6 → 3 + 3, 7 → 4 + 3, 9 → 3 × 3): from the goal only, so
+   * adding past it never reshuffles them
+   */
   protected readonly cols = computed(() => {
-    const g = this.goal();
-    return g <= 8 ? g : Math.ceil(g / 2);
+    const g = Math.max(1, this.goal());
+    return Math.ceil(g / Math.ceil(g / PER_ROW));
   });
   protected readonly reached = computed(() => this.shown() >= this.goal());
   /** « 0,5 », « 1,25 », « 2 » litres: no useless zeros */
@@ -340,7 +489,10 @@ export class WaterCardComponent {
 
   constructor() {
     this.store.load();
-    inject(DestroyRef).onDestroy(() => this.justTimer && clearTimeout(this.justTimer));
+    inject(DestroyRef).onDestroy(() => {
+      if (this.justTimer) clearTimeout(this.justTimer);
+      for (const t of this.timers.values()) clearTimeout(t);
+    });
   }
 
   protected glassLabel(i: number): string {
@@ -348,9 +500,52 @@ export class WaterCardComponent {
     return this.i18n.t('water.glassEmpty', { n: i + 1 });
   }
 
-  /** an empty glass fills up to it; a full one empties, with the ones after it */
+  /**
+   * an empty glass fills up to it at once; a full one empties on a double tap only, with the ones after it. Quick taps on
+   * the same glass do one thing only: a double tap on an empty glass leaves it full, a triple tap on a full one empty.
+   */
   protected tap(i: number): void {
-    this.set(i < this.shown() ? i : i + 1);
+    if (this.count() === null) return;
+    const now = Date.now();
+    const last = this.lastTap;
+    const quick = last !== null && last.i === i && now - last.at < DOUBLE_MS;
+    if (quick && last.done) {
+      this.lastTap = { i, at: now, done: true };
+      return;
+    }
+    if (i >= this.shown()) {
+      this.lastTap = { i, at: now, done: true };
+      this.set(i + 1);
+      return;
+    }
+    if (quick) {
+      this.lastTap = { i, at: now, done: true };
+      this.moment('hint', this.hint, null, 0);
+      this.moment('pour', this.poured, i, 700);
+      this.set(i);
+      return;
+    }
+    this.lastTap = { i, at: now, done: false };
+    this.moment('hint', this.hint, i, 1800);
+  }
+
+  /**
+   * a state for a moment, set again after a frame without it (the same glass animates again; a timer, not
+   * requestAnimationFrame, which headless WebKit never runs); null ends it at once
+   */
+  private moment<T>(name: string, state: WritableSignal<T | null>, value: T | null, ms: number): void {
+    const t = this.timers.get(name);
+    if (t) clearTimeout(t);
+    this.timers.delete(name);
+    state.set(null);
+    if (value === null) return;
+    this.timers.set(
+      name,
+      setTimeout(() => {
+        state.set(value);
+        this.timers.set(name, setTimeout(() => state.set(null), ms));
+      }, 20),
+    );
   }
 
   protected set(value: number): void {
@@ -364,7 +559,20 @@ export class WaterCardComponent {
     } else {
       this.just.set(null);
     }
-    if (next >= this.goal() && before < this.goal()) this.toast.show(this.i18n.t('water.reached'));
+    if (next >= this.goal() && before < this.goal()) {
+      this.toast.show(this.i18n.t('water.reached'));
+      haptic('success');
+      // once the last glass has filled, every full glass jumps in turn
+      const t = this.timers.get('cheer');
+      if (t) clearTimeout(t);
+      this.timers.set(
+        'cheer',
+        setTimeout(() => {
+          this.cheer.set(true);
+          this.timers.set('cheer', setTimeout(() => this.cheer.set(false), 600 + next * 55));
+        }, 650),
+      );
+    }
     const day = this.store.today();
     this.store.set(next).catch((e) => {
       if (isOffline(e)) {

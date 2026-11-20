@@ -25,12 +25,14 @@ public class FoodStore {
             /** 1.13: a product's size, generic name, food group, processing… (ProductInfo), and how many members noted it this year */
             ProductInfo info, int uses,
             /** 1.14: vitamins and minerals per 100 g (Micros keys), empty when unknown */
-            java.util.Map<String, Double> micros) {}
+            java.util.Map<String, Double> micros,
+            /** 1.15: the close food they were taken from when the table had none (MicrosSiblings), else null */
+            String microsFrom) {}
 
     private static final String COLUMNS = """
             id, source, source_code, owner_id, name, brand, category, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g,
             fiber_g, salt_g, nutriscore, nutriscore_estimated, serving_g, superseded, updated_at, image_path, source_updated_at, quantity,
-            generic_name, pnns, nova, additives, sweeteners, fruit_veg, scans, uses, micros::text as micros""";
+            generic_name, pnns, nova, additives, sweeteners, fruit_veg, scans, uses, micros::text as micros, micros_from""";
 
     private final JdbcTemplate jdbc;
 
@@ -45,7 +47,7 @@ public class FoodStore {
                 Nutrients.from(rs), rs.getString("nutriscore"), rs.getBoolean("nutriscore_estimated"), Nutrients.num(rs, "serving_g"),
                 rs.getBoolean("superseded"), rs.getTimestamp("updated_at").toInstant(), rs.getString("image_path"),
                 rs.getTimestamp("source_updated_at") == null ? null : rs.getTimestamp("source_updated_at").toInstant(), info(rs), rs.getInt("uses"),
-                Micros.parse(rs.getString("micros")));
+                Micros.parse(rs.getString("micros")), rs.getString("micros_from"));
     }
 
     public static ProductInfo info(ResultSet rs) throws SQLException {

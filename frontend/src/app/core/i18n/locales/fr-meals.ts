@@ -717,7 +717,8 @@ export const frMeals = {
     sort: 'Riches en',
     sortAll: 'Toutes',
     perServing: 'Vitamines et minéraux · par part',
-    perServingNote: 'En part des apports de référence d’une journée (ceux des étiquettes). Une valeur absente des tables n’est pas affichée',
+    perServingNote: 'En part des apports de référence d’une journée (ceux des étiquettes). Un ingrédient sans valeurs dans la table Ciqual prend celles d’un aliment très proche, sinon il ne compte pas',
+    estimated: 'Estimé d’après un aliment proche : {name}',
     sortEmpty: 'Aucune recette riche en {name} ici pour le moment',
     sortClear: 'Voir toutes les recettes',
   },
@@ -767,6 +768,10 @@ export const frMeals = {
       kcalKg: {
         title: '1 kg de graisse, c’est environ 7 700 kcal',
         text: 'Pour perdre 1 kg de graisse, il faut manger environ 7 700 kcal de moins que ce que tu dépenses. 500 kcal de moins chaque jour, c’est à peu près un demi-kilo par semaine. Au début, la balance descend plus vite (c’est surtout de l’eau), puis le rythme se stabilise',
+      },
+      volume: {
+        title: 'Mange en volume, pas en petites portions',
+        text: 'Des petites portions de plats riches laissent sur sa faim, et c’est là qu’on file au fast-food. Mieux vaut remplir l’assiette d’aliments qui pèsent lourd pour peu de calories : légumes, soupes, fruits, pommes de terre, poisson, volaille, laitages nature. Exemple : 500 g de salade de pommes de terre maison (sauce yaourt et moutarde) font environ 450 kcal, un vrai saladier, autant qu’un seul burger de fast-food. La pomme de terre cuite à l’eau est même arrivée en tête d’une étude de référence sur les aliments qui calent le plus',
       },
       satFat: {
         title: 'Les graisses saturées, à limiter au maximum',

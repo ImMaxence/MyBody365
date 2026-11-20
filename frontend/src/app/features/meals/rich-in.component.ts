@@ -22,6 +22,9 @@ import { IconComponent } from '../../shared/icon.component';
             </li>
           }
         </ul>
+        @if (from(); as name) {
+          <span class="tiny muted">{{ 'meals.micros.estimated' | t: { name } }}</span>
+        }
       </div>
     }
   `,
@@ -64,6 +67,8 @@ export class RichInComponent {
   /** per 100 g (with factor = grams / 100), per serving (factor = servings), or already for the amount */
   readonly micros = input<Partial<Record<string, number>> | null | undefined>(null);
   readonly factor = input(1);
+  /** 1.15: the close food they were taken from (the table had none for this one) */
+  readonly from = input<string | null | undefined>(null);
   /** the share of the daily reference from which it counts, in % */
   readonly min = input(15);
   protected readonly rows = computed(() => richIn(this.micros(), this.factor(), this.min()).slice(0, 6));

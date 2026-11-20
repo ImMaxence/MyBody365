@@ -720,7 +720,8 @@ export const enMeals: Widen<typeof frMeals> = {
     sort: 'Rich in',
     sortAll: 'All',
     perServing: 'Vitamins and minerals · per serving',
-    perServingNote: 'As a share of the reference intakes of a whole day (those on labels). A value missing from the tables is not shown',
+    perServingNote: 'As a share of the reference intakes of a whole day (those on labels). An ingredient without values in the Ciqual table takes those of a very close food, else it does not count',
+    estimated: 'Estimated from a close food: {name}',
     sortEmpty: 'No recipe rich in {name} here for now',
     sortClear: 'See all the recipes',
   },
@@ -770,6 +771,10 @@ export const enMeals: Widen<typeof frMeals> = {
       kcalKg: {
         title: '1 kg of fat is about 7,700 kcal',
         text: 'To lose 1 kg of fat, you need to eat about 7,700 kcal less than you burn. 500 kcal less every day is roughly half a kilo a week. At first the scale drops faster (mostly water), then the pace settles',
+      },
+      volume: {
+        title: 'Eat in volume, not in tiny portions',
+        text: 'Small portions of rich dishes leave you hungry, and that is when you end up at a fast-food place. Better to fill your plate with foods that weigh a lot for few calories: vegetables, soups, fruit, potatoes, fish, poultry, plain dairy. Example: 500 g of home-made potato salad (yoghurt and mustard dressing) is about 450 kcal, a real bowlful, as much as a single fast-food burger. Boiled potatoes even came top of a reference study on the foods that fill you up the most',
       },
       satFat: {
         title: 'Saturated fat, to keep as low as you can',

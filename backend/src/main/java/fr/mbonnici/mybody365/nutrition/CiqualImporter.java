@@ -166,6 +166,7 @@ public class CiqualImporter {
                 Path compoFile = download(base + compo.id(), dir.resolve("compo.xml"), compo.size(), id, "compo", 10, 80);
                 progress(id, "save", 88);
                 int updated = saveMicros(version, CiqualParser.compo(compoFile));
+                fillFromSiblings(version);
                 if (updated == 0) {
                     // a table without them: nothing changed
                     finish(id, "UP_TO_DATE", existing, null);
@@ -191,6 +192,7 @@ public class CiqualImporter {
             if (saved == 0) {
                 throw new IllegalStateException("no food with an energy value in this table");
             }
+            fillFromSiblings(version);
             finish(id, "DONE", saved, null);
             log.info("Ciqual {} imported: {} foods", version, saved);
             events.publishEvent(new Imported(version));
@@ -253,13 +255,77 @@ public class CiqualImporter {
         int[] done = {0};
         tx.executeWithoutResult(s -> {
             for (int i = 0; i < rows.size(); i += 500) {
-                for (int n : jdbc.batchUpdate("update food set micros = ?::jsonb where source = 'CIQUAL' and source_version = ? and source_code = ?",
+                for (int n : jdbc.batchUpdate("update food set micros = ?::jsonb, micros_from = null where source = 'CIQUAL' and source_version = ? and source_code = ?",
                         rows.subList(i, Math.min(i + 500, rows.size())))) {
                     done[0] += Math.max(0, n);
                 }
             }
         });
         return done[0];
+    }
+
+    /** 1.15: the rules of MicrosSiblings the table in use was filled with (a new rule fills it again at the next start) */
+    private static final String SIBLINGS_KEY = "micros_siblings";
+    private static final String SIBLINGS_RULES = "1";
+
+    /**
+     * 1.15: the foods of a table without vitamins nor minerals take those of their closest sibling (MicrosSiblings),
+     * the estimates made before are made again; how many foods have one
+     */
+    int fillFromSiblings(String version) {
+        List<MicrosSiblings.Item> table = jdbc.query("""
+                select id, name, category, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g, salt_g,
+                  case when micros_from is null then micros::text end as own
+                from food where source = 'CIQUAL' and source_version = ? order by source_code""",
+                (rs, i) -> new MicrosSiblings.Item(rs.getObject("id", UUID.class), rs.getString("name"), rs.getString("category"),
+                        Nutrients.from(rs), Micros.parse(rs.getString("own"))), version);
+        List<Object[]> rows = new ArrayList<>();
+        for (MicrosSiblings.Guess g : MicrosSiblings.guess(table)) {
+            String json = Micros.json(g.micros());
+            if (json != null) {
+                rows.add(new Object[] {json, cut(g.from(), 200), g.id()});
+            }
+        }
+        tx.executeWithoutResult(s -> {
+            jdbc.update("update food set micros = null, micros_from = null where source = 'CIQUAL' and source_version = ? and micros_from is not null",
+                    version);
+            for (int i = 0; i < rows.size(); i += 500) {
+                jdbc.batchUpdate("update food set micros = ?::jsonb, micros_from = ? where id = ? and micros is null",
+                        rows.subList(i, Math.min(i + 500, rows.size())));
+            }
+            jdbc.update("""
+                    insert into app_state (name, value, updated_at) values (?, ?, now())
+                    on conflict (name) do update set value = excluded.value, updated_at = now()""", SIBLINGS_KEY, version + ":" + SIBLINGS_RULES);
+        });
+        log.info("Ciqual {}: vitamins and minerals taken from a close food for {} foods", version, rows.size());
+        return rows.size();
+    }
+
+    /** 1.15: once at start, the table in use gets its estimates (then the recipes made of its foods follow) */
+    @EventListener(ApplicationReadyEvent.class)
+    public void siblingsAtStart() {
+        String version = currentVersion();
+        if (version == null) {
+            return;
+        }
+        List<String> done = jdbc.queryForList("select value from app_state where name = ?", String.class, SIBLINGS_KEY);
+        if (!done.isEmpty() && done.getFirst().equals(version + ":" + SIBLINGS_RULES)) {
+            return;
+        }
+        Integer own = jdbc.queryForObject("""
+                select count(*) from food where source = 'CIQUAL' and source_version = ? and micros is not null and micros_from is null""",
+                Integer.class, version);
+        if (own == null || own == 0) {
+            // the table has no values yet (addMicrosIfMissing brings them, then fills)
+            return;
+        }
+        try {
+            if (fillFromSiblings(version) > 0) {
+                events.publishEvent(new Imported(version));
+            }
+        } catch (RuntimeException e) {
+            log.warn("Ciqual vitamins of close foods not added: {}", e.getMessage());
+        }
     }
 
     /**

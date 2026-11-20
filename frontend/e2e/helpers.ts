@@ -57,6 +57,14 @@ export async function press(button: Locator): Promise<void> {
   else await button.click();
 }
 
+/** 1.15: two quick taps on a button (a full glass of water empties on a double tap), through its switch on iPhone */
+export async function pressTwice(button: Locator): Promise<void> {
+  await expect(button).toBeEnabled();
+  const overlay = button.locator('xpath=following-sibling::input[contains(@class, "haptic-switch")][1]');
+  if (await overlay.isVisible().catch(() => false)) await overlay.dblclick();
+  else await button.dblclick();
+}
+
 /** A link of the bottom tab bar. */
 export function tab(page: Page, name: string) {
   return page.getByRole('navigation', { name: 'Navigation principale' }).getByRole('link', { name });

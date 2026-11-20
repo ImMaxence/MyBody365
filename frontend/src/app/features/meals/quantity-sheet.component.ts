@@ -129,7 +129,7 @@ export interface QuantityTarget {
           <!-- 1.12: what it brings, with the bars of the Meals tab (the rest of the day paler) -->
           <app-nutrient-bars [item]="live()" [plan]="plan.bars()" [dayTotals]="rest()" />
           <!-- 1.14: the vitamins and minerals this amount brings the most of -->
-          <app-rich-in [micros]="t.food?.micros ?? t.recipe?.micros" [factor]="t.unit === 'g' ? qty() / 100 : qty()" />
+          <app-rich-in [micros]="t.food?.micros ?? t.recipe?.micros" [from]="t.food?.microsFrom" [factor]="t.unit === 'g' ? qty() / 100 : qty()" />
           <!-- 1.13: a product rich in saturated fat, sugar or salt says so, and why it matters -->
           @for (a of alerts(); track a.key) {
             <p class="alert small"><app-icon name="alert" [size]="16" /> <span>{{ 'meals.health.alerts.' + a.key | t: { v: i18n.number(a.value, 1), u: liquid() ? 'ml' : 'g' } }}</span></p>

@@ -27,8 +27,39 @@
   <!-- the hero title is the largest paint: its font must not wait for the stylesheet -->
   <link rel="preload" href="/fonts/archivo-display.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- 1.15: the logo in the middle while the app starts (core/ui/boot-splash.ts); the prerendered public pages drop it -->
+  <style id="boot-style">
+    .boot{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;background:#f3f1ec;transition:opacity .34s ease,visibility 0s .34s}
+    @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .boot{background:#0a0a0c}}
+    :root[data-theme=dark] .boot{background:#0a0a0c}
+    .boot svg{width:96px;height:96px;border-radius:28%;box-shadow:0 18px 50px -18px rgba(255,90,30,.55);animation:boot-in .5s cubic-bezier(.2,.9,.3,1.15) both;transition:transform .34s ease}
+    .boot-ring{stroke-dasharray:84 200;animation:boot-draw .9s .12s cubic-bezier(.65,0,.35,1) both}
+    .boot-spin{transform-box:view-box;transform-origin:24px 24px;animation:boot-spin 1.5s 1s linear infinite}
+    .boot-flame{transform-box:fill-box;transform-origin:50% 90%;animation:boot-flame .55s .3s cubic-bezier(.2,.9,.3,1.3) both,boot-breathe 1.3s .85s ease-in-out infinite alternate}
+    .boot.leaving{opacity:0;visibility:hidden;pointer-events:none}
+    .boot.leaving svg{transform:scale(1.14)}
+    @keyframes boot-in{from{opacity:0;transform:scale(.82)}}
+    @keyframes boot-draw{from{stroke-dashoffset:84}}
+    @keyframes boot-spin{to{transform:rotate(360deg)}}
+    @keyframes boot-flame{from{opacity:0;transform:scale(.4)}}
+    @keyframes boot-breathe{to{transform:scale(1.08)}}
+    @media (prefers-reduced-motion:reduce){.boot svg,.boot-ring,.boot-spin,.boot-flame{animation:none}}
+  </style>
 </head>
 <body>
+  <div id="boot" class="boot" aria-hidden="true">
+    <svg viewBox="0 0 48 48" focusable="false">
+      <defs>
+        <linearGradient id="boot-g" x1="8" y1="40" x2="40" y2="8" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#ff3d1f"/><stop offset=".5" stop-color="#ff7a1a"/><stop offset="1" stop-color="#ffc23d"/>
+        </linearGradient>
+      </defs>
+      <rect width="48" height="48" rx="14" fill="#0d0d10"/>
+      <circle cx="24" cy="24" r="15" fill="none" stroke="#fff" stroke-opacity=".12" stroke-width="4.5"/>
+      <g class="boot-spin"><circle class="boot-ring" cx="24" cy="24" r="15" fill="none" stroke="url(#boot-g)" stroke-width="4.5" stroke-linecap="round" transform="rotate(-90 24 24)"/></g>
+      <path class="boot-flame" fill="url(#boot-g)" d="M21.2 27.1a2.2 2.2 0 0 0 2.2-2.2c0-1.2-.44-1.76-.88-2.64-.94-1.88-.2-3.56 1.76-5.28.44 2.2 1.76 4.3 3.52 5.72 1.76 1.4 2.64 3.08 2.64 4.84a6.16 6.16 0 1 1-12.32 0c0-1.02.38-2.02.88-2.64a2.2 2.2 0 0 0 2.2 2.2z"/>
+    </svg>
+  </div>
   <app-root></app-root>
 </body>
 </html>

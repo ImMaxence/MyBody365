@@ -41,7 +41,9 @@ public class FoodService {
              */
             Health health, String quantity, String genericName, String kind, boolean liquid, Integer packageMl, Integer nova,
             /** 1.14: vitamins and minerals per 100 g (empty when unknown) */
-            Map<String, Double> micros) {}
+            Map<String, Double> micros,
+            /** 1.15: the close Ciqual food they were taken from, when the table had none for this one */
+            String microsFrom) {}
 
     /** 1.13: out of 10 by halves; what makes it good, what costs it points (codes the app words) */
     public record Health(double score, List<String> pros, List<String> cons) {
@@ -94,7 +96,7 @@ public class FoodService {
         return new FoodDto(f.id(), f.source(), f.name(), f.brand(), f.category(), f.per100().rounded(), f.nutriscore(),
                 f.nutriscoreEstimated(), f.servingG(), viewer != null && viewer.equals(f.ownerId()), imageUrl(f), f.sourceUpdatedAt(),
                 Health.of(HealthScore.score(HealthScore.of(f))), info.quantity(), info.genericName(), info.pnns(), liquid,
-                liquid ? ProductInfo.millilitres(info.quantity()) : null, info.nova(), Micros.rounded(f.micros()));
+                liquid ? ProductInfo.millilitres(info.quantity()) : null, info.nova(), Micros.rounded(f.micros()), f.microsFrom());
     }
 
     /** 1.13: a food's health score as a meal line keeps it (null when it cannot be judged) */

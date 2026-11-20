@@ -2,6 +2,22 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.15.0] - 2026-11-20
+
+Des verres d'eau plus grands et plus vivants, un écran d'accueil avec le logo au démarrage, les vitamines des recettes qui manquaient, et un conseil pour manger en volume
+
+### Ajouté
+- Au démarrage de l'app, le logo au milieu de l'écran le temps qu'elle se charge : son anneau se dessine et tourne, la flamme respire, puis il s'efface en douceur sur ton premier écran
+- Bon à savoir : manger en volume plutôt que des petites portions de plats riches, qui laissent sur sa faim et font craquer pour un fast-food. Exemple : 500 g de salade de pommes de terre maison font environ 450 kcal, autant qu'un seul burger. Ce conseil s'affiche aussi les jours où tu as dépassé tes calories
+
+### Modifié
+- Verres d'eau : 4 par ligne au plus, bien plus grands sous le pouce (6 verres font 2 lignes de 3, 8 en font 2 de 4)
+- Verres d'eau : un verre plein se vide d'un double appui seulement, il bascule et se vide. Un seul appui le fait trembler et rappelle de toucher deux fois : un pouce qui tombe à côté n'efface plus ta journée
+- Verres d'eau : un verre qui se remplit éclabousse et fait une onde, chaque appui vibre un peu plus fort, et l'objectif atteint fait sauter tous les verres l'un après l'autre
+
+### Corrigé
+- Vitamines et minéraux des recettes : un aliment sans valeurs dans la table Ciqual (environ un sur sept, dont le riz thaï ou basmati cru, le jambon cuit choix, les pâtes à pizza, brisée et sablée crues ou les gnocchis à cuire) prend celles de l'aliment le plus proche de la table, ajustées à sa densité. Les recettes faites avec eux affichent de nouveau leurs vitamines, celles de la communauté comme les tiennes. Sur l'écran de la quantité, l'aliment d'où viennent les valeurs est indiqué
+
 ## [1.14.1] - 2026-11-20
 
 Les dépendances de sécurité à jour (dont PostgreSQL 18.7 et ses 52 failles corrigées), la langue de ton téléphone tant que tu n'en choisis pas une, et les vitamines sur la fiche des recettes et sur le site

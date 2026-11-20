@@ -326,6 +326,8 @@ export interface Food {
   nova?: number;
   /** 1.14: vitamins and minerals per 100 g */
   micros?: Partial<Record<string, number>>;
+  /** 1.15: the close Ciqual food they were taken from, when the table had none for this one */
+  microsFrom?: string;
 }
 
 export interface FoodInput {
