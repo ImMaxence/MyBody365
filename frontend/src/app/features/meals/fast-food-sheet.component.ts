@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
-import { DRINKS, Dish, FRIES, Portion, SHARES, dish, estimate, healthOf, part, withChoice } from '../../core/meals/fast-food';
+import { DRINKS, Dish, FRIES, Portion, SHARES, dish, estimate, extrasFor, healthOf, part, withChoice } from '../../core/meals/fast-food';
+import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { healthBand } from '../../core/meals/health';
 import type { Grade } from '../../core/meals/nutriscore';
 import { HealthScoreComponent } from '../../shared/health-score.component';
@@ -201,7 +202,7 @@ export const ESTIMATE_STYLES = `
 @Component({
   selector: 'app-fast-food-sheet',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [HealthScoreComponent, TranslatePipe, IconComponent],
+  imports: [HealthScoreComponent, TranslatePipe, IconComponent, NumberStepperComponent],
   template: `
     <dialog class="sheet" #dialog [attr.aria-label]="d() ? ('meals.quick.dishes.' + d()!.key | t) : ''">
       <div class="sheet-grip"></div>
@@ -215,7 +216,7 @@ export const ESTIMATE_STYLES = `
           <h3 class="section-title">{{ 'meals.estimate.format' | t }}</h3>
           <div class="opts" role="radiogroup" [attr.aria-label]="'meals.estimate.format' | t">
             @for (f of dish.formats; track f.key) {
-              <button type="button" class="opt" role="radio" [attr.aria-checked]="format() === f.key" (click)="format.set(f.key)">
+              <button type="button" class="opt" role="radio" [attr.aria-checked]="dish.pieces ? count() === dish.pieces.of[f.key] : format() === f.key" (click)="pick(f.key)">
                 <span class="opt-name">{{ 'meals.estimate.formats.' + dish.key + '.' + f.key | t }}</span>
                 <span class="opt-foot">
                   <span class="opt-kcal num">≈ {{ i18n.number(chosen(f).kcal) }} kcal</span>
@@ -227,6 +228,13 @@ export const ESTIMATE_STYLES = `
               </button>
             }
           </div>
+
+          @if (dish.pieces; as pc) {
+            <!-- 1.16: the exact number of pieces (9, 14…), the formats above being shortcuts -->
+            <app-number-stepper [(value)]="count" [step]="1" [min]="1" [max]="pc.max" [decimals]="0" [compact]="true"
+              [unit]="'meals.estimate.piecesUnit' | t" [label]="'meals.estimate.pieces' | t"
+              [minusLabel]="'meals.estimate.piecesLess' | t" [plusLabel]="'meals.estimate.piecesMore' | t" />
+          }
 
           @if (dish.share) {
             <h3 class="section-title">{{ 'meals.estimate.share' | t }}</h3>
@@ -271,10 +279,10 @@ export const ESTIMATE_STYLES = `
             </div>
           }
 
-          @if (dish.extras.length) {
+          @if (offered().length) {
             <h3 class="section-title">{{ 'meals.estimate.extras' | t }}</h3>
             <div class="chips" role="group" [attr.aria-label]="'meals.estimate.extras' | t">
-              @for (x of dish.extras; track x.key) {
+              @for (x of offered(); track x.key) {
                 <button type="button" class="chip-opt" [attr.aria-pressed]="extras().includes(x.key)" (click)="toggle(x.key)">
                   {{ 'meals.estimate.extraNames.' + x.key | t }} <small class="num">+{{ i18n.number(x.kcal) }}</small>
                   @let h = health(x, 'extra');
@@ -284,6 +292,9 @@ export const ESTIMATE_STYLES = `
                 </button>
               }
             </div>
+            @if (hasSoy()) {
+              <p class="tiny muted">{{ 'meals.estimate.soyNote' | t }}</p>
+            }
           }
 
           <h3 class="section-title">{{ 'meals.estimate.drink' | t }}</h3>
@@ -347,7 +358,15 @@ export class FastFoodSheetComponent {
   protected readonly drink = signal('none');
   protected readonly choice = signal('');
   protected readonly share = signal(1);
+  /** 1.16: the pieces, for a dish counted piece by piece (sushi) */
+  protected readonly count = signal(0);
   protected readonly shares = SHARES;
+  /** the extras of the format chosen (the soy sauces with a poke bowl only) */
+  protected readonly offered = computed(() => {
+    const d = this.d();
+    return d ? extrasFor(d, this.format()) : [];
+  });
+  protected readonly hasSoy = computed(() => this.offered().some((x) => x.key === 'soy' || x.key === 'soySweet'));
   protected readonly Math = Math;
   protected readonly friesOptions = FRIES;
   protected readonly drinks = DRINKS;
@@ -355,7 +374,7 @@ export class FastFoodSheetComponent {
   protected readonly result = computed(() => {
     const d = this.d();
     return d
-      ? estimate(d, this.format(), this.fries(), this.extras(), this.drink(), this.choice() || undefined, this.share())
+      ? estimate(d, this.format(), this.fries(), this.extras(), this.drink(), this.choice() || undefined, this.share(), d.pieces ? this.count() : undefined)
       : { lines: [], total: { key: 'total', kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 }, grade: null, health: null };
   });
 
@@ -369,6 +388,7 @@ export class FastFoodSheetComponent {
     this.drink.set('none');
     this.choice.set(d.choice?.usual ?? '');
     this.share.set(1);
+    this.count.set(d.pieces?.of[d.usual] ?? 0);
     this.busy.set(false);
     this.dialog().nativeElement.showModal();
   }
@@ -399,6 +419,13 @@ export class FastFoodSheetComponent {
     return Math.round(o.kcal * (f?.scale ?? 1));
   }
 
+  /** a format; for a dish counted piece by piece, its pieces */
+  protected pick(key: string): void {
+    this.format.set(key);
+    const n = this.d()?.pieces?.of[key];
+    if (n) this.count.set(n);
+  }
+
   protected toggle(key: string): void {
     this.extras.update((list) => (list.includes(key) ? list.filter((k) => k !== key) : [...list, key]));
   }
@@ -409,6 +436,11 @@ export class FastFoodSheetComponent {
     const name = (kind: string, p: Portion) => {
       switch (kind) {
         case 'main': {
+          // 1.16: « Sushi (9 pièces) »
+          if (d.pieces) {
+            const n = this.count();
+            return `${this.i18n.t('meals.quick.dishes.' + d.key)} (${this.i18n.t(n === 1 ? 'meals.estimate.piecesOne' : 'meals.estimate.piecesLine', { n })})`;
+          }
           // « Tacos (M, sans sauce fromagère) », « Pizza (Entière, base crème) »
           const c = d.choice && this.choice() !== d.choice.usual ? `, ${this.i18n.t('meals.estimate.choices.' + d.choice.key + '.lines.' + this.choice())}` : '';
           const sh = SHARES.find((x) => x.part === this.share());

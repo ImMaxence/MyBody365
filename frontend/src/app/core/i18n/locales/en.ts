@@ -642,7 +642,9 @@ export const en: Dictionary = {
     save: 'Save',
     saved: 'Goal updated',
     start: 'Starting weight',
-    startHint: 'The weight you started from on {date}, to measure your progress. Your weigh-ins do not change',
+    startHint: 'The weight you started from on {date}, to measure your progress',
+    startLog: 'Also correct your weigh-in of {date}',
+    startLogHint: 'It says {kg} kg and your curve starts there. Leave it if you started before the app',
     foodFocus: 'MyBody365 focuses on what you eat: sport done during the day is not added to your calories, your usual activity is already counted in your target',
   },
 

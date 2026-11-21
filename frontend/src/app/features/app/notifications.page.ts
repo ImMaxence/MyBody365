@@ -313,57 +313,6 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
     .time .end {
       right: 13px;
     }
-    /* an on / off switch (settings): a checkbox drawn as a track and a knob */
-    .switch {
-      -webkit-appearance: none;
-      appearance: none;
-      position: relative;
-      flex: none;
-      width: 51px;
-      height: 31px;
-      margin: 0;
-      border-radius: var(--radius-pill);
-      background: var(--surface-3);
-      box-shadow: inset 0 0 0 1px var(--line-strong);
-      cursor: pointer;
-      transition:
-        background-color 220ms var(--ease-out),
-        box-shadow 220ms var(--ease-out);
-    }
-    .switch::after {
-      content: '';
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 27px;
-      height: 27px;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow:
-        0 3px 8px rgba(0, 0, 0, 0.18),
-        0 1px 1px rgba(0, 0, 0, 0.12);
-      transition: transform 320ms cubic-bezier(0.34, 1.4, 0.5, 1);
-    }
-    .switch:checked {
-      background: var(--flame-deep) border-box;
-      box-shadow: none;
-    }
-    .switch:checked::after {
-      transform: translateX(20px);
-    }
-    .switch:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-    }
-    .switch:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 3px;
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .switch::after {
-        transition: none;
-      }
-    }
     @keyframes open {
       from {
         opacity: 0;

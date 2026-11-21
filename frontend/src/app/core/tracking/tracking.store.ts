@@ -3,6 +3,10 @@ import { ApiService } from '../api/api.service';
 import type { BodyLogEntry, LogInput, MacroSplit, Milestone, MilestoneInput, ProfileInput, Summary } from '../api/models';
 import { SessionStore } from '../auth/session.store';
 import { Outbox, isOffline } from '../offline/outbox';
+import { FRESH_MS, forget, fresh, keep, kept } from '../api/kept';
+
+/** 1.16: today's summary, kept on the phone so that Today opens complete on the next start */
+const SUMMARY_KEY = 'mb.summary';
 
 /** today in the user's calendar (yyyy-mm-dd), not UTC */
 export function localDay(d = new Date()): string {
@@ -49,22 +53,57 @@ export class TrackingStore {
   async load(): Promise<Summary | null> {
     try {
       const s = await this.api.summary();
-      this.summary.set(s);
+      this.put(s);
       return s;
     } catch {
       return null;
     }
   }
 
+  /**
+   * 1.16: the summary seen less than FRESH_MS ago as it is (the one kept on the phone for today shows at once), else the
+   * server's: coming back to a tab no longer asks for everything again
+   */
+  ensure(maxAge = FRESH_MS): Promise<Summary | null> {
+    if (!this.summary()) this.restore();
+    if (this.summary() && fresh(this.summaryAt, maxAge)) return Promise.resolve(this.summary());
+    return (this.loadingSummary ??= this.load().finally(() => (this.loadingSummary = null)));
+  }
+
   async loadLogs(): Promise<BodyLogEntry[]> {
     const logs = await this.api.logs();
     this.logs.set(logs);
+    this.logsAt = Date.now();
     return logs;
+  }
+
+  /** 1.16: the history seen less than FRESH_MS ago as it is, else the server's */
+  ensureLogs(maxAge = FRESH_MS): Promise<BodyLogEntry[]> {
+    const logs = this.logs();
+    if (logs && fresh(this.logsAt, maxAge)) return Promise.resolve(logs);
+    return (this.loadingLogs ??= this.loadLogs().finally(() => (this.loadingLogs = null)));
+  }
+
+  private summaryAt = 0;
+  private logsAt = 0;
+  private loadingSummary: Promise<Summary | null> | null = null;
+  private loadingLogs: Promise<BodyLogEntry[]> | null = null;
+
+  /** a summary from the server: fresh, and kept on the phone for today */
+  private put(s: Summary): void {
+    this.summary.set(s);
+    this.summaryAt = Date.now();
+    keep(SUMMARY_KEY, this.session.account()?.id, localDay(), s);
+  }
+
+  private restore(): void {
+    const s = kept<Summary>(SUMMARY_KEY, this.session.account()?.id, localDay());
+    if (s) this.summary.set(s);
   }
 
   async saveProfile(input: ProfileInput): Promise<Summary> {
     const s = await this.api.saveProfile(input);
-    this.summary.set(s);
+    this.put(s);
     const account = this.session.account();
     if (account && !account.profileComplete) this.session.setAccount({ ...account, profileComplete: true });
     this.logs.set(null);
@@ -73,13 +112,13 @@ export class TrackingStore {
 
   async setAdaptive(on: boolean): Promise<Summary> {
     const s = await this.api.setAdaptive(on);
-    this.summary.set(s);
+    this.put(s);
     return s;
   }
 
   async setMacroSplit(split: MacroSplit): Promise<Summary> {
     const s = await this.api.setMacroSplit(split);
-    this.summary.set(s);
+    this.put(s);
     return s;
   }
 
@@ -97,7 +136,7 @@ export class TrackingStore {
 
   /** the evening weigh-in (1.9): for itself, the trend and the streak keep the morning one */
   async saveEvening(day: string, weightKg: number | null): Promise<void> {
-    this.summary.set(await this.api.saveEvening(day, weightKg));
+    this.put(await this.api.saveEvening(day, weightKg));
     if (this.logs()) await this.loadLogs();
   }
 
@@ -107,7 +146,7 @@ export class TrackingStore {
       const before = input.weightKg == null ? null : (this.milestones() ?? (await this.loadMilestones().catch(() => null)));
       const s = await this.api.saveLog(day, input);
       this.lastQueued.set(false);
-      this.summary.set(s);
+      this.put(s);
       if (this.logs()) await this.loadLogs();
       if (before) void this.newlyReached(before);
       return s;
@@ -134,6 +173,9 @@ export class TrackingStore {
 
   clear(): void {
     this.summary.set(null);
+    this.summaryAt = 0;
+    this.logsAt = 0;
+    forget(SUMMARY_KEY);
     this.logs.set(null);
     this.milestones.set(null);
     this.celebrate.set(null);

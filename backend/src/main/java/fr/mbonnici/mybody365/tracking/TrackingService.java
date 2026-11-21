@@ -103,6 +103,14 @@ public class TrackingService {
         }
         if (!first && in.startWeightKg() != null) {
             p.setStartWeightKg(scale2(in.startWeightKg()));
+            if (Boolean.TRUE.equals(in.startLogToo())) {
+                // the weigh-in of the start day, when there is one, says the same (the curve no longer starts on the typo)
+                logs.findById(new BodyLog.Key(userId, p.getStartDate())).ifPresent(log -> {
+                    log.setWeightKg(scale2(in.startWeightKg()));
+                    log.touch();
+                    logs.save(log);
+                });
+            }
         }
         p.setGoalWeightKg(scale2(in.goalWeightKg()));
         p.setWeeklyRateKg(rate);

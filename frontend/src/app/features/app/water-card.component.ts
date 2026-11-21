@@ -6,6 +6,7 @@ import { Outbox, isOffline } from '../../core/offline/outbox';
 import { WaterStore } from '../../core/tracking/water.store';
 import { HapticDirective, haptic } from '../../core/ui/haptics';
 import { ToastService } from '../../core/ui/toast.service';
+import { calmReturn } from '../../core/ui/first-show';
 import { IconComponent } from '../../shared/icon.component';
 
 /** a glass is 25 cl */
@@ -31,6 +32,7 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
 @Component({
   selector: 'app-water-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '[class.calm]': 'calm()' },
   imports: [TranslatePipe, IconComponent, HapticDirective],
   template: `
     <section class="water card" [class.reached]="reached()" [attr.aria-label]="'water.title' | t">
@@ -382,6 +384,12 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
         transform: scale(0.97);
       }
     }
+    /* 1.16: back on Today, the « + » and the goal reached are there already (core/ui/first-show.ts) */
+    :host(.calm) .plus,
+    :host(.calm) .reached .ico {
+      animation-duration: 0s;
+      animation-delay: 0s;
+    }
     .plus {
       position: absolute;
       inset: 0;
@@ -444,6 +452,7 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
 export class WaterCardComponent {
   readonly goal = input.required<number>();
   private readonly store = inject(WaterStore);
+  protected readonly calm = calmReturn('water');
   private readonly toast = inject(ToastService);
   private readonly outbox = inject(Outbox);
   protected readonly i18n = inject(I18nService);

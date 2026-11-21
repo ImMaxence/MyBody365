@@ -1,3 +1,4 @@
+import { FriendsStore } from '../../core/friends/friends.store';
 import { ChangeDetectionStrategy, Component, PLATFORM_ID, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -119,6 +120,8 @@ export class FriendLinkPage {
   private link = '';
 
   constructor() {
+    // 1.16: what is done here (a challenge joined, a friend added) shows on Today on the way back
+    inject(FriendsStore).stale();
     if (!isPlatformBrowser(inject(PLATFORM_ID))) return;
     this.i18n.set(this.i18n.preferred());
     const token = location.hash.replace(/^#/, '').trim();

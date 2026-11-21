@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { closeSheet } from '../../core/ui/sheets';
 import { HapticDirective } from '../../core/ui/haptics';
@@ -10,9 +10,10 @@ import { WaterCardComponent, defaultWaterGoal } from './water-card.component';
 import { SessionStore } from '../../core/auth/session.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
-import { CHALLENGE_EMOJI, Challenge, Friend, FriendsApi, POSTS_SEEN_KEY } from '../../core/friends/friends-api';
+import { CHALLENGE_EMOJI } from '../../core/friends/friends-api';
+import { FriendsStore } from '../../core/friends/friends.store';
+import { calmReturn } from '../../core/ui/first-show';
 import { challengeDay, challengeStanding } from '../../core/friends/challenge-text';
-import { readPref } from '../../core/ui/device-prefs';
 import { MealsStore } from '../../core/meals/meals.store';
 import { PhotosStore } from '../../core/photos/photos.store';
 import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
@@ -44,6 +45,7 @@ function writeFlag(key: string): void {
 @Component({
   selector: 'app-today',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '[class.calm]': 'calm()' },
   imports: [HapticDirective, NumberStepperComponent, AvatarImgComponent, PushPromptComponent, WaterCardComponent, RouterLink, TranslatePipe, IconComponent, WeighSheetComponent],
   template: `
     <main class="page">
@@ -495,6 +497,12 @@ function writeFlag(key: string): void {
       color: var(--fg-3);
       text-transform: uppercase;
     }
+    /* 1.16: back on the tab, the days and the goal bar are there already (core/ui/first-show.ts) */
+    :host(.calm) .day i,
+    :host(.calm) .bar i {
+      animation-duration: 0s;
+      animation-delay: 0s;
+    }
     .day i {
       display: grid;
       place-items: center;
@@ -775,8 +783,10 @@ export class TodayPage {
   // loaded here so that the Photos and Meals tabs open on their content, not on a skeleton
   private readonly photos = inject(PhotosStore);
   private readonly meals = inject(MealsStore);
-  private readonly friendsApi = inject(FriendsApi);
-  protected readonly friends = signal<Friend[] | null>(null);
+  // 1.16: the friends' line, the challenge and the news as last seen, asked again when older than 30 s
+  private readonly friendsStore = inject(FriendsStore);
+  protected readonly friends = this.friendsStore.friends;
+  protected readonly calm = calmReturn('today', 1000);
   // ── the evening weigh-in (1.9) ──────────────────────────────────────────
   private readonly eveningDialog = viewChild.required<ElementRef<HTMLDialogElement>>('eveningDialog');
   protected readonly eveningBusy = signal(false);
@@ -829,7 +839,7 @@ export class TodayPage {
   }
 
   /** the challenge to show on Today: an invitation first, else one going on */
-  protected readonly challenges = signal<Challenge[]>([]);
+  protected readonly challenges = this.friendsStore.challenges;
   protected readonly challengeEmoji = CHALLENGE_EMOJI;
   protected readonly challenge = computed(() => {
     const live = this.challenges().filter((c) => !c.ended);
@@ -844,7 +854,7 @@ export class TodayPage {
     return parts.filter(Boolean).join(' · ');
   });
   /** what the friends shared since the friends' screen was last opened on this phone */
-  protected readonly newPosts = signal(0);
+  protected readonly newPosts = signal(this.friendsStore.newPosts());
   protected readonly friendsLine = computed(() => {
     const f = this.friends();
     if (f && !f.length) return this.i18n.t('friends.inviteNudge');
@@ -941,31 +951,29 @@ export class TodayPage {
       const clock = setInterval(() => this.hour.set(new Date().getHours()), 60_000);
       destroy.onDestroy(() => clearInterval(clock));
     });
-    void this.tracking.load();
-    void this.photos.load().catch(() => undefined);
-    void this.meals.loadToday();
-    void this.friendsApi
-      .list()
-      .then((v) => this.friends.set(v.friends))
-      .catch(() => undefined);
-    void this.friendsApi
-      .challenges()
-      .then((c) => this.challenges.set(c))
-      .catch(() => undefined);
-    // the friends' news newer than the last visit of their screen
-    void this.friendsApi
-      .friendsPosts()
-      .then((posts) => {
-        const seen = Date.parse(readPref(POSTS_SEEN_KEY) ?? '') || 0;
-        this.newPosts.set(posts.filter((p) => Date.parse(p.createdAt) > seen).length);
-      })
-      .catch(() => undefined);
+    this.refresh();
+    // back in the app after a while (the phone was locked): what is older than 30 s is asked again
+    const doc = inject(DOCUMENT);
+    const back = () => doc.visibilityState === 'visible' && this.refresh();
+    afterNextRender(() => {
+      doc.addEventListener('visibilitychange', back);
+      destroy.onDestroy(() => doc.removeEventListener('visibilitychange', back));
+    });
     if (this.session.isAdmin()) {
       this.api
         .adminSummary()
         .then((s) => this.pending.set(s.pendingRequests))
         .catch(() => undefined);
     }
+  }
+
+  /** 1.16: what Today shows, as last seen, and from the server what is older than 30 s (core/api/kept.ts) */
+  private refresh(): void {
+    void this.tracking.ensure();
+    void this.photos.ensureFresh().catch(() => undefined);
+    void this.meals.ensureToday();
+    // the friends' news newer than the last visit of their screen
+    void this.friendsStore.ensure().then(() => this.newPosts.set(this.friendsStore.newPosts()));
   }
 
   /** the glasses of water, turned on from here: a goal from the weight, changeable in the profile */

@@ -233,5 +233,11 @@ class TrackingTest extends AbstractIntegrationTest {
         // left out: kept; out of bounds: refused
         putJson("/api/me/profile", base.formatted("")).andExpect(jsonPath("$.profile.startWeightKg").value(81.2));
         putJson("/api/me/profile", base.formatted(",\"startWeightKg\":12")).andExpect(status().isBadRequest());
+        // 1.16: a mistyped start: the weigh-in of the start day is put right with it, the curve no longer starts on the typo
+        putJson("/api/me/profile", base.formatted(",\"startWeightKg\":82.6,\"startLogToo\":true")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.profile.startWeightKg").value(82.6))
+                .andExpect(jsonPath("$.current.weightKg").value(82.6));
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject("select weight_kg from body_log where user_id = ?", Double.class, lea.getId()))
+                .isEqualTo(82.6);
     }
 }

@@ -3,6 +3,7 @@ import { ApiService } from '../api/api.service';
 import { SessionStore } from '../auth/session.store';
 import { readPref, writePref } from '../ui/device-prefs';
 import { localDay } from './tracking.store';
+import { fresh } from '../api/kept';
 
 /** the last count seen, kept on this phone: the glasses are there at once, the server's count follows */
 const KEY = 'mb.water';
@@ -27,14 +28,21 @@ export class WaterStore {
   /** each count set here: an answer asked for before it is too old to show */
   private version = 0;
   private saving: Promise<unknown> = Promise.resolve();
+  /** 1.16: when the server last said (or was told) today's count, and the day being asked */
+  private at = 0;
+  private asking = '';
 
   /** today's count: the one kept on this phone at once, then the server's */
   load(): void {
     const today = localDay();
     if (this.day !== today) {
       this.day = today;
+      this.at = 0;
       this.glasses.set(this.kept(today));
     }
+    // 1.16: back on Today within 30 s, the count on screen is the server's already (or being asked)
+    if (fresh(this.at) || this.asking === today) return;
+    this.asking = today;
     const asked = this.version;
     void this.api
       .water(today)
@@ -42,8 +50,10 @@ export class WaterStore {
         if (this.day !== today || this.version !== asked) return;
         this.glasses.set(w.glasses);
         this.keep(w.glasses);
+        this.at = Date.now();
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => (this.asking = ''));
   }
 
   /** shown at once, saved in order (several quick taps end on the right number); the save's own error is thrown */
@@ -54,6 +64,7 @@ export class WaterStore {
     const day = this.day || localDay();
     const save = this.saving.catch(() => undefined).then(() => this.api.setWater(day, next));
     this.saving = save;
+    void save.then(() => (this.at = Date.now())).catch(() => (this.at = 0));
     return save.then(() => undefined);
   }
 
@@ -65,6 +76,7 @@ export class WaterStore {
   clear(): void {
     this.version++;
     this.day = '';
+    this.at = 0;
     this.glasses.set(null);
     writePref(KEY, null);
   }

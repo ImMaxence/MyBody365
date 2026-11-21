@@ -23,6 +23,8 @@ export interface Portion {
   grade?: Grade | null;
   /** the size of a format against the dish's reference one (M tacos, a whole pizza): what a choice is scaled by */
   scale?: number;
+  /** 1.16: an extra offered with these formats only (the soy sauces of a poke bowl) */
+  only?: string[];
 }
 
 /**
@@ -49,6 +51,11 @@ export interface Dish {
   choice?: DishChoice;
   /** a dish one may not finish (a kebab, a burger): the share eaten is asked; pizzas have their slices */
   share?: boolean;
+  /**
+   * 1.16: counted piece by piece (sushi: 9 or 14 as well as 6, 12, 18): the pieces of each format, which become shortcuts,
+   * and the most that can be entered; a piece is worth the first format's share
+   */
+  pieces?: { of: Record<string, number>; max: number };
 }
 
 /** the share of a dish eaten, all of it by default */
@@ -111,6 +118,12 @@ const TACOS_SAUCES = [
   p('harissa', 15, 0.5, 2, 0.6, [15, 1, 0.1, 0.6, 0.6]),
 ];
 const sized = (x: Portion, scale: number): Portion => ({ ...x, scale });
+/**
+ * 1.16: a tablespoon of soy sauce (15 ml, about what a ramekin leaves on the sushi): salty, 17 g of Ciqual's 40 kcal and
+ * 13.1 g of salt per 100 g; sweet, 19 g of its 171 kcal, 39.5 g of sugars and 6.9 g of salt per 100 g
+ */
+const SOY = p('soy', 7, 1.2, 0.3, 0, [17, 0, 0, 2.2, 0.2]);
+const SOY_SWEET = p('soySweet', 32, 0.5, 7.5, 0, [19, 7.5, 0, 1.3, 0]);
 const CHEESE = p('cheese', 80, 5, 0, 7, [20, 0, 4.5, 0.4, 0]);
 
 export const DISHES: Dish[] = [
@@ -206,7 +219,8 @@ export const DISHES: Dish[] = [
     ],
     usual: 'p12',
     fries: false,
-    extras: [p('miso', 40, 3, 4, 1, [200, 1, 0.2, 2, 0.5]), p('edamame', 120, 11, 9, 5, [100, 2, 0.7, 0.6, 5])],
+    pieces: { of: { p6: 6, p12: 12, p18: 18 }, max: 60 },
+    extras: [SOY, SOY_SWEET, p('miso', 40, 3, 4, 1, [200, 1, 0.2, 2, 0.5]), p('edamame', 120, 11, 9, 5, [100, 2, 0.7, 0.6, 5])],
   },
   {
     key: 'sandwich',
@@ -232,7 +246,10 @@ export const DISHES: Dish[] = [
     ],
     usual: 'mixed',
     fries: false,
-    extras: [],
+    extras: [
+      { ...SOY, only: ['poke'] },
+      { ...SOY_SWEET, only: ['poke'] },
+    ],
     share: true,
   },
 ];
@@ -341,6 +358,19 @@ export function healthOf(x: Portion, kind: 'main' | 'fries' | 'extra' | 'drink',
   );
 }
 
+/** 1.16: the extras offered with a format (the soy sauces with a poke bowl only) */
+export function extrasFor(d: Dish, format: string): Portion[] {
+  return d.extras.filter((x) => !x.only || x.only.includes(format));
+}
+
+/** 1.16: n pieces of a dish counted piece by piece, each worth the first format's share (null: not such a dish) */
+export function pieces(d: Dish, n: number): Portion | null {
+  if (!d.pieces) return null;
+  const ref = d.formats[0];
+  const count = Math.max(1, Math.min(d.pieces.max, Math.round(n)));
+  return { ...part(ref, count / d.pieces.of[ref.key]), key: 'pieces' };
+}
+
 /** what is added, line by line, the total and the meal's grade (weighted by calories) */
 export function estimate(
   d: Dish,
@@ -351,13 +381,19 @@ export function estimate(
   choice?: string,
   /** the share of the dish eaten (1: all of it) */
   share = 1,
+  /** 1.16: the pieces, for a dish counted piece by piece (sushi) */
+  count?: number,
 ): { lines: { kind: string; portion: Portion; grade: Grade | null; health: number | null }[]; total: Portion; grade: Grade | null; health: number | null } {
   const picked: { kind: string; portion: Portion }[] = [];
   const main = d.formats.find((f) => f.key === format) ?? d.formats[0];
-  picked.push({ kind: 'main', portion: part(withChoice(main, d.choice?.options.find((o) => o.key === (choice ?? d.choice?.usual))), d.share ? share : 1) });
+  const counted = count == null ? null : pieces(d, count);
+  picked.push({
+    kind: 'main',
+    portion: counted ?? part(withChoice(main, d.choice?.options.find((o) => o.key === (choice ?? d.choice?.usual))), d.share ? share : 1),
+  });
   const side = FRIES.find((f) => f.key === fries);
   if (d.fries && side && side.key !== 'none') picked.push({ kind: 'fries', portion: side });
-  for (const e of d.extras.filter((x) => extras.includes(x.key))) picked.push({ kind: 'extra', portion: e });
+  for (const e of extrasFor(d, main.key).filter((x) => extras.includes(x.key))) picked.push({ kind: 'extra', portion: e });
   const dr = DRINKS.find((x) => x.key === drinkKey);
   if (dr && dr.key !== 'none') picked.push({ kind: 'drink', portion: dr });
   const lines = picked.map((l) => ({

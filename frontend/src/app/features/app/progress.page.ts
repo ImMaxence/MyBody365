@@ -359,8 +359,9 @@ export class ProgressPage {
   protected readonly bodyFat = computed(() => [...(this.logs() ?? [])].reverse().find((l) => l.bodyFatPct != null)?.bodyFatPct ?? null);
 
   constructor() {
-    void this.tracking.load();
-    void this.tracking.loadLogs();
+    // 1.16: as last seen when it was less than 30 s ago (core/api/kept.ts)
+    void this.tracking.ensure();
+    void this.tracking.ensureLogs().catch(() => undefined);
   }
 
   /** losing is good when the goal is lower, gaining when it is higher */

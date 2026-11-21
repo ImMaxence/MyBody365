@@ -139,7 +139,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return errors;
         }
         // pictures are decoded and re-encoded, backups unpacked: the costly requests
-        if (("POST".equals(method) && (path.equals("/api/me/photos") || path.equals("/api/me/avatar") || path.equals("/api/me/recipes/import") || path.matches("/api/me/recipes/[^/]+/image")))
+        if (("POST".equals(method) && (path.equals("/api/me/photos") || path.equals("/api/me/avatar") || path.equals("/api/me/recipes/import") || path.matches("/api/me/recipes/[^/]+/image") || path.matches("/api/me/photos/[^/]+/image")))
                 || path.startsWith("/api/me/backup/") || path.startsWith("/api/me/drive/backup")) {
             return upload;
         }

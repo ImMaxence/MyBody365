@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
 import { errorCode } from '../../core/api/api.service';
 import type { Job } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -34,6 +34,16 @@ import { NumberStepperComponent } from '../../shared/number-stepper.component';
         <span class="label" id="start-label">{{ 'goal.start' | t }}</span>
         <app-number-stepper [(value)]="start" [step]="0.1" [min]="30" [max]="350" [decimals]="1" unit="kg" [label]="'goal.start' | t" />
         <p class="hint">{{ 'goal.startHint' | t: { date: i18n.date(s.profile.startDate, { day: 'numeric', month: 'long', year: 'numeric' }) } }}</p>
+        <!-- 1.16: the weigh-in of the start day, when it says another weight: put right with it (a typo) or kept (begun before the app) -->
+        @if (startLogDiffers()) {
+          <label class="fix-start">
+            <span class="fix-body">
+              <span class="fix-title">{{ 'goal.startLog' | t: { date: i18n.date(s.profile.startDate, { day: 'numeric', month: 'long' }) } }}</span>
+              <span class="small muted">{{ 'goal.startLogHint' | t: { kg: i18n.number(startLog()!.weightKg!, 1) } }}</span>
+            </span>
+            <input type="checkbox" role="switch" class="switch" [checked]="fixStartLog()" (change)="fixStartLog.set($any($event.target).checked)" />
+          </label>
+        }
 
         @if (!s.profile.job) {
           <p class="notice notice-accent"><app-icon name="info" [size]="18" /> {{ 'setup.activityNew' | t }}</p>
@@ -93,6 +103,24 @@ import { NumberStepperComponent } from '../../shared/number-stepper.component';
     .row-choice .small {
       text-align: right;
     }
+    .fix-start {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 14px 16px;
+      border-radius: var(--radius-m);
+      background: var(--surface);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .fix-body {
+      display: grid;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+    .fix-title {
+      font-weight: 650;
+    }
   `,
 })
 export class GoalPage {
@@ -110,9 +138,25 @@ export class GoalPage {
   protected readonly sessions = signal(2);
   protected readonly busy = signal(false);
   private readonly loaded = computed(() => this.summary()?.profile ?? null);
+  /** 1.16: the weigh-in of the start day (the first point of the curve), when it has a weight */
+  protected readonly startLog = computed(() => {
+    const p = this.loaded();
+    return p ? (this.tracking.logs()?.find((l) => l.day === p.startDate && l.weightKg != null) ?? null) : null;
+  });
+  protected readonly startLogDiffers = computed(() => {
+    const kg = this.startLog()?.weightKg;
+    return kg != null && Math.abs(kg - this.start()) >= 0.05;
+  });
+  /** put right with the start, at first when both said the same (the same typo); already apart, kept unless asked */
+  protected readonly fixStartLog = linkedSignal(() => {
+    const kg = this.startLog()?.weightKg;
+    const p = this.loaded();
+    return kg != null && p != null && Math.abs(kg - p.startWeightKg) < 0.05;
+  });
 
   constructor() {
-    void this.tracking.load();
+    void this.tracking.ensure();
+    void this.tracking.ensureLogs().catch(() => undefined);
     // fill the form once the profile is there
     effect(() => {
       const p = this.loaded();
@@ -144,6 +188,7 @@ export class GoalPage {
         goalWeightKg: this.goal(),
         weeklyRateKg: this.pace(),
         startWeightKg: Math.round(this.start() * 10) / 10,
+        startLogToo: this.startLogDiffers() && this.fixStartLog(),
       });
       this.toast.show(this.i18n.t('goal.saved'));
       this.stack.back('/app/account');

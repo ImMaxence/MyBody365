@@ -161,4 +161,20 @@ test.describe('stack navigation', () => {
     await page.goto('/app/progress');
     await expect(bar).not.toHaveClass(/away/);
   });
+
+  test('back on a tab soon after, what was seen shows at once without asking again (1.16)', async ({ page }) => {
+    await signIn(page, 'new');
+    await expect(page.locator('section.streak')).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    const asked: string[] = [];
+    page.on('request', (r) => {
+      if (/\/api\/(me\/(summary|friends|challenges|meals\?|photos)|friends\/posts)/.test(r.url())) asked.push(r.url());
+    });
+    await tab(page, 'Repas').click();
+    await expect(page.getByRole('heading', { name: 'Repas', level: 1 })).toBeVisible();
+    await tab(page, 'Aujourd’hui').click();
+    await expect(page.locator('section.streak')).toBeVisible();
+    await page.waitForTimeout(600);
+    expect(asked).toEqual([]);
+  });
 });

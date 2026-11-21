@@ -178,6 +178,8 @@ export interface ProfileInput {
   weeklyRateKg: number;
   /** 1.14: the starting point, changed from « Mon objectif » (left out: kept) */
   startWeightKg?: number;
+  /** 1.16: the weigh-in of the start day takes it too */
+  startLogToo?: boolean;
 }
 
 export interface BodyProfile {

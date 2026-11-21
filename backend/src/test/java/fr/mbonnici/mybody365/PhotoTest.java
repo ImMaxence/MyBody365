@@ -5,6 +5,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -159,5 +160,31 @@ class PhotoTest extends AbstractIntegrationTest {
         users.delete(userRepository.findById(lea.getId()).orElseThrow());
         assertThat(storage.get(q.key())).isNull();
         assertThat(storage.get(q.thumbKey())).isNull();
+    }
+
+    /** 1.16: a photo touched up on the phone takes the old one's place: its day, pose and shares, under a new id */
+    @Test
+    void aTouchedUpPhotoTakesThePlaceOfTheOldOne() throws Exception {
+        String day = TrackingService.today().minusDays(5).toString();
+        String old = JsonPath.read(upload(lea, jpegWithSecret(), day, "SIDE").getResponse().getContentAsString(), "$.id");
+        Photo before = photoRepository.findById(UUID.fromString(old)).orElseThrow();
+        jdbc.update("insert into friendship (user_a, user_b) values (least(?::uuid, ?::uuid), greatest(?::uuid, ?::uuid))", lea.getId(), hugo.getId(),
+                lea.getId(), hugo.getId());
+        mvc.perform(put("/api/me/photos/" + old + "/shares/" + hugo.getId()).with(as(lea)).with(csrf())).andExpect(status().isNoContent());
+
+        // someone else's photo: not found
+        mvc.perform(multipart("/api/me/photos/" + old + "/image").file(new MockMultipartFile("file", "p.jpg", "image/jpeg", jpegWithSecret()))
+                .with(as(hugo)).with(csrf())).andExpect(status().isNotFound());
+        MvcResult res = mvc.perform(multipart("/api/me/photos/" + old + "/image")
+                .file(new MockMultipartFile("file", "p.jpg", "image/jpeg", jpegWithSecret())).with(as(lea)).with(csrf()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.day").value(day)).andExpect(jsonPath("$.pose").value("SIDE"))
+                .andReturn();
+        String now = JsonPath.read(res.getResponse().getContentAsString(), "$.id");
+        assertThat(now).isNotEqualTo(old);
+        assertThat(photoRepository.findAll()).extracting(x -> x.getId().toString()).containsExactly(now);
+        assertThat(storage.get(before.key())).isNull();
+        mvc.perform(get("/api/photos/" + old + "/full").with(as(lea))).andExpect(status().isNotFound());
+        // still shared with Hugo
+        mvc.perform(get("/api/photos/" + now + "/thumb").with(as(hugo))).andExpect(status().isOk());
     }
 }

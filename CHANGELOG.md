@@ -2,6 +2,22 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.16.0] - 2026-11-21
+
+Une app qui démarre déjà chargée, la retouche des photos, les sushis à la pièce avec leur sauce soja, et le poids de départ corrigé jusque dans ta courbe
+
+### Ajouté
+- Photos : retoucher une photo déjà prise. La placer du doigt et changer sa taille à deux doigts, jusqu'à la rendre toute petite sur un fond flou, noir ou blanc, la tourner, la redresser, régler sa luminosité, son contraste et ses couleurs. Elle garde son jour et ses partages avec tes amis
+- Sushis : le nombre exact de pièces (9, 14…), les formats 6, 12 et 18 restant des raccourcis, et la sauce soja salée ou sucrée en plus. Ces deux sauces sont aussi proposées avec un poké bowl
+
+### Modifié
+- Démarrage : pendant l'écran du logo, les cinq onglets et ce qu'ils affichent se chargent. Chaque onglet s'ouvre ensuite directement sur son contenu
+- Aujourd'hui : revenir sur l'onglet ne recharge plus tout. Ton défi, tes amis, ta flamme et tes verres d'eau restent affichés et ne sont redemandés qu'après 30 secondes ou quand tu reviens dans l'app. Les jours de la semaine et la barre de ton objectif ne rejouent plus leur animation à chaque fois
+- Ta flamme, tes amis et ton défi du jour sont gardés sur ton téléphone : au démarrage suivant, Aujourd'hui s'affiche complet tout de suite
+
+### Corrigé
+- Poids de départ : le corriger dans « Mon objectif » corrige aussi ta pesée de ce jour-là, et ta courbe ne part plus de l'ancien poids. Un interrupteur permet de garder la pesée si tu as vraiment commencé avant l'app
+
 ## [1.15.1] - 2026-11-21
 
 Des vitamines estimées plus justes pour les aliments que la table Ciqual laisse sans valeurs

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectAccessible, expectNoHorizontalOverflow, openApp, signIn, tab, watchErrors } from './helpers';
+import { expectAccessible, expectNoHorizontalOverflow, openApp, press, signIn, tab, watchErrors } from './helpers';
 
 test.describe('tracking', () => {
   test('a new account: consents, profile, plan, then day 1 of the streak', async ({ page }) => {
@@ -84,7 +84,8 @@ test.describe('tracking', () => {
     await sheet.getByRole('button', { name: 'Moins 100 grammes' }).click();
     await sheet.getByRole('button', { name: /Ajouter des mensurations/ }).click();
     await sheet.getByLabel('Tour de taille (cm)').fill('84,5');
-    await sheet.getByRole('button', { name: 'Enregistrer' }).click();
+    // a button that vibrates: through its switch on iPhone
+    await press(sheet.getByRole('button', { name: 'Enregistrer' }));
     await expect(page.getByText('Pesée enregistrée')).toBeVisible();
     await expect(page.getByRole('button', { name: /Pesée du jour/ })).toContainText('74,8 kg');
 
@@ -133,7 +134,7 @@ test.describe('tracking', () => {
     const again = page.locator('dialog[open]');
     await again.getByRole('textbox', { name: 'Pesée du jour' }).fill('72,9');
     await again.getByRole('textbox', { name: 'Pesée du jour' }).press('Tab');
-    await again.getByRole('button', { name: 'Enregistrer' }).click();
+    await press(again.getByRole('button', { name: 'Enregistrer' }));
     const party = page.getByRole('dialog', { name: 'Palier atteint !' });
     await expect(party).toContainText('73 kg');
     await expect(party).toContainText('Ta récompense : Un resto');
@@ -186,7 +187,8 @@ test.describe('tracking', () => {
     await expect(sheet.getByText(/0,5 à 2 kg de plus/)).toBeVisible();
     await expect(sheet.getByText(/kg depuis ce matin/)).toBeVisible();
     await expectAccessible(page);
-    await sheet.getByRole('button', { name: 'Enregistrer' }).click();
+    // a button that vibrates: through its switch on iPhone
+    await press(sheet.getByRole('button', { name: 'Enregistrer' }));
     await expect(page.getByText('Pesée du soir notée')).toBeVisible();
     await expect(page.getByRole('button', { name: /^Pesée du soir/ })).toContainText(/\+0,8 kg depuis ce matin/);
     // the flame and the curve keep the morning one
@@ -235,9 +237,27 @@ test.describe('tracking', () => {
     const start = page.getByRole('textbox', { name: 'Poids de départ' });
     await start.fill('78');
     await start.blur();
+    // 1.16: the weigh-in of the start day said the same 75 kg (the same typo): put right with it, unless asked
+    const fix = page.getByRole('switch', { name: /Corriger aussi ta pesée du/ });
+    await expect(fix).toBeChecked();
+    await expect(page.getByText(/Elle est à 75,0 kg et ta courbe part de là/)).toBeVisible();
+    await expectAccessible(page);
     await page.getByRole('button', { name: 'Enregistrer' }).click();
     await expect(page.getByText('Objectif mis à jour')).toBeVisible();
     await page.goto('/app/progress');
     await expect(page.getByRole('link', { name: /^Poids de départ : 78,0 kg, modifier$/ })).toBeVisible();
+    // the curve starts on 78 kg now: the only weigh-in is the current weight
+    await expect(page.locator('.stat', { hasText: 'Actuel' })).toContainText('78,0');
+
+    // a journey begun before the app: the start moves, the weigh-in stays
+    await page.getByRole('link', { name: /^Poids de départ : 78,0 kg, modifier$/ }).click();
+    await start.fill('82');
+    await start.blur();
+    await fix.uncheck();
+    await page.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByText('Objectif mis à jour')).toBeVisible();
+    await page.goto('/app/progress');
+    await expect(page.getByRole('link', { name: /^Poids de départ : 82,0 kg, modifier$/ })).toBeVisible();
+    await expect(page.locator('.stat', { hasText: 'Actuel' })).toContainText('78,0');
   });
 });

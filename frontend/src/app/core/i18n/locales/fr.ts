@@ -643,7 +643,9 @@ export const fr = {
     save: 'Enregistrer',
     saved: 'Objectif mis à jour',
     start: 'Poids de départ',
-    startHint: 'Le poids d’où tu es parti le {date}, pour mesurer ton avancée. Tes pesées ne changent pas',
+    startHint: 'Le poids d’où tu es parti le {date}, pour mesurer ton avancée',
+    startLog: 'Corriger aussi ta pesée du {date}',
+    startLogHint: 'Elle est à {kg} kg et ta courbe part de là. Laisse-la si tu as commencé avant l’app',
     foodFocus: 'MyBody365 se concentre sur ce que tu manges : le sport fait dans la journée ne s’ajoute pas à tes calories, ton activité habituelle est déjà comptée dans ton objectif',
   },
 

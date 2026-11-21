@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,9 +41,11 @@ public class PhotoService {
     private final QuotaService quota;
     private final AppProperties props;
     private final List<PhotoAccessRule> extraRules;
+    private final JdbcTemplate jdbc;
 
     public PhotoService(PhotoRepository photos, BodyLogRepository logs, ObjectStorage storage, ImageProcessor images,
-            QuotaService quota, AppProperties props, List<PhotoAccessRule> extraRules) {
+            QuotaService quota, AppProperties props, List<PhotoAccessRule> extraRules, JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
         this.photos = photos;
         this.logs = logs;
         this.storage = storage;
@@ -106,6 +109,45 @@ public class PhotoService {
         previous.ifPresent(this::removeFiles);
         Double weight = logs.findById(new BodyLog.Key(userId, d)).map(l -> l.getWeightKg() == null ? null : l.getWeightKg().doubleValue())
                 .orElse(null);
+        return dto(photo, weight);
+    }
+
+    /**
+     * 1.16: a photo touched up on the phone (cropped, turned, brighter): the new picture takes its place, the same day and
+     * pose, its shares with friends and the reports about it. Under a new id, as any new picture: the browsers keep the
+     * pictures by id for a year, and the backups name their files by it.
+     */
+    @Transactional
+    public PhotoDto replace(UUID userId, UUID photoId, byte[] file) {
+        Photo old = photos.findById(photoId).filter(x -> x.getUserId().equals(userId)).orElseThrow(ApiException::notFound);
+        if (file == null || file.length == 0) {
+            throw ApiException.badRequest("invalid_image");
+        }
+        if (file.length > props.storage().maxUploadMb() * 1024L * 1024L) {
+            throw ApiException.badRequest("file_too_large");
+        }
+        Processed img = images.process(file, FULL_SIDE, THUMB_SIDE);
+        quota.check(userId, img.full().length + img.thumb().length, old.getBytes() + old.getThumbBytes());
+        Photo photo = new Photo(userId, old.getDay(), old.getPose(), img.width(), img.height(), img.full().length, img.thumb().length,
+                img.format());
+        storage.put(photo.key(), img.full(), img.contentType());
+        storage.put(photo.thumbKey(), img.thumb(), img.contentType());
+        try {
+            List<UUID> friends = jdbc.queryForList("select friend_id from photo_share where photo_id = ?", UUID.class, old.getId());
+            photos.delete(old);
+            photos.flush();
+            photos.saveAndFlush(photo);
+            for (UUID friend : friends) {
+                jdbc.update("insert into photo_share (photo_id, friend_id) values (?, ?)", photo.getId(), friend);
+            }
+            jdbc.update("update report set target_id = ? where target_type = 'PHOTO' and target_id = ?", photo.getId(), old.getId());
+        } catch (RuntimeException e) {
+            removeFiles(photo);
+            throw e;
+        }
+        removeFiles(old);
+        Double weight = logs.findById(new BodyLog.Key(userId, old.getDay()))
+                .map(l -> l.getWeightKg() == null ? null : l.getWeightKg().doubleValue()).orElse(null);
         return dto(photo, weight);
     }
 

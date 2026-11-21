@@ -186,6 +186,13 @@ export class ApiService {
     return this.post('/api/me/photos', form);
   }
 
+  /** 1.16: a photo touched up on the phone, in place of the old one (a new id, the same day, pose and shares) */
+  replacePhoto(id: string, file: Blob): Promise<Photo> {
+    const form = new FormData();
+    form.append('file', file, file.type === 'image/webp' ? 'photo.webp' : 'photo.jpg');
+    return this.post(`/api/me/photos/${id}/image`, form);
+  }
+
   deletePhoto(id: string): Promise<void> {
     return firstValueFrom(this.http.delete<void>(`/api/me/photos/${id}`));
   }

@@ -50,6 +50,12 @@ public class PhotoController {
         return photos.upload(users.current(auth).getId(), file.getBytes(), day, pose);
     }
 
+    /** 1.16: the photo touched up on the phone: a new picture in its place (a new id, its shares kept) */
+    @PostMapping(value = "/api/me/photos/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public PhotoDto replace(@PathVariable UUID id, @RequestParam("file") MultipartFile file, Authentication auth) throws IOException {
+        return photos.replace(users.current(auth).getId(), id, file.getBytes());
+    }
+
     @DeleteMapping("/api/me/photos/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id, Authentication auth) {

@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { ApiService } from '../api/api.service';
 import type { Photo, Pose, StorageUsage } from '../api/models';
 import { localDay } from '../tracking/tracking.store';
+import { fresh } from '../api/kept';
 
 export const POSES: Pose[] = ['FRONT', 'SIDE', 'BACK'];
 
@@ -31,8 +32,20 @@ export class PhotosStore {
   async load(): Promise<Photo[]> {
     const list = await this.api.photos();
     this.photos.set(list);
+    this.at = Date.now();
     return list;
   }
+
+  private at = 0;
+
+  /** 1.16: the list seen less than FRESH_MS ago as it is, else the server's */
+  async ensureFresh(): Promise<Photo[]> {
+    const list = this.photos();
+    if (list && fresh(this.at)) return list;
+    return (this.loading ??= this.load().finally(() => (this.loading = null)));
+  }
+
+  private loading: Promise<Photo[]> | null = null;
 
   async ensure(): Promise<Photo[]> {
     return this.photos() ?? this.load();
@@ -54,10 +67,29 @@ export class PhotosStore {
     return photo;
   }
 
+  /** 1.16: a photo touched up: the new one takes its place in the list */
+  async replace(id: string, file: Blob): Promise<Photo> {
+    const photo = await this.api.replacePhoto(id, file);
+    this.renamed.update((m) => ({ ...m, [id]: photo.id }));
+    this.photos.update((list) => [photo, ...(list ?? []).filter((p) => p.id !== id)].sort(byDayDesc));
+    void this.loadStorage();
+    return photo;
+  }
+
   async remove(id: string): Promise<void> {
     await this.api.deletePhoto(id);
     this.photos.update((list) => (list ?? []).filter((p) => p.id !== id));
     void this.loadStorage();
+  }
+
+  /** 1.16: a photo touched up gets a new id: the screens opened on the old one follow it */
+  private readonly renamed = signal<Record<string, string>>({});
+
+  resolve(id: string): string {
+    const m = this.renamed();
+    let x = id;
+    for (let i = 0; i < 20 && m[x]; i++) x = m[x];
+    return x;
   }
 
   /** oldest first, one pose */
@@ -71,6 +103,7 @@ export class PhotosStore {
   }
 
   clear(): void {
+    this.renamed.set({});
     this.photos.set(null);
     this.storage.set(null);
   }

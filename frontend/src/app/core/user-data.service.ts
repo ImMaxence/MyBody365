@@ -8,6 +8,7 @@ import { TimerRun } from './engage/timer-run';
 import { RecipesView } from './meals/recipes-view';
 import { WaterStore } from './tracking/water.store';
 import { FavoritesStore } from './meals/favorites.store';
+import { FriendsStore } from './friends/friends.store';
 
 /** Forgets everything loaded for the signed-in account (sign-out, account deleted). */
 @Injectable({ providedIn: 'root' })
@@ -21,6 +22,7 @@ export class UserDataService {
   private readonly recipesView = inject(RecipesView);
   private readonly water = inject(WaterStore);
   private readonly favorites = inject(FavoritesStore);
+  private readonly friends = inject(FriendsStore);
 
   clear(): void {
     this.tracking.clear();
@@ -33,6 +35,7 @@ export class UserDataService {
     this.recipesView.clear();
     this.water.clear();
     this.favorites.clear();
+    this.friends.clear();
     this.outbox.setOwner(null);
   }
 }

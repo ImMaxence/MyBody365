@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectAccessible, expectNoHorizontalOverflow, signIn, tab, watchErrors } from './helpers';
+import { expectAccessible, expectNoHorizontalOverflow, signIn, tab, watchErrors, press } from './helpers';
 
 test.describe('meals', () => {
   test('fast food: a quick portion with its calories, then a recipe with the calories entered by hand', async ({ page }) => {
@@ -47,6 +47,27 @@ test.describe('meals', () => {
     await tacos.getByRole('radio', { name: 'La moitié' }).click();
     await expect(tacos.getByText(/≈ 385 kcal/).first()).toBeVisible();
     await tacos.getByRole('button', { name: 'Masquer le panneau' }).click();
+
+    // 1.16: sushi by the exact piece, with a sweet soy sauce; the soy sauces come with a poke bowl too
+    await page.goto('/app/meals/add?slot=DINNER');
+    await page.getByRole('group', { name: 'Au restaurant, en fast-food' }).getByRole('button', { name: /Sushi/ }).click();
+    const sushi = page.getByRole('dialog', { name: 'Sushi' });
+    await expect(sushi.getByRole('radio', { name: /12 pièces/ })).toHaveAttribute('aria-checked', 'true');
+    for (let i = 0; i < 3; i++) await press(sushi.getByRole('button', { name: 'Une pièce de moins' }));
+    await expect(sushi.getByRole('radio', { name: /12 pièces/ })).toHaveAttribute('aria-checked', 'false');
+    await sushi.getByRole('button', { name: /Sauce soja sucrée/ }).click();
+    await expect(sushi.getByText(/≈ 407 kcal/)).toBeVisible();
+    await expectAccessible(page);
+    await sushi.getByRole('button', { name: /Ajouter au dîner/ }).click();
+    await expect(page.getByRole('button', { name: /Sushi \(9 pièces\)/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Sauce soja sucrée/ })).toBeVisible();
+    await page.goto('/app/meals/add?slot=DINNER');
+    await page.getByRole('group', { name: 'Au restaurant, en fast-food' }).getByRole('button', { name: /Salade/ }).click();
+    const salad = page.getByRole('dialog', { name: 'Salade' });
+    await expect(salad.getByRole('button', { name: /Sauce soja salée/ })).toHaveCount(0);
+    await salad.getByRole('radio', { name: /Poké bowl/ }).click();
+    await expect(salad.getByRole('button', { name: /Sauce soja salée/ })).toBeVisible();
+    await salad.getByRole('button', { name: 'Masquer le panneau' }).click();
 
     // an everyday drink: a cappuccino with oat milk and a sugar, one line with its health score
     await page.goto('/app/meals/add?slot=BREAKFAST');

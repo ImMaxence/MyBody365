@@ -1,3 +1,4 @@
+import { FriendsStore } from '../../core/friends/friends.store';
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { errorCode } from '../../core/api/api.service';
@@ -726,6 +727,8 @@ export class FriendsPage {
   private zxing: { stop(): void } | null = null;
 
   constructor() {
+    // 1.16: what is done here (a challenge joined, a friend added) shows on Today on the way back
+    inject(FriendsStore).stale();
     void this.load();
     inject(DestroyRef).onDestroy(() => this.stopScan());
   }

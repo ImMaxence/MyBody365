@@ -30,8 +30,13 @@ public final class TrackingDtos {
             @NotNull @DecimalMin("30") @DecimalMax("350") BigDecimal currentWeightKg,
             @NotNull @DecimalMin("30") @DecimalMax("350") BigDecimal goalWeightKg,
             @NotNull @DecimalMin("0.25") @DecimalMax("1.0") BigDecimal weeklyRateKg,
-            /** 1.14: the starting point, changed from « Mon objectif » (null: kept); the weigh-ins do not change */
-            @DecimalMin("30") @DecimalMax("350") BigDecimal startWeightKg) {}
+            /** 1.14: the starting point, changed from « Mon objectif » (null: kept) */
+            @DecimalMin("30") @DecimalMax("350") BigDecimal startWeightKg,
+            /**
+             * 1.16: the weigh-in of the start day takes it too (a mistyped start: the first point of the curve was the same
+             * typo); left out or false, the weigh-ins do not change (a journey begun before the app)
+             */
+            Boolean startLogToo) {}
 
     public record ProfileDto(
             Sex sex,

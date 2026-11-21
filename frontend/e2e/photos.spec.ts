@@ -131,4 +131,51 @@ test.describe('photos', () => {
     await page.getByRole('button', { name: 'Dos', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Aucune photo de dos pour le moment' })).toBeVisible();
   });
+
+  test('a photo touched up: smaller on a white background, turned, brighter (1.16)', async ({ page }) => {
+    const errors = watchErrors(page);
+    const setRange = (name: RegExp, v: number) =>
+      page.getByRole('slider', { name }).evaluate((el: HTMLInputElement, value) => {
+        el.value = String(value);
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }, v);
+    await signIn(page, 'new');
+    await tab(page, 'Photos').click();
+    await page.locator('input[type=file]').setInputFiles({ name: 'me.png', mimeType: 'image/png', buffer: makePng(400, 500) });
+    await page.getByRole('radio', { name: 'Face' }).click();
+    await page.getByRole('button', { name: 'Garder cette photo' }).click();
+    await page.getByRole('link', { name: /Ouvrir la photo du/ }).click();
+    await page.getByRole('link', { name: 'Retoucher' }).click();
+    await expect(page.getByRole('heading', { name: 'Retoucher', level: 1 })).toBeVisible();
+    const save = page.getByRole('button', { name: 'Enregistrer la photo' });
+    await expect(save).toBeDisabled();
+    // half its size (the slider goes by doubling), on white, a quarter turn
+    await setRange(/^Taille/, -1);
+    await expect(page.getByText('50 %')).toBeVisible();
+    await page.getByRole('radio', { name: 'Blanc' }).click();
+    await page.getByRole('button', { name: 'Tourner' }).click();
+    await page.getByRole('button', { name: 'Lumière' }).click();
+    await setRange(/^Luminosité/, 20);
+    await expect(page.getByRole('slider', { name: /^Luminosité/ })).toHaveValue('20');
+    await expectAccessible(page);
+    await expectNoHorizontalOverflow(page);
+    await expect(save).toBeEnabled();
+    await save.click();
+    await expect(page.getByText('Photo retouchée')).toBeVisible();
+    // back on the photo: the new picture, 3 by 4, its corner the white background
+    await expect(page.getByRole('link', { name: 'Retoucher' })).toBeVisible();
+    const img = page.locator('figure.frame img.savable');
+    await expect(img).toHaveJSProperty('complete', true);
+    expect(await img.evaluate((el: HTMLImageElement) => [el.naturalWidth, el.naturalHeight])).toEqual([1200, 1600]);
+    const corner = await img.evaluate((el: HTMLImageElement) => {
+      const c = document.createElement('canvas');
+      c.width = el.naturalWidth;
+      c.height = el.naturalHeight;
+      const ctx = c.getContext('2d')!;
+      ctx.drawImage(el, 0, 0);
+      return [...ctx.getImageData(8, 8, 1, 1).data.slice(0, 3)];
+    });
+    expect(Math.min(...corner)).toBeGreaterThan(240);
+    expect(errors).toEqual([]);
+  });
 });

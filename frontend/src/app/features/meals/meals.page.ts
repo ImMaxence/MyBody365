@@ -2,7 +2,7 @@ import { ShareSheetComponent } from '../../shared/share-sheet.component';
 import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
-import type { MacroSplit, MealEntry, MealStats, Slot } from '../../core/api/models';
+import type { MacroSplit, MealEntry, Slot } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { DayStatus, MealsStore, PENDING, SLOTS, dayStatus, monthGrid, shiftDay, shiftMonth, weekOf } from '../../core/meals/meals.store';
@@ -1128,17 +1128,15 @@ export class MealsPage {
   }
 
   /** what stands out in the last 7 days (core/meals/trends.ts) */
-  private readonly weekStats = signal<MealStats | null>(null);
+  private readonly weekStats = this.store.weekStats;
   protected readonly weekTrends = computed(() => trends(this.weekStats(), this.plan()));
 
   constructor() {
     void this.shopping.load().catch(() => undefined);
-    void this.store.load().catch(() => undefined);
-    if (!this.tracking.summary()) void this.tracking.load();
-    this.mealsApi
-      .stats(7)
-      .then((st) => this.weekStats.set(st))
-      .catch(() => undefined);
+    // 1.16: what was seen less than 30 s ago stays as it is (core/api/kept.ts)
+    void this.store.ensure().catch(() => undefined);
+    void this.tracking.ensure();
+    void this.store.ensureWeekStats();
     // a new day on screen (once its data is there): its content fades in
     effect(() => {
       const day = this.store.data()?.day ?? null;
@@ -1161,7 +1159,7 @@ export class MealsPage {
     const current = this.store.day();
     if (day === current || day > this.maxDay()) return;
     this.dir.set(day > current ? 1 : -1);
-    void this.store.load(day).catch(() => undefined);
+    void this.store.ensure(day).catch(() => undefined);
   }
 
   protected status(day: string): DayStatus {

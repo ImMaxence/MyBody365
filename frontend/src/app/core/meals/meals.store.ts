@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import type { DayTotal, MealDay, MealEntry, MealInput, Nutrients, RecentItem, Slot } from '../api/models';
+import type { DayTotal, MealDay, MealEntry, MealInput, MealStats, Nutrients, RecentItem, Slot } from '../api/models';
+import { fresh } from '../api/kept';
 import { localDay } from '../tracking/tracking.store';
 import { MealsApi } from './meals-api';
 import { Outbox, isOffline } from '../offline/outbox';
@@ -138,6 +139,40 @@ export class MealsStore {
     }
   }
 
+  /** 1.16: a day seen less than FRESH_MS ago shown as it is (back on the Meals tab), else asked again */
+  async ensure(day = this.day()): Promise<MealDay> {
+    const known = this.server.get(day);
+    if (known && fresh(this.fetchedAt.get(day) ?? 0)) {
+      this.day.set(day);
+      const d = this.withPending(known);
+      this.data.set(d);
+      return d;
+    }
+    return this.load(day);
+  }
+
+  /** 1.16: today's totals, asked again when older than FRESH_MS */
+  ensureToday(): Promise<void> {
+    if (this.server.has(localDay()) && fresh(this.fetchedAt.get(localDay()) ?? 0)) return Promise.resolve();
+    return (this.loadingToday ??= this.loadToday().finally(() => (this.loadingToday = null)));
+  }
+
+  private loadingToday: Promise<void> | null = null;
+
+  /** 1.16: the last 7 days' statistics (what stands out on the Meals tab), kept while fresh */
+  readonly weekStats = signal<MealStats | null>(null);
+  private weekStatsAt = 0;
+
+  async ensureWeekStats(): Promise<void> {
+    if (this.weekStats() && fresh(this.weekStatsAt)) return;
+    try {
+      this.weekStats.set(await this.api.stats(7));
+      this.weekStatsAt = Date.now();
+    } catch {
+      /* the card stays hidden */
+    }
+  }
+
   /**
    * Without network, and with what it is (name and nutrients, the screen knows them): kept on the phone and
    * shown at once, marked as waiting (id « pending-… »), sent when the network is back.
@@ -145,6 +180,7 @@ export class MealsStore {
   async add(input: MealInput, preview?: MealPreview): Promise<MealDay> {
     try {
       const d = await this.api.add(input);
+      this.weekStatsAt = 0;
       this.lastQueued.set(false);
       this.apply(d);
       this.recent.set(null);
@@ -168,10 +204,12 @@ export class MealsStore {
 
   async update(id: string, patch: { slot?: Slot; grams?: number; servings?: number }): Promise<void> {
     this.apply(await this.api.update(id, patch));
+    this.weekStatsAt = 0;
   }
 
   async remove(id: string): Promise<void> {
     this.apply(await this.api.remove(id));
+    this.weekStatsAt = 0;
   }
 
   /** the same slot as the day before; false when it was empty */
@@ -179,6 +217,7 @@ export class MealsStore {
     const before = this.data()?.entries.filter((e) => e.slot === slot).length ?? 0;
     const d = await this.api.copy(shiftDay(this.day(), -1), this.day(), slot);
     this.apply(d);
+    this.weekStatsAt = 0;
     return d.entries.filter((e) => e.slot === slot).length > before;
   }
 
@@ -215,11 +254,16 @@ export class MealsStore {
     this.target.set(null);
     this.ranges.clear();
     this.server.clear();
+    this.fetchedAt.clear();
+    this.weekStats.set(null);
+    this.weekStatsAt = 0;
     this.day.set(localDay());
   }
 
   /** the days as the server sent them (the meals waiting for the network are added on top) */
   private readonly server = new Map<string, MealDay>();
+  /** 1.16: when each of them came */
+  private readonly fetchedAt = new Map<string, number>();
 
   /** a day from the server, with the meals of that day still waiting on the phone */
   private withPending(d: MealDay): MealDay {
@@ -246,6 +290,7 @@ export class MealsStore {
 
   private apply(server: MealDay): void {
     this.server.set(server.day, server);
+    this.fetchedAt.set(server.day, Date.now());
     const d = this.withPending(server);
     if (d.day === this.day()) this.data.set(d);
     if (d.day === localDay()) this.today.set(d);

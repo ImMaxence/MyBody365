@@ -1,3 +1,4 @@
+import { warmUp } from '../../core/nav/warm-up';
 import { isPlatformBrowser } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, ElementRef, PLATFORM_ID, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -387,7 +388,8 @@ export class ShellComponent {
   protected readonly showTabs = computed(() => {
     const url = this.url();
     const account = this.session.account();
-    return account?.onboarded === true && account.profileComplete && !/^\/app\/(login|request|welcome|photos\/camera|meals\/scan)/.test(url);
+    // 1.16: the photo editor too: its tools fill the bottom of the screen
+    return account?.onboarded === true && account.profileComplete && !/^\/app\/(login|request|welcome|photos\/camera|meals\/scan|photos\/[^/]+\/edit)/.test(url);
   });
 
   /** the band under the status bar: everywhere but the full-screen camera */
@@ -440,6 +442,8 @@ export class ShellComponent {
         }
       });
     if (isPlatformBrowser(inject(PLATFORM_ID))) {
+      // 1.16: the tabs and what they show, loaded while the logo is on screen
+      if (this.session.account()?.onboarded) warmUp();
       const destroy = inject(DestroyRef);
       const doc = inject(DOCUMENT);
       this.lockZoom(doc, destroy);

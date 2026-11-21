@@ -9,6 +9,23 @@ describe('fast food estimates', () => {
     expect(e.total.carbsG).toBe(68 + 43 + 3 + 35);
   });
 
+  it('1.16: sushi by the piece, soy sauces with them and with a poke bowl only', () => {
+    const sushi = dish('sushi')!;
+    // 9 pieces: one and a half times 6
+    const nine = estimate(sushi, 'p12', 'none', ['soy'], 'none', undefined, 1, 9);
+    expect(nine.lines.map((l) => l.portion.key)).toEqual(['pieces', 'soy']);
+    expect(nine.lines[0].portion.kcal).toBe(375);
+    expect(nine.lines[0].portion.grams).toBe(225);
+    // the salt of a tablespoon of soy sauce counts
+    expect(nine.lines[1].portion.saltG).toBe(2.2);
+    // the shortcuts are worth what they say
+    expect(estimate(sushi, 'p12', 'none', [], 'none', undefined, 1, 12).total.kcal).toBe(500);
+    const salad = dish('salad')!;
+    expect(estimate(salad, 'poke', 'none', ['soySweet'], 'none').lines.map((l) => l.portion.key)).toEqual(['poke', 'soySweet']);
+    // a Caesar salad has no soy sauce on offer, even ticked before switching
+    expect(estimate(salad, 'caesar', 'none', ['soySweet'], 'none').lines).toHaveLength(1);
+  });
+
   it('leaves out what was not taken, and fries where they do not apply', () => {
     expect(estimate(dish('kebab')!, 'plate', 'none', [], 'none').lines).toHaveLength(1);
     // French tacos come with their fries inside

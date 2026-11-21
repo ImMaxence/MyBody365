@@ -59,7 +59,9 @@ import { IconComponent } from '../../shared/icon.component';
         <div class="actions">
           <a class="btn btn-secondary" routerLink="/app/photos/compare" [queryParams]="{ after: p.id }"><app-icon name="columns" /> {{ 'photos.viewer.compareFirst' | t }}</a>
           <a class="btn btn-secondary" [href]="p.url" [attr.download]="'mybody365-' + p.day + '.webp'"><app-icon name="download" /> {{ 'photos.viewer.download' | t }}</a>
-          <button type="button" class="btn btn-secondary wide" (click)="openShare(p.id)">
+          <!-- 1.16: crop, size, turn, light -->
+          <a class="btn btn-secondary" [routerLink]="['/app/photos', p.id, 'edit']"><app-icon name="sliders" /> {{ 'photos.edit.open' | t }}</a>
+          <button type="button" class="btn btn-secondary" (click)="openShare(p.id)">
             <app-icon name="users" /> {{ 'photos.viewer.share' | t }}{{ shares().length ? ' · ' + shares().length : '' }}
           </button>
           <button type="button" class="btn btn-ghost danger" (click)="confirm.showModal()"><app-icon name="trash" /> {{ 'photos.viewer.delete' | t }}</button>
@@ -212,9 +214,11 @@ export class PhotoViewerPage {
   private readonly shareDialog = viewChild.required<ElementRef<HTMLDialogElement>>('shareDialog');
   /** the photo shown: the one opened, then the ones swiped to */
   private readonly current = linkedSignal(() => this.id());
-  protected readonly photo = computed(() => this.store.photos()?.find((p) => p.id === this.current()) ?? null);
+  /** 1.16: the photo opened, or the one that took its place once touched up */
+  private readonly shown = computed(() => this.store.resolve(this.current()));
+  protected readonly photo = computed(() => this.store.photos()?.find((p) => p.id === this.shown()) ?? null);
   /** in the grid's order: newest first */
-  protected readonly index = computed(() => (this.store.photos() ?? []).findIndex((p) => p.id === this.current()));
+  protected readonly index = computed(() => (this.store.photos() ?? []).findIndex((p) => p.id === this.shown()));
   protected readonly total = computed(() => this.store.photos()?.length ?? 0);
   protected readonly newer = computed(() => (this.index() > 0 ? this.store.photos()![this.index() - 1] : null));
   protected readonly older = computed(() => (this.index() >= 0 ? (this.store.photos()?.[this.index() + 1] ?? null) : null));
