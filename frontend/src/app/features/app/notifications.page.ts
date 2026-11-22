@@ -1,3 +1,4 @@
+import { RouterLink } from '@angular/router';
 import { ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { SwPush } from '@angular/service-worker';
@@ -12,7 +13,7 @@ import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 
-type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabled' | 'photoEnabled';
+type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabled' | 'photoEnabled' | 'challengeEnabled';
 
 /**
  * Notifications: this device on or off (with a test), then what is sent, each line a switch saved at
@@ -21,7 +22,7 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
 @Component({
   selector: 'app-notifications',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, BackButtonComponent],
+  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -79,6 +80,16 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
         }
       </section>
 
+      <!-- 1.17: every notification sent, latest first -->
+      <a class="card center-link" routerLink="/app/notifications">
+        <span class="list-icon"><app-icon name="inbox" /></span>
+        <span class="pref-body">
+          <span class="pref-title">{{ 'engage.center.title' | t }}</span>
+          <span class="small muted">{{ 'engage.center.hint' | t }}</span>
+        </span>
+        <app-icon name="chevronRight" [size]="18" />
+      </a>
+
       @if (prefs(); as p) {
         <h2 class="section-title">{{ 'engage.notifications.what' | t }}</h2>
         <div class="list prefs">
@@ -133,6 +144,24 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
             </span>
             <input type="checkbox" role="switch" class="switch" [checked]="p.friendsEnabled" (change)="toggle('friendsEnabled', $event)" />
           </label>
+          <!-- 1.17: the challenges whose day is not done yet, at their own time -->
+          <label class="pref">
+            <span class="list-icon accent"><app-icon name="trophy" /></span>
+            <span class="pref-body">
+              <span class="pref-title">{{ 'engage.notifications.challenge' | t }}</span>
+              <span class="small muted">{{ 'engage.notifications.challengeHint' | t }}</span>
+            </span>
+            <input type="checkbox" role="switch" class="switch" [checked]="p.challengeEnabled ?? true" (change)="toggle('challengeEnabled', $event)" />
+          </label>
+          @if (p.challengeEnabled ?? true) {
+            <div class="pref time-row">
+              <label class="small time-label" for="n-challenge">{{ 'engage.notifications.challengeTime' | t }}</label>
+              <span class="input-icon time">
+                <input class="input" id="n-challenge" type="time" step="300" [value]="p.challengeTime ?? '20:00'" (change)="setChallengeTime($event)" />
+                <span class="end"><app-icon name="clock" [size]="17" /></span>
+              </span>
+            </div>
+          }
           <label class="pref">
             <span class="list-icon"><app-icon name="sparkles" /></span>
             <span class="pref-body">
@@ -149,6 +178,32 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
     </main>
   `,
   styles: `
+    .center-link {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      color: var(--fg);
+    }
+    .center-link .list-icon {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      flex: none;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      color: var(--accent-text);
+    }
+    .center-link .pref-body {
+      flex: 1;
+      display: grid;
+      gap: 1px;
+      min-width: 0;
+    }
+    .center-link > app-icon {
+      color: var(--fg-3);
+    }
     .device {
       display: grid;
       gap: var(--space-4);
@@ -424,6 +479,11 @@ export class NotificationsPage {
   protected setPhotoTime(e: Event): void {
     const value = (e.target as HTMLInputElement).value;
     if (/^\d{2}:\d{2}$/.test(value)) this.save({ photoTime: value });
+  }
+
+  protected setChallengeTime(e: Event): void {
+    const value = (e.target as HTMLInputElement).value;
+    if (/^\d{2}:\d{2}$/.test(value)) this.save({ challengeTime: value });
   }
 
   /** shown at once, saved in order; a failure puts the screen back as the server has it */

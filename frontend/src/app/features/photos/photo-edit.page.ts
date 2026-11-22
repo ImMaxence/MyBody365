@@ -1,3 +1,4 @@
+import { EasyRangeDirective } from '../../shared/easy-range.directive';
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { errorCode } from '../../core/api/api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -17,6 +18,7 @@ import {
   clampZoom,
   cssFilter,
   draw,
+  fitZoom,
   render,
   softCopy,
 } from '../../core/photos/photo-edit';
@@ -36,7 +38,7 @@ type Light = 'brightness' | 'contrast' | 'saturation';
 @Component({
   selector: 'app-photo-edit',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, BackButtonComponent, SegDirective],
+  imports: [EasyRangeDirective, TranslatePipe, IconComponent, BackButtonComponent, SegDirective],
   template: `
     <main class="page editor">
       <header class="page-head">
@@ -67,8 +69,13 @@ type Light = 'brightness' | 'contrast' | 'saturation';
           </div>
           <!-- the slider is named on its own (a label would name the output first) -->
           <div class="slider">
-            <span class="slider-head" aria-hidden="true"><span>{{ 'photos.edit.size' | t }}</span><span class="num">{{ zoomText() }}</span></span>
-            <input type="range" [min]="zoomMin" [max]="zoomMax" step="0.01" [value]="zoomPos()" [attr.aria-label]="'photos.edit.size' | t"
+            <span class="slider-head">
+              <span aria-hidden="true">{{ 'photos.edit.size' | t }}</span>
+              <span class="num grow" aria-hidden="true">{{ zoomText() }}</span>
+              <!-- 1.17: the whole photo in the frame (a very wide one needs less than the usual smallest size) -->
+              <button type="button" class="fit" [disabled]="!img() || atFit()" (click)="fit()"><app-icon name="maximize" [size]="14" /> {{ 'photos.edit.fit' | t }}</button>
+            </span>
+            <input type="range" [min]="zoomMin()" [max]="zoomMax" step="0.01" [value]="zoomPos()" [attr.aria-label]="'photos.edit.size' | t"
               [attr.aria-valuetext]="zoomText()" (input)="setZoom(+$any($event.target).value)" />
           </div>
           <div class="slider">
@@ -170,6 +177,29 @@ type Light = 'brightness' | 'contrast' | 'saturation';
       color: var(--fg-2);
       font-weight: 600;
     }
+    .slider-head .grow {
+      margin-left: auto;
+    }
+    .fit {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 30px;
+      margin-block: -4px;
+      padding: 4px 11px;
+      border-radius: var(--radius-pill);
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      font-size: var(--fs-s);
+      font-weight: 650;
+    }
+    .fit:disabled {
+      opacity: 0.45;
+    }
+    /* 1.17: the thumbs away from the left edge of the screen, where a touch is the back swipe */
+    .slider {
+      padding-inline: 8px;
+    }
     input[type='range'] {
       width: 100%;
       height: 32px;
@@ -244,7 +274,15 @@ export class PhotoEditPage {
   protected readonly lights: Light[] = ['brightness', 'contrast', 'saturation'];
   protected readonly angleMax = ANGLE_MAX;
   /** the size slider goes by doubling: as far from 50 % to 100 % as from 100 % to 200 % */
-  protected readonly zoomMin = Math.round(Math.log2(ZOOM_MIN) * 100) / 100;
+  /** 1.17: the smallest size, lower for a very wide photo (all of it in the frame) */
+  private readonly fitOf = computed(() => {
+    const img = this.img();
+    const e = this.edit();
+    return img ? fitZoom(img.naturalWidth || img.width, img.naturalHeight || img.height, e.turn, e.angle) : 1;
+  });
+  private readonly floor = computed(() => Math.min(ZOOM_MIN, this.fitOf()));
+  protected readonly zoomMin = computed(() => Math.floor(Math.log2(this.floor()) * 100) / 100);
+  protected readonly atFit = computed(() => Math.abs(this.edit().zoom - this.fitOf()) < 0.005 && !this.edit().x && !this.edit().y);
   protected readonly zoomMax = Math.round(Math.log2(ZOOM_MAX) * 100) / 100;
   protected readonly zoomPos = computed(() => Math.round(Math.log2(this.edit().zoom) * 100) / 100);
   protected readonly zoomText = computed(() => `${this.i18n.number(this.edit().zoom * 100)} %`);
@@ -276,7 +314,10 @@ export class PhotoEditPage {
     });
     // the canvas follows the frame's size (and the screen's density); the frame appears with the photo list
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => this.measure());
-    inject(DestroyRef).onDestroy(() => observer?.disconnect());
+    inject(DestroyRef).onDestroy(() => {
+      observer?.disconnect();
+      this.stopAnim();
+    });
     effect(() => {
       const f = this.frame()?.nativeElement;
       if (!f) return;
@@ -314,7 +355,43 @@ export class PhotoEditPage {
   }
 
   protected setZoom(pos: number): void {
-    this.patch({ zoom: clampZoom(Math.round(2 ** pos * 100) / 100) });
+    this.stopAnim();
+    this.patch({ zoom: clampZoom(Math.round(2 ** pos * 100) / 100, this.floor()) });
+  }
+
+  /** 1.17: « Tout voir »: the whole photo, in the middle */
+  protected fit(): void {
+    this.animateTo({ zoom: this.fitOf(), x: 0, y: 0 });
+  }
+
+  /** 1.17: a double tap on the photo: back to 100 % in the middle (already there: the whole photo) */
+  private doubleTap(): void {
+    const e = this.edit();
+    const home = Math.abs(e.zoom - 1) < 0.005 && !e.x && !e.y;
+    if (home && this.fitOf() < 0.995) this.fit();
+    else this.animateTo({ zoom: 1, x: 0, y: 0 });
+  }
+
+  private anim = 0;
+
+  /** to a size and a place, in a quarter of a second */
+  private animateTo(to: Pick<PhotoEdit, 'zoom' | 'x' | 'y'>): void {
+    this.stopAnim();
+    const from = this.edit();
+    const start = performance.now();
+    const step = (now: number) => {
+      const t = Math.min(1, Math.max(0, (now - start) / 260));
+      const k = 1 - (1 - t) ** 3;
+      const mix = (a: number, b: number) => (t === 1 ? b : a + (b - a) * k);
+      this.patch({ zoom: mix(from.zoom, to.zoom), x: mix(from.x, to.x), y: mix(from.y, to.y) });
+      this.anim = t < 1 ? requestAnimationFrame(step) : 0;
+    };
+    this.anim = requestAnimationFrame(step);
+  }
+
+  private stopAnim(): void {
+    if (this.anim) cancelAnimationFrame(this.anim);
+    this.anim = 0;
   }
 
   protected lightPos(l: Light): number {
@@ -337,14 +414,21 @@ export class PhotoEditPage {
   }
 
   protected reset(): void {
+    this.stopAnim();
     this.edit.update((e) => ({ ...NO_EDIT, background: e.background as Background }));
   }
 
   // ── the gestures: one finger moves the photo, two size it ──────────────────
 
+  /** 1.17: the last tap (for the double tap) and the touch going on */
+  private lastTap: { t: number; x: number; y: number } | null = null;
+  private press: { t: number; x: number; y: number; moved: boolean } | null = null;
+
   protected down(e: PointerEvent): void {
     if (!this.img() || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    this.stopAnim();
     (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    this.press = this.pointers.size ? null : { t: e.timeStamp, x: e.clientX, y: e.clientY, moved: false };
     this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     this.begin(e.currentTarget as Element);
     this.moving.set(true);
@@ -353,6 +437,7 @@ export class PhotoEditPage {
   protected move(e: PointerEvent): void {
     if (!this.pointers.has(e.pointerId) || !this.gesture) return;
     this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (this.press && Math.hypot(e.clientX - this.press.x, e.clientY - this.press.y) > 10) this.press.moved = true;
     const g = this.gesture;
     const now = [...this.pointers.values()];
     const mid = (pts: { x: number; y: number }[]) => ({ x: pts.reduce((s, p) => s + p.x, 0) / pts.length, y: pts.reduce((s, p) => s + p.y, 0) / pts.length });
@@ -361,7 +446,7 @@ export class PhotoEditPage {
     let zoom = g.edit.zoom;
     if (now.length >= 2 && g.points.length >= 2) {
       const dist = (pts: { x: number; y: number }[]) => Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
-      zoom = clampZoom(g.edit.zoom * (dist(now) / dist(g.points)));
+      zoom = clampZoom(g.edit.zoom * (dist(now) / dist(g.points)), this.floor());
     }
     this.patch({
       zoom,
@@ -372,10 +457,24 @@ export class PhotoEditPage {
 
   protected up(e: PointerEvent): void {
     if (!this.pointers.delete(e.pointerId)) return;
-    if (this.pointers.size) this.begin(e.currentTarget as Element);
-    else {
+    if (this.pointers.size) {
+      this.press = null;
+      this.begin(e.currentTarget as Element);
+    } else {
       this.gesture = null;
       this.moving.set(false);
+      const p = this.press;
+      this.press = null;
+      // a tap, not a move: a second one close in time and place is a double tap
+      if (p && !p.moved && e.type === 'pointerup' && e.timeStamp - p.t < 300) {
+        const last = this.lastTap;
+        if (last && p.t - last.t < 350 && Math.hypot(p.x - last.x, p.y - last.y) < 40) {
+          this.lastTap = null;
+          this.doubleTap();
+        } else {
+          this.lastTap = { t: e.timeStamp, x: p.x, y: p.y };
+        }
+      }
     }
   }
 
@@ -383,12 +482,21 @@ export class PhotoEditPage {
   protected wheel(e: WheelEvent): void {
     if (!this.img()) return;
     e.preventDefault();
-    this.patch({ zoom: clampZoom(Math.round(this.edit().zoom * Math.exp(-e.deltaY * 0.0015) * 100) / 100) });
+    this.stopAnim();
+    this.patch({ zoom: clampZoom(Math.round(this.edit().zoom * Math.exp(-e.deltaY * 0.0015) * 100) / 100, this.floor()) });
   }
 
   /** the gesture starts again from here (a finger added or lifted) */
   private begin(target: Element): void {
     this.gesture = { edit: this.edit(), points: [...this.pointers.values()], rect: target.getBoundingClientRect() };
+  }
+
+  /** 1.17: saved, or nothing changed: leaving asks nothing */
+  private saved = false;
+
+  /** 1.17: leaving with changes not saved (the back button, the phone's back): asked first (route guard confirmLeave) */
+  canLeave(): boolean {
+    return this.saved || !this.dirty() || confirm(this.i18n.t('photos.edit.leaveConfirm'));
   }
 
   protected async save(): Promise<void> {
@@ -399,6 +507,7 @@ export class PhotoEditPage {
     try {
       const blob = await prepareImage(render(img, this.edit()));
       const photo = await this.store.replace(p.id, blob);
+      this.saved = true;
       this.toast.show(this.i18n.t('photos.edit.saved'));
       this.stack.back(`/app/photos/${photo.id}`);
     } catch (e) {

@@ -17,6 +17,8 @@ export const enBackup: Widen<typeof frBackup> = {
   categories: {
     logs: 'Weigh-ins and measurements',
     water: 'Glasses of water',
+    bp: 'Blood pressure',
+    medications: 'Pill box (your treatments)',
     timers: 'Saved timers',
     photos: 'Photos',
     meals: 'Meals (per day)',

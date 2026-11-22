@@ -50,8 +50,33 @@ public final class MicrosSiblings {
 
     private MicrosSiblings() {}
 
+    /** 1.17: a sibling chosen by hand, its values taken as they are or scaled to the density ({@link #factor}) */
+    record ByHand(String from, boolean scaled) {}
+
+    /**
+     * 1.17: everyday ingredients the name rules leave alone or pair badly, paired by hand (the exact names of the table): the
+     * tomato coulis of 14 community recipes, pizzas among them, stayed without values (0.23 from the purée); the raw thai rice
+     * took the cooked basmati's, with no iron. The rules go on for the others, and for these when a name is not found
+     */
+    static final Map<String, ByHand> BY_HAND = Map.of(
+            "Tomate, coulis, appertisé (purée de tomates mi-réduite à 11%)", new ByHand("Tomate, purée, appertisée", true),
+            "Riz thaï ou basmati, cru", new ByHand("Riz blanc, cru", false),
+            "Bouillon de volaille, déshydraté", new ByHand("Bouillon de boeuf, déshydraté", false),
+            "Mesclun ou salade, mélange de jeunes pousses", new ByHand("Salade verte, crue, sans assaisonnement", false),
+            "Poitrine de porc en salaison, fumée, crue", new ByHand("Lardon fumé, cru", false),
+            "Chorizo", new ByHand("Chorizo supérieur, doux ou fort, type saucisse sèche", false),
+            "Tzatziki à base de fromage frais, préemballé", new ByHand("Tzatziki à base de yaourt, préemballé", false),
+            "Sauce aïoli, préemballée", new ByHand("Mayonnaise (70% MG min.), préemballée", false),
+            "Pâte feuilletée, pur beurre, surgelée, préemballée, crue", new ByHand("Pâte feuilletée, matière grasse végétale, crue", false));
+
     /** the guesses for the foods of {@code table} that have no values */
     public static List<Guess> guess(List<Item> table) {
+        Map<String, Item> byName = new HashMap<>();
+        for (Item f : table) {
+            if (!f.micros().isEmpty()) {
+                byName.putIfAbsent(f.name().strip(), f);
+            }
+        }
         Map<String, Integer> df = new HashMap<>();
         List<Set<String>> words = new ArrayList<>(table.size());
         List<List<String>> heads = new ArrayList<>(table.size());
@@ -73,6 +98,13 @@ public final class MicrosSiblings {
         for (int i = 0; i < table.size(); i++) {
             Item t = table.get(i);
             if (!t.micros().isEmpty()) {
+                continue;
+            }
+            ByHand hand = BY_HAND.get(t.name().strip());
+            Item chosen = hand == null ? null : byName.get(hand.from());
+            if (chosen != null) {
+                double k = hand.scaled() ? Math.clamp(factor(t.per100(), chosen.per100()), 1 / MAX_FACTOR, MAX_FACTOR) : 1;
+                out.add(new Guess(t.id(), Micros.times(chosen.micros(), k), chosen.name()));
                 continue;
             }
             List<String> head = heads.get(i);

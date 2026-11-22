@@ -161,6 +161,26 @@ class NutritionUnitTest {
         assertThat(Micros.json(java.util.Map.of())).isNull();
     }
 
+    /** 1.17: everyday ingredients paired by hand: the coulis takes the purée's (scaled), the raw thai rice the raw white rice's */
+    @Test
+    void someEverydayIngredientsArePairedByHand() {
+        java.util.UUID coulis = java.util.UUID.randomUUID();
+        java.util.UUID thai = java.util.UUID.randomUUID();
+        java.util.List<MicrosSiblings.Item> table = java.util.List.of(
+                item(coulis, "Tomate, coulis, appertisé (purée de tomates mi-réduite à 11%)", "légumes", 45, 2, 7, java.util.Map.of()),
+                item(java.util.UUID.randomUUID(), "Tomate, purée, appertisée", "légumes", 30, 1.5, 4.5, java.util.Map.of("c", 9.0, "fe", 0.6)),
+                item(thai, "Riz thaï ou basmati, cru", "pâtes, riz et céréales", 350, 7.5, 78, java.util.Map.of()),
+                item(java.util.UUID.randomUUID(), "Riz basmati, cuit, sans sel ajouté", "pâtes, riz et céréales", 140, 3, 31, java.util.Map.of("fe", 0.0)),
+                item(java.util.UUID.randomUUID(), "Riz blanc, cru", "pâtes, riz et céréales", 350, 7, 77.5, java.util.Map.of("fe", 1.94)));
+        java.util.Map<java.util.UUID, MicrosSiblings.Guess> guesses = MicrosSiblings.guess(table).stream()
+                .collect(java.util.stream.Collectors.toMap(MicrosSiblings.Guess::id, g -> g));
+        assertThat(guesses.get(coulis).from()).isEqualTo("Tomate, purée, appertisée");
+        // more reduced: 9 g of protein + carbs against 6
+        assertThat(guesses.get(coulis).micros().get("c")).isCloseTo(9.0 * 9 / 6, org.assertj.core.data.Offset.offset(0.001));
+        assertThat(guesses.get(thai).from()).isEqualTo("Riz blanc, cru");
+        assertThat(guesses.get(thai).micros().get("fe")).isEqualTo(1.94);
+    }
+
     /** 1.15: a Ciqual food without vitamins takes those of its closest sibling, scaled; none when no food is close enough */
     @Test
     void aFoodWithoutVitaminsTakesThoseOfItsClosestSibling() {

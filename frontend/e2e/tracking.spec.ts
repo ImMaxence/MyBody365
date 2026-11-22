@@ -35,6 +35,16 @@ test.describe('tracking', () => {
     await expectAccessible(page);
     await page.getByRole('button', { name: 'Continuer' }).click();
 
+    // 1.17: the weight shown big before going on; « Corriger » goes back to it
+    await expect(page.getByRole('heading', { name: 'Vérifie ton point de départ' })).toBeVisible();
+    await expect(page.getByText(/^88,4\s*kg$/)).toBeVisible();
+    await expect(page.getByText(/valeur proposée au départ/)).toHaveCount(0);
+    await expectAccessible(page);
+    await page.getByRole('button', { name: 'Corriger' }).click();
+    await expect(weight).toHaveValue('88,4');
+    await page.getByRole('button', { name: 'Continuer' }).click();
+    await page.getByRole('button', { name: 'Oui, c’est bien ça' }).click();
+
     // goal: proposed 5 kg lower, pace and activity
     await expect(page.getByRole('heading', { name: 'Ton objectif' })).toBeVisible();
     await expect(page.getByLabel('Poids visé')).toHaveValue('83,5');

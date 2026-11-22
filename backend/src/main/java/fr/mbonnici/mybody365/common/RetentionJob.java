@@ -33,6 +33,10 @@ public class RetentionJob {
         int posts = jdbc.update("delete from friend_post where created_at < now() - interval '30 days'");
         // the challenges between friends: 60 days after their end
         posts += jdbc.update("delete from challenge where end_day < current_date - 60");
+        // the notification centre (1.17): 90 days
+        posts += jdbc.update("delete from notification_log where created_at < now() - interval '90 days'");
+        // the pill box's reminders already sent (1.17): a month
+        posts += jdbc.update("delete from medication_reminder where day < current_date - 30");
         if (requests + reports + audit + nudges + errors + feedback + posts > 0) {
             log.info("Retention: {} access request(s), {} report(s), {} log line(s), {} nudge(s), {} error(s), {} feedback deleted", requests,
                     reports, audit, nudges, errors, feedback);

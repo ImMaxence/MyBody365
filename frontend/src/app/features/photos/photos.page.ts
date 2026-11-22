@@ -1,3 +1,4 @@
+import { WaitingNoteComponent } from '../../shared/waiting-note.component';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import type { Photo, Pose } from '../../core/api/models';
@@ -22,7 +23,7 @@ interface Month {
 @Component({
   selector: 'app-photos',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent],
+  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent, WaitingNoteComponent],
   template: `
     <main class="page" [class.blurred]="blurred()">
       <header class="page-head">
@@ -67,6 +68,21 @@ interface Month {
       @if (blurred()) {
         <p class="blur-note small muted"><app-icon name="eyeOff" [size]="15" /> {{ 'photos.blur.note' | t }}</p>
       }
+      <!-- 1.17: taken without network, greyed until sent (a spinner while it goes), then in the months below -->
+      @if (store.queue.items().length) {
+        <section class="month waiting">
+          <h2 class="section-title">{{ 'photos.waiting' | t }}</h2>
+          <div class="grid">
+            @for (q of store.queue.items(); track q.id) {
+              <div class="tile is-waiting">
+                <img [src]="q.url" alt="" decoding="async" />
+                <span class="tile-day num">{{ dayOf(q.day) }}</span>
+                <span class="tile-wait"><app-waiting-note kind="photo" [sending]="store.queue.sending() === q.id" /></span>
+              </div>
+            }
+          </div>
+        </section>
+      }
       @if (store.photos(); as all) {
         @if (all.length) {
           <div class="seg" role="group" [attr.aria-label]="'photos.title' | t">
@@ -80,7 +96,8 @@ interface Month {
               <h2 class="section-title"><span class="month-name">{{ m.label }}</span> <span class="faint">· {{ 'photos.count' | t: { n: m.photos.length } }}</span></h2>
               <div class="grid">
                 @for (p of m.photos; track p.id; let i = $index) {
-                  <a class="tile" [routerLink]="['/app/photos', p.id]" [style.--i]="i" [attr.aria-label]="'photos.open' | t: { date: i18n.date(p.day) }">
+                  <a class="tile" [class.is-arrived]="store.arrived().has(p.id)" [routerLink]="['/app/photos', p.id]" [style.--i]="i"
+                    [attr.aria-label]="'photos.open' | t: { date: i18n.date(p.day) }">
                     <img [src]="p.thumbUrl" alt="" loading="lazy" decoding="async" />
                     <span class="tile-day num">{{ dayOf(p.day) }}</span>
                     @if (pose() === null && p.pose !== 'FRONT') {
@@ -118,6 +135,25 @@ interface Month {
     </main>
   `,
   styles: `
+    .waiting .tile {
+      position: relative;
+    }
+    .tile-wait {
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      bottom: 4px;
+      display: flex;
+      justify-content: center;
+      padding: 3px 6px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--surface) 88%, transparent);
+    }
+    .tile-wait .waiting-note {
+      font-size: 10.5px;
+      line-height: 1.2;
+      text-align: center;
+    }
     .spacer {
       flex: 1;
     }
@@ -366,8 +402,9 @@ export class PhotosPage {
   }
 
   constructor() {
-    void this.store.load().catch(() => this.store.photos.set(this.store.photos() ?? []));
-    void this.store.loadStorage();
+    // 1.17: as last seen when it was less than 30 s ago (core/api/kept.ts)
+    void this.store.ensureFresh().catch(() => this.store.photos.set(this.store.photos() ?? []));
+    void this.store.ensureStorage();
   }
 
   protected dayOf(day: string): string {

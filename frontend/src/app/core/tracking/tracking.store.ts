@@ -125,7 +125,7 @@ export class TrackingStore {
   constructor() {
     // a weigh-in noted offline reached the server: the summary and the curve again
     this.outbox.sent.subscribe((p) => {
-      if (p.kind !== 'weigh') return;
+      if (p.kind !== 'weigh' && p.kind !== 'evening') return;
       void this.load().catch(() => undefined);
       if (this.logs()) void this.loadLogs().catch(() => undefined);
     });
@@ -136,8 +136,17 @@ export class TrackingStore {
 
   /** the evening weigh-in (1.9): for itself, the trend and the streak keep the morning one */
   async saveEvening(day: string, weightKg: number | null): Promise<void> {
-    this.put(await this.api.saveEvening(day, weightKg));
-    if (this.logs()) await this.loadLogs();
+    try {
+      this.put(await this.api.saveEvening(day, weightKg));
+      this.lastQueued.set(false);
+      if (this.logs()) await this.loadLogs();
+    } catch (e) {
+      // 1.17: without network, kept on the phone (shown greyed on Today) and sent when it is back
+      if (!isOffline(e)) throw e;
+      const url = `/api/me/logs/${day}/evening`;
+      this.outbox.add({ kind: 'evening', method: weightKg == null ? 'DELETE' : 'PUT', url, body: weightKg == null ? null : { weightKg }, day });
+      this.lastQueued.set(true);
+    }
   }
 
   async saveLog(day: string, input: LogInput): Promise<Summary | null> {

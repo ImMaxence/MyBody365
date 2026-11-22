@@ -25,16 +25,20 @@ public record AccountDto(
         boolean admin,
         /** the streak's icon and colour (1.8): « flame » and « orange » unless chosen */
         String streakIcon,
-        String streakColor) {
+        String streakColor,
+        /** 1.17: the optional modules turned on: the blood pressure, the pill box */
+        boolean bpEnabled,
+        boolean pillsEnabled) {
 
     public AccountDto withUsername(String u) {
         return new AccountDto(id, email, displayName, u, avatarUrl, ownAvatar, discoverable, waterGoal, role, locale, onboarded, profileComplete, admin,
-                streakIcon, streakColor);
+                streakIcon, streakColor, bpEnabled, pillsEnabled);
     }
 
     public static AccountDto of(AppUser user, boolean admin, boolean profileComplete) {
         return new AccountDto(user.getId(), user.getEmail(), user.getDisplayName(), user.getUsername(), user.getPictureUrl(),
                 user.getAvatarVersion() != null, user.isDiscoverable(), user.getWaterGoal(),
-                admin ? "ADMIN" : "USER", user.isLocaleChosen() ? user.getLocale() : null, user.isOnboarded(), profileComplete, admin, user.getStreakIcon(), user.getStreakColor());
+                admin ? "ADMIN" : "USER", user.isLocaleChosen() ? user.getLocale() : null, user.isOnboarded(), profileComplete, admin, user.getStreakIcon(), user.getStreakColor(),
+                user.isBpEnabled(), user.isPillsEnabled());
     }
 }

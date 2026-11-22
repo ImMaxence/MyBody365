@@ -1,3 +1,4 @@
+import { EasyRangeDirective } from '../../shared/easy-range.directive';
 import { RouterLink } from '@angular/router';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import type { Photo, Pose } from '../../core/api/models';
@@ -12,7 +13,7 @@ import { SegDirective } from '../../shared/seg.directive';
 @Component({
   selector: 'app-compare',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent, BackButtonComponent],
+  imports: [EasyRangeDirective, SegDirective, RouterLink, TranslatePipe, IconComponent, BackButtonComponent],
   template: `
     <main class="page">
       <header class="page-head">

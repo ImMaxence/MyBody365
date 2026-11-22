@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { adminGuard, authGuard, guestGuard, installGate } from './core/auth/guards';
 import { LandingPage } from './features/landing/landing.page';
 import { TABS } from './app.tabs';
+import { confirmLeave } from './core/nav/leave-guard';
 
 export const routes: Routes = [
   // public site, prerendered (see app.routes.server.ts)
@@ -50,7 +51,13 @@ export const routes: Routes = [
           { path: 'photos/camera', loadComponent: () => import('./features/photos/camera.page').then((m) => m.CameraPage), data: { depth: 1, back: '/app/photos' } },
           { path: 'photos/compare', loadComponent: () => import('./features/photos/compare.page').then((m) => m.ComparePage), data: { depth: 1, back: '/app/photos' } },
           { path: 'photos/timelapse', loadComponent: () => import('./features/photos/timelapse.page').then((m) => m.TimelapsePage), data: { depth: 1, back: '/app/photos' } },
-          { path: 'photos/:id/edit', loadComponent: () => import('./features/photos/photo-edit.page').then((m) => m.PhotoEditPage), data: { depth: 2, back: '/app/photos' } },
+          // 1.17: its gestures are the photo's (no back swipe from the edge); changes not saved are asked about before leaving
+          {
+            path: 'photos/:id/edit',
+            loadComponent: () => import('./features/photos/photo-edit.page').then((m) => m.PhotoEditPage),
+            canDeactivate: [confirmLeave],
+            data: { depth: 2, back: '/app/photos', swipe: false },
+          },
           { path: 'photos/:id', loadComponent: () => import('./features/photos/photo-viewer.page').then((m) => m.PhotoViewerPage), data: { depth: 1, back: '/app/photos' } },
           { path: 'progress', loadComponent: TABS.progress, data: { depth: 0 } },
           { path: 'account', loadComponent: TABS.account, data: { depth: 0 } },
@@ -60,9 +67,13 @@ export const routes: Routes = [
           { path: 'account/water', loadComponent: () => import('./features/app/water-settings.page').then((m) => m.WaterSettingsPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/settings', loadComponent: () => import('./features/app/app-settings.page').then((m) => m.AppSettingsPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/notifications', loadComponent: () => import('./features/app/notifications.page').then((m) => m.NotificationsPage), data: { depth: 1, back: '/app/account' } },
+          // 1.17: the optional modules: the blood pressure, the pill box
+          { path: 'account/health', loadComponent: () => import('./features/app/health.page').then((m) => m.HealthPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/changelog', loadComponent: () => import('./features/changelog/changelog.page').then((m) => m.ChangelogPage), data: { depth: 1, back: '/app/account', inApp: true } },
           { path: 'challenges', loadComponent: () => import('./features/friends/challenges.page').then((m) => m.ChallengesPage), data: { depth: 2, back: '/app/friends' } },
           { path: 'friends', loadComponent: () => import('./features/friends/friends.page').then((m) => m.FriendsPage), data: { depth: 1, back: '/app' } },
+          // 1.17: the notification centre, from the bell on Today
+          { path: 'notifications', loadComponent: () => import('./features/app/notification-center.page').then((m) => m.NotificationCenterPage), data: { depth: 1, back: '/app' } },
           // « Ta semaine » went in 1.8: an old link (a notification) leads to Today
           { path: 'week', redirectTo: '' },
           { path: 'timer', loadComponent: () => import('./features/timer/timer.page').then((m) => m.TimerPage), data: { depth: 1, back: '/app' } },

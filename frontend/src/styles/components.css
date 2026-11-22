@@ -1054,3 +1054,58 @@ input[type='search']::-webkit-search-decoration {
     transition: none;
   }
 }
+
+/* 1.17: something done without network: greyed until it is sent (« Sera envoyé plus tard »), then it comes back to colour */
+.is-waiting {
+  filter: grayscale(1);
+  opacity: 0.6;
+  transition: filter var(--dur-3), opacity var(--dur-3);
+}
+.is-waiting.is-deleted .entry-name,
+.is-waiting.is-deleted .entry-kcal {
+  text-decoration: line-through;
+}
+.is-arrived {
+  animation: arrived 1.2s var(--ease-out);
+}
+@keyframes arrived {
+  0% {
+    filter: grayscale(1);
+    opacity: 0.6;
+  }
+  45% {
+    filter: none;
+    opacity: 1;
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--success, #1f9d55) 45%, transparent);
+  }
+}
+.waiting-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--fs-s);
+  font-weight: 600;
+  color: var(--fg-2);
+}
+.waiting-note .spin {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--fg-2) 30%, transparent);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+.waiting-note.sending {
+  color: var(--accent-text);
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-arrived {
+    animation: none;
+  }
+}

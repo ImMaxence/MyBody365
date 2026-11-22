@@ -11,12 +11,13 @@ import { IconComponent } from '../../shared/icon.component';
 import { PacePickerComponent } from './pace-picker.component';
 import { ActivityPickerComponent, answersOf } from './activity-picker.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
+import { NeedsCardComponent } from './needs-card.component';
 
 /** "My goal", pushed from the profile: target weight, pace, activity and height. */
 @Component({
   selector: 'app-goal',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PacePickerComponent, ActivityPickerComponent, TranslatePipe, IconComponent, NumberStepperComponent, BackButtonComponent],
+  imports: [NeedsCardComponent, PacePickerComponent, ActivityPickerComponent, TranslatePipe, IconComponent, NumberStepperComponent, BackButtonComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -55,6 +56,9 @@ import { NumberStepperComponent } from '../../shared/number-stepper.component';
         <app-number-stepper [(value)]="height" [step]="1" [min]="120" [max]="230" [decimals]="0" unit="cm" [compact]="true" [label]="'setup.height' | t" />
 
         <button type="button" class="btn btn-primary btn-block" [disabled]="busy()" (click)="save()"><app-icon name="check" /> {{ 'goal.save' | t }}</button>
+
+        <!-- 1.17: the target as saved, worked out step by step -->
+        <app-needs-card [summary]="s" [link]="false" />
       } @else {
         <div class="skeleton" style="height: 320px; border-radius: 24px"></div>
       }

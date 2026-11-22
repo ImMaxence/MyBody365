@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
 import type { Pose } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -128,6 +129,10 @@ function savedTimer(): Timer {
             <button type="button" class="btn btn-secondary" [disabled]="state() === 'saving'" (click)="retake()"><app-icon name="repeat" /> {{ 'photos.camera.retake' | t }}</button>
             <button type="button" class="btn btn-primary" [disabled]="state() === 'saving'" (click)="keep()">
               <app-icon name="check" /> {{ (state() === 'saving' ? 'photos.camera.saving' : 'photos.camera.use') | t }}
+            </button>
+            <!-- 1.17: kept, then straight to its touch-up -->
+            <button type="button" class="btn btn-ghost touch-up" [disabled]="state() === 'saving'" (click)="keep(true)">
+              <app-icon name="sliders" /> {{ 'photos.camera.keepEdit' | t }}
             </button>
           </div>
         }
@@ -353,6 +358,10 @@ function savedTimer(): Timer {
       gap: var(--space-3);
       width: min(100%, 26rem);
     }
+    .choices .touch-up {
+      grid-column: 1 / -1;
+      color: #fff;
+    }
     .center-msg {
       position: absolute;
       inset: 0;
@@ -411,6 +420,7 @@ export class CameraPage {
   private readonly store = inject(PhotosStore);
   private readonly toast = inject(ToastService);
   private readonly stack = inject(StackNavigation);
+  private readonly router = inject(Router);
   protected readonly i18n = inject(I18nService);
   private readonly video = viewChild.required<ElementRef<HTMLVideoElement>>('video');
 
@@ -598,13 +608,16 @@ export class CameraPage {
     }
   }
 
-  protected async keep(): Promise<void> {
+  /** kept; 1.17: with `edit`, its touch-up opens in place of the camera (back from it: the Photos tab) */
+  protected async keep(edit = false): Promise<void> {
     if (!this.blob) return;
     this.state.set('saving');
     try {
-      await this.store.upload(this.blob, localDay(), this.pose());
-      this.toast.show(this.i18n.t('photos.camera.saved'));
-      this.stack.back('/app/photos');
+      const photo = await this.store.upload(this.blob, localDay(), this.pose());
+      // 1.17: without network, kept on the phone (the touch-up waits for it to be sent)
+      this.toast.show(this.i18n.t(photo ? 'photos.camera.saved' : edit ? 'photos.camera.queuedEdit' : 'offline.queued'));
+      if (edit && photo) void this.router.navigate(['/app/photos', photo.id, 'edit'], { replaceUrl: true });
+      else this.stack.back('/app/photos');
     } catch (e) {
       this.state.set('preview');
       this.toast.error(this.i18n.error(errorCode(e)));

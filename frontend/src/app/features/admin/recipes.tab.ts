@@ -125,9 +125,10 @@ type Filter = 'all' | 'nophoto' | 'hidden';
       border-color: var(--accent);
       box-shadow: 0 0 0 4px var(--accent-soft);
     }
+    /* 1.17: lighter by its weight, not by transparency (a see-through count failed the contrast check) */
     .count {
       margin-left: 6px;
-      opacity: 0.7;
+      font-weight: 500;
     }
     .list {
       display: grid;

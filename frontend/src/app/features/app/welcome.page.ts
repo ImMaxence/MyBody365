@@ -14,7 +14,7 @@ import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { SegDirective } from '../../shared/seg.directive';
 import { MonthlyForecastComponent } from './monthly-forecast.component';
 
-type Step = 'consent' | 'about' | 'body' | 'goal' | 'plan';
+type Step = 'consent' | 'about' | 'body' | 'check' | 'goal' | 'plan';
 
 
 /**
@@ -99,10 +99,32 @@ type Step = 'consent' | 'about' | 'body' | 'goal' | 'plan';
             <span class="label">{{ 'setup.height' | t }}</span>
             <app-number-stepper [(value)]="height" [step]="1" [min]="120" [max]="230" [decimals]="0" unit="cm" [label]="'setup.height' | t" />
             <span class="label">{{ 'setup.weight' | t }}</span>
-            <app-number-stepper [(value)]="weight" [step]="0.1" [min]="35" [max]="300" [decimals]="1" unit="kg" [label]="'setup.weight' | t"
+            <app-number-stepper [(value)]="weight" (valueChange)="weightTouched = true" [step]="0.1" [min]="35" [max]="300" [decimals]="1" unit="kg" [label]="'setup.weight' | t"
               [minusLabel]="'weigh.minus' | t" [plusLabel]="'weigh.plus' | t" />
-            <button type="button" class="btn btn-primary btn-block" (click)="toGoal()">
+            <button type="button" class="btn btn-primary btn-block" (click)="next()">
               {{ 'setup.next' | t }} <app-icon name="arrowRight" />
+            </button>
+          </section>
+        }
+        @case ('check') {
+          <!-- 1.17: the starting point read once more, big: a slip of a few kilos would follow the whole journey -->
+          <section class="step check" [class.back]="backwards()">
+            <p class="eyebrow">{{ 'setup.step' | t: { n: stepIndex() + 1, total: steps().length } }}</p>
+            <h1 class="display title">{{ 'setup.checkTitle' | t }}</h1>
+            <div class="card check-card">
+              <span class="label">{{ 'setup.checkWeight' | t }}</span>
+              <span class="check-kg num">{{ i18n.number(weight(), 1) }} <small>kg</small></span>
+              <span class="small muted num">{{ 'setup.checkHeight' | t: { m: i18n.number(height() / 100, 2), bmi: i18n.number(bmi(), 1) } }}</span>
+            </div>
+            @if (!weightTouched) {
+              <p class="notice notice-accent" role="alert"><app-icon name="alert" /> {{ 'setup.checkUntouched' | t: { kg: i18n.number(weight(), 1) } }}</p>
+            }
+            <p class="muted">{{ 'setup.checkText' | t }}</p>
+            <button type="button" class="btn btn-primary btn-block" (click)="toGoal()">
+              <app-icon name="check" /> {{ 'setup.checkOk' | t }}
+            </button>
+            <button type="button" class="btn btn-secondary btn-block" (click)="previous()">
+              <app-icon name="pencil" /> {{ 'setup.checkFix' | t }}
             </button>
           </section>
         }
@@ -175,6 +197,33 @@ type Step = 'consent' | 'about' | 'body' | 'goal' | 'plan';
     .dots {
       display: flex;
       gap: 6px;
+    }
+    .check-card {
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+      padding: var(--space-5) var(--space-4);
+      text-align: center;
+    }
+    .check-kg {
+      font-family: var(--font-display);
+      font-stretch: 112%;
+      font-size: clamp(3rem, 16vw, 4.4rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      animation: kg-in 520ms var(--ease-out) both 120ms;
+    }
+    .check-kg small {
+      font-size: 0.42em;
+      font-weight: 700;
+      color: var(--fg-2);
+    }
+    @keyframes kg-in {
+      from {
+        opacity: 0;
+        transform: scale(0.92);
+      }
     }
     .dots span {
       width: 22px;
@@ -344,6 +393,9 @@ export class WelcomePage {
   protected readonly birthDate = signal<string>('');
   protected readonly height = signal(170);
   protected readonly weight = signal(75);
+  /** 1.17: the weight offered at first was never changed (said on the check step) */
+  protected weightTouched = false;
+  protected readonly bmi = computed(() => this.weight() / (this.height() / 100) ** 2);
   protected readonly goal = signal(70);
   /** until the person picks a goal, it follows their weight (5 kg lower) */
   protected goalTouched = false;
@@ -356,7 +408,7 @@ export class WelcomePage {
   protected readonly backwards = signal(false);
 
   protected readonly steps = computed<Step[]>(() =>
-    this.session.account()?.onboarded ? ['about', 'body', 'goal', 'plan'] : ['consent', 'about', 'body', 'goal', 'plan'],
+    this.session.account()?.onboarded ? ['about', 'body', 'check', 'goal', 'plan'] : ['consent', 'about', 'body', 'check', 'goal', 'plan'],
   );
   protected readonly step = signal<Step>(this.steps()[0]);
   protected readonly stepIndex = computed(() => this.steps().indexOf(this.step()));

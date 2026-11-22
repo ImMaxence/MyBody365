@@ -5,6 +5,10 @@ import { HapticDirective } from '../../core/ui/haptics';
 import { RouterLink } from '@angular/router';
 import { ApiService, errorCode } from '../../core/api/api.service';
 import { ToastService } from '../../core/ui/toast.service';
+import { TodoStore } from '../../core/support/support-api';
+import { Outbox } from '../../core/offline/outbox';
+import { WaitingNoteComponent } from '../../shared/waiting-note.component';
+import { HealthTodayComponent } from './health-today.component';
 import { AvatarImgComponent } from '../../shared/avatar-img.component';
 import { WaterCardComponent, defaultWaterGoal } from './water-card.component';
 import { SessionStore } from '../../core/auth/session.store';
@@ -46,7 +50,7 @@ function writeFlag(key: string): void {
   selector: 'app-today',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[class.calm]': 'calm()' },
-  imports: [HapticDirective, NumberStepperComponent, AvatarImgComponent, PushPromptComponent, WaterCardComponent, RouterLink, TranslatePipe, IconComponent, WeighSheetComponent],
+  imports: [HapticDirective, NumberStepperComponent, AvatarImgComponent, PushPromptComponent, WaterCardComponent, RouterLink, TranslatePipe, IconComponent, WeighSheetComponent, WaitingNoteComponent, HealthTodayComponent],
   template: `
     <main class="page">
       <header class="head">
@@ -54,9 +58,19 @@ function writeFlag(key: string): void {
           <p class="eyebrow">{{ todayLabel() }}</p>
           <h1 class="display hello">{{ greeting() }}</h1>
         </div>
-        <a routerLink="/app/account" class="avatar" [attr.aria-label]="'nav.profile' | t">
-          <app-avatar-img [src]="account()?.avatarUrl" [name]="account()?.displayName" />
-        </a>
+        <div class="head-actions">
+          <!-- 1.17: the notification centre, with the number of new ones -->
+          <a routerLink="/app/notifications" class="bell" [class.ring]="unseen() > 0"
+            [attr.aria-label]="unseen() > 0 ? ('engage.center.openNew' | t: { n: unseen() }) : ('engage.center.open' | t)">
+            <app-icon name="bell" [size]="21" />
+            @if (unseen() > 0) {
+              <span class="bell-badge num" aria-hidden="true">{{ unseen() > 9 ? '9+' : unseen() }}</span>
+            }
+          </a>
+          <a routerLink="/app/account" class="avatar" [attr.aria-label]="'nav.profile' | t">
+            <app-avatar-img [src]="account()?.avatarUrl" [name]="account()?.displayName" />
+          </a>
+        </div>
       </header>
 
       @if (session.isAdmin() && pending() > 0) {
@@ -208,27 +222,37 @@ function writeFlag(key: string): void {
 
       <h2 class="section-title">{{ 'today.todo' | t }}</h2>
       <div class="list">
-        <button type="button" class="list-item task" [class.done]="weighedIn()" (click)="weigh()">
-          <span class="list-icon"><app-icon [name]="weighedIn() ? 'check' : 'weight'" /></span>
+        <!-- 1.17: noted without network: greyed with « Sera envoyé plus tard », back to colour once sent -->
+        <button type="button" class="list-item task" [class.done]="weighedIn() || !!weighWaiting()" [class.is-waiting]="!!weighWaiting()"
+          [class.is-arrived]="arrived() === 'weigh'" (click)="weigh()">
+          <span class="list-icon"><app-icon [name]="weighedIn() || weighWaiting() ? 'check' : 'weight'" /></span>
           <span class="list-body">
             <span class="list-title">{{ 'today.weighIn' | t }}</span>
             <span class="list-sub">
-              @if (weighedIn()) {
+              @if (weighWaiting(); as w) {
+                {{ 'today.weighInDone' | t: { kg: i18n.number(w.kg, 1) } }}
+              } @else if (weighedIn()) {
                 {{ 'today.weighInDone' | t: { kg: i18n.number(summary()?.current?.weightKg ?? 0, 1) } }}
               } @else {
                 {{ 'today.weighInHint' | t }}
               }
             </span>
+            @if (weighWaiting(); as w) {
+              <app-waiting-note [waitId]="w.id" />
+            }
           </span>
-          <app-icon [name]="weighedIn() ? 'pencil' : 'plus'" />
+          <app-icon [name]="weighedIn() || weighWaiting() ? 'pencil' : 'plus'" />
         </button>
         <!-- 1.9: an optional evening weigh-in, from 5 pm once the morning one is done; 1.10: always there, greyed until then -->
         <button type="button" class="list-item task evening" [class.done]="eveningKg() != null" [class.locked]="eveningLocked()"
-          [disabled]="eveningLocked()" (click)="openEvening()">
+          [class.is-waiting]="!!eveningWaiting()" [class.is-arrived]="arrived() === 'evening'" [disabled]="eveningLocked()" (click)="openEvening()">
           <span class="list-icon"><app-icon [name]="eveningKg() != null ? 'check' : 'moon'" /></span>
           <span class="list-body">
             <span class="list-title">{{ 'today.evening.title' | t }}</span>
             <span class="list-sub" [class.wrap]="eveningLocked()">{{ eveningLine() }}</span>
+            @if (eveningWaiting(); as w) {
+              <app-waiting-note [waitId]="w.id" [kind]="w.kg == null ? 'delete' : 'add'" />
+            }
           </span>
           <app-icon [name]="eveningLocked() ? 'lock' : eveningKg() != null ? 'pencil' : 'plus'" />
         </button>
@@ -282,6 +306,8 @@ function writeFlag(key: string): void {
       @if (account()?.waterGoal; as goal) {
         <app-water-card [goal]="goal" />
       }
+      <!-- 1.17: the blood pressure and the pill box, when turned on in the profile -->
+      <app-health-today />
 
       @if (summary(); as s) {
         <a routerLink="/app/progress" class="goal card">
@@ -337,6 +363,64 @@ function writeFlag(key: string): void {
     .hello {
       font-size: 2.1rem;
       margin-top: 4px;
+    }
+    .head-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex: none;
+    }
+    .bell {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--surface);
+      box-shadow: inset 0 0 0 1px var(--line);
+      color: var(--fg);
+    }
+    .bell.ring app-icon {
+      animation: ring 1.2s var(--ease-out) 0.4s both;
+      transform-origin: 50% 10%;
+    }
+    @keyframes ring {
+      0%,
+      100% {
+        transform: rotate(0);
+      }
+      15% {
+        transform: rotate(14deg);
+      }
+      30% {
+        transform: rotate(-12deg);
+      }
+      45% {
+        transform: rotate(8deg);
+      }
+      60% {
+        transform: rotate(-5deg);
+      }
+      75% {
+        transform: rotate(2deg);
+      }
+    }
+    .bell-badge {
+      position: absolute;
+      top: -3px;
+      right: -4px;
+      display: grid;
+      place-items: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: var(--flame);
+      box-shadow: 0 0 0 2px var(--bg);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
     }
     .admin-cta {
       display: flex;
@@ -786,16 +870,36 @@ export class TodayPage {
   // 1.16: the friends' line, the challenge and the news as last seen, asked again when older than 30 s
   private readonly friendsStore = inject(FriendsStore);
   protected readonly friends = this.friendsStore.friends;
+  /** 1.17: the notifications not seen yet (the bell) */
+  private readonly todo = inject(TodoStore);
+  protected readonly unseen = computed(() => this.todo.todo()?.notifications ?? 0);
   protected readonly calm = calmReturn('today', 1000);
   // ── the evening weigh-in (1.9) ──────────────────────────────────────────
   private readonly eveningDialog = viewChild.required<ElementRef<HTMLDialogElement>>('eveningDialog');
   protected readonly eveningBusy = signal(false);
   protected readonly eveningValue = signal(70);
-  /** today's, when the morning weigh-in of today carries one */
+  /** today's, when the morning weigh-in of today carries one (1.17: or the one waiting for the network) */
   protected readonly eveningKg = computed(() => {
+    const w = this.eveningWaiting();
+    if (w) return w.kg;
     const c = this.summary()?.current;
     return c?.day === localDay() ? (c.eveningKg ?? null) : null;
   });
+
+  // ── 1.17: what waits for the network ────────────────────────────────────
+  private readonly outbox = inject(Outbox);
+  /** today's weigh-in noted without network */
+  protected readonly weighWaiting = computed(() => {
+    const p = this.outbox.of('weigh', localDay()).at(-1);
+    const kg = (p?.body as { weightKg?: number | null } | undefined)?.weightKg;
+    return p && kg != null ? { id: p.id, kg } : null;
+  });
+  protected readonly eveningWaiting = computed(() => {
+    const p = this.outbox.of('evening', localDay()).at(-1);
+    return p ? { id: p.id, kg: (p.body as { weightKg?: number } | null)?.weightKg ?? null } : null;
+  });
+  /** the row that just reached the server, for a moment (it comes back to colour) */
+  protected readonly arrived = signal<'weigh' | 'evening' | null>(null);
   /** the hour, kept up to date while the screen stays open (the evening weigh-in opens at 5 pm) */
   private readonly hour = signal(new Date().getHours());
   /** from 5 pm, once weighed in this morning (or once noted): greyed until then, saying what it waits for */
@@ -830,7 +934,7 @@ export class TodayPage {
     try {
       await this.tracking.saveEvening(localDay(), kg);
       closeSheet(this.eveningDialog().nativeElement);
-      this.toast.show(this.i18n.t(kg == null ? 'today.evening.removed' : 'today.evening.saved'));
+      this.toast.show(this.i18n.t(this.tracking.lastQueued() ? 'offline.queued' : kg == null ? 'today.evening.removed' : 'today.evening.saved'));
     } catch (e) {
       this.toast.error(this.i18n.error(errorCode(e)));
     } finally {
@@ -947,6 +1051,18 @@ export class TodayPage {
 
   constructor() {
     const destroy = inject(DestroyRef);
+    // 1.17: a weigh-in kept offline reached the server: its row comes back to colour, once the summary has it
+    let arrivedTimer: ReturnType<typeof setTimeout> | null = null;
+    const sent = this.outbox.sent.subscribe((p) => {
+      if ((p.kind !== 'weigh' && p.kind !== 'evening') || p.day !== localDay()) return;
+      this.arrived.set(p.kind);
+      if (arrivedTimer) clearTimeout(arrivedTimer);
+      arrivedTimer = setTimeout(() => this.arrived.set(null), 1400);
+    });
+    destroy.onDestroy(() => {
+      sent.unsubscribe();
+      if (arrivedTimer) clearTimeout(arrivedTimer);
+    });
     afterNextRender(() => {
       const clock = setInterval(() => this.hour.set(new Date().getHours()), 60_000);
       destroy.onDestroy(() => clearInterval(clock));

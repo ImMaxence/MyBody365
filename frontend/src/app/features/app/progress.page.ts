@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, viewChild } from '@angular/core';
+import { SessionStore } from '../../core/auth/session.store';
+import { BpPanelComponent } from './bp-panel.component';
 import type { BodyLogEntry } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -14,6 +16,7 @@ import { ShareSheetComponent } from '../../shared/share-sheet.component';
 import { bmiBand, waistClass } from '../../core/tracking/bmi';
 import { RouterLink } from '@angular/router';
 import { DeficitCardComponent } from './deficit-card.component';
+import { NeedsCardComponent } from './needs-card.component';
 
 type Range = 'm1' | 'm3' | 'all';
 const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
@@ -22,7 +25,7 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
 @Component({
   selector: 'app-progress',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, DeficitCardComponent, ShareSheetComponent, MilestonesCardComponent, BmiSheetComponent, MonthlyForecastComponent, SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
+  imports: [RouterLink, BpPanelComponent, DeficitCardComponent, NeedsCardComponent, ShareSheetComponent, MilestonesCardComponent, BmiSheetComponent, MonthlyForecastComponent, SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -35,7 +38,16 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
       </header>
       <app-share-sheet #shareSheet />
 
-      @if (logs(); as all) {
+      <!-- 1.17: the blood pressure beside the weight, for whoever turned it on in the profile -->
+      @if (bpOn()) {
+        <div class="seg view-seg" role="group" [attr.aria-label]="'health.bp.view' | t">
+          <button type="button" [attr.aria-pressed]="view() === 'weight'" (click)="chosen.set('weight')"><app-icon name="weight" [size]="17" /> {{ 'health.bp.viewWeight' | t }}</button>
+          <button type="button" [attr.aria-pressed]="view() === 'bp'" (click)="chosen.set('bp')"><app-icon name="heartPulse" [size]="17" /> {{ 'health.bp.viewBp' | t }}</button>
+        </div>
+      }
+      @if (view() === 'bp') {
+        <app-bp-panel />
+      } @else if (logs(); as all) {
         @if (hasWeights()) {
           <section class="card chart-card">
             <div class="seg" role="group" [attr.aria-label]="'progress.chartLabel' | t">
@@ -99,6 +111,8 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
 
           <!-- 1.14: what is left, in calories: kilos × 7 700 ÷ the deficit of a day = the days -->
           @if (summary(); as s) {
+            <!-- 1.17: where the calorie target comes from, step by step, with the member's own numbers -->
+            <app-needs-card [summary]="s" />
             <app-deficit-card [summary]="s" />
           }
 
@@ -322,6 +336,13 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
 })
 export class ProgressPage {
   private readonly tracking = inject(TrackingStore);
+  // ── 1.17: the weight or the blood pressure ─────────────────────────────
+  private readonly session = inject(SessionStore);
+  /** ?view=bp (from Today's blood pressure card) */
+  readonly viewParam = input<string | undefined>(undefined, { alias: 'view' });
+  protected readonly chosen = signal<'weight' | 'bp' | null>(null);
+  protected readonly bpOn = computed(() => !!this.session.account()?.bpEnabled);
+  protected readonly view = computed(() => (this.bpOn() ? (this.chosen() ?? (this.viewParam() === 'bp' ? 'bp' : 'weight')) : 'weight'));
   protected readonly i18n = inject(I18nService);
   private readonly sheet = viewChild.required(WeighSheetComponent);
 

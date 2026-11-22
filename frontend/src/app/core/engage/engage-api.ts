@@ -19,6 +19,31 @@ export interface NotificationPrefs {
   /** 1.11: the photo of the day at its own time, if not taken yet */
   photoEnabled: boolean;
   photoTime: string;
+  /** 1.17: the challenges whose day is not done yet, at their own time (missing from an older server) */
+  challengeEnabled?: boolean;
+  challengeTime?: string;
+}
+
+/** 1.17: a notification the app sent, as the phone showed it (the notification centre) */
+export interface SentNotification {
+  id: string;
+  kind: string;
+  title: string;
+  body: string;
+  /** where a tap leads: an address of the app */
+  url: string;
+  /** ISO instant */
+  createdAt: string;
+  /** came after the centre was last opened */
+  unread: boolean;
+}
+
+/** 1.17: a page of the notification centre, latest first (20 a page) */
+export interface NotificationHistory {
+  items: SentNotification[];
+  page: number;
+  pages: number;
+  total: number;
 }
 
 /** a change of phase of the workout timer, notified while the app is off screen */
@@ -64,6 +89,16 @@ export class EngageApi {
 
   unsubscribe(endpoint: string): Promise<NotificationSettings> {
     return firstValueFrom(this.http.delete<NotificationSettings>('/api/me/push/subscriptions', { body: { endpoint } }));
+  }
+
+  /** 1.17: a page of the notification centre (0: the latest) */
+  history(page: number): Promise<NotificationHistory> {
+    return firstValueFrom(this.http.get<NotificationHistory>('/api/me/notifications/history', { params: { page } }));
+  }
+
+  /** 1.17: the centre was opened: what came until now is read */
+  seen(): Promise<void> {
+    return firstValueFrom(this.http.post<void>('/api/me/notifications/seen', null));
   }
 
   test(): Promise<{ sent: number }> {

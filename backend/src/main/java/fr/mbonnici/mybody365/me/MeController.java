@@ -50,7 +50,10 @@ public class MeController {
             @jakarta.validation.constraints.Min(0) @jakarta.validation.constraints.Max(30) Integer waterGoal,
             /** the streak's look (1.8): one of the app's icons and colours */
             @Pattern(regexp = STREAK_ICONS) String streakIcon,
-            @Pattern(regexp = STREAK_COLORS) String streakColor) {}
+            @Pattern(regexp = STREAK_COLORS) String streakColor,
+            /** 1.17: the optional modules: the blood pressure, the pill box */
+            Boolean bpEnabled,
+            Boolean pillsEnabled) {}
 
     /** the choices of the streak's look, as in the app (core/engage/streak-style.ts) */
     static final String STREAK_ICONS = "flame|muscle|bolt|star|trophy|heart|rocket|diamond|sprout|medal|crown|sun|runner|apple";
@@ -116,6 +119,12 @@ public class MeController {
         }
         if (body.streakColor() != null) {
             user.setStreakColor(body.streakColor());
+        }
+        if (body.bpEnabled() != null) {
+            user.setBpEnabled(body.bpEnabled());
+        }
+        if (body.pillsEnabled() != null) {
+            user.setPillsEnabled(body.pillsEnabled());
         }
         return AccountDto.of(users.save(user), users.isAdmin(user), tracking.hasProfile(user.getId()));
     }

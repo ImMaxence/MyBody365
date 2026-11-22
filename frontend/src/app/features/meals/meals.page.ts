@@ -1,3 +1,4 @@
+import { WaitingNoteComponent } from '../../shared/waiting-note.component';
 import { ShareSheetComponent } from '../../shared/share-sheet.component';
 import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
@@ -36,7 +37,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
 @Component({
   selector: 'app-meals',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ShareSheetComponent, GuidesSheetComponent, TrendsCardComponent, DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, HealthScoreComponent, KnowCardComponent, NumberStepperComponent, FoodThumbComponent, NutrientBarsComponent, RichInComponent],
+  imports: [ShareSheetComponent, GuidesSheetComponent, TrendsCardComponent, DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, HealthScoreComponent, KnowCardComponent, NumberStepperComponent, FoodThumbComponent, NutrientBarsComponent, RichInComponent, WaitingNoteComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -150,12 +151,14 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
               <ul class="entries" role="list">
                 @for (e of store.bySlot()[slot]; track e.id) {
                   <li>
-                    <button type="button" class="entry" (click)="edit(e)">
+                    <!-- 1.17: done without network, greyed until it is sent; it comes back to colour once there -->
+                    <button type="button" class="entry" [class.is-waiting]="e.pending" [class.is-deleted]="e.pending === 'delete'"
+                      [class.is-arrived]="store.arrived().has(e.id)" (click)="edit(e)">
                       <app-food-thumb class="entry-thumb" [url]="e.thumbUrl" [group]="e.group" />
                       <span class="entry-body">
                         <span class="entry-name">{{ e.name }}</span>
-                        @if (isPending(e)) {
-                          <span class="entry-sub small muted"><app-icon name="cloud" [size]="13" /> {{ 'offline.waiting' | t }}</span>
+                        @if (e.pending) {
+                          <app-waiting-note [waitId]="e.waitId" [kind]="e.pending" />
                         } @else {
                           <span class="entry-sub small muted">{{ amount(e) }}{{ e.detail ? ' · ' + e.detail : '' }}</span>
                         }
@@ -969,7 +972,8 @@ export class MealsPage {
   protected readonly shown = signal(0);
   private lastDay: string | null = null;
   protected readonly monthDir = signal(0);
-  protected readonly today = signal(localDay());
+  /** 1.17: moves at midnight (the store follows the calendar day) */
+  protected readonly today = this.store.calendarDay;
   protected readonly maxDay = computed(() => shiftDay(this.today(), 1));
   protected readonly week = computed(() => weekOf(this.store.day()));
   protected readonly month = signal(localDay().slice(0, 7));
@@ -1004,10 +1008,10 @@ export class MealsPage {
   protected readonly moveTo = signal<Slot>('LUNCH');
   protected readonly busy = signal(false);
 
-  protected readonly isTomorrow = computed(() => this.store.day() >= shiftDay(localDay(), 1));
+  protected readonly isTomorrow = computed(() => this.store.day() >= shiftDay(this.today(), 1));
   protected readonly dayLabel = computed(() => {
     const d = this.store.day();
-    const today = localDay();
+    const today = this.today();
     if (d === today) return this.i18n.t('meals.today');
     if (d === shiftDay(today, -1)) return this.i18n.t('meals.yesterday');
     if (d === shiftDay(today, 1)) return this.i18n.t('meals.tomorrow');
@@ -1132,7 +1136,7 @@ export class MealsPage {
   protected readonly weekTrends = computed(() => trends(this.weekStats(), this.plan()));
 
   constructor() {
-    void this.shopping.load().catch(() => undefined);
+    void this.shopping.ensure().catch(() => undefined);
     // 1.16: what was seen less than 30 s ago stays as it is (core/api/kept.ts)
     void this.store.ensure().catch(() => undefined);
     void this.tracking.ensure();
@@ -1188,7 +1192,7 @@ export class MealsPage {
   }
 
   protected openCalendar(): void {
-    this.today.set(localDay());
+    this.store.checkDay();
     this.monthDir.set(0);
     this.month.set(this.store.day().slice(0, 7));
     this.loadMonth();
@@ -1212,7 +1216,8 @@ export class MealsPage {
   }
 
   protected slotKcal(slot: Slot): number {
-    return Math.round(this.store.bySlot()[slot].reduce((s, e) => s + e.nutrients.kcal, 0));
+    // 1.17: a line deleted without network, still shown crossed out, no longer counts
+    return Math.round(this.store.bySlot()[slot].reduce((s, e) => s + (e.pending === 'delete' ? 0 : e.nutrients.kcal), 0));
   }
 
   /** 1.14: the food of the line opened (its reasons, its warnings), or the health of its recipe */
@@ -1240,9 +1245,9 @@ export class MealsPage {
     return this.i18n.t('meals.servings', { n: this.i18n.number(e.servings ?? 1, (e.servings ?? 1) % 1 ? 1 : 0) });
   }
 
-  /** noted offline, not sent yet: shown, not editable until the server has it */
+  /** noted, changed or deleted offline, not sent yet: shown, not editable until the server has it */
   protected isPending(e: MealEntry): boolean {
-    return e.id.startsWith(PENDING);
+    return !!e.pending || e.id.startsWith(PENDING);
   }
 
   protected edit(e: MealEntry): void {
@@ -1274,6 +1279,7 @@ export class MealsPage {
       else patch.servings = this.qty();
       await this.store.update(e.id, patch);
       this.dialog().nativeElement.close();
+      if (this.store.lastQueued()) this.toast.show(this.i18n.t('offline.queued'));
     } catch (err) {
       this.toast.error(this.i18n.error(errorCode(err)));
     } finally {
@@ -1286,7 +1292,7 @@ export class MealsPage {
     try {
       await this.store.remove(e.id);
       this.dialog().nativeElement.close();
-      this.toast.show(this.i18n.t('meals.entry.deleted'));
+      this.toast.show(this.i18n.t(this.store.lastQueued() ? 'offline.queued' : 'meals.entry.deleted'));
     } catch (err) {
       this.toast.error(this.i18n.error(errorCode(err)));
     } finally {

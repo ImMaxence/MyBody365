@@ -12,6 +12,8 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { StackNavigation } from '../../core/nav/stack-navigation';
 import { IconComponent } from '../../shared/icon.component';
 import { Outbox } from '../../core/offline/outbox';
+import { Network } from '../../core/offline/network';
+import { PhotoQueue } from '../../core/offline/photo-queue';
 import { TimerRun } from '../../core/engage/timer-run';
 import { MilestoneCelebrationComponent } from './milestone-celebration.component';
 import { ToastService } from '../../core/ui/toast.service';
@@ -50,7 +52,7 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
     <app-milestone-celebration />
     <div class="edge" aria-hidden="true" (touchstart)="edgeStart($event)" (touchmove)="edgeMove($event)" (touchend)="edgeEnd($event)"
       (touchcancel)="edgeCancel()"></div>
-    @if (showTabs() && (outbox.pending().length || timerAway())) {
+    @if (showTabs() && (netState() || timerAway())) {
       <div class="floating" [class.low]="tabsAway()">
         @if (timerAway()) {
           <!-- the workout timer goes on while one looks at something else: one tap back to it -->
@@ -61,9 +63,27 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
             <b class="num">{{ clockOf(timer.shown()) }}</b>
           </a>
         }
-        @if (outbox.pending().length; as n) {
-          <!-- noted without network: it goes as soon as the network is back -->
-          <p class="outbox" role="status"><app-icon name="cloud" [size]="15" /> {{ (n === 1 ? 'offline.one' : 'offline.many') | t: { n: n } }}</p>
+        <!-- 1.17: no network (what is done waits, greyed), it comes back (sent one by one, a spinner), then all sent -->
+        @switch (netState()) {
+          @case ('offline') {
+            <p class="outbox off" role="status">
+              <app-icon name="cloudOff" [size]="15" />
+              @if (waitingCount(); as n) {
+                {{ (n === 1 ? 'offline.offOne' : 'offline.offMany') | t: { n: n } }}
+              } @else {
+                {{ 'offline.off' | t }}
+              }
+            </p>
+          }
+          @case ('sending') {
+            <p class="outbox sending" role="status"><span class="spin" aria-hidden="true"></span> {{ (waitingCount() === 1 ? 'offline.sendingOne' : 'offline.sendingMany') | t: { n: waitingCount() } }}</p>
+          }
+          @case ('waiting') {
+            <p class="outbox" role="status"><app-icon name="cloud" [size]="15" /> {{ (waitingCount() === 1 ? 'offline.one' : 'offline.many') | t: { n: waitingCount() } }}</p>
+          }
+          @case ('done') {
+            <p class="outbox done" role="status"><app-icon name="check" [size]="15" [stroke]="2.6" /> {{ 'offline.allSent' | t }}</p>
+          }
         }
       </div>
     }
@@ -156,6 +176,30 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
       .timer-pill {
         animation: none;
       }
+    }
+    .outbox.off {
+      color: var(--fg);
+    }
+    .outbox.sending {
+      color: var(--accent-text);
+    }
+    .outbox.done {
+      color: var(--success);
+      animation: pill-in var(--dur-2) var(--ease-out);
+    }
+    @keyframes pill-in {
+      from {
+        transform: scale(0.92);
+        opacity: 0;
+      }
+    }
+    .outbox .spin {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      border: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
+      border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
     }
     .outbox {
       display: inline-flex;
@@ -334,6 +378,16 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
 })
 export class ShellComponent {
   protected readonly outbox = inject(Outbox);
+  private readonly network = inject(Network);
+  private readonly photoQueue = inject(PhotoQueue);
+  /** 1.17: what waits for the network: the outbox and the photos */
+  protected readonly waitingCount = computed(() => this.outbox.pending().length + this.photoQueue.items().length);
+  /** 1.17: no network, being sent, still waiting (the server away), all sent a moment ago, or nothing to say */
+  protected readonly netState = computed<'offline' | 'sending' | 'waiting' | 'done' | null>(() => {
+    if (!this.network.online()) return 'offline';
+    if (this.waitingCount() > 0) return this.outbox.syncing() || this.photoQueue.sending() ? 'sending' : 'waiting';
+    return this.outbox.done() > 0 ? 'done' : null;
+  });
   protected readonly timer = inject(TimerRun);
   /** a run of the timer goes on, and its screen is not the one shown */
   protected readonly timerAway = computed(() => this.timer.active() && !this.url().startsWith('/app/timer'));
@@ -403,7 +457,7 @@ export class ShellComponent {
     if (path.startsWith('/app/photos')) return 2;
     if (path.startsWith('/app/meals')) return 1;
     // Today, and the screens opened from it (the timer, the friends and their challenges)
-    return path === '/app' || path === '/app/' || /^\/app\/(timer|friends|challenges)(\/|$)/.test(path) ? 0 : -1;
+    return path === '/app' || path === '/app/' || /^\/app\/(timer|friends|challenges|notifications)(\/|$)/.test(path) ? 0 : -1;
   });
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -607,6 +661,13 @@ export class ShellComponent {
   protected edgeStart(e: TouchEvent): void {
     const touch = e.touches[0];
     if (e.cancelable) e.preventDefault();
+    // 1.17: a slider under the strip (its thumb near the edge): the finger moves the slider, never the screen
+    const range = this.rangeAt(touch.clientX, touch.clientY, e.currentTarget as HTMLElement);
+    if (range) {
+      this.slide = { input: range, x: touch.clientX, from: Number(range.value) };
+      this.swipe = null;
+      return;
+    }
     this.swipe = {
       x: touch.clientX,
       y: touch.clientY,
@@ -617,11 +678,47 @@ export class ShellComponent {
       dx: 0,
       moved: false,
       locked: false,
-      armed: e.touches.length === 1 && !this.leaving && !this.stack.busy() && this.stack.depth() > 0,
+      armed: e.touches.length === 1 && !this.leaving && !this.stack.busy() && this.stack.depth() > 0 && this.stack.swipeable(),
     };
   }
 
+  /** 1.17: a slider being moved from the edge strip, and where the finger and the value started */
+  private slide: { input: HTMLInputElement; x: number; from: number } | null = null;
+
+  /** a slider (input type=range) under that point, below the strip, a little wider than it is (its thumb overhangs) */
+  private rangeAt(x: number, y: number, strip: HTMLElement): HTMLInputElement | null {
+    for (const dx of [0, 14]) {
+      const el = this.doc.elementsFromPoint(x + dx, y).find((n) => n !== strip && !strip.contains(n));
+      if (el instanceof HTMLInputElement && el.type === 'range' && !el.disabled) return el;
+    }
+    return null;
+  }
+
+  /** the value under the finger's move, as the slider itself would take it (its step, its bounds) */
+  private moveSlider(clientX: number, done: boolean): void {
+    const s = this.slide;
+    if (!s) return;
+    const el = s.input;
+    const min = Number(el.min || 0);
+    const max = Number(el.max || 100);
+    const step = Number(el.step) || 1;
+    const width = Math.max(1, el.getBoundingClientRect().width - 28);
+    const raw = s.from + ((clientX - s.x) / width) * (max - min);
+    const v = Math.min(max, Math.max(min, min + Math.round((raw - min) / step) * step));
+    const text = String(Math.round(v * 1e6) / 1e6);
+    if (el.value !== text) {
+      el.value = text;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (done) el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
   protected edgeMove(e: TouchEvent): void {
+    if (this.slide) {
+      if (e.cancelable) e.preventDefault();
+      this.moveSlider(e.touches[0].clientX, false);
+      return;
+    }
     const s = this.swipe;
     if (!s) return;
     if (e.cancelable) e.preventDefault();
@@ -650,6 +747,11 @@ export class ShellComponent {
   }
 
   protected edgeEnd(e: TouchEvent): void {
+    if (this.slide) {
+      this.moveSlider(e.changedTouches[0]?.clientX ?? this.slide.x, true);
+      this.slide = null;
+      return;
+    }
     const s = this.swipe;
     this.swipe = null;
     if (!s) return;
@@ -665,6 +767,7 @@ export class ShellComponent {
 
   /** the system took the touch: whatever was started is undone */
   protected edgeCancel(): void {
+    this.slide = null;
     const s = this.swipe;
     this.swipe = null;
     if (s?.locked && this.leaving) this.settle(false);

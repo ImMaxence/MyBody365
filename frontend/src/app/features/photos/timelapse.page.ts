@@ -1,3 +1,4 @@
+import { EasyRangeDirective } from '../../shared/easy-range.directive';
 import { RouterLink } from '@angular/router';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import type { Photo, Pose } from '../../core/api/models';
@@ -17,7 +18,7 @@ const FPS: Record<Speed, number> = { slow: 3, normal: 6, fast: 12 };
 @Component({
   selector: 'app-timelapse',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent, BackButtonComponent],
+  imports: [EasyRangeDirective, SegDirective, RouterLink, TranslatePipe, IconComponent, BackButtonComponent],
   template: `
     <main class="page">
       <header class="page-head">

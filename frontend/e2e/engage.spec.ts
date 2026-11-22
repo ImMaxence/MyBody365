@@ -173,4 +173,69 @@ test.describe('engagement', () => {
     await expect(page.locator('app-water-card')).toContainText(/0,25\s*\/\s*[\d,]+ L/);
     expect(errors).toEqual([]);
   });
+
+  test('1.17: the notification centre, from the bell on Today', async ({ page }) => {
+    const errors = watchErrors(page);
+    await signIn(page, 'new');
+    await page.getByRole('link', { name: /Centre des notifications/ }).click();
+    await expect(page.getByRole('heading', { name: 'Centre des notifications', level: 1 })).toBeVisible();
+    await expect(page.getByText('Aucune notification pour l’instant')).toBeVisible();
+    await expectAccessible(page);
+    // its settings, one tap away, with the challenge reminder
+    await page.getByRole('link', { name: 'Réglages des notifications' }).click();
+    await expect(page.getByText('Rappel de tes défis')).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
+  test('1.17: the blood pressure and the pill box, off until turned on in the profile', async ({ page }) => {
+    test.setTimeout(90_000);
+    const errors = watchErrors(page);
+    await signIn(page, 'new');
+    await expect(page.getByRole('heading', { name: 'Tension artérielle' })).toHaveCount(0);
+    await tab(page, 'Profil').click();
+    await page.getByRole('link', { name: /Santé/ }).click();
+    await expect(page.getByRole('heading', { name: 'Santé', level: 1 })).toBeVisible();
+    await press(page.getByRole('switch', { name: /Tension artérielle/ }));
+    await expect(page.getByText('Bien mesurer à la maison')).toBeVisible();
+    await press(page.getByRole('switch', { name: /Pilulier/ }));
+    await page.getByRole('button', { name: 'Ajouter un traitement' }).click();
+    const med = page.getByRole('dialog', { name: 'Ajouter un traitement' });
+    await med.getByLabel('Nom').fill('Levothyrox');
+    await med.getByLabel('Dose (facultatif)').fill('75 µg');
+    await med.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByRole('button', { name: /Levothyrox · 75 µg/ })).toBeVisible();
+    await expectAccessible(page);
+
+    // Today: the morning blood pressure, three readings and their average; the intake ticked
+    await tab(page, 'Aujourd’hui').click();
+    await expect(page.getByRole('heading', { name: 'Tension artérielle' })).toBeVisible();
+    await page.getByRole('button', { name: /Matin/ }).first().click();
+    const bp = page.getByRole('dialog', { name: 'Tension du matin' });
+    await bp.getByLabel('Systolique de la mesure 1').fill('131');
+    await bp.getByLabel('Diastolique de la mesure 1').fill('84');
+    await bp.getByRole('button', { name: 'Une autre mesure' }).click();
+    await bp.getByLabel('Systolique de la mesure 2').fill('128');
+    await bp.getByLabel('Diastolique de la mesure 2').fill('82');
+    await bp.getByRole('button', { name: 'Une autre mesure' }).click();
+    await bp.getByLabel('Systolique de la mesure 3').fill('125');
+    await bp.getByLabel('Diastolique de la mesure 3').fill('80');
+    await expect(bp.getByText('128/82')).toBeVisible();
+    await expectAccessible(page);
+    await bp.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByRole('button', { name: /Matin.*128\/82/ })).toBeVisible();
+    const intake = page.getByRole('checkbox', { name: /Levothyrox/ });
+    await expect(intake).toHaveAttribute('aria-checked', 'false');
+    await intake.click();
+    await expect(intake).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByText('1 sur 1 pris')).toBeVisible();
+
+    // Progress: the weight or the blood pressure
+    await tab(page, 'Progrès').click();
+    await page.getByRole('button', { name: /^Tension$/ }).click();
+    await expect(page.getByRole('heading', { name: 'Tes 7 derniers jours' })).toBeVisible();
+    await expect(page.getByRole('img', { name: /Courbe de ta tension/ })).toBeVisible();
+    await expectAccessible(page);
+    await expectNoHorizontalOverflow(page);
+    expect(errors).toEqual([]);
+  });
 });

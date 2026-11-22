@@ -42,7 +42,11 @@ public class PushService {
         /** a friend's challenge to join (Challenges) */
         FRIEND_CHALLENGE,
         /** a change of phase of the workout timer while the app is off screen (TimerAlerts) */
-        TIMER }
+        TIMER,
+        /** 1.17: the day of a challenge not done yet (ReminderScheduler) */
+        CHALLENGE_REMINDER,
+        /** 1.17: the blood pressure of the morning or the evening not measured yet; an intake of the pill box not ticked yet */
+        BP_REMINDER, PILL }
 
     public record Subscription(String endpoint, String p256dh, String auth) {}
 
@@ -134,10 +138,16 @@ public class PushService {
         return n == null ? 0 : n;
     }
 
-    /** sends to every device of the account; returns how many accepted it */
+    /**
+     * sends to every device of the account; returns how many accepted it. 1.17: kept in the member's notification centre
+     * too (but the workout timer's phases), sent or not (no device, notifications blocked)
+     */
     public int notify(UUID userId, Kind kind, Map<String, String> args) {
         String locale = jdbc.queryForList("select locale from app_user where id = ?", String.class, userId).stream().findFirst().orElse("fr");
         Map<String, Object> payload = payload(kind, "en".equals(locale), args);
+        if (kind != Kind.TIMER) {
+            keepInCentre(userId, kind, payload);
+        }
         byte[] body;
         try {
             body = json.writeValueAsBytes(payload);
@@ -154,6 +164,24 @@ public class PushService {
             }
         }
         return ok;
+    }
+
+    /** 1.17: a line of the notification centre (what the phone showed, and where a tap leads) */
+    @SuppressWarnings("unchecked")
+    private void keepInCentre(UUID userId, Kind kind, Map<String, Object> payload) {
+        try {
+            Map<String, Object> n = (Map<String, Object>) payload.get("notification");
+            Map<String, Object> data = (Map<String, Object>) n.get("data");
+            Map<String, Object> click = (Map<String, Object>) ((Map<String, Object>) data.get("onActionClick")).get("default");
+            jdbc.update("insert into notification_log (id, user_id, kind, title, body, url) values (?, ?, ?, ?, ?, ?)", UUID.randomUUID(), userId,
+                    kind.name(), cut((String) n.get("title"), 200), cut((String) n.get("body"), 600), cut((String) click.get("url"), 300));
+        } catch (RuntimeException e) {
+            log.info("Notification not kept in the centre: {}", e.getMessage());
+        }
+    }
+
+    private static String cut(String s, int max) {
+        return s == null ? "" : s.length() <= max ? s : s.substring(0, max);
     }
 
     private boolean send(UUID id, String endpoint, String p256dh, String auth, byte[] payload, boolean urgent) {
@@ -199,7 +227,7 @@ public class PushService {
             case DAILY_PHOTO -> "/app/photos/camera";
             case GYM -> "/app/workouts";
             case NUDGE, FRIEND_REQUEST, FRIEND_ACCEPTED, FRIEND_POST, FRIEND_CHEER -> "/app/friends";
-            case FRIEND_CHALLENGE -> "/app/challenges";
+            case FRIEND_CHALLENGE, CHALLENGE_REMINDER -> "/app/challenges";
             case UPDATE -> "/changelog";
             case FEEDBACK -> "/app/admin/feedback";
             case TIMER -> "/app/timer";
@@ -272,6 +300,39 @@ public class PushService {
                 };
                 yield en ? new String[] {name + " challenges you 🏆", what.substring(0, 1).toUpperCase() + what.substring(1) + " for " + days + " days: are you in?"}
                         : new String[] {name + " te lance un défi 🏆", what.substring(0, 1).toUpperCase() + what.substring(1) + " pendant " + days + " jours : tu relèves ?"};
+            }
+            case BP_REMINDER -> "EVENING".equals(args.get("moment"))
+                    ? (en ? new String[] {"Your evening blood pressure 🩺", "Calm, before bed: 3 readings a minute apart"}
+                            : new String[] {"Ta tension du soir 🩺", "Au calme, avant le coucher : 3 mesures à une minute d’écart"})
+                    : (en ? new String[] {"Your morning blood pressure 🩺", "Seated and calm, before breakfast and your medicines: 3 readings a minute apart"}
+                            : new String[] {"Ta tension du matin 🩺", "Assis, au calme, avant le petit-déjeuner et tes médicaments : 3 mesures à une minute d’écart"});
+            // never the medicine's name: a locked screen is seen by others
+            case PILL -> {
+                String time = args.getOrDefault("time", "");
+                int count = Integer.parseInt(args.getOrDefault("count", "1"));
+                yield count > 1
+                        ? (en ? new String[] {"Your " + count + " intakes of " + time + " 💊", "Open MyBody365 to tick them in your pill box"}
+                                : new String[] {"Tes " + count + " prises de " + time + " 💊", "Ouvre MyBody365 pour les cocher dans ton pilulier"})
+                        : (en ? new String[] {"Your " + time + " treatment 💊", "Open MyBody365 to tick it in your pill box"}
+                                : new String[] {"Ton traitement de " + time + " 💊", "Ouvre MyBody365 pour le cocher dans ton pilulier"});
+            }
+            case CHALLENGE_REMINDER -> {
+                int count = Integer.parseInt(args.getOrDefault("count", "1"));
+                String day = args.getOrDefault("day", "1");
+                String length = args.getOrDefault("length", "7");
+                String with = name.isBlank() ? "" : (en ? " with " : " avec ") + name;
+                if (count > 1) {
+                    yield en ? new String[] {count + " challenges are waiting for you 🏆", "Today is not done yet: open MyBody365 to keep your days"}
+                            : new String[] {count + " défis t’attendent 🏆", "Ta journée n’est pas encore validée : ouvre MyBody365 pour garder tes jours"};
+                }
+                String what = switch (args.getOrDefault("kind", "WEIGH")) {
+                    case "WATER" -> en ? "Your glasses of water count" : "Tes verres d’eau comptent";
+                    case "MEALS" -> en ? "Your three meals noted count" : "Tes trois repas notés comptent";
+                    case "PHOTO" -> en ? "Your photo of the day counts" : "Ta photo du jour compte";
+                    default -> en ? "Your weigh-in counts" : "Ta pesée compte";
+                };
+                yield en ? new String[] {"Your challenge is waiting 🏆", what + " for the challenge" + with + " (day " + day + " of " + length + ")"}
+                        : new String[] {"Ton défi t’attend 🏆", what + " pour le défi" + with + " (jour " + day + " sur " + length + ")"};
             }
             case FRIEND_CHEER -> en ? new String[] {name + " cheered you on 👏", "Bravo for what you shared: keep going"}
                     : new String[] {name + " t’encourage 👏", "Bravo pour ce que tu as partagé, continue comme ça"};

@@ -1,5 +1,6 @@
 package fr.mbonnici.mybody365.push;
 
+import fr.mbonnici.mybody365.friends.Challenges;
 import fr.mbonnici.mybody365.push.PushService.Kind;
 import fr.mbonnici.mybody365.tracking.TrackingService;
 import java.sql.Timestamp;
@@ -20,7 +21,8 @@ import org.springframework.stereotype.Component;
  * Every minute (Paris time): the daily reminder of whoever set it for now and has not weighed in (or
  * taken the photo) yet, each one at most once a day; and at 10:00, 13:00, 16:00 and 19:00, "drink some
  * water" for whoever turned it on and is behind on their glasses; and, for whoever asked for it (1.11), the photo of
- * the day at its own time if not taken yet. (The gym reminders went with the workout programs in 1.0.)
+ * the day at its own time if not taken yet; and (1.17) at its own time, the challenges between friends whose day is not done
+ * yet. (The gym reminders went with the workout programs in 1.0.)
  */
 @Component
 public class ReminderScheduler {
@@ -29,10 +31,12 @@ public class ReminderScheduler {
 
     private final JdbcTemplate jdbc;
     private final PushService push;
+    private final Challenges challenges;
 
-    public ReminderScheduler(JdbcTemplate jdbc, PushService push) {
+    public ReminderScheduler(JdbcTemplate jdbc, PushService push, Challenges challenges) {
         this.jdbc = jdbc;
         this.push = push;
+        this.challenges = challenges;
     }
 
     @Scheduled(cron = "0 * * * * *", zone = "Europe/Paris")
@@ -57,6 +61,93 @@ public class ReminderScheduler {
             photo(today, minute);
         } catch (RuntimeException e) {
             log.warn("Photo reminders failed: {}", e.getMessage());
+        }
+        try {
+            challenge(today, minute);
+        } catch (RuntimeException e) {
+            log.warn("Challenge reminders failed: {}", e.getMessage());
+        }
+        try {
+            bloodPressure(today, minute);
+        } catch (RuntimeException e) {
+            log.warn("Blood pressure reminders failed: {}", e.getMessage());
+        }
+        try {
+            pills(today, minute);
+        } catch (RuntimeException e) {
+            log.warn("Pill box reminders failed: {}", e.getMessage());
+        }
+    }
+
+    /** 1.17: the blood pressure of the morning and of the evening, at their times, when the module is on and not measured yet */
+    private void bloodPressure(LocalDate today, LocalTime minute) {
+        for (String moment : List.of("MORNING", "EVENING")) {
+            String time = moment.equals("MORNING") ? "bp_morning" : "bp_evening";
+            String last = moment.equals("MORNING") ? "last_bp_morning" : "last_bp_evening";
+            List<UUID> due = jdbc.queryForList("select p.user_id from notification_pref p join app_user u on u.id = p.user_id where u.bp_enabled"
+                    + " and p.bp_reminder and p." + time + " = ? and (p." + last + " is null or p." + last + " < ?)"
+                    + " and exists (select 1 from push_subscription s where s.user_id = p.user_id)", UUID.class, minute, today);
+            for (UUID user : due) {
+                int claimed = jdbc.update("update notification_pref set " + last + " = ? where user_id = ? and (" + last + " is null or " + last
+                        + " < ?)", today, user, today);
+                if (claimed == 1 && !exists("select 1 from bp_log where user_id = ? and day = ? and moment = ?", user, today, moment)) {
+                    push.notify(user, Kind.BP_REMINDER, Map.of("moment", moment));
+                }
+            }
+        }
+    }
+
+    /**
+     * 1.17: the intakes of the pill box at this time, on this day of the week, not ticked yet: one notification per member
+     * for all of them, each intake reminded once
+     */
+    private void pills(LocalDate today, LocalTime minute) {
+        String hhmm = String.format("%02d:%02d", minute.getHour(), minute.getMinute());
+        String dow = Integer.toString(today.getDayOfWeek().getValue());
+        List<Map<String, Object>> due = jdbc.queryForList("""
+                select m.id, m.user_id from medication m join app_user u on u.id = m.user_id
+                where u.pills_enabled and m.reminders and ? = any (string_to_array(m.times, ',')) and ? = any (string_to_array(m.days, ','))
+                  and exists (select 1 from push_subscription s where s.user_id = m.user_id)
+                  and not exists (select 1 from medication_intake i where i.medication_id = m.id and i.day = ? and i.slot = ?)""",
+                hhmm, dow, today, minute);
+        Map<UUID, Integer> perUser = new java.util.LinkedHashMap<>();
+        for (Map<String, Object> row : due) {
+            // claimed first: two instances never send it twice
+            int claimed = jdbc.update("insert into medication_reminder (medication_id, day, slot) values (?, ?, ?) on conflict do nothing",
+                    row.get("id"), today, minute);
+            if (claimed == 1) {
+                perUser.merge((UUID) row.get("user_id"), 1, Integer::sum);
+            }
+        }
+        perUser.forEach((user, n) -> push.notify(user, Kind.PILL, Map.of("time", hhmm, "count", Integer.toString(n))));
+    }
+
+    /**
+     * 1.17: at its time (20:00 unless changed), whoever is in a running challenge and has not done its day yet: one
+     * notification for all of them, at most once a day; nothing when the day is done
+     */
+    private void challenge(LocalDate today, LocalTime minute) {
+        List<UUID> due = jdbc.queryForList("""
+                select p.user_id from notification_pref p
+                where p.challenge_enabled and p.challenge_time = ? and (p.last_challenge is null or p.last_challenge < ?)
+                  and exists (select 1 from push_subscription s where s.user_id = p.user_id)
+                  and exists (select 1 from challenge_member m join challenge c on c.id = m.challenge_id
+                              where m.user_id = p.user_id and m.status = 'JOINED' and c.start_day <= ? and c.end_day >= ?)""",
+                UUID.class, minute, today, today, today);
+        for (UUID user : due) {
+            // claimed first: two instances never send it twice
+            int claimed = jdbc.update("update notification_pref set last_challenge = ? where user_id = ? and (last_challenge is null or last_challenge < ?)",
+                    today, user, today);
+            if (claimed != 1) {
+                continue;
+            }
+            List<Challenges.Left> left = challenges.leftToday(user, today);
+            if (left.isEmpty()) {
+                continue;
+            }
+            Challenges.Left first = left.getFirst();
+            push.notify(user, Kind.CHALLENGE_REMINDER, Map.of("count", Integer.toString(left.size()), "kind", first.kind().name(), "day",
+                    Integer.toString(first.day()), "length", Integer.toString(first.length()), "name", first.friend()));
         }
     }
 

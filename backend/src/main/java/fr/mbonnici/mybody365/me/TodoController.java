@@ -22,10 +22,11 @@ public class TodoController {
 
     /**
      * 1.12: also what waits in the other tabs: friend requests and challenge invitations (Today), the shopping list
-     * (Meals), the photo of the day not taken yet by someone who takes them (Photos)
+     * (Meals), the photo of the day not taken yet by someone who takes them (Photos); 1.17: the notifications not seen yet in
+     * the notification centre
      */
     public record Todo(boolean passkey, boolean drive, long adminRequests, int adminFeedback, int adminErrors, int friendRequests,
-            int challengeInvites, int shoppingLeft, boolean photoToday) {}
+            int challengeInvites, int shoppingLeft, boolean photoToday, int notifications) {}
 
     private final UserService users;
     private final JdbcTemplate jdbc;
@@ -64,8 +65,11 @@ public class TodoController {
                 select count(*) from photo p where p.user_id = ? and p.day >= ? and p.day < ?
                   and coalesce((select photo_enabled from notification_pref n where n.user_id = p.user_id), true)""", id, today.minusDays(14), today) > 0
                 && count("select count(*) from photo where user_id = ? and day = ?", id, today) == 0;
+        int unseen = count("""
+                select count(*) from notification_log l where l.user_id = ?
+                  and l.created_at > coalesce((select notifications_seen_at from app_user u where u.id = l.user_id), '-infinity'::timestamptz)""", id);
         return new Todo(passkeys == null || passkeys == 0, noDrive, admin ? requests.countByStatus(AccessRequest.Status.PENDING) : 0,
-                admin ? feedback.open() : 0, admin ? errors.open() : 0, friendRequests, invites, shopping, photo);
+                admin ? feedback.open() : 0, admin ? errors.open() : 0, friendRequests, invites, shopping, photo, unseen);
     }
 
     private int count(String sql, Object... args) {

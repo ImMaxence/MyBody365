@@ -27,7 +27,7 @@ function win(): (Window & typeof globalThis) | null {
   return typeof window === 'undefined' ? null : window;
 }
 
-function isIos(): boolean {
+export function isIos(): boolean {
   const nav = win()?.navigator;
   if (!nav) return false;
   return /iP(hone|ad|od)/.test(nav.userAgent) || (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1);

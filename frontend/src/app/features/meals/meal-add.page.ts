@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, injec
 import { EstimatedItem, FastFoodSheetComponent } from './fast-food-sheet.component';
 import { DrinkSheetComponent } from './drink-sheet.component';
 import { AperoSheetComponent } from './apero-sheet.component';
+import { SandwichSheetComponent } from './sandwich-sheet.component';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
@@ -25,7 +26,7 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
 @Component({
   selector: 'app-meal-add',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FastFoodSheetComponent, DrinkSheetComponent, AperoSheetComponent, FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, FoodPickerComponent, QuantitySheetComponent],
+  imports: [FastFoodSheetComponent, DrinkSheetComponent, AperoSheetComponent, SandwichSheetComponent, FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, FoodPickerComponent, QuantitySheetComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -41,13 +42,15 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
         [sourceParams]="{ slot: slot(), day: day() }"
         (picked)="pick($event)"
         (quick)="openQuick({ name: $event })"
-        (dish)="estimate.open($event)"
+        (dish)="$event === 'sandwich' ? sandwichSheet.open() : estimate.open($event)"
         (drink)="drinkSheet.open($event)"
         (apero)="aperoSheet.open($event)"
       />
       <app-fast-food-sheet #estimate [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event)" />
       <app-drink-sheet #drinkSheet [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event, drinkSheet)" />
       <app-apero-sheet #aperoSheet [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event, aperoSheet)" />
+      <!-- 1.17: a sandwich made up piece by piece -->
+      <app-sandwich-sheet #sandwichSheet [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event, sandwichSheet)" />
       <app-quantity-sheet (confirm)="add($event)" />
 
       <dialog class="sheet" #quickDialog [attr.aria-label]="'meals.quick.title' | t">
@@ -227,7 +230,7 @@ export class MealAddPage {
 
   /** a meal at the snack bar, by estimate: each item on its own line (no line for a glass of water) */
   /** the items of an estimate (fast food, or a drink), each on its own line */
-  protected async addEstimate(items: EstimatedItem[], from?: DrinkSheetComponent | AperoSheetComponent): Promise<void> {
+  protected async addEstimate(items: EstimatedItem[], from?: DrinkSheetComponent | AperoSheetComponent | SandwichSheetComponent): Promise<void> {
     const sheet = from ?? this.estimateSheet();
     const lines = items.filter((i) => i.kcal >= 1);
     if (!lines.length) return;

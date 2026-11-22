@@ -2,6 +2,35 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.17.0] - 2026-11-22
+
+Un vrai mode hors ligne, le centre des notifications, la tension et un pilulier en option, le sandwich à composer, les sushis par sorte, et le calcul de tes calories expliqué avec tes chiffres
+
+### Ajouté
+- Mode hors ligne : sans réseau, ce que tu notes reste affiché en gris avec « Sera envoyé plus tard » (repas ajoutés, modifiés ou supprimés, pesées du matin et du soir, verres d'eau, liste de courses, tension, pilulier, et même la photo du jour). Une pastille dit que tu es hors ligne. Quand le réseau revient, l'app le voit, envoie tout avec un petit indicateur de chargement, puis chaque élément reprend ses couleurs et la pastille dit « Tout est envoyé »
+- Centre des notifications : la cloche sur Aujourd'hui ouvre toutes les notifications que l'app t'a envoyées, des plus récentes aux plus anciennes, par jour avec leur heure, 20 par page. Les nouvelles sont marquées d'un point et leur nombre s'affiche sur la cloche. Une notification touchée ouvre ce dont elle parle. Elles sont gardées 90 jours, même celles que tu as manquées
+- Défis entre amis : un rappel chaque jour, à 20 h ou à l'heure de ton choix, si ta journée d'un défi en cours n'est pas encore faite. Rien quand elle est faite, et une seule notification pour tous tes défis
+- Tension artérielle, en option (Profil, Santé) : ta tension du matin et du soir sur Aujourd'hui, de 1 à 3 mesures dont l'app fait la moyenne (la règle des 3 de l'automesure), avec le pouls si tu veux. Dans Progrès, un bouton passe du poids à la tension : moyennes des 7 derniers jours, courbe sur 7, 30 ou 90 jours avec les seuils de 135/85, et toutes tes mesures. Un rappel le matin et le soir si tu n'as pas encore mesuré, à tes heures. Une indication, jamais un diagnostic
+- Pilulier, en option (Profil, Santé) : tes traitements avec leur dose, leurs heures et leurs jours, une case à cocher pour chaque prise sur Aujourd'hui, et un rappel à l'heure si ce n'est pas encore coché. Le nom de tes médicaments n'apparaît jamais sur l'écran verrouillé
+- Sandwich à composer : le pain et sa taille (baguette, céréales, pain de mie, ciabatta, wrap, pain burger, bagel, pita), puis ce qu'il y a dedans portion par portion (viandes, poissons, œufs, fromages dont la raclette, crudités, sauces), ou n'importe quel aliment brut au gramme. Des classiques pour partir (jambon-beurre, raclette, club, thon crudités, bagel saumon, falafel…), la part mangée, chips et boisson, et une note santé du sandwich
+- Fast-food : les tenders, les wings et le poulet frit, à la pièce comme les nuggets
+- Sushis par sorte : maki, california, nigiri, sashimi, spring roll ou crispy, de 32 à 70 kcal la pièce, l'assortiment restant la moyenne. La sauce soja se prend en plusieurs cuillères, jusqu'à 3
+- Progrès et Mon objectif : « Tes calories, étape par étape », avec tes chiffres. Ta dépense au repos (formule de Mifflin-St Jeor, avec ton poids, ta taille, ton âge et ton sexe), multipliée par ton activité (ta journée sans le sport, plus chacune de tes séances de la semaine), puis ton rythme, qui donne ton objectif du jour
+- Retouche photo : un bouton « Tout voir » qui fait tenir toute la photo dans le cadre, même très large, et un double appui sur la photo pour revenir à 100 %
+- Photo du jour : « La garder et la retoucher » dès l'étape de la photo prise
+- Inscription : un écran « Ton poids ce matin » en grand avant de valider, pour ne pas partir d'un poids mal tapé. Il prévient si tu as laissé la valeur proposée
+
+### Modifié
+- Retouche photo : quitter avec des changements non enregistrés demande confirmation. Le retour en glissant depuis le bord est désactivé sur cet écran, dont les gestes appartiennent à la photo
+- Les curseurs (retouche, avant / après, time-lapse) se déplacent en glissant n'importe où dessus, plus seulement en attrapant leur rond. Près du bord gauche de l'écran, ils ne déclenchent plus le retour en arrière
+- Photos et Profil ne rechargent plus tout à chaque visite, ni la liste de courses sur Repas : rien n'est redemandé avant 30 secondes
+- Sauvegardes : la tension et les traitements du pilulier y sont aussi
+
+### Corrigé
+- Repas : la page pouvait rester sur la veille au matin quand le téléphone gardait l'app ouverte toute la nuit, et « Ajouter » notait alors le repas dans la veille. Elle passe au nouveau jour à minuit, et au retour dans l'app
+- Vitamines et minéraux : le coulis de tomate (dans 14 recettes, dont les pizzas) prend ceux de la purée de tomates, le riz thaï ou basmati cru ceux du riz blanc cru (il avait un fer à 0). Une petite liste faite à la main relie ainsi une dizaine d'ingrédients courants au bon aliment de la table Ciqual. Les recettes sont recalculées
+- Liste de courses : elle est oubliée à la déconnexion, comme le reste
+
 ## [1.16.0] - 2026-11-21
 
 Une app qui démarre déjà chargée, la retouche des photos, les sushis à la pièce avec leur sauce soja, et le poids de départ corrigé jusque dans ta courbe

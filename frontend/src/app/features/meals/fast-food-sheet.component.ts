@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
-import { DRINKS, Dish, FRIES, Portion, SHARES, dish, estimate, extrasFor, healthOf, part, withChoice } from '../../core/meals/fast-food';
+import { DRINKS, Dish, FRIES, Portion, SHARES, dish, estimate, extrasFor, healthOf, part, pieces, timesOf, withChoice } from '../../core/meals/fast-food';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { healthBand } from '../../core/meals/health';
 import type { Grade } from '../../core/meals/nutriscore';
@@ -164,6 +164,11 @@ export const ESTIMATE_STYLES = `
     .chip-opt[aria-pressed='true'] small {
       color: var(--accent-text);
     }
+    /* 1.17: an extra taken several times (soy sauce by the spoon) */
+    .chip-opt .times {
+      font-size: 12px;
+      font-weight: 800;
+    }
     .chip-opt[aria-checked='true'],
     .chip-opt[aria-pressed='true'] {
       background: var(--accent-soft);
@@ -212,6 +217,18 @@ export const ESTIMATE_STYLES = `
             <h2 class="h3"><span aria-hidden="true">{{ dish.emoji }}</span> {{ 'meals.quick.dishes.' + dish.key | t }}</h2>
             <p class="small muted">{{ 'meals.estimate.text' | t }}</p>
           </div>
+
+          @if (dish.kinds; as k) {
+            <!-- 1.17: the kind of piece (a sashimi has no rice: about half a nigiri) -->
+            <h3 class="section-title">{{ 'meals.estimate.kinds.' + dish.key + '.title' | t }}</h3>
+            <div class="chips" role="radiogroup" [attr.aria-label]="'meals.estimate.kinds.' + dish.key + '.title' | t">
+              @for (o of k.options; track o.key) {
+                <button type="button" class="chip-opt" role="radio" [attr.aria-checked]="kind() === o.key" (click)="kind.set(o.key)">
+                  {{ 'meals.estimate.kinds.' + dish.key + '.' + o.key | t }} <small class="num">{{ 'meals.estimate.perPiece' | t: { kcal: i18n.number(o.kcal) } }}</small>
+                </button>
+              }
+            </div>
+          }
 
           <h3 class="section-title">{{ 'meals.estimate.format' | t }}</h3>
           <div class="opts" role="radiogroup" [attr.aria-label]="'meals.estimate.format' | t">
@@ -283,8 +300,13 @@ export const ESTIMATE_STYLES = `
             <h3 class="section-title">{{ 'meals.estimate.extras' | t }}</h3>
             <div class="chips" role="group" [attr.aria-label]="'meals.estimate.extras' | t">
               @for (x of offered(); track x.key) {
-                <button type="button" class="chip-opt" [attr.aria-pressed]="extras().includes(x.key)" (click)="toggle(x.key)">
-                  {{ 'meals.estimate.extraNames.' + x.key | t }} <small class="num">+{{ i18n.number(x.kcal) }}</small>
+                @let n = times(x);
+                <button type="button" class="chip-opt" [attr.aria-pressed]="n > 0" (click)="toggle(x)">
+                  {{ 'meals.estimate.extraNames.' + x.key | t }}
+                  @if (n > 1) {
+                    <b class="times num">×{{ n }}</b>
+                  }
+                  <small class="num">+{{ i18n.number(x.kcal * Math.max(1, n)) }}</small>
                   @let h = health(x, 'extra');
                   @if (h != null) {
                     <i class="hs" [attr.data-band]="band(h)" [attr.aria-label]="'meals.estimate.gradeOf' | t: { g: i18n.number(h, 1) }">{{ i18n.number(h, h % 1 ? 1 : 0) }}</i>
@@ -360,6 +382,8 @@ export class FastFoodSheetComponent {
   protected readonly share = signal(1);
   /** 1.16: the pieces, for a dish counted piece by piece (sushi) */
   protected readonly count = signal(0);
+  /** 1.17: the kind of piece (sushi) */
+  protected readonly kind = signal('');
   protected readonly shares = SHARES;
   /** the extras of the format chosen (the soy sauces with a poke bowl only) */
   protected readonly offered = computed(() => {
@@ -374,7 +398,7 @@ export class FastFoodSheetComponent {
   protected readonly result = computed(() => {
     const d = this.d();
     return d
-      ? estimate(d, this.format(), this.fries(), this.extras(), this.drink(), this.choice() || undefined, this.share(), d.pieces ? this.count() : undefined)
+      ? estimate(d, this.format(), this.fries(), this.extras(), this.drink(), this.choice() || undefined, this.share(), d.pieces ? this.count() : undefined, this.kind() || undefined)
       : { lines: [], total: { key: 'total', kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 }, grade: null, health: null };
   });
 
@@ -389,6 +413,7 @@ export class FastFoodSheetComponent {
     this.choice.set(d.choice?.usual ?? '');
     this.share.set(1);
     this.count.set(d.pieces?.of[d.usual] ?? 0);
+    this.kind.set(d.kinds?.usual ?? '');
     this.busy.set(false);
     this.dialog().nativeElement.showModal();
   }
@@ -409,7 +434,10 @@ export class FastFoodSheetComponent {
 
   /** a format as chosen (without its cheese sauce, on a cream base…) */
   protected chosen(f: Portion): Portion {
-    const c = this.d()?.choice;
+    const d = this.d();
+    // 1.17: a format of pieces, of the kind chosen
+    if (d?.kinds && d.pieces) return pieces(d, d.pieces.of[f.key], this.kind()) ?? f;
+    const c = d?.choice;
     return part(withChoice(f, c?.options.find((o) => o.key === this.choice())), this.d()?.share ? this.share() : 1);
   }
 
@@ -426,8 +454,17 @@ export class FastFoodSheetComponent {
     if (n) this.count.set(n);
   }
 
-  protected toggle(key: string): void {
-    this.extras.update((list) => (list.includes(key) ? list.filter((k) => k !== key) : [...list, key]));
+  /** taken, or not; 1.17: an extra with a max (soy sauce) one more each tap, then none again */
+  protected toggle(x: Portion): void {
+    const n = this.times(x);
+    this.extras.update((list) => {
+      const rest = list.filter((k) => k !== x.key);
+      return n >= (x.max ?? 1) ? rest : [...rest, ...Array<string>(n + 1).fill(x.key)];
+    });
+  }
+
+  protected times(x: Portion): number {
+    return timesOf(x, this.extras());
   }
 
   protected add(): void {
@@ -439,7 +476,9 @@ export class FastFoodSheetComponent {
           // 1.16: « Sushi (9 pièces) »
           if (d.pieces) {
             const n = this.count();
-            return `${this.i18n.t('meals.quick.dishes.' + d.key)} (${this.i18n.t(n === 1 ? 'meals.estimate.piecesOne' : 'meals.estimate.piecesLine', { n })})`;
+            // 1.17: « Sushi, nigiri (9 pièces) »
+            const k = d.kinds && this.kind() !== d.kinds.usual ? `, ${this.i18n.t('meals.estimate.kinds.' + d.key + '.lines.' + this.kind())}` : '';
+            return `${this.i18n.t('meals.quick.dishes.' + d.key)}${k} (${this.i18n.t(n === 1 ? 'meals.estimate.piecesOne' : 'meals.estimate.piecesLine', { n })})`;
           }
           // « Tacos (M, sans sauce fromagère) », « Pizza (Entière, base crème) »
           const c = d.choice && this.choice() !== d.choice.usual ? `, ${this.i18n.t('meals.estimate.choices.' + d.choice.key + '.lines.' + this.choice())}` : '';
@@ -449,8 +488,12 @@ export class FastFoodSheetComponent {
         }
         case 'fries':
           return `${this.i18n.t('meals.quick.dishes.fries')} (${this.i18n.t('meals.estimate.friesSizes.' + p.key)})`;
-        case 'extra':
-          return this.i18n.t('meals.estimate.extraNames.' + p.key);
+        case 'extra': {
+          // 1.17: « Sauce soja salée (2 cuillères) »
+          const n = this.times(p);
+          const name = this.i18n.t('meals.estimate.extraNames.' + p.key);
+          return n > 1 ? `${name} (${this.i18n.t('meals.estimate.spoons', { n })})` : name;
+        }
         default:
           return this.i18n.t('meals.estimate.drinks.' + p.key);
       }

@@ -1,3 +1,4 @@
+import { WaitingNoteComponent } from '../../shared/waiting-note.component';
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -19,7 +20,7 @@ import { IconComponent } from '../../shared/icon.component';
 @Component({
   selector: 'app-shopping',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent],
+  imports: [FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, WaitingNoteComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -61,13 +62,16 @@ import { IconComponent } from '../../shared/icon.component';
                 <span class="faint num">· {{ g.items.length }}</span></h2>
               <ul class="list" role="list">
                 @for (it of g.items; track it.id) {
-                  <li class="row" [class.done]="it.checked">
+                  <li class="row" [class.done]="it.checked" [class.is-waiting]="store.waiting().has(it.id)">
                     <button type="button" class="tick" role="checkbox" [attr.aria-checked]="it.checked" (click)="toggle(it)">
                       <span class="box"><app-icon name="check" [size]="16" [stroke]="2.8" /></span>
                       <span class="what">
                         <span class="name">{{ parts(it).head }}</span>
                         @if (parts(it).rest) {
                           <span class="rest tiny muted">{{ parts(it).rest }}</span>
+                        }
+                        @if (store.waiting().get(it.id); as w) {
+                          <app-waiting-note [waitId]="w" kind="edit" />
                         }
                       </span>
                       @if (qty(it); as q) {

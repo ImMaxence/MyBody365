@@ -399,6 +399,11 @@ export class StackNavigation {
     return depthOf(this.router.routerState.snapshot.root);
   }
 
+  /** 1.17: false on a screen whose gestures are its own (route data `swipe: false`, the photo touch-up): no back swipe */
+  swipeable(): boolean {
+    return dataOf<boolean>(this.router.routerState.snapshot.root, 'swipe') !== false;
+  }
+
   /** the screen "back" leads to when there is nothing to pop (route data `back`) */
   parentUrl(): string {
     return dataOf<string>(this.router.routerState.snapshot.root, 'back') ?? '/app';

@@ -35,3 +35,21 @@ describe('photo touch-ups (1.16)', () => {
     expect(grey[0]).toBe(Math.round(0.213 * 100 + 0.715 * 150 + 0.072 * 200));
   });
 });
+
+describe('the whole photo in the frame (1.17)', () => {
+  it('needs less than the smallest usual size for a very wide photo', async () => {
+    const { fitZoom, clampZoom, ZOOM_MIN } = await import('./photo-edit');
+    // a 3 by 4 photo upright already fits
+    expect(fitZoom(1200, 1600, 0, 0)).toBe(1);
+    // a 4 by 3 one: (3/4) / (4/3) of the cover size
+    expect(fitZoom(1600, 1200, 0, 0)).toBeCloseTo(0.5625, 3);
+    // turned a quarter, it is 3 by 4 again
+    expect(fitZoom(1600, 1200, 1, 0)).toBe(1);
+    // a panorama, 3 to 1: under the 30 % of the slider, which then goes lower for it
+    const pano = fitZoom(3000, 1000, 0, 0);
+    expect(pano).toBeLessThan(ZOOM_MIN);
+    expect(clampZoom(0.01, pano)).toBe(pano);
+    // straightened, it needs a little less
+    expect(fitZoom(1200, 1600, 0, 10)).toBeLessThan(1);
+  });
+});

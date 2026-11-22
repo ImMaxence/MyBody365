@@ -111,6 +111,8 @@ export function dayScore(day: MealDay, today: string, shares: { p: number; c: nu
   let rated = 0;
   let weighted = 0;
   for (const e of day.entries) {
+    // 1.17: a line deleted without network no longer counts
+    if (e.pending === 'delete') continue;
     const h = e.health ?? (e.nutriscore ? GRADE_SCORE[e.nutriscore.toLowerCase()] : undefined);
     if (h != null && e.nutrients.kcal > 0) {
       rated += e.nutrients.kcal;

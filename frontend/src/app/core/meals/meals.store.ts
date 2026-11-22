@@ -108,14 +108,59 @@ export class MealsStore {
   readonly target = signal<number | null>(null);
   private readonly ranges = new Set<string>();
 
+  /**
+   * 1.17: the calendar day, which moves at midnight. A phone keeps the app in memory all night: the screen that was on
+   * « today » goes to the new day (back in the app, or at midnight with the app open), never stays on « yesterday »
+   */
+  readonly calendarDay = signal(localDay());
+
+  /** the date changed since the last look: the screen on « today » follows it; true when it did */
+  checkDay(load = true): boolean {
+    const now = localDay();
+    const was = this.calendarDay();
+    if (now === was) return false;
+    this.calendarDay.set(now);
+    if (this.day() === was) {
+      this.day.set(now);
+      if (load) void this.ensure(now).catch(() => undefined);
+    }
+    void this.ensureToday();
+    return true;
+  }
+
   constructor() {
-    // a meal noted offline reached the server: its day again, as the server has it now
+    if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') this.checkDay();
+      });
+      window.setInterval(() => this.checkDay(), 60_000);
+    }
+    // a meal noted offline reached the server: its day again, as the server has it now; 1.17: the lines that were waiting
+    // show as arrived for a moment (they lose their grey)
     this.outbox.sent.subscribe((p) => {
-      if (p.kind !== 'meal') return;
+      if (p.kind !== 'meal' && p.kind !== 'meal-edit' && p.kind !== 'meal-delete') return;
       this.recent.set(null);
-      if (p.day === this.day()) void this.load(p.day).catch(() => undefined);
-      else if (p.day === localDay()) void this.loadToday();
+      this.weekStatsAt = 0;
+      const before = new Set((this.data()?.entries ?? []).filter((e) => !e.pending).map((e) => e.id));
+      const reload = p.day === this.day() ? this.load(p.day) : p.day === localDay() ? this.loadToday() : Promise.resolve(null);
+      void reload
+        .then(() => {
+          const now = this.data()?.entries ?? [];
+          const arrived = now.filter((e) => !e.pending && (!before.has(e.id) || e.id === p.target)).map((e) => e.id);
+          if (arrived.length) this.markArrived(arrived);
+        })
+        .catch(() => undefined);
     });
+  }
+
+  /** 1.17: the lines that just reached the server (their grey fades out) */
+  readonly arrived = signal<ReadonlySet<string>>(new Set());
+  private arrivedTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private markArrived(ids: string[]): void {
+    this.arrived.update((s) => new Set([...s, ...ids]));
+    if (this.arrivedTimer) clearTimeout(this.arrivedTimer);
+    this.arrivedTimer = setTimeout(() => this.arrived.set(new Set()), 1600);
   }
 
   readonly bySlot = computed(() => {
@@ -140,7 +185,10 @@ export class MealsStore {
   }
 
   /** 1.16: a day seen less than FRESH_MS ago shown as it is (back on the Meals tab), else asked again */
-  async ensure(day = this.day()): Promise<MealDay> {
+  async ensure(asked?: string): Promise<MealDay> {
+    // 1.17: opened on « today » after midnight: the new day
+    if (asked == null) this.checkDay(false);
+    const day = asked ?? this.day();
     const known = this.server.get(day);
     if (known && fresh(this.fetchedAt.get(day) ?? 0)) {
       this.day.set(day);
@@ -202,14 +250,46 @@ export class MealsStore {
     }
   }
 
+  /** 1.17: without network, kept on the phone and shown at once, greyed, until it is sent */
   async update(id: string, patch: { slot?: Slot; grams?: number; servings?: number }): Promise<void> {
-    this.apply(await this.api.update(id, patch));
-    this.weekStatsAt = 0;
+    try {
+      this.apply(await this.api.update(id, patch));
+      this.lastQueued.set(false);
+      this.weekStatsAt = 0;
+    } catch (e) {
+      const day = this.dayOf(id);
+      if (!isOffline(e) || !day) throw e;
+      this.outbox.add({ kind: 'meal-edit', method: 'PATCH', url: `/api/me/meals/${id}`, body: patch, day, target: id });
+      this.lastQueued.set(true);
+      this.reapply(day);
+    }
   }
 
+  /** 1.17: without network, shown crossed out and greyed until it is sent */
   async remove(id: string): Promise<void> {
-    this.apply(await this.api.remove(id));
-    this.weekStatsAt = 0;
+    try {
+      this.apply(await this.api.remove(id));
+      this.lastQueued.set(false);
+      this.weekStatsAt = 0;
+    } catch (e) {
+      const day = this.dayOf(id);
+      if (!isOffline(e) || !day) throw e;
+      this.outbox.add({ kind: 'meal-delete', method: 'DELETE', url: `/api/me/meals/${id}`, body: null, day, target: id });
+      this.lastQueued.set(true);
+      this.reapply(day);
+    }
+  }
+
+  /** the day a line of the server belongs to */
+  private dayOf(id: string): string | null {
+    for (const [day, d] of this.server) if (d.entries.some((e) => e.id === id)) return day;
+    return null;
+  }
+
+  /** the day as the server sent it, with what waits on the phone on top (after a change kept offline) */
+  private reapply(day: string): void {
+    const d = this.server.get(day);
+    if (d) this.apply(d, false);
   }
 
   /** the same slot as the day before; false when it was empty */
@@ -258,6 +338,7 @@ export class MealsStore {
     this.weekStats.set(null);
     this.weekStatsAt = 0;
     this.day.set(localDay());
+    this.calendarDay.set(localDay());
   }
 
   /** the days as the server sent them (the meals waiting for the network are added on top) */
@@ -265,12 +346,39 @@ export class MealsStore {
   /** 1.16: when each of them came */
   private readonly fetchedAt = new Map<string, number>();
 
-  /** a day from the server, with the meals of that day still waiting on the phone */
+  /**
+   * a day from the server, with the meals of that day still waiting on the phone: added (1.17: greyed), changed (1.17: the
+   * new amount, greyed), deleted (1.17: crossed out, out of the totals)
+   */
   private withPending(d: MealDay): MealDay {
-    const waiting = this.outbox.pending().filter((p) => p.kind === 'meal' && p.day === d.day && p.preview);
-    if (!waiting.length) return d;
+    const all = this.outbox.pending().filter((p) => p.day === d.day);
+    const waiting = all.filter((p) => p.kind === 'meal' && p.preview);
+    const edits = new Map(all.filter((p) => p.kind === 'meal-edit' && p.target).map((p) => [p.target!, p]));
+    const deletes = new Map(all.filter((p) => p.kind === 'meal-delete' && p.target).map((p) => [p.target!, p]));
+    if (!waiting.length && !edits.size && !deletes.size) return d;
     let totals = d.totals;
-    const entries = [...d.entries];
+    const entries = d.entries.map((e): MealEntry => {
+      const del = deletes.get(e.id);
+      if (del) {
+        totals = plus(totals, scaled(e.nutrients, -1));
+        return { ...e, pending: 'delete', waitId: del.id };
+      }
+      const edit = edits.get(e.id);
+      if (!edit) return e;
+      const patch = edit.body as { slot?: Slot; grams?: number; servings?: number };
+      const f = patch.grams != null && e.grams ? patch.grams / e.grams : patch.servings != null && e.servings ? patch.servings / e.servings : 1;
+      const nutrients = scaled(e.nutrients, f);
+      totals = plus(plus(totals, scaled(e.nutrients, -1)), nutrients);
+      return {
+        ...e,
+        slot: patch.slot ?? e.slot,
+        grams: patch.grams ?? e.grams,
+        servings: patch.servings ?? e.servings,
+        nutrients,
+        pending: 'edit',
+        waitId: edit.id,
+      };
+    });
     for (const p of waiting) {
       const v = p.preview!;
       entries.push({
@@ -282,15 +390,17 @@ export class MealsStore {
         servings: v.servings,
         nutrients: v.nutrients as Nutrients,
         createdAt: new Date(p.at).toISOString(),
+        pending: 'add',
+        waitId: p.id,
       });
       totals = plus(totals, v.nutrients as Nutrients);
     }
     return { ...d, entries, totals };
   }
 
-  private apply(server: MealDay): void {
+  private apply(server: MealDay, fetched = true): void {
     this.server.set(server.day, server);
-    this.fetchedAt.set(server.day, Date.now());
+    if (fetched) this.fetchedAt.set(server.day, Date.now());
     const d = this.withPending(server);
     if (d.day === this.day()) this.data.set(d);
     if (d.day === localDay()) this.today.set(d);

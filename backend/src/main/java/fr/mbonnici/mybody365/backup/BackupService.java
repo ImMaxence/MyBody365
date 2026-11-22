@@ -62,7 +62,9 @@ public class BackupService {
 
     public record Preview(String token, String exportedAt, String appVersion, boolean profile, Map<String, Change> changes) {}
 
-    public record Result(int logs, int photos, int meals, int foods, int recipes, int workouts, int water, int timers, int milestones) {}
+    public record Result(int logs, int photos, int meals, int foods, int recipes, int workouts, int water, int timers, int milestones,
+            /** 1.17 */
+            int bloodPressure, int medications) {}
 
     /** a weight as a key: « 80.0 » whether it came as 80, 80.0 or a BigDecimal */
     private static String kg(Object v) {
@@ -117,6 +119,8 @@ public class BackupService {
         data.put("photos", photos);
         data.put("workouts", rows(BackupFormat.WORKOUTS, "user_id = ? order by day", userId));
         data.put("water", rows(BackupFormat.WATER, "user_id = ? order by day", userId));
+        data.put("bp", rows(BackupFormat.BP, "user_id = ? order by day, moment", userId));
+        data.put("medications", rows(BackupFormat.MEDICATIONS, "user_id = ? order by created_at", userId));
         data.put("timers", rows(BackupFormat.TIMERS, "user_id = ? order by created_at", userId));
         data.put("milestones", rows(BackupFormat.MILESTONES, "user_id = ? order by target_kg", userId));
         List<Map<String, Object>> prefs = rows(BackupFormat.PREFS, "user_id = ?", userId);
@@ -261,6 +265,10 @@ public class BackupService {
                 keyed(list(data, "workouts"), BackupService::workoutKey), r -> ""));
         out.put("water", compare(keyed(rows(BackupFormat.WATER, "user_id = ?", userId), r -> str(r.get("day"))),
                 keyed(list(data, "water"), r -> str(r.get("day"))), r -> String.valueOf(r.get("glasses"))));
+        out.put("bp", compare(keyed(rows(BackupFormat.BP, "user_id = ?", userId), r -> r.get("day") + " " + r.get("moment")),
+                keyed(list(data, "bp"), r -> r.get("day") + " " + r.get("moment")), r -> r.get("systolic") + "/" + r.get("diastolic")));
+        out.put("medications", compare(keyed(rows(BackupFormat.MEDICATIONS, "user_id = ?", userId), r -> lower(r.get("name"))),
+                keyed(list(data, "medications"), r -> lower(r.get("name"))), r -> r.get("dose") + "/" + r.get("times") + "/" + r.get("days")));
         out.put("timers", compare(keyed(rows(BackupFormat.TIMERS, "user_id = ?", userId), r -> lower(r.get("name"))),
                 keyed(list(data, "timers"), r -> lower(r.get("name"))), r -> r.get("work_s") + "/" + r.get("rest_s") + "/" + r.get("rounds")));
         out.put("milestones", compare(keyed(rows(BackupFormat.MILESTONES, "user_id = ?", userId), r -> kg(r.get("target_kg"))),
@@ -410,6 +418,8 @@ public class BackupService {
             jdbc.update("delete from workout_session where user_id = ?", userId);
             jdbc.update("delete from body_log where user_id = ?", userId);
             jdbc.update("delete from water_log where user_id = ?", userId);
+            jdbc.update("delete from bp_log where user_id = ?", userId);
+            jdbc.update("delete from medication where user_id = ?", userId);
             jdbc.update("delete from timer_preset where user_id = ?", userId);
             jdbc.update("delete from weight_milestone where user_id = ?", userId);
         }
@@ -630,6 +640,49 @@ public class BackupService {
                 insert("water_log", v, Map.of("user_id", userId));
                 water++;
             }
+            // 1.17: the blood pressure, the same day and moment replaced; a backup made before has none
+            int bloodPressure = 0;
+            for (Map<String, Object> w : list(p.data(), "bp")) {
+                Map<String, Object> v = typed(BackupFormat.BP, w);
+                Object moment = v.get("moment");
+                if (v.get("day") == null || !("MORNING".equals(moment) || "EVENING".equals(moment)) || !(v.get("systolic") instanceof Number s)
+                        || !(v.get("diastolic") instanceof Number d) || s.intValue() < 60 || s.intValue() > 260 || d.intValue() < 30
+                        || d.intValue() > 160 || s.intValue() <= d.intValue()) {
+                    continue;
+                }
+                if (!(v.get("pulse") instanceof Number pl) || pl.intValue() < 30 || pl.intValue() > 220) {
+                    v.put("pulse", null);
+                }
+                if (!(v.get("readings") instanceof Number rd) || rd.intValue() < 1 || rd.intValue() > 3) {
+                    v.put("readings", 1);
+                }
+                jdbc.update("delete from bp_log where user_id = ? and day = ? and moment = ?", userId, v.get("day"), moment);
+                insert("bp_log", v, Map.of("user_id", userId));
+                bloodPressure++;
+            }
+            // 1.17: the treatments of the pill box, the same name replaced (20 at most)
+            int medications = 0;
+            for (Map<String, Object> w : list(p.data(), "medications")) {
+                Map<String, Object> v = typed(BackupFormat.MEDICATIONS, w);
+                if (!(v.get("name") instanceof String name) || name.isBlank() || name.length() > 60 || !(v.get("times") instanceof String times)
+                        || !times.matches("([01]\\d|2[0-3]):[0-5]\\d(,([01]\\d|2[0-3]):[0-5]\\d){0,5}") || !(v.get("days") instanceof String days)
+                        || !days.matches("[1-7](,[1-7]){0,6}")) {
+                    continue;
+                }
+                if (v.get("dose") instanceof String dose && dose.length() > 40) {
+                    v.put("dose", dose.substring(0, 40));
+                }
+                if (v.get("reminders") == null) {
+                    v.put("reminders", true);
+                }
+                jdbc.update("delete from medication where user_id = ? and lower(name) = lower(?)", userId, name);
+                Integer count = jdbc.queryForObject("select count(*) from medication where user_id = ?", Integer.class, userId);
+                if (count != null && count >= 20) {
+                    continue;
+                }
+                insert("medication", v, Map.of("id", UUID.randomUUID(), "user_id", userId));
+                medications++;
+            }
             // saved timers: same name, same timer (20 at most)
             int timers = 0;
             for (Map<String, Object> w : list(p.data(), "timers")) {
@@ -695,7 +748,7 @@ public class BackupService {
                     insert("notification_pref", v, Map.of("user_id", userId));
                 }
             }
-            return new Result(logs, photos, meals, foods, recipes, workouts, water, timers, milestones);
+            return new Result(logs, photos, meals, foods, recipes, workouts, water, timers, milestones, bloodPressure, medications);
         } catch (IOException e) {
             throw ApiException.badRequest("backup_invalid");
         }

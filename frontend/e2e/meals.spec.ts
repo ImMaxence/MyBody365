@@ -3,6 +3,8 @@ import { expectAccessible, expectNoHorizontalOverflow, signIn, tab, watchErrors,
 
 test.describe('meals', () => {
   test('fast food: a quick portion with its calories, then a recipe with the calories entered by hand', async ({ page }) => {
+    // 1.17: the sushi kinds and the sandwich made it longer than one screen's test
+    test.setTimeout(90_000);
     const errors = watchErrors(page);
     await signIn(page, 'new');
     await page.goto('/app/meals/add?slot=LUNCH');
@@ -57,10 +59,27 @@ test.describe('meals', () => {
     await expect(sushi.getByRole('radio', { name: /12 pièces/ })).toHaveAttribute('aria-checked', 'false');
     await sushi.getByRole('button', { name: /Sauce soja sucrée/ }).click();
     await expect(sushi.getByText(/≈ 407 kcal/)).toBeVisible();
+    // 1.17: by kind (9 nigiri at 58 kcal), and a second spoon of soy sauce
+    await sushi.getByRole('radio', { name: /Nigiri/ }).click();
+    await expect(sushi.getByText(/≈ 554 kcal/)).toBeVisible();
+    await sushi.getByRole('button', { name: /Sauce soja sucrée/ }).click();
+    await expect(sushi.getByText(/≈ 586 kcal/)).toBeVisible();
     await expectAccessible(page);
     await sushi.getByRole('button', { name: /Ajouter au dîner/ }).click();
-    await expect(page.getByRole('button', { name: /Sushi \(9 pièces\)/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Sauce soja sucrée/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Sushi, nigiri \(9 pièces\)/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Sauce soja sucrée \(2 cuillères\)/ })).toBeVisible();
+
+    // 1.17: a sandwich made up: the raclette classic, then the tenders among the fast-food dishes
+    await page.goto('/app/meals/add?slot=LUNCH');
+    await expect(page.getByRole('group', { name: 'Au restaurant, en fast-food' }).getByRole('button', { name: /Tenders/ })).toBeVisible();
+    await page.getByRole('group', { name: 'Au restaurant, en fast-food' }).getByRole('button', { name: /Sandwich/ }).click();
+    const sandwich = page.getByRole('dialog', { name: 'Sandwich' });
+    await sandwich.getByRole('button', { name: 'Raclette', exact: true }).click();
+    await expect(sandwich.getByRole('list').first()).toContainText('Jambon cru');
+    await expect(sandwich.getByText(/≈ 696 kcal/)).toBeVisible();
+    await expectAccessible(page);
+    await sandwich.getByRole('button', { name: /Ajouter au déjeuner/ }).click();
+    await expect(page.getByRole('button', { name: /Sandwich raclette \(½ baguette\)/ })).toBeVisible();
     await page.goto('/app/meals/add?slot=DINNER');
     await page.getByRole('group', { name: 'Au restaurant, en fast-food' }).getByRole('button', { name: /Salade/ }).click();
     const salad = page.getByRole('dialog', { name: 'Salade' });
@@ -90,11 +109,12 @@ test.describe('meals', () => {
     await quickSheet.getByLabel('Calories de la portion').fill('80');
     await quickSheet.getByRole('button', { name: 'Ajouter' }).click();
     await expect(page.getByText('Pas de réseau : noté sur ton téléphone, envoyé dès le retour du réseau')).toBeVisible();
-    await expect(page.getByRole('status').filter({ hasText: '1 saisie en attente de réseau' })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Pomme du métro/ })).toContainText('En attente de réseau');
+    // 1.17: said offline, greyed with « Sera envoyé plus tard », then sent (« Tout est envoyé ») and back to colour
+    await expect(page.getByRole('status').filter({ hasText: 'Hors ligne : 1 saisie partira au retour du réseau' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Pomme du métro/ })).toContainText('Sera envoyé plus tard');
     await page.context().setOffline(false);
-    await expect(page.getByRole('status').filter({ hasText: 'en attente de réseau' })).toHaveCount(0, { timeout: 15_000 });
-    await expect(page.getByRole('button', { name: /Pomme du métro/ })).not.toContainText('En attente de réseau');
+    await expect(page.getByRole('status').filter({ hasText: 'Tout est envoyé' })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('button', { name: /Pomme du métro/ })).not.toContainText('Sera envoyé plus tard');
     await page.reload();
     await expect(page.getByRole('button', { name: /Pomme du métro/ })).toBeVisible();
 
@@ -151,8 +171,8 @@ test.describe('meals', () => {
   });
 
   test('a food of my own, logged at lunch, then a recipe shared with the community', async ({ page, browser }) => {
-    // three accounts, the community and the lookalikes: longer than one screen's test
-    test.setTimeout(90_000);
+    // three accounts, the community and the lookalikes: longer than one screen's test (about 1.6 min in Safari's engine)
+    test.setTimeout(150_000);
     const errors = watchErrors(page);
     await signIn(page, 'new');
     await tab(page, 'Repas').click();
@@ -456,7 +476,8 @@ test.describe('meals', () => {
     await page.getByRole('button', { name: 'Communauté' }).click();
     await page.locator('a.rcard').first().click();
     const heading = page.getByRole('heading', { level: 1 });
-    await expect(heading).toBeVisible();
+    // the heading is there before the recipe's name (read too early, the name was empty and matched any button)
+    await expect(heading).toHaveText(/\S/);
     const title = (await heading.innerText()).trim();
     const recipeUrl = page.url().split('?')[0];
     await page.getByRole('button', { name: 'Ajouter à un repas' }).click();

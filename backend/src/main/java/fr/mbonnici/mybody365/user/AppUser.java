@@ -57,6 +57,13 @@ public class AppUser {
     /** glasses of water a day; null: the water tracker is off */
     private Integer waterGoal;
 
+    /** 1.17: the optional modules turned on: the blood pressure, the pill box */
+    @Column(nullable = false)
+    private boolean bpEnabled;
+
+    @Column(nullable = false)
+    private boolean pillsEnabled;
+
     /** the streak's icon and colour (1.8); null: the flame, in orange */
     private String streakIcon;
 
@@ -239,6 +246,22 @@ public class AppUser {
 
     public void setStreakColor(String streakColor) {
         this.streakColor = streakColor;
+    }
+
+    public boolean isBpEnabled() {
+        return bpEnabled;
+    }
+
+    public void setBpEnabled(boolean bpEnabled) {
+        this.bpEnabled = bpEnabled;
+    }
+
+    public boolean isPillsEnabled() {
+        return pillsEnabled;
+    }
+
+    public void setPillsEnabled(boolean pillsEnabled) {
+        this.pillsEnabled = pillsEnabled;
     }
 
     public boolean isDiscoverable() {

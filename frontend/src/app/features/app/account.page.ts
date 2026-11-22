@@ -75,6 +75,15 @@ import { AvatarZoom } from '../../shared/avatar-zoom';
           </span>
           <app-icon name="chevronRight" />
         </a>
+        <!-- 1.17: the optional modules (blood pressure, pill box), off until turned on -->
+        <a routerLink="/app/account/health" class="list-item">
+          <span class="list-icon health-ico"><app-icon name="heartPulse" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'health.title' | t }}</span>
+            <span class="list-sub">{{ healthSub() }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </a>
         <a routerLink="/app/account/notifications" class="list-item">
           <span class="list-icon"><app-icon name="bell" /></span>
           <span class="list-body">
@@ -414,6 +423,10 @@ import { AvatarZoom } from '../../shared/avatar-zoom';
       background: var(--cool-soft);
       color: var(--cool);
     }
+    .list-icon.health-ico {
+      background: color-mix(in srgb, #e5484d 13%, var(--surface));
+      color: color-mix(in srgb, #e5484d 75%, var(--fg));
+    }
   `,
 })
 export class AccountPage {
@@ -462,13 +475,19 @@ export class AccountPage {
     const g = this.account()?.waterGoal;
     return g ? this.i18n.t('water.goalValue', { n: g, l: this.i18n.number(g * 0.25, 2) }) : this.i18n.t('water.off');
   });
+  /** 1.17: « Tension, pilulier » turned on, or « Facultatif : tension, pilulier » */
+  protected readonly healthSub = computed(() => {
+    const a = this.account();
+    const on = [a?.bpEnabled ? this.i18n.t('health.bp.title') : null, a?.pillsEnabled ? this.i18n.t('health.pills.title') : null].filter(Boolean);
+    return on.length ? on.join(' · ') : this.i18n.t('health.sub');
+  });
   /** « Auto · Français » */
   protected readonly settingsSub = computed(() => `${this.i18n.t('theme.' + this.theme.mode())} · ${this.i18n.lang() === 'en' ? 'English' : 'Français'}`);
   protected readonly version = CURRENT_VERSION;
 
   constructor() {
     if (!this.tracking.summary()) void this.tracking.load();
-    void this.todo.refresh();
+    void this.todo.ensure();
   }
 
   protected openFeedback(): void {

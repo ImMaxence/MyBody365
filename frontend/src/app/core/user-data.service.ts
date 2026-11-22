@@ -9,6 +9,8 @@ import { RecipesView } from './meals/recipes-view';
 import { WaterStore } from './tracking/water.store';
 import { FavoritesStore } from './meals/favorites.store';
 import { FriendsStore } from './friends/friends.store';
+import { ShoppingStore } from './meals/shopping.store';
+import { HealthStore } from './health/health.store';
 
 /** Forgets everything loaded for the signed-in account (sign-out, account deleted). */
 @Injectable({ providedIn: 'root' })
@@ -23,6 +25,8 @@ export class UserDataService {
   private readonly water = inject(WaterStore);
   private readonly favorites = inject(FavoritesStore);
   private readonly friends = inject(FriendsStore);
+  private readonly shopping = inject(ShoppingStore);
+  private readonly health = inject(HealthStore);
 
   clear(): void {
     this.tracking.clear();
@@ -31,11 +35,14 @@ export class UserDataService {
     this.todo.clear();
     // signed out: what was noted offline is not sent for anyone else
     this.outbox.clear();
+    void this.photos.queue.clear();
     this.timer.stop();
     this.recipesView.clear();
     this.water.clear();
     this.favorites.clear();
     this.friends.clear();
+    this.shopping.clear();
+    this.health.clear();
     this.outbox.setOwner(null);
   }
 }

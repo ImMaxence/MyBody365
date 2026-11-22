@@ -53,8 +53,25 @@ export function cssFilter(e: PhotoEdit): string {
   return filtered(e) ? `brightness(${e.brightness}) contrast(${e.contrast}) saturate(${e.saturation})` : 'none';
 }
 
-export function clampZoom(z: number): number {
-  return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+export function clampZoom(z: number, min = ZOOM_MIN): number {
+  return Math.min(ZOOM_MAX, Math.max(Math.min(ZOOM_MIN, min), z));
+}
+
+/**
+ * 1.17: the size where the whole photo shows in the 3 by 4 frame (« Tout voir »), turned and straightened as it is: a
+ * very wide photo needs less than ZOOM_MIN. 1 when it already fits (a 3 by 4 photo upright)
+ */
+export function fitZoom(iw: number, ih: number, turn: number, angle: number): number {
+  if (!iw || !ih) return 1;
+  const side = turn % 2 === 1;
+  const w = side ? ih : iw;
+  const h = side ? iw : ih;
+  const cover = Math.max(3 / w, 4 / h);
+  const a = (Math.abs(angle) * Math.PI) / 180;
+  const bw = w * Math.cos(a) + h * Math.sin(a);
+  const bh = w * Math.sin(a) + h * Math.cos(a);
+  const fit = Math.min(3 / bw, 4 / bh);
+  return Math.min(1, Math.floor((fit / cover) * 1000) / 1000);
 }
 
 /** a move stays within a frame's width or height of the middle: the photo never gets lost */

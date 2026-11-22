@@ -39,6 +39,9 @@ export async function completeOnboarding(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Continuer' }).click();
   await expect(page.getByRole('heading', { name: 'Ton point de départ' })).toBeVisible();
   await page.getByRole('button', { name: 'Continuer' }).click();
+  // 1.17: the starting weight read once more before going on
+  await expect(page.getByRole('heading', { name: 'Vérifie ton point de départ' })).toBeVisible();
+  await page.getByRole('button', { name: 'Oui, c’est bien ça' }).click();
   await expect(page.getByRole('heading', { name: 'Ton objectif' })).toBeVisible();
   await page.getByRole('button', { name: 'Voir mon plan' }).click();
   await expect(page.getByRole('heading', { name: 'Ton plan est prêt' })).toBeVisible();

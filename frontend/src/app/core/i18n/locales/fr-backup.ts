@@ -14,6 +14,8 @@ export const frBackup = {
   categories: {
     logs: 'Pesées et mensurations',
     water: 'Verres d’eau',
+    bp: 'Tension artérielle',
+    medications: 'Pilulier (tes traitements)',
     timers: 'Chronos enregistrés',
     photos: 'Photos',
     meals: 'Repas (par jour)',

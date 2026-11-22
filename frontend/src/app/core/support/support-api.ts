@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { fresh } from '../api/kept';
 
 export type FeedbackKind = 'IDEA' | 'BUG' | 'OTHER';
 
@@ -43,6 +44,8 @@ export interface Todo {
   challengeInvites: number;
   shoppingLeft: number;
   photoToday: boolean;
+  /** 1.17: the notifications not seen yet in the notification centre */
+  notifications?: number;
 }
 
 /** A word to the creator, the errors journal and the admins' lists of both. */
@@ -105,12 +108,21 @@ export class TodoStore {
   async refresh(): Promise<void> {
     try {
       this.todo.set(await this.api.todo());
+      this.at = Date.now();
     } catch {
       /* the dots are a bonus */
     }
   }
 
+  private at = 0;
+
+  /** 1.17: asked again only when older than FRESH_MS (back on the Profile tab) */
+  ensure(): Promise<void> {
+    return this.todo() && fresh(this.at) ? Promise.resolve() : this.refresh();
+  }
+
   clear(): void {
     this.todo.set(null);
+    this.at = 0;
   }
 }

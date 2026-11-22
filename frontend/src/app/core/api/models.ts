@@ -37,6 +37,9 @@ export interface Account {
   /** the streak's icon and colour (core/engage/streak-style.ts) */
   streakIcon?: string;
   streakColor?: string;
+  /** 1.17: the optional modules turned on: the blood pressure, the pill box */
+  bpEnabled?: boolean;
+  pillsEnabled?: boolean;
 }
 
 export interface Me {
@@ -369,6 +372,9 @@ export interface MealEntry {
   liquid?: boolean;
   /** 1.14: the vitamins and minerals it brings (core/meals/micros.ts keys) */
   micros?: Partial<Record<string, number>>;
+  /** 1.17, on the phone only: added, changed or deleted without network, waiting to be sent (its outbox id in waitId) */
+  pending?: 'add' | 'edit' | 'delete';
+  waitId?: string;
 }
 
 export interface MealDay {

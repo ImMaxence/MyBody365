@@ -26,6 +26,28 @@ describe('fast food estimates', () => {
     expect(estimate(salad, 'caesar', 'none', ['soySweet'], 'none').lines).toHaveLength(1);
   });
 
+  it('1.17: sushi by kind (a sashimi about half a nigiri), soy sauce by the spoon', () => {
+    const sushi = dish('sushi')!;
+    // the assortment stays the formats' own average
+    expect(estimate(sushi, 'p12', 'none', [], 'none', undefined, 1, 12, 'mix').total.kcal).toBe(500);
+    const nigiri = estimate(sushi, 'p6', 'none', [], 'none', undefined, 1, 6, 'nigiri').total.kcal;
+    const sashimi = estimate(sushi, 'p6', 'none', [], 'none', undefined, 1, 6, 'sashimi').total.kcal;
+    expect(nigiri).toBe(6 * 58);
+    expect(sashimi).toBe(6 * 32);
+    // two spoons of salty soy: twice the salt, three at most
+    const two = estimate(sushi, 'p6', 'none', ['soy', 'soy'], 'none', undefined, 1, 6);
+    expect(two.lines[1].portion.saltG).toBe(4.4);
+    expect(estimate(sushi, 'p6', 'none', ['soy', 'soy', 'soy', 'soy'], 'none', undefined, 1, 6).lines[1].portion.kcal).toBe(21);
+  });
+
+  it('1.17: nuggets, tenders, wings and fried chicken by the piece', () => {
+    expect(estimate(dish('nuggets')!, 'n6', 'none', [], 'none', undefined, 1, 9).total.kcal).toBe(Math.round(170 * (9 / 4)));
+    expect(estimate(dish('tenders')!, 't3', 'medium', ['dip'], 'none', undefined, 1, 4).total.kcal).toBe(460 + 340 + 50);
+    expect(estimate(dish('wings')!, 'w4', 'none', [], 'none', undefined, 1, 4).total.kcal).toBe(340);
+    // fried and ultra-processed: a low health score
+    expect(estimate(dish('tenders')!, 't3', 'none', [], 'none', undefined, 1, 3).health!).toBeLessThan(5);
+  });
+
   it('leaves out what was not taken, and fries where they do not apply', () => {
     expect(estimate(dish('kebab')!, 'plate', 'none', [], 'none').lines).toHaveLength(1);
     // French tacos come with their fries inside

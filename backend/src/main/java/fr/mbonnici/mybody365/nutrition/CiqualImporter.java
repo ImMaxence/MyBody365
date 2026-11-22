@@ -266,7 +266,8 @@ public class CiqualImporter {
 
     /** 1.15: the rules of MicrosSiblings the table in use was filled with (a new rule fills it again at the next start) */
     private static final String SIBLINGS_KEY = "micros_siblings";
-    private static final String SIBLINGS_RULES = "2";
+    /** 1.17: "3", the siblings chosen by hand (MicrosSiblings.BY_HAND) */
+    private static final String SIBLINGS_RULES = "3";
 
     /**
      * 1.15: the foods of a table without vitamins nor minerals take those of their closest sibling (MicrosSiblings),

@@ -303,6 +303,8 @@ for (const scheme of ['dark', 'light']) {
   await page.getByLabel('Poids aujourd’hui').fill('78,4');
   await page.getByLabel('Poids aujourd’hui').press('Tab');
   await page.getByRole('button', { name: 'Continuer' }).click();
+  // 1.17: the starting weight confirmed
+  await page.getByRole('button', { name: 'Oui, c’est bien ça' }).click();
   // the activity in two questions (1.7): the day, then the sessions
   await page.getByRole('radio', { name: /Debout/ }).click();
   raw['setup-light'] = await shot(page, 'setup-light');

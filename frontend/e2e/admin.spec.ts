@@ -21,6 +21,9 @@ test.describe('admin area', () => {
     await page.getByRole('link', { name: /Administration/ }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Administration');
     await expect(page.getByRole('link', { name: 'Écrire un e-mail' })).toHaveAttribute('href', /^mailto:/);
+    // the local database keeps every test account (over 1 500): the search narrows the list first (Safari's engine took
+    // longer than the wait to lay them all out)
+    await page.getByRole('searchbox', { name: 'Rechercher un compte' }).fill('admin@localhost');
     await expect(page.getByRole('button', { name: /admin@localhost/ })).toBeVisible();
     await expectAccessible(page);
 

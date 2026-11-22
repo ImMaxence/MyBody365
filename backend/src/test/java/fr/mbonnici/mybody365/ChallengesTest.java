@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
+import fr.mbonnici.mybody365.push.ReminderScheduler;
 import fr.mbonnici.mybody365.push.WebPushCrypto;
 import fr.mbonnici.mybody365.tracking.TrackingService;
 import fr.mbonnici.mybody365.user.AppUser;
@@ -27,6 +28,9 @@ class ChallengesTest extends AbstractIntegrationTest {
 
     @Autowired
     RecordingPushTransport pushes;
+
+    @Autowired
+    ReminderScheduler reminders;
 
     private AppUser lea;
     private AppUser hugo;
@@ -185,5 +189,71 @@ class ChallengesTest extends AbstractIntegrationTest {
         json(put("/api/me/logs/" + today + "/evening"), lea, "{\"weightKg\":12}").andExpect(status().isBadRequest());
         mvc.perform(delete("/api/me/logs/" + today + "/evening").with(as(lea)).with(csrf())).andExpect(status().isOk())
                 .andExpect(jsonPath("$.current.eveningKg").doesNotExist());
+    }
+
+    /**
+     * 1.17: at its time, one reminder for the challenges whose day is not done, once a day, none when it is done; every
+     * notification is kept in the member's notification centre (latest first, by pages), new until the centre is opened
+     */
+    @Test
+    void aDailyReminderForTheChallengesAndTheNotificationCentre() throws Exception {
+        befriend(lea, hugo);
+        device(lea, "https://web.push.apple.com/lea");
+        device(hugo, "https://web.push.apple.com/hugo");
+        // what an earlier test sent late is not this one's
+        Thread.sleep(300);
+        pushes.sent.clear();
+        mvc.perform(get("/api/me/notifications").with(as(lea))).andExpect(jsonPath("$.prefs.challengeEnabled").value(true))
+                .andExpect(jsonPath("$.prefs.challengeTime").value("20:00"));
+        json(post("/api/me/challenges"), lea, "{\"kind\":\"WEIGH\",\"days\":7,\"friends\":[\"" + hugo.getId() + "\"]}").andExpect(status().isCreated());
+        awaitPushes(1);
+        // Hugo's invitation is in his centre, new
+        mvc.perform(get("/api/me/notifications/history").with(as(hugo))).andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].kind").value("FRIEND_CHALLENGE")).andExpect(jsonPath("$.items[0].url").value("/app/challenges"))
+                .andExpect(jsonPath("$.items[0].unread").value(true));
+        mvc.perform(get("/api/me/todo").with(as(hugo))).andExpect(jsonPath("$.notifications").value(1));
+
+        // 20:00: Léa has not weighed in, Hugo has not joined (invited only): Léa alone is reminded, once
+        pushes.sent.clear();
+        reminders.run(today, java.time.LocalTime.of(19, 59));
+        assertThat(pushes.sent).isEmpty();
+        reminders.run(today, java.time.LocalTime.of(20, 0));
+        assertThat(pushes.sent).hasSize(1);
+        assertThat(pushes.sent.getFirst().endpoint().toString()).endsWith("/lea");
+        reminders.run(today, java.time.LocalTime.of(20, 0));
+        assertThat(pushes.sent).hasSize(1);
+        mvc.perform(get("/api/me/notifications/history").with(as(lea))).andExpect(jsonPath("$.items[0].kind").value("CHALLENGE_REMINDER"))
+                .andExpect(jsonPath("$.items[0].title").value("Ton défi t’attend 🏆"))
+                .andExpect(jsonPath("$.items[0].body").value("Ta pesée compte pour le défi (jour 1 sur 7)"));
+
+        // the next day, weighed in: nothing; a time of one's own, or off
+        jdbc.update("update notification_pref set last_challenge = ? where user_id = ?", today.minusDays(1), lea.getId());
+        profile(lea);
+        pushes.sent.clear();
+        reminders.run(today, java.time.LocalTime.of(20, 0));
+        assertThat(pushes.sent).isEmpty();
+        json(put("/api/me/notifications"), lea, """
+                {"dailyEnabled":false,"dailyTime":"08:00","gymEnabled":false,"gymDays":"1,3,5","gymTime":"18:00","friendsEnabled":true,
+                 "challengeEnabled":false,"challengeTime":"21:30"}""").andExpect(jsonPath("$.prefs.challengeEnabled").value(false))
+                .andExpect(jsonPath("$.prefs.challengeTime").value("21:30"));
+        json(put("/api/me/notifications"), lea, """
+                {"dailyEnabled":false,"dailyTime":"08:00","gymEnabled":false,"gymDays":"1,3,5","gymTime":"18:00","friendsEnabled":true,
+                 "challengeTime":"25:00"}""").andExpect(status().isBadRequest());
+
+        // the centre: latest first, by pages of 20, read once opened; another member's never shows
+        for (int i = 0; i < 25; i++) {
+            jdbc.update("insert into notification_log (id, user_id, kind, title, body, url, created_at) values (?, ?, 'TEST', ?, 'b', '/app', now() - ?::interval)",
+                    java.util.UUID.randomUUID(), hugo.getId(), "n" + i, (i + 1) + " hours");
+        }
+        mvc.perform(get("/api/me/notifications/history").with(as(hugo))).andExpect(jsonPath("$.total").value(26))
+                .andExpect(jsonPath("$.pages").value(2)).andExpect(jsonPath("$.items.length()").value(20))
+                .andExpect(jsonPath("$.items[0].kind").value("FRIEND_CHALLENGE")).andExpect(jsonPath("$.items[1].title").value("n0"));
+        mvc.perform(get("/api/me/notifications/history?page=1").with(as(hugo))).andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.items.length()").value(6)).andExpect(jsonPath("$.items[5].title").value("n24"));
+        mvc.perform(get("/api/me/notifications/history?page=99").with(as(hugo))).andExpect(jsonPath("$.page").value(1));
+        mvc.perform(post("/api/me/notifications/seen").with(as(hugo)).with(csrf())).andExpect(status().isNoContent());
+        mvc.perform(get("/api/me/todo").with(as(hugo))).andExpect(jsonPath("$.notifications").value(0));
+        mvc.perform(get("/api/me/notifications/history").with(as(hugo))).andExpect(jsonPath("$.items[0].unread").value(false));
+        mvc.perform(get("/api/me/notifications/history").with(as(ines))).andExpect(jsonPath("$.total").value(0));
     }
 }

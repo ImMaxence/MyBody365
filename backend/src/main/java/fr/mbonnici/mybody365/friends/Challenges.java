@@ -194,6 +194,34 @@ public class Challenges {
                 FriendService.firstName((String) c.get("display_name")), mine, ranked);
     }
 
+    /** 1.17: a running challenge whose day is not done yet: its kind, the day it is (1 = the first), its length, a friend in it */
+    public record Left(Kind kind, int day, int length, String friend) {}
+
+    /** 1.17: the challenges a member joined, running today, whose day is not done yet (the daily reminder) */
+    public List<Left> leftToday(UUID userId, LocalDate today) {
+        List<Map<String, Object>> rows = jdbc.queryForList("""
+                select c.id, c.kind, c.start_day, c.end_day,
+                  (select u.display_name from challenge_member o join app_user u on u.id = o.user_id
+                   where o.challenge_id = c.id and o.user_id <> ? and o.status = 'JOINED' and u.status = 'ACTIVE'
+                   order by o.invited_at limit 1) as friend
+                from challenge c join challenge_member m on m.challenge_id = c.id
+                where m.user_id = ? and m.status = 'JOINED' and c.start_day <= ? and c.end_day >= ?
+                order by c.start_day, c.created_at""", userId, userId, today, today);
+        List<Left> out = new ArrayList<>();
+        for (Map<String, Object> r : rows) {
+            Kind kind = Kind.valueOf((String) r.get("kind"));
+            if (!doneDays(kind, userId, today, today).isEmpty()) {
+                continue;
+            }
+            LocalDate start = ((java.sql.Date) r.get("start_day")).toLocalDate();
+            LocalDate end = ((java.sql.Date) r.get("end_day")).toLocalDate();
+            String friend = (String) r.get("friend");
+            out.add(new Left(kind, (int) java.time.temporal.ChronoUnit.DAYS.between(start, today) + 1,
+                    (int) java.time.temporal.ChronoUnit.DAYS.between(start, end) + 1, friend == null ? "" : FriendService.firstName(friend)));
+        }
+        return out;
+    }
+
     /** the days a member did it, read from what the app keeps */
     private Set<LocalDate> doneDays(Kind kind, UUID user, LocalDate from, LocalDate to) {
         String sql = switch (kind) {

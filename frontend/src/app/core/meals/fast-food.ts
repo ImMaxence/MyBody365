@@ -25,6 +25,8 @@ export interface Portion {
   scale?: number;
   /** 1.16: an extra offered with these formats only (the soy sauces of a poke bowl) */
   only?: string[];
+  /** 1.17: an extra that can be taken more than once (soy sauce, by the spoon): the most */
+  max?: number;
 }
 
 /**
@@ -56,6 +58,11 @@ export interface Dish {
    * and the most that can be entered; a piece is worth the first format's share
    */
   pieces?: { of: Record<string, number>; max: number };
+  /**
+   * 1.17: the kinds of a dish counted piece by piece (sushi: a sashimi is about 30 kcal, a nigiri or a california about
+   * 60), each option being one piece; the first one (« assortiment ») is the formats' own average
+   */
+  kinds?: { usual: string; options: Portion[] };
 }
 
 /** the share of a dish eaten, all of it by default */
@@ -122,8 +129,10 @@ const sized = (x: Portion, scale: number): Portion => ({ ...x, scale });
  * 1.16: a tablespoon of soy sauce (15 ml, about what a ramekin leaves on the sushi): salty, 17 g of Ciqual's 40 kcal and
  * 13.1 g of salt per 100 g; sweet, 19 g of its 171 kcal, 39.5 g of sugars and 6.9 g of salt per 100 g
  */
-const SOY = p('soy', 7, 1.2, 0.3, 0, [17, 0, 0, 2.2, 0.2]);
-const SOY_SWEET = p('soySweet', 32, 0.5, 7.5, 0, [19, 7.5, 0, 1.3, 0]);
+const SOY = { ...p('soy', 7, 1.2, 0.3, 0, [17, 0, 0, 2.2, 0.2]), max: 3 };
+const SOY_SWEET = { ...p('soySweet', 32, 0.5, 7.5, 0, [19, 7.5, 0, 1.3, 0]), max: 3 };
+/** a sauce to dip the breaded chicken in, 25 g */
+const DIP = p('dip', 50, 0, 8, 2, [25, 6, 0.3, 0.5, 0]);
 const CHEESE = p('cheese', 80, 5, 0, 7, [20, 0, 4.5, 0.4, 0]);
 
 export const DISHES: Dish[] = [
@@ -207,7 +216,51 @@ export const DISHES: Dish[] = [
     ],
     usual: 'n6',
     fries: true,
-    extras: [p('dip', 50, 0, 8, 2, [25, 6, 0.3, 0.5, 0])],
+    // 1.17: by the piece too
+    pieces: { of: { n4: 4, n6: 6, n9: 9, n20: 20 }, max: 40 },
+    extras: [DIP],
+  },
+  {
+    // 1.17: breaded chicken fillets, about 45 g each
+    key: 'tenders',
+    emoji: '🍤',
+    formats: [
+      p('t3', 345, 27, 21, 16.5, [135, 0.9, 3, 1.8, 1.2]),
+      p('t5', 575, 45, 35, 27.5, [225, 1.5, 5, 3, 2]),
+      p('t8', 920, 72, 56, 44, [360, 2.4, 8, 4.8, 3.2]),
+    ],
+    usual: 't3',
+    fries: true,
+    pieces: { of: { t3: 3, t5: 5, t8: 8 }, max: 20 },
+    extras: [DIP],
+  },
+  {
+    // 1.17: spicy breaded wings, about 30 g eaten each
+    key: 'wings',
+    emoji: '🌶️',
+    formats: [
+      p('w4', 340, 24, 12, 22, [120, 0.4, 6, 2, 0.8]),
+      p('w8', 680, 48, 24, 44, [240, 0.8, 12, 4, 1.6]),
+      p('w12', 1020, 72, 36, 66, [360, 1.2, 18, 6, 2.4]),
+    ],
+    usual: 'w4',
+    fries: true,
+    pieces: { of: { w4: 4, w8: 8, w12: 12 }, max: 30 },
+    extras: [DIP],
+  },
+  {
+    // 1.17: fried chicken on the bone (drumsticks, thighs), about 70 g eaten a piece
+    key: 'friedChicken',
+    emoji: '🐔',
+    formats: [
+      p('c2', 400, 34, 12, 24, [140, 0.4, 6, 2, 0.6]),
+      p('c3', 600, 51, 18, 36, [210, 0.6, 9, 3, 0.9]),
+      p('c6', 1200, 102, 36, 72, [420, 1.2, 18, 6, 1.8]),
+    ],
+    usual: 'c2',
+    fries: true,
+    pieces: { of: { c2: 2, c3: 3, c6: 6 }, max: 16 },
+    extras: [DIP],
   },
   {
     key: 'sushi',
@@ -220,6 +273,19 @@ export const DISHES: Dish[] = [
     usual: 'p12',
     fries: false,
     pieces: { of: { p6: 6, p12: 12, p18: 18 }, max: 60 },
+    // 1.17: one piece of each kind (an assortment: the formats' average, about 42 kcal)
+    kinds: {
+      usual: 'mix',
+      options: [
+        p('mix', 42, 1.5, 7.5, 0.5, [25, 1, 0.1, 0.25, 0.2]),
+        p('maki', 37, 1.6, 6.5, 0.5, [25, 1, 0.1, 0.22, 0.2]),
+        p('california', 60, 1.6, 8.5, 2.2, [32, 1.3, 0.35, 0.3, 0.5]),
+        p('nigiri', 58, 3, 9.5, 1, [35, 1.4, 0.2, 0.3, 0.2]),
+        p('sashimi', 32, 3.8, 0, 1.9, [18, 0, 0.4, 0.05, 0]),
+        p('spring', 58, 2.2, 6.5, 2.6, [35, 0.8, 0.7, 0.25, 0.6]),
+        p('crispy', 70, 1.8, 9, 3, [32, 1.2, 0.5, 0.3, 0.3]),
+      ],
+    },
     extras: [SOY, SOY_SWEET, p('miso', 40, 3, 4, 1, [200, 1, 0.2, 2, 0.5]), p('edamame', 120, 11, 9, 5, [100, 2, 0.7, 0.6, 5])],
   },
   {
@@ -310,8 +376,8 @@ export function gradeOf(x: Portion): Grade | null {
 }
 
 /** the chains' dishes, ultra-processed (buns, sauces, nuggets…); a restaurant's pizza, sushi or salad is only processed */
-const ULTRA = new Set(['burger', 'kebab', 'tacos', 'fries', 'nuggets']);
-const FRIED = new Set(['fries', 'nuggets']);
+const ULTRA = new Set(['burger', 'kebab', 'tacos', 'fries', 'nuggets', 'tenders', 'wings', 'friedChicken']);
+const FRIED = new Set(['fries', 'nuggets', 'tenders', 'wings', 'friedChicken']);
 /** drinks: ultra-processed sodas, with sweeteners, made of fruit */
 const DRINK_ULTRA = new Set(['cola', 'colaZero', 'soda50', 'iceTea', 'milkshake']);
 
@@ -363,12 +429,22 @@ export function extrasFor(d: Dish, format: string): Portion[] {
   return d.extras.filter((x) => !x.only || x.only.includes(format));
 }
 
-/** 1.16: n pieces of a dish counted piece by piece, each worth the first format's share (null: not such a dish) */
-export function pieces(d: Dish, n: number): Portion | null {
+/**
+ * 1.16: n pieces of a dish counted piece by piece, each worth the first format's share (null: not such a dish); 1.17: of a
+ * kind (sushi: sashimi, nigiri…), each worth that kind's piece; the first kind is the formats' own average
+ */
+export function pieces(d: Dish, n: number, kind?: string): Portion | null {
   if (!d.pieces) return null;
-  const ref = d.formats[0];
   const count = Math.max(1, Math.min(d.pieces.max, Math.round(n)));
+  const k = d.kinds?.options.find((o) => o.key === kind);
+  if (k && k.key !== d.kinds!.options[0].key) return { ...part(k, count), key: 'pieces' };
+  const ref = d.formats[0];
   return { ...part(ref, count / d.pieces.of[ref.key]), key: 'pieces' };
+}
+
+/** 1.17: how many times an extra was taken (soy sauce by the spoon), at most its max */
+export function timesOf(x: Portion, extras: string[]): number {
+  return Math.min(x.max ?? 1, extras.filter((k) => k === x.key).length);
 }
 
 /** what is added, line by line, the total and the meal's grade (weighted by calories) */
@@ -383,17 +459,22 @@ export function estimate(
   share = 1,
   /** 1.16: the pieces, for a dish counted piece by piece (sushi) */
   count?: number,
+  /** 1.17: the kind of piece (sushi) */
+  kind?: string,
 ): { lines: { kind: string; portion: Portion; grade: Grade | null; health: number | null }[]; total: Portion; grade: Grade | null; health: number | null } {
   const picked: { kind: string; portion: Portion }[] = [];
   const main = d.formats.find((f) => f.key === format) ?? d.formats[0];
-  const counted = count == null ? null : pieces(d, count);
+  const counted = count == null ? null : pieces(d, count, kind);
   picked.push({
     kind: 'main',
     portion: counted ?? part(withChoice(main, d.choice?.options.find((o) => o.key === (choice ?? d.choice?.usual))), d.share ? share : 1),
   });
   const side = FRIES.find((f) => f.key === fries);
   if (d.fries && side && side.key !== 'none') picked.push({ kind: 'fries', portion: side });
-  for (const e of extrasFor(d, main.key).filter((x) => extras.includes(x.key))) picked.push({ kind: 'extra', portion: e });
+  for (const e of extrasFor(d, main.key)) {
+    const n = timesOf(e, extras);
+    if (n > 0) picked.push({ kind: 'extra', portion: n > 1 ? { ...part(e, n), key: e.key } : e });
+  }
   const dr = DRINKS.find((x) => x.key === drinkKey);
   if (dr && dr.key !== 'none') picked.push({ kind: 'drink', portion: dr });
   const lines = picked.map((l) => ({

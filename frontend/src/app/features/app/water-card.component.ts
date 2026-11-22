@@ -1,3 +1,4 @@
+import { WaitingNoteComponent } from '../../shared/waiting-note.component';
 import { ChangeDetectionStrategy, Component, DestroyRef, WritableSignal, computed, inject, input, signal } from '@angular/core';
 import { errorCode } from '../../core/api/api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -33,7 +34,7 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
   selector: 'app-water-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[class.calm]': 'calm()' },
-  imports: [TranslatePipe, IconComponent, HapticDirective],
+  imports: [TranslatePipe, IconComponent, HapticDirective, WaitingNoteComponent],
   template: `
     <section class="water card" [class.reached]="reached()" [attr.aria-label]="'water.title' | t">
       <div class="head">
@@ -51,7 +52,9 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
         <span class="litres num"><b>{{ litres() }}</b> / {{ goalLitres() }} L</span>
       </div>
 
-      <div class="glasses" role="group" [class.cheer]="cheer()" [attr.aria-label]="'water.glasses' | t" [style.--cols]="cols()">
+      <!-- 1.17: counted without network: greyed until sent, back to colour once there -->
+      <div class="glasses" role="group" [class.cheer]="cheer()" [class.is-waiting]="!!waiting()" [class.is-arrived]="arrived()"
+        [attr.aria-label]="'water.glasses' | t" [style.--cols]="cols()">
         @for (s of slots(); track $index; let i = $index) {
           <span class="haptic box">
             <button type="button" class="glass" [class.on]="i < shown()" [class.next]="i === shown()" [class.just]="i === just()"
@@ -89,7 +92,11 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
       </div>
 
       <div class="foot">
-        <span class="tiny muted">{{ 'water.size' | t }}</span>
+        @if (waiting(); as w) {
+          <app-waiting-note [waitId]="w.id" />
+        } @else {
+          <span class="tiny muted">{{ 'water.size' | t }}</span>
+        }
         <span class="haptic">
           <button type="button" class="less" [disabled]="!count()" [attr.aria-label]="'water.less' | t" (click)="set((count() ?? 0) - 1)">
             <app-icon name="minus" [size]="16" [stroke]="2.6" /> {{ 'water.lessShort' | t }}
@@ -496,9 +503,19 @@ export class WaterCardComponent {
     return this.i18n.t(left === 1 ? 'water.leftOne' : 'water.left', { n: left });
   });
 
+  /** 1.17: today's glasses counted without network, and the moment they reach the server */
+  protected readonly waiting = computed(() => this.outbox.of('water', this.store.today()).at(-1) ?? null);
+  protected readonly arrived = signal(false);
+
   constructor() {
     this.store.load();
+    const sent = this.outbox.sent.subscribe((p) => {
+      if (p.kind !== 'water' || p.day !== this.store.today()) return;
+      this.arrived.set(true);
+      this.timers.set('arrived', setTimeout(() => this.arrived.set(false), 1400));
+    });
     inject(DestroyRef).onDestroy(() => {
+      sent.unsubscribe();
       if (this.justTimer) clearTimeout(this.justTimer);
       for (const t of this.timers.values()) clearTimeout(t);
     });
