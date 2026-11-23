@@ -15,6 +15,10 @@ export const routes: Routes = [
   { path: 'link', loadComponent: () => import('./features/link/link.page').then((m) => m.LinkPage) },
   // friend links: work in any browser tab too (QR codes often open outside the installed app)
   { path: 'friends/add', loadComponent: () => import('./features/friends/friend-link.page').then((m) => m.FriendLinkPage) },
+  // 1.19: a member's read-only link for a coach or a dietitian (the token after the #): any browser, no account
+  { path: 'partage', loadComponent: () => import('./features/share/shared.page').then((m) => m.SharedPage) },
+  // 1.19: a recipe's link opened in a browser (an iPhone opens links in Safari, never in the installed app)
+  { path: 'recette/:id', loadComponent: () => import('./features/share/recipe-link.page').then((m) => m.RecipeLinkPage) },
 
   // the app: installed only
   {
@@ -46,6 +50,8 @@ export const routes: Routes = [
           { path: 'meals/shopping', loadComponent: () => import('./features/meals/shopping.page').then((m) => m.ShoppingPage), data: { depth: 1, back: '/app/meals' } },
           { path: 'meals/recipes/new', loadComponent: () => import('./features/meals/recipe-edit.page').then((m) => m.RecipeEditPage), data: { depth: 2, back: '/app/meals/recipes' } },
           { path: 'meals/recipes/:id', loadComponent: () => import('./features/meals/recipe.page').then((m) => m.RecipePage), data: { depth: 2, back: '/app/meals/recipes' } },
+          // 1.19: the steps of a recipe, one by one, the screen kept on
+          { path: 'meals/recipes/:id/cook', loadComponent: () => import('./features/meals/cook.page').then((m) => m.CookPage), data: { depth: 3, back: '/app/meals/recipes' } },
           { path: 'meals/recipes/:id/edit', loadComponent: () => import('./features/meals/recipe-edit.page').then((m) => m.RecipeEditPage), data: { depth: 3, back: '/app/meals/recipes' } },
           { path: 'photos', loadComponent: TABS.photos, data: { depth: 0 } },
           { path: 'photos/camera', loadComponent: () => import('./features/photos/camera.page').then((m) => m.CameraPage), data: { depth: 1, back: '/app/photos' } },
@@ -60,6 +66,9 @@ export const routes: Routes = [
           },
           { path: 'photos/:id', loadComponent: () => import('./features/photos/photo-viewer.page').then((m) => m.PhotoViewerPage), data: { depth: 1, back: '/app/photos' } },
           { path: 'progress', loadComponent: TABS.progress, data: { depth: 0 } },
+          // 1.19: the recap of a month, told like a story; the blood pressure readings for the doctor
+          { path: 'progress/recap/:month', loadComponent: () => import('./features/app/recap.page').then((m) => m.RecapPage), data: { depth: 1, back: '/app/progress' } },
+          { path: 'progress/bp-report', loadComponent: () => import('./features/app/bp-report.page').then((m) => m.BpReportPage), data: { depth: 1, back: '/app/progress' } },
           { path: 'account', loadComponent: TABS.account, data: { depth: 0 } },
           { path: 'account/goal', loadComponent: () => import('./features/app/goal.page').then((m) => m.GoalPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/security', loadComponent: () => import('./features/app/security.page').then((m) => m.SecurityPage), data: { depth: 1, back: '/app/account' } },
@@ -67,6 +76,8 @@ export const routes: Routes = [
           { path: 'account/water', loadComponent: () => import('./features/app/water-settings.page').then((m) => m.WaterSettingsPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/settings', loadComponent: () => import('./features/app/app-settings.page').then((m) => m.AppSettingsPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/notifications', loadComponent: () => import('./features/app/notifications.page').then((m) => m.NotificationsPage), data: { depth: 1, back: '/app/account' } },
+          // 1.19: the read-only links for a coach or a dietitian
+          { path: 'account/share', loadComponent: () => import('./features/app/share-links.page').then((m) => m.ShareLinksPage), data: { depth: 1, back: '/app/account' } },
           // 1.17: the optional modules: the blood pressure, the pill box
           { path: 'account/health', loadComponent: () => import('./features/app/health.page').then((m) => m.HealthPage), data: { depth: 1, back: '/app/account' } },
           { path: 'account/changelog', loadComponent: () => import('./features/changelog/changelog.page').then((m) => m.ChangelogPage), data: { depth: 1, back: '/app/account', inApp: true } },

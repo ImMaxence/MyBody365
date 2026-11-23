@@ -29,11 +29,13 @@ public class ReminderScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(ReminderScheduler.class);
 
+    private final fr.mbonnici.mybody365.tracking.MonthlyRecap recaps;
     private final JdbcTemplate jdbc;
     private final PushService push;
     private final Challenges challenges;
 
-    public ReminderScheduler(JdbcTemplate jdbc, PushService push, Challenges challenges) {
+    public ReminderScheduler(JdbcTemplate jdbc, PushService push, Challenges challenges, fr.mbonnici.mybody365.tracking.MonthlyRecap recaps) {
+        this.recaps = recaps;
         this.jdbc = jdbc;
         this.push = push;
         this.challenges = challenges;
@@ -76,6 +78,33 @@ public class ReminderScheduler {
             pills(today, minute);
         } catch (RuntimeException e) {
             log.warn("Pill box reminders failed: {}", e.getMessage());
+        }
+        try {
+            recap(today, minute);
+        } catch (RuntimeException e) {
+            log.warn("Monthly recaps failed: {}", e.getMessage());
+        }
+    }
+
+    /** 1.19: on the 1st at 10:00, the recap of the month that ended, to those who have something to see in it; once */
+    private void recap(LocalDate today, LocalTime minute) {
+        if (today.getDayOfMonth() != 1 || !minute.equals(LocalTime.of(10, 0))) {
+            return;
+        }
+        java.time.YearMonth month = java.time.YearMonth.from(today).minusMonths(1);
+        String key = month.toString();
+        List<UUID> users = jdbc.queryForList("""
+                select p.user_id from notification_pref p
+                where (p.last_recap is null or p.last_recap < ?) and exists (select 1 from push_subscription s where s.user_id = p.user_id)""",
+                UUID.class, key);
+        java.util.Locale fr = java.util.Locale.FRENCH;
+        String monthFr = month.getMonth().getDisplayName(java.time.format.TextStyle.FULL, fr);
+        String monthEn = month.getMonth().getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.ENGLISH);
+        for (UUID user : users) {
+            if (jdbc.update("update notification_pref set last_recap = ? where user_id = ? and (last_recap is null or last_recap < ?)", key, user, key) == 1
+                    && recaps.worthTelling(user, month)) {
+                push.notify(user, Kind.MONTHLY_RECAP, Map.of("month", key, "monthFr", monthFr, "monthEn", monthEn));
+            }
         }
     }
 
@@ -189,7 +218,8 @@ public class ReminderScheduler {
     private void daily(LocalDate today, LocalTime minute) {
         List<UUID> due = jdbc.queryForList("""
                 select p.user_id from notification_pref p
-                where p.daily_enabled and p.daily_time = ? and (p.last_daily is null or p.last_daily < ?)
+                where p.daily_enabled and (case when p.smart_time and p.smart_daily_time is not null then p.smart_daily_time else p.daily_time end) = ?
+                  and (p.last_daily is null or p.last_daily < ?)
                   and exists (select 1 from push_subscription s where s.user_id = p.user_id)""", UUID.class, minute, today);
         for (UUID user : due) {
             jdbc.update("update notification_pref set last_daily = ? where user_id = ?", today, user);
@@ -207,7 +237,8 @@ public class ReminderScheduler {
     private void photo(LocalDate today, LocalTime minute) {
         List<UUID> due = jdbc.queryForList("""
                 select p.user_id from notification_pref p
-                where p.photo_enabled and p.photo_time = ? and (p.last_photo is null or p.last_photo < ?)
+                where p.photo_enabled and (case when p.smart_time and p.smart_photo_time is not null then p.smart_photo_time else p.photo_time end) = ?
+                  and (p.last_photo is null or p.last_photo < ?)
                   and exists (select 1 from push_subscription s where s.user_id = p.user_id)""", UUID.class, minute, today);
         for (UUID user : due) {
             // claimed first: two instances never send it twice

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { recipeLinkId } from '../../core/meals/recipe-link';
 import type { Recipe, RecipeType } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -505,7 +506,16 @@ export class RecipesPage {
   private searchSeq = 0;
 
   /** two letters at least: a single one would find everything */
+  private readonly linkRouter = inject(Router);
+
   protected search(value: string): void {
+    // 1.19: a recipe's link pasted here opens the recipe
+    const id = recipeLinkId(value);
+    if (id) {
+      this.term.set('');
+      void this.linkRouter.navigate(['/app/meals/recipes', id]);
+      return;
+    }
     this.term.set(value);
     if (this.searchTimer) clearTimeout(this.searchTimer);
     this.searchTimer = setTimeout(() => this.query.set(plain(value).length >= 2 ? value.trim() : ''), 300);

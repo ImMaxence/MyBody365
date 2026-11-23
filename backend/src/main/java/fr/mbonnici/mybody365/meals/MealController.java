@@ -7,9 +7,12 @@ import fr.mbonnici.mybody365.meals.MealService.MealInput;
 import fr.mbonnici.mybody365.meals.MealService.MealUpdate;
 import fr.mbonnici.mybody365.meals.MealService.RecentDto;
 import fr.mbonnici.mybody365.meals.MealService.StatsDto;
+import fr.mbonnici.mybody365.recipe.MealDescription;
 import fr.mbonnici.mybody365.tracking.TrackingService;
 import fr.mbonnici.mybody365.user.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -31,12 +34,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/me/meals")
 public class MealController {
 
+    /** 1.19: what a meal was, as one says it (« 200 g de poulet, du riz et une pomme ») */
+    public record DescribeInput(@NotBlank @Size(max = 500) String text) {}
+
     private final MealService meals;
     private final UserService users;
+    private final MealDescription description;
 
-    public MealController(MealService meals, UserService users) {
+    public MealController(MealService meals, UserService users, MealDescription description) {
         this.meals = meals;
         this.users = users;
+        this.description = description;
+    }
+
+    /** 1.19: « Décris ton repas »: each part a food of the table and its weight, to be checked before it is noted */
+    @PostMapping("/describe")
+    public List<MealDescription.Described> describe(@Valid @RequestBody DescribeInput body, Authentication auth) {
+        return description.describe(users.current(auth).getId(), body.text());
     }
 
     @GetMapping

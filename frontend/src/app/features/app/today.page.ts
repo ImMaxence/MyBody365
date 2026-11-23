@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, ElementRef, a
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { closeSheet } from '../../core/ui/sheets';
 import { HapticDirective } from '../../core/ui/haptics';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Location } from '@angular/common';
 import { ApiService, errorCode } from '../../core/api/api.service';
 import { ToastService } from '../../core/ui/toast.service';
 import { TodoStore } from '../../core/support/support-api';
@@ -82,6 +83,10 @@ function writeFlag(key: string): void {
         </a>
       }
 
+      <!-- 1.19: the glasses of water beside the flame, a swipe to the left away: no longer in the way of the page's scroll
+           (a finger scrolling from a glass used to fill it) -->
+      <div class="hero" [class.paged]="!!account()?.waterGoal">
+      <div class="hero-track" #heroTrack (scroll)="heroScrolled(heroTrack)">
       <!-- the whole card opens the calendar of the flame (the button is there for the keyboard and screen readers) -->
       <section class="streak" [class.lit]="streakDays() > 0" [attr.aria-label]="'today.streak' | t" (click)="flameDialog.open || flameDialog.showModal()"
         [style.--st-from]="tint()['--st-from']" [style.--st-to]="tint()['--st-to']" [style.--st-glow]="tint()['--st-glow']">
@@ -112,6 +117,17 @@ function writeFlag(key: string): void {
         </div>
         <p class="small hint">{{ streakMessage() | t }}</p>
       </section>
+      @if (account()?.waterGoal; as goal) {
+        <app-water-card [goal]="goal" [compact]="true" />
+      }
+      </div>
+      @if (account()?.waterGoal) {
+        <div class="hero-dots" role="group" [attr.aria-label]="'today.heroPages' | t">
+          <button type="button" [attr.aria-pressed]="heroPage() === 0" [attr.aria-label]="'today.streak' | t" (click)="heroGo(heroTrack, 0)"></button>
+          <button type="button" [attr.aria-pressed]="heroPage() === 1" [attr.aria-label]="'water.title' | t" (click)="heroGo(heroTrack, 1)"></button>
+        </div>
+      }
+      </div>
 
       <!-- the streak's look: an icon and a colour, saved at once -->
       <dialog class="sheet" #styleDialog [attr.aria-label]="'engage.streakStyle.title' | t">
@@ -196,7 +212,6 @@ function writeFlag(key: string): void {
         </div>
       </dialog>
 
-      <app-push-prompt [dismissable]="true" />
 
       <dialog class="sheet" #eveningDialog [attr.aria-label]="'today.evening.title' | t">
         <div class="sheet-grip"></div>
@@ -223,7 +238,7 @@ function writeFlag(key: string): void {
       <h2 class="section-title">{{ 'today.todo' | t }}</h2>
       <div class="list">
         <!-- 1.17: noted without network: greyed with « Sera envoyé plus tard », back to colour once sent -->
-        <!-- 1.18: not done yet today: it stands out (warm, its icon breathing, « À faire ») until it is -->
+        <!-- 1.18: not done yet today: it stands out (warm, « À faire ») until it is -->
         <button type="button" class="list-item task" [class.done]="weighedIn() || !!weighWaiting()" [class.is-waiting]="!!weighWaiting()"
           [class.todo-now]="weighToDo()" [class.is-arrived]="arrived() === 'weigh'" (click)="weigh()">
           <span class="list-icon"><app-icon [name]="weighedIn() || weighWaiting() ? 'check' : 'weight'" /></span>
@@ -313,9 +328,9 @@ function writeFlag(key: string): void {
         </a>
       </div>
 
-      @if (account()?.waterGoal; as goal) {
-        <app-water-card [goal]="goal" />
-      }
+      <!-- 1.19: after the day's to-do (the weigh-in first on the screen), not above it -->
+      <app-push-prompt [dismissable]="true" />
+
       <!-- 1.17: the blood pressure and the pill box, when turned on in the profile -->
       <app-health-today />
 
@@ -445,6 +460,70 @@ function writeFlag(key: string): void {
     }
     .admin-cta span:first-of-type {
       flex: 1;
+    }
+    /* 1.19: the flame, and the water beside it: full-width pages a swipe apart, the dots under them */
+    .hero {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .hero-track {
+      display: flex;
+      /* wider than the page's margin: no edge of the next card shows at the screen's side */
+      gap: var(--space-6);
+      /* to the screen's edges, with room for the cards' shadows inside the scroller */
+      margin: -6px calc(-1 * var(--space-4)) -16px;
+      padding: 6px var(--space-4) 16px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--space-4);
+      scrollbar-width: none;
+    }
+    .hero-track::-webkit-scrollbar {
+      display: none;
+    }
+    .hero-track > * {
+      flex: 0 0 100%;
+      min-width: 0;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+    /* its card fills the row's height */
+    .hero-track > app-water-card {
+      display: grid;
+    }
+    .hero.paged .streak {
+      align-content: center;
+    }
+    .hero-dots {
+      display: flex;
+      justify-content: center;
+      margin-top: -4px;
+    }
+    .hero-dots button {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 24px;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hero-dots button::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 4px;
+      background: var(--line-strong);
+      transition:
+        width 260ms var(--ease-out),
+        background-color 260ms var(--ease-out);
+    }
+    .hero-dots button[aria-pressed='true']::before {
+      width: 18px;
+      background: var(--fg-2);
     }
     .streak {
       position: relative;
@@ -763,38 +842,16 @@ function writeFlag(key: string): void {
       background: #16a34a;
       color: #fff;
     }
-    /* 1.18: the weigh-in of the day, not done yet: warm, a bar of the flame on its edge, its icon breathing */
+    /* 1.18: the weigh-in of the day, not done yet: warm, its icon in the flame's colours (1.19: still, no bar on the
+       edge: the breathing looked like an advert, the bar was cut by the corner of the list) */
     .task.todo-now {
-      position: relative;
       background:
         radial-gradient(130% 160% at 0% 50%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 70%),
         color-mix(in srgb, var(--accent) 5%, var(--surface));
     }
-    .task.todo-now::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 10px;
-      bottom: 10px;
-      width: 4px;
-      border-radius: 0 4px 4px 0;
-      background: var(--flame);
-    }
     .task.todo-now .list-icon {
       background: var(--flame);
       color: #fff;
-      animation: weigh-breathe 2.4s ease-in-out infinite;
-    }
-    @keyframes weigh-breathe {
-      0%,
-      100% {
-        box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 40%, transparent);
-        transform: scale(1);
-      }
-      50% {
-        box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 0%, transparent);
-        transform: scale(1.06);
-      }
     }
     .weigh-title {
       display: flex !important;
@@ -810,12 +867,13 @@ function writeFlag(key: string): void {
     .task.todo-now .weigh-name {
       font-weight: 750;
     }
+    /* 1.19: white on a deeper orange (white on the brand orange is too pale to read: 3.1:1) */
     .todo-chip {
       flex: none;
       padding: 2px 8px;
       border-radius: var(--radius-pill);
-      background: var(--accent);
-      color: var(--accent-ink);
+      background: #c2410c;
+      color: #fff;
       font-size: 11px;
       font-weight: 750;
       line-height: 1.5;
@@ -842,7 +900,6 @@ function writeFlag(key: string): void {
       transform: scale(0.9);
     }
     @media (prefers-reduced-motion: reduce) {
-      .task.todo-now .list-icon,
       .todo-chip {
         animation: none;
       }
@@ -954,6 +1011,19 @@ function writeFlag(key: string): void {
   `,
 })
 export class TodayPage {
+  /** 1.19: the page of the flame (0) or of the water (1) in view */
+  protected readonly heroPage = signal(0);
+  private readonly doc = inject(DOCUMENT);
+
+  protected heroScrolled(track: HTMLElement): void {
+    const page = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+    if (page !== this.heroPage()) this.heroPage.set(page);
+  }
+
+  protected heroGo(track: HTMLElement, page: number): void {
+    const reduce = this.doc.defaultView?.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    track.scrollTo({ left: page * track.clientWidth, behavior: reduce ? 'auto' : 'smooth' });
+  }
   protected readonly session = inject(SessionStore);
   protected readonly i18n = inject(I18nService);
   private readonly api = inject(ApiService);
@@ -1164,6 +1234,14 @@ export class TodayPage {
       destroy.onDestroy(() => clearInterval(clock));
     });
     this.refresh();
+    // 1.19: opened from the app's shortcut « Me peser » (a long press on its icon): the weigh-in sheet at once, once the day is known
+    if (inject(ActivatedRoute).snapshot.queryParamMap.get('weigh') === '1') {
+      const location = inject(Location);
+      afterNextRender(() => {
+        location.replaceState('/app');
+        void this.tracking.ensure().then(() => this.weigh());
+      });
+    }
     // back in the app after a while (the phone was locked): what is older than 30 s is asked again
     const doc = inject(DOCUMENT);
     const back = () => doc.visibilityState === 'visible' && this.refresh();

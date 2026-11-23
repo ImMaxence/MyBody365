@@ -60,6 +60,11 @@ export const frEngage = {
     },
   },
   notifications: {
+    smart: 'À mon heure habituelle',
+    smartHint: 'Le rappel de la pesée et de la photo vient 20 minutes après l’heure où tu les fais d’habitude, d’après tes 2 dernières semaines',
+    smartWeigh: 'pesée vers {time}',
+    smartPhoto: 'photo vers {time}',
+    smartWaiting: 'Pas encore assez de jours : l’heure choisie reste utilisée en attendant',
     title: 'Notifications',
     sub: 'Rappel du jour, eau, amis, nouveautés',
     device: 'Sur cet appareil',

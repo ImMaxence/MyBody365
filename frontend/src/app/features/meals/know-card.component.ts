@@ -4,6 +4,8 @@ import { MealsApi } from '../../core/meals/meals-api';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { IconComponent } from '../../shared/icon.component';
+import { SourcesComponent } from '../../shared/sources.component';
+import type { SourceKey } from '../../core/meals/sources';
 
 type Item = 'kcalKg' | 'volume' | 'satFat' | 'cholesterol' | 'sugars' | 'salt' | 'ultra' | 'fiber' | 'water' | 'fruits' | 'vitamins';
 const ITEMS: Item[] = ['satFat', 'cholesterol', 'sugars', 'fiber', 'kcalKg', 'volume', 'vitamins', 'fruits', 'water', 'salt', 'ultra'];
@@ -30,7 +32,7 @@ const ICON: Record<Item, string> = {
 @Component({
   selector: 'app-know-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent],
+  imports: [TranslatePipe, IconComponent, SourcesComponent],
   template: `
     <section class="card know">
       <p class="label"><app-icon name="bulb" [size]="15" /> {{ 'meals.know.title' | t }}</p>
@@ -64,6 +66,7 @@ const ICON: Record<Item, string> = {
           }
         </ul>
         <p class="tiny muted">{{ 'meals.know.source' | t }}</p>
+        <app-sources [keys]="sourceKeys" />
       </div>
     </dialog>
   `,
@@ -151,6 +154,8 @@ const ICON: Record<Item, string> = {
   `,
 })
 export class KnowCardComponent {
+  /** 1.19: the pages behind the figures of the sheet */
+  protected readonly sourceKeys: SourceKey[] = ['who', 'whoSalt', 'ansesFibre'];
   readonly day = input<MealDay | null>(null);
   /** the day's target: the saturated fat guide in grams (10 % of it) */
   readonly kcal = input(2000);

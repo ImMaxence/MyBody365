@@ -84,6 +84,15 @@ import { AvatarZoom } from '../../shared/avatar-zoom';
           </span>
           <app-icon name="chevronRight" />
         </a>
+        <!-- 1.19: a read-only link for a coach or a dietitian -->
+        <a routerLink="/app/account/share" class="list-item">
+          <span class="list-icon"><app-icon name="link" /></span>
+          <span class="list-body">
+            <span class="list-title">{{ 'shareLinks.title' | t }}</span>
+            <span class="list-sub">{{ 'shareLinks.sub' | t }}</span>
+          </span>
+          <app-icon name="chevronRight" />
+        </a>
         <a routerLink="/app/account/notifications" class="list-item">
           <span class="list-icon"><app-icon name="bell" /></span>
           <span class="list-body">

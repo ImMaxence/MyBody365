@@ -1139,3 +1139,25 @@ input[type='search']::-webkit-search-decoration {
     animation: none;
   }
 }
+
+/* 1.19: a page printed from the app (the report for the doctor, a shared journal): the screen only, none of the app's bars */
+@media print {
+  nav.tabbar,
+  .floating,
+  .status-shield,
+  .edge,
+  app-compact-bar,
+  app-pull-refresh,
+  app-milestone-celebration {
+    display: none !important;
+  }
+  html,
+  body,
+  .screen {
+    background: #fff !important;
+    color: #111 !important;
+  }
+  .page {
+    padding: 0 !important;
+  }
+}

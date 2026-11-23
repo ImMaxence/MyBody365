@@ -26,10 +26,12 @@ const ICONS: Record<string, string> = {
   UPDATE: 'sparkles',
   FEEDBACK: 'mail',
   FRIEND_RECIPE: 'book',
+  RECIPE_SENT: 'send',
   FRIEND_POST: 'share',
   FRIEND_CHEER: 'thumbUp',
   FRIEND_CHALLENGE: 'trophy',
   CHALLENGE_REMINDER: 'trophy',
+  MONTHLY_RECAP: 'calendar',
   NET_LOST: 'cloudOff',
   NET_BACK: 'cloud',
 };
@@ -145,7 +147,11 @@ const ICONS: Record<string, string> = {
     }
     .day {
       display: grid;
-      gap: var(--space-2);
+      gap: 10px;
+    }
+    /* 1.19: the day's name had the list right under it (the global title takes back the gap below it) */
+    .day .section-title {
+      margin: var(--space-2) 0 0 4px;
     }
     ul.list {
       margin: 0;

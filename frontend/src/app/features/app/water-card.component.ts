@@ -33,7 +33,7 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
 @Component({
   selector: 'app-water-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '[class.calm]': 'calm()' },
+  host: { '[class.calm]': 'calm()', '[class.compact]': 'compact()' },
   imports: [TranslatePipe, IconComponent, HapticDirective, WaitingNoteComponent],
   template: `
     <section class="water card" [class.reached]="reached()" [attr.aria-label]="'water.title' | t">
@@ -415,6 +415,13 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
     .glass:disabled {
       opacity: 0.55;
     }
+    /* 1.19: beside the flame */
+    :host(.compact) .glasses {
+      gap: 10px 6px;
+    }
+    :host(.compact) .glass {
+      max-width: 44px;
+    }
     .foot {
       display: flex;
       align-items: center;
@@ -458,6 +465,8 @@ export function defaultWaterGoal(kg: number | null | undefined): number {
 })
 export class WaterCardComponent {
   readonly goal = input.required<number>();
+  /** 1.19: beside the flame on Today: up to 8 smaller glasses a row, so the card is as tall as the flame's */
+  readonly compact = input(false);
   private readonly store = inject(WaterStore);
   protected readonly calm = calmReturn('water');
   private readonly toast = inject(ToastService);
@@ -489,7 +498,8 @@ export class WaterCardComponent {
    */
   protected readonly cols = computed(() => {
     const g = Math.max(1, this.goal());
-    return Math.ceil(g / Math.ceil(g / PER_ROW));
+    const per = this.compact() ? 8 : PER_ROW;
+    return Math.ceil(g / Math.ceil(g / per));
   });
   protected readonly reached = computed(() => this.shown() >= this.goal());
   /** « 0,5 », « 1,25 », « 2 » litres: no useless zeros */

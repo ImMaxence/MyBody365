@@ -8,6 +8,8 @@ import { MealsApi } from '../../core/meals/meals-api';
 import { closeSheet } from '../../core/ui/sheets';
 import { ToastService } from '../../core/ui/toast.service';
 import { IconComponent } from '../../shared/icon.component';
+import { Router } from '@angular/router';
+import { recipeLinkId } from '../../core/meals/recipe-link';
 
 /**
  * The first link of a pasted text (« Regarde ça https://… trop bon ! »), https first, without the
@@ -98,6 +100,7 @@ export class RecipeImportSheetComponent {
   private readonly importDialog = viewChild.required<ElementRef<HTMLDialogElement>>('importDialog');
   protected readonly importing = signal(false);
   protected importUrl = '';
+  private readonly router = inject(Router);
   protected readonly link = firstLink;
 
   /** with a link (shared from the phone, ?import=…): read at once */
@@ -126,6 +129,14 @@ export class RecipeImportSheetComponent {
     const url = firstLink(this.importUrl) ?? '';
     this.importUrl = url;
     if (!url) return;
+    // 1.19: a MyBody365 recipe (a friend's link): opened, not imported
+    const own = recipeLinkId(url);
+    if (own) {
+      this.importUrl = '';
+      this.close();
+      void this.router.navigate(['/app/meals/recipes', own]);
+      return;
+    }
     this.importing.set(true);
     try {
       this.imported.emit(await this.api.importRecipe(url));

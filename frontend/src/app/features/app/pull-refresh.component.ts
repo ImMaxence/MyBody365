@@ -117,6 +117,7 @@ export class PullRefreshComponent {
     if (!isPlatformBrowser(inject(PLATFORM_ID))) return;
     const win = this.doc.defaultView;
     if (!win) return;
+    let startX = 0;
     let startY = 0;
     let tracking = false;
     const start = (e: TouchEvent) => {
@@ -127,12 +128,19 @@ export class PullRefreshComponent {
       if (t.clientX < 28 || this.doc.querySelector('dialog[open]') || !this.allowed()()) return;
       const target = e.target as Element | null;
       if (target?.closest('input, textarea, select, [contenteditable], .slide-chips, .no-pull')) return;
+      startX = t.clientX;
       startY = t.clientY;
       tracking = true;
     };
     const move = (e: TouchEvent) => {
       if (!tracking) return;
       const dy = e.touches[0].clientY - startY;
+      const dx = Math.abs(e.touches[0].clientX - startX);
+      // a sideways move (a meal line swiped, a carousel) is not a pull
+      if (this.pull() === 0 && dx > 8 && dx > Math.abs(dy)) {
+        tracking = false;
+        return;
+      }
       // an iPhone bounces past the top by itself (scrollY below 0): that counts as much as the finger's way
       const d = Math.max(0, dy * 0.5, -win.scrollY);
       if (dy < -4 && this.pull() === 0) {

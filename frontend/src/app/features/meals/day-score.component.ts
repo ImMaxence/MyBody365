@@ -8,6 +8,8 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { localDay } from '../../core/tracking/tracking.store';
 import { IconComponent } from '../../shared/icon.component';
+import { SourcesComponent } from '../../shared/sources.component';
+import type { SourceKey } from '../../core/meals/sources';
 
 const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'leaf', nutrients: 'sparkles' };
 
@@ -15,7 +17,7 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
 @Component({
   selector: 'app-day-score',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, TranslatePipe, IconComponent],
+  imports: [NgTemplateOutlet, TranslatePipe, IconComponent, SourcesComponent],
   template: `
     @if (score(); as s) {
       <button type="button" class="pill" [attr.data-band]="s.band" (click)="openSheet(sheet)" [attr.aria-label]="'meals.score.open' | t: { score: i18n.number(s.score, 1) }">
@@ -106,6 +108,8 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
             <p class="small muted">{{ 'meals.micros.none' | t }}</p>
           }
           <p class="tiny muted">{{ 'meals.score.note' | t }}</p>
+          <!-- 1.19: who says the limits of sugars, salt and saturated fat -->
+          <app-sources [keys]="sourceKeys" />
         </div>
       </dialog>
       <ng-template #checksList let-checks>
@@ -438,6 +442,7 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
   `,
 })
 export class DayScoreComponent {
+  protected readonly sourceKeys: SourceKey[] = ['who', 'whoSalt'];
   readonly day = input.required<MealDay>();
   /** the member's split, in % of the calories (the macros are judged against it) */
   readonly shares = input<{ p: number; c: number; f: number } | undefined>(undefined);

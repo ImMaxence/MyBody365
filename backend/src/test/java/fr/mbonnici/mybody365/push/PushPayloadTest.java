@@ -46,4 +46,15 @@ class PushPayloadTest {
         // only an address of the app
         assertThat(url(notification(PushService.Kind.FRIEND_RECIPE, false, Map.of("path", "https://evil.example/")))).isEqualTo("/app/meals/recipes");
     }
+
+    /** 1.19: a recipe a friend sent: a tap opens it in the app */
+    @Test
+    void aRecipeSentByAFriendOpensIt() {
+        Map<String, Object> fr = notification(PushService.Kind.RECIPE_SENT, false, Map.of("name", "Léa", "recipe", "Tarte fine", "path", "/app/meals/recipes/42"));
+        assertThat(fr.get("title")).isEqualTo("Léa t’envoie une recette 🍳");
+        assertThat(fr.get("body")).isEqualTo("« Tarte fine » : touche pour l’ouvrir");
+        assertThat(url(fr)).isEqualTo("/app/meals/recipes/42");
+        assertThat(notification(PushService.Kind.RECIPE_SENT, true, Map.of("name", "Léa", "recipe", "Tarte fine")).get("body")).isEqualTo("“Tarte fine”: tap to open it");
+        assertThat(url(notification(PushService.Kind.RECIPE_SENT, false, Map.of("path", "//evil.example/")))).isEqualTo("/app/meals/recipes");
+    }
 }

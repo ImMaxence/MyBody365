@@ -237,7 +237,7 @@ public class IngredientMatcher {
     }
 
     /** the Ciqual table, read again after each import */
-    private List<Candidate> table() {
+    List<Candidate> table() {
         String version = jdbc.queryForObject("""
                 select count(*) || ':' || coalesce(max(source_version), '') || ':' || coalesce(max(updated_at)::text, '')
                 from food where source = 'CIQUAL' and not superseded""", String.class);

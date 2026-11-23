@@ -6,6 +6,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
 import { ToastService } from '../../core/ui/toast.service';
+import { ConfirmService } from '../../core/ui/confirm';
 import { IconComponent } from '../../shared/icon.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { HapticDirective } from '../../core/ui/haptics';
@@ -95,6 +96,7 @@ const LABEL: Record<Measure, string> = {
   `,
 })
 export class WeighSheetComponent {
+  private readonly confirm = inject(ConfirmService);
   private readonly tracking = inject(TrackingStore);
   private readonly toast = inject(ToastService);
   protected readonly i18n = inject(I18nService);
@@ -154,7 +156,18 @@ export class WeighSheetComponent {
   }
 
   protected async remove(): Promise<void> {
-    if (!confirm(this.i18n.t('weigh.deleteConfirm'))) return;
+    // 1.19: the app's own sheet, not the phone's alert
+    const day = this.day();
+    const ok = await this.confirm.ask({
+      title:
+        day === this.today
+          ? this.i18n.t('weigh.deleteTitleToday')
+          : this.i18n.t('weigh.deleteTitle', { date: this.i18n.date(day, { weekday: 'long', day: 'numeric', month: 'long' }) }),
+      text: this.i18n.t('weigh.deleteText'),
+      ok: this.i18n.t('common.delete'),
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await this.tracking.deleteLog(this.day());
       this.dialog().nativeElement.close();

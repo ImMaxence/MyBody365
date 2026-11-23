@@ -934,7 +934,7 @@ export class MealStatsPage {
       list?.length ? '. ' + this.i18n.t('meals.trends.mostly', { from: list.slice(0, 2).map((x) => x.name).join(', ') }) : '';
     if (sugars != null && sugars > 50) out.push({ icon: 'info', tone: 'warn', text: t('sugars', { g: this.i18n.number(sugars) }) + from(s.sugarSources) });
     const salt = perDay(s.totals.saltG);
-    if (salt != null && salt > 6) out.push({ icon: 'info', tone: 'warn', text: t('salt', { g: this.i18n.number(salt, 1) }) + from(s.saltSources) });
+    if (salt != null && salt > 5) out.push({ icon: 'info', tone: 'warn', text: t('salt', { g: this.i18n.number(salt, 1) }) + from(s.saltSources) });
     const weekend = b.filter((d) => [0, 6].includes(new Date(d.day + 'T12:00:00').getDay()));
     const weekdays = b.filter((d) => ![0, 6].includes(new Date(d.day + 'T12:00:00').getDay()));
     if (weekend.length && weekdays.length >= 2) {

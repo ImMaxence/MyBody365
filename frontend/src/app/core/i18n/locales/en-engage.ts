@@ -62,6 +62,11 @@ export const enEngage: Widen<typeof frEngage> = {
     },
   },
   notifications: {
+    smart: 'At my usual time',
+    smartHint: 'The weigh-in and photo reminders come 20 minutes after the time you usually do them, from your last 2 weeks',
+    smartWeigh: 'weigh-in around {time}',
+    smartPhoto: 'photo around {time}',
+    smartWaiting: 'Not enough days yet: the time chosen is used meanwhile',
     title: 'Notifications',
     sub: 'Daily reminder, water, friends, what’s new',
     device: 'On this device',

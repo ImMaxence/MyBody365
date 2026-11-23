@@ -25,9 +25,9 @@ const SLOW_MS = 10_000;
 
 /** the account the database holds answers for */
 const OWNER_KEY = 'mb.cache.owner';
-/** what the API is asked for and kept; never the admin pages, the sign-in or the backups */
+/** what the API is asked for and kept; never the admin pages, the sign-in, the backups, nor a link shared with a coach (1.19) */
 const KEPT_URL = /^\/api\//;
-const NOT_KEPT = /^\/api\/(admin|auth)\/|^\/api\/me\/(backup|drive)/;
+const NOT_KEPT = /^\/api\/(admin|auth|shared)\/|^\/api\/me\/(backup|drive)/;
 
 interface Entry {
   key: string;

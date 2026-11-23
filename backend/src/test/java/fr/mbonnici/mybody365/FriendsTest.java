@@ -230,4 +230,43 @@ class FriendsTest extends AbstractIntegrationTest {
                 .content(recipe("FRIENDS", "Tzatziki"))).andExpect(status().isCreated());
         awaitPushes(2);
     }
+
+    private org.springframework.test.web.servlet.ResultActions send(AppUser from, String recipe, AppUser... to) throws Exception {
+        String ids = java.util.Arrays.stream(to).map(u -> "\"" + u.getId() + "\"").collect(java.util.stream.Collectors.joining(","));
+        return mvc.perform(post("/api/me/recipes/" + recipe + "/send").with(as(from)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"to\":[" + ids + "]}"));
+    }
+
+    /** 1.19: a recipe sent to a friend from its page: a notification that opens it in their app, only where they may open it */
+    @Test
+    void aRecipeSentToAFriendOpensInTheirApp() throws Exception {
+        befriend(lea, hugo);
+        befriend(hugo, ines);
+        device(hugo, "https://web.push.apple.com/hugo");
+        String id = JsonPath.read(mvc.perform(post("/api/me/recipes").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(recipe("PRIVATE", "Tarte fine"))).andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), "$.id");
+        pushes.sent.clear();
+
+        // only for her: nothing leaves
+        send(lea, id, hugo).andExpect(status().isConflict()).andExpect(jsonPath("$.message").value("recipe_private"));
+        // shown to her friends (already announced, so that only the sending rings): Hugo is told, the centre keeps it
+        jdbc.update("update recipe set visibility = 'FRIENDS', announced_at = now() where id = ?::uuid", id);
+        send(lea, id, hugo).andExpect(status().isOk()).andExpect(jsonPath("$.sent").value(1));
+        awaitPushes(1);
+        assertThat(pushes.sent.getFirst().endpoint().toString()).endsWith("/hugo");
+        assertThat(jdbc.queryForObject("select url from notification_log where user_id = ? and kind = 'RECIPE_SENT'", String.class, hugo.getId()))
+                .isEqualTo("/app/meals/recipes/" + id);
+        assertThat(jdbc.queryForObject("select title from notification_log where user_id = ? and kind = 'RECIPE_SENT'", String.class, hugo.getId()))
+                .isEqualTo("lea t’envoie une recette 🍳");
+        // a second tap within 10 minutes: said sent, nothing leaves again
+        send(lea, id, hugo).andExpect(status().isOk()).andExpect(jsonPath("$.sent").value(1));
+        awaitPushes(1);
+
+        // not a friend: refused; a friend of Hugo's who is not Léa's cannot open her recipe: Hugo cannot send it there
+        send(lea, id, ines).andExpect(status().isForbidden()).andExpect(jsonPath("$.message").value("not_friends"));
+        send(hugo, id, ines).andExpect(status().isConflict()).andExpect(jsonPath("$.message").value("recipe_not_visible"));
+        // nobody, or a recipe one cannot open
+        send(lea, id).andExpect(status().isBadRequest());
+        send(ines, id, hugo).andExpect(status().isNotFound());
+    }
 }

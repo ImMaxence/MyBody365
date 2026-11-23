@@ -24,6 +24,7 @@ import {
 } from '../../core/photos/photo-edit';
 import { PhotosStore } from '../../core/photos/photos.store';
 import { ToastService } from '../../core/ui/toast.service';
+import { ConfirmService } from '../../core/ui/confirm';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 import { SegDirective } from '../../shared/seg.directive';
@@ -255,6 +256,7 @@ type Light = 'brightness' | 'contrast' | 'saturation';
   `,
 })
 export class PhotoEditPage {
+  private readonly confirm = inject(ConfirmService);
   readonly id = input.required<string>();
   private readonly store = inject(PhotosStore);
   private readonly toast = inject(ToastService);
@@ -495,8 +497,8 @@ export class PhotoEditPage {
   private saved = false;
 
   /** 1.17: leaving with changes not saved (the back button, the phone's back): asked first (route guard confirmLeave) */
-  canLeave(): boolean {
-    return this.saved || !this.dirty() || confirm(this.i18n.t('photos.edit.leaveConfirm'));
+  canLeave(): boolean | Promise<boolean> {
+    return this.saved || !this.dirty() || this.confirm.askSentence(this.i18n.t('photos.edit.leaveConfirm'), this.i18n.t('photos.edit.leaveOk'));
   }
 
   protected async save(): Promise<void> {

@@ -72,6 +72,7 @@ export const enPhotos: Widen<typeof frPhotos> = {
     size: 'Size',
     fit: 'Show all',
     leaveConfirm: 'Leave without saving? Your touch-ups will be lost',
+    leaveOk: 'Leave without saving',
     straighten: 'Straighten',
     background: 'Background',
     backgroundHint: 'It shows when the photo is smaller than the frame or tilted',

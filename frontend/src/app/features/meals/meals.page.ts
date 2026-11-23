@@ -7,6 +7,8 @@ import type { MacroSplit, MealEntry, Slot } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { DayStatus, MealsStore, PENDING, SLOTS, dayStatus, monthGrid, shiftDay, shiftMonth, weekOf } from '../../core/meals/meals.store';
+import { HabitsApi } from '../../core/api/habits-api';
+import { SwipeRowDirective } from '../../shared/swipe-row.directive';
 import { MealsApi } from '../../core/meals/meals-api';
 import { macroPlan } from '../../core/meals/macro-plan';
 import { trends } from '../../core/meals/trends';
@@ -37,7 +39,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
 @Component({
   selector: 'app-meals',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ShareSheetComponent, GuidesSheetComponent, TrendsCardComponent, DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, HealthScoreComponent, KnowCardComponent, NumberStepperComponent, FoodThumbComponent, NutrientBarsComponent, RichInComponent, WaitingNoteComponent],
+  imports: [SwipeRowDirective, ShareSheetComponent, GuidesSheetComponent, TrendsCardComponent, DayScoreComponent, RouterLink, TranslatePipe, IconComponent, KcalRingComponent, HealthScoreComponent, KnowCardComponent, NumberStepperComponent, FoodThumbComponent, NutrientBarsComponent, RichInComponent, WaitingNoteComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -112,6 +114,8 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
           </div>
           @if (targetWhy(); as why) {
             <!-- 1.18: folded on one line: the meals come first; a dot when a suggestion waits inside -->
+            <!-- 1.19: the line and what it unfolds are one block of the card (folded, it sits in the middle of its space) -->
+            <div class="why-box">
             <button type="button" class="why-toggle small" [attr.aria-expanded]="whyOpen()" aria-controls="meals-whys" (click)="whyOpen.set(!whyOpen())">
               <span class="why-ico"><app-icon name="target" [size]="15" /></span>
               <span class="why-q">{{ (d.targetKcal ? 'meals.whyTarget' : 'meals.whyTargetNone') | t: { kcal: i18n.number(d.targetKcal ?? 0) } }}</span>
@@ -145,6 +149,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
               }
             </div>
             </div>
+            </div>
           }
         </section>
 
@@ -158,9 +163,16 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
             @if (store.bySlot()[slot].length) {
               <ul class="entries" role="list">
                 @for (e of store.bySlot()[slot]; track e.id) {
-                  <li>
+                  <li class="swipe">
+                    <!-- 1.19: a swipe to the left uncovers « Dupliquer » and « Retirer », as in a phone's lists (the sheet keeps them too) -->
+                    @if (!e.pending) {
+                      <div class="swipe-actions" aria-hidden="true">
+                        <button type="button" class="act dup" tabindex="-1" (click)="duplicate(e)"><app-icon name="copy" [size]="18" /> {{ 'meals.entry.duplicate' | t }}</button>
+                        <button type="button" class="act del" tabindex="-1" (click)="removeLine(e)"><app-icon name="trash" [size]="18" /> {{ 'meals.entry.delete' | t }}</button>
+                      </div>
+                    }
                     <!-- 1.17: done without network, greyed until it is sent; it comes back to colour once there -->
-                    <button type="button" class="entry" [class.is-waiting]="e.pending" [class.is-deleted]="e.pending === 'delete'"
+                    <button type="button" class="entry" [appSwipeRow]="!e.pending" [class.is-waiting]="e.pending" [class.is-deleted]="e.pending === 'delete'"
                       [class.is-arrived]="store.arrived().has(e.id)" (click)="edit(e)">
                       <app-food-thumb class="entry-thumb" [url]="e.thumbUrl" [group]="e.group" />
                       <span class="entry-body">
@@ -186,6 +198,9 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
               </a>
               @if (!store.bySlot()[slot].length) {
                 <button type="button" class="btn btn-ghost btn-s" (click)="copy(slot)"><app-icon name="repeat" [size]="16" /> {{ 'meals.copyYesterday' | t }}</button>
+              } @else if (canKeep(slot)) {
+                <!-- 1.19: kept as « un repas habituel », added again in one tap from « Ajouter » -->
+                <button type="button" class="btn btn-ghost btn-s" (click)="openHabit(slot)"><app-icon name="bookmark" [size]="16" /> {{ 'meals.habits.keep' | t }}</button>
               }
             </div>
           </section>
@@ -212,6 +227,21 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       }
 
       <app-share-sheet #shareSheet />
+      <!-- 1.19: a meal of the day kept under a name -->
+      <dialog class="sheet" #habitDialog [attr.aria-label]="'meals.habits.saveTitle' | t">
+        <div class="sheet-grip"></div>
+        <form class="stack" (submit)="$event.preventDefault(); saveHabit(habitName.value)">
+          <div>
+            <h2 class="h3">{{ 'meals.habits.saveTitle' | t }}</h2>
+            <p class="small muted">{{ 'meals.habits.saveText' | t }}</p>
+          </div>
+          <label class="field">
+            <span class="label">{{ 'meals.habits.name' | t }}</span>
+            <input #habitName class="input" name="habitName" maxlength="80" [value]="habitDefault()" autocomplete="off" />
+          </label>
+          <button type="submit" class="btn btn-primary btn-block" [disabled]="busy()"><app-icon name="check" /> {{ 'meals.habits.save' | t }}</button>
+        </form>
+      </dialog>
       <dialog class="sheet" #calDialog [attr.aria-label]="'meals.calendar.title' | t">
         <div class="sheet-grip"></div>
         <div class="stack">
@@ -324,6 +354,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
               }
             </div>
             <button type="button" class="btn btn-primary btn-block" [disabled]="busy()" (click)="save(e)"><app-icon name="check" /> {{ 'meals.entry.save' | t }}</button>
+            <button type="button" class="btn btn-ghost btn-block" [disabled]="busy()" (click)="duplicate(e)"><app-icon name="copy" /> {{ 'meals.entry.duplicate' | t }}</button>
             <button type="button" class="btn btn-ghost btn-block danger" [disabled]="busy()" (click)="remove(e)"><app-icon name="trash" /> {{ 'meals.entry.delete' | t }}</button>
           </div>
         }
@@ -772,14 +803,19 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       letter-spacing: -0.01em;
     }
     /* where the target comes from, in a sentence or three, under the ring */
-    .why-toggle {
+    /* 1.19: one block for the line and what it unfolds: a folded part used to leave the card's gap under the line
+       (a negative margin cannot shrink a grid row below nothing), so the line sat high in its space */
+    .why-box {
       grid-column: 1 / -1;
+      display: grid;
+      margin: calc(-1 * var(--space-2)) 0 calc(-1 * var(--space-1));
+    }
+    .why-toggle {
       display: flex;
       align-items: center;
       gap: 10px;
       width: 100%;
-      margin-top: calc(-1 * var(--space-2));
-      padding: var(--space-3) 0 0;
+      padding: var(--space-4) 0 0;
       border: 0;
       border-top: 1px solid var(--line);
       background: none;
@@ -811,18 +847,12 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       transform: rotate(180deg);
     }
     .whys-wrap {
-      grid-column: 1 / -1;
       display: grid;
       grid-template-rows: 0fr;
-      /* folded, it takes no room: the gap of the card's grid is taken back */
-      margin-top: calc(-1 * var(--space-5));
-      transition:
-        grid-template-rows 360ms var(--ease-out),
-        margin-top 360ms var(--ease-out);
+      transition: grid-template-rows 360ms var(--ease-out);
     }
     .whys-wrap.open {
       grid-template-rows: 1fr;
-      margin-top: calc(-1 * var(--space-2));
     }
     .whys {
       display: grid;
@@ -831,6 +861,10 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       overflow: hidden;
       opacity: 0;
       transition: opacity 240ms ease;
+    }
+    /* the room under the line, inside what folds away */
+    .whys > :first-child {
+      margin-top: var(--space-3);
     }
     .whys-wrap.open .whys {
       opacity: 1;
@@ -973,6 +1007,49 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       border-top: 1px solid var(--line);
       text-align: left;
     }
+    /* 1.19: the actions behind a line, uncovered by a swipe to the left */
+    .swipe {
+      position: relative;
+      overflow: hidden;
+    }
+    .swipe .entry {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+    }
+    .swipe-actions {
+      position: absolute;
+      top: 1px;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      width: 152px;
+      visibility: hidden;
+    }
+    /* only while the line is moved: else their edges would bleed around it, or show through a line fading in */
+    .swipe[data-swiping] .swipe-actions {
+      visibility: visible;
+    }
+    .act {
+      display: grid;
+      flex: 1;
+      place-content: center;
+      justify-items: center;
+      gap: 2px;
+      border: 0;
+      color: #fff;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    /* the same deep colours in light and dark: white text stays readable on both */
+    .act.dup {
+      background: #2f5bd3;
+    }
+    .act.del {
+      background: #d92d16;
+    }
     .entry-body {
       display: grid;
       flex: 1;
@@ -1026,6 +1103,38 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
   `,
 })
 export class MealsPage {
+  // ── 1.19: « Mes repas habituels » ───────────────────────────────────────
+  private readonly habits = inject(HabitsApi);
+  private readonly habitDialog = viewChild.required<ElementRef<HTMLDialogElement>>('habitDialog');
+  private habitSlot: Slot = 'BREAKFAST';
+  protected readonly habitDefault = signal('');
+
+  /** a meal of the server (nothing waiting for the network in it) can be kept */
+  protected canKeep(slot: Slot): boolean {
+    const lines = this.store.bySlot()[slot];
+    return lines.length > 0 && lines.every((e) => !e.pending);
+  }
+
+  protected openHabit(slot: Slot): void {
+    this.habitSlot = slot;
+    this.habitDefault.set(this.i18n.t('meals.habits.defaultName', { slot: this.i18n.t('meals.slots.' + slot).toLowerCase() }));
+    this.habitDialog().nativeElement.showModal();
+  }
+
+  protected async saveHabit(name: string): Promise<void> {
+    const n = name.trim() || this.habitDefault();
+    this.busy.set(true);
+    try {
+      await this.habits.saveTemplate(n, this.store.day(), this.habitSlot);
+      closeSheet(this.habitDialog().nativeElement);
+      this.toast.show(this.i18n.t('meals.habits.saved', { name: n }));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
   /** 1.18: the notes explaining the day's target, folded under the ring until asked for */
   protected readonly whyOpen = signal(false);
   protected readonly store = inject(MealsStore);
@@ -1359,6 +1468,36 @@ export class MealsPage {
       this.toast.error(this.i18n.error(errorCode(err)));
     } finally {
       this.busy.set(false);
+    }
+  }
+
+  /** 1.19: from the line's swipe or its sheet: the same again (a second coffee), noted now */
+  protected async duplicate(e: MealEntry): Promise<void> {
+    const input =
+      e.foodId && e.grams
+        ? { foodId: e.foodId, grams: e.grams }
+        : e.recipeId && e.servings
+          ? { recipeId: e.recipeId, servings: e.servings }
+          : { quick: { ...e.nutrients, name: e.name } };
+    this.busy.set(true);
+    try {
+      await this.store.add({ day: e.day, slot: e.slot, ...input }, { name: e.name, nutrients: e.nutrients });
+      this.dialog().nativeElement.close();
+      this.toast.show(this.store.lastQueued() ? this.i18n.t('offline.queued') : this.i18n.t('meals.entry.duplicated', { name: e.name }));
+    } catch (err) {
+      this.toast.error(this.i18n.error(errorCode(err)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  /** 1.19: from the line's swipe, without opening its sheet */
+  protected async removeLine(e: MealEntry): Promise<void> {
+    try {
+      await this.store.remove(e.id);
+      this.toast.show(this.i18n.t(this.store.lastQueued() ? 'offline.queued' : 'meals.entry.deleted'));
+    } catch (err) {
+      this.toast.error(this.i18n.error(errorCode(err)));
     }
   }
 

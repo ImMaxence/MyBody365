@@ -92,12 +92,29 @@ export class HapticDirective {
   /** the vibration on Android (the iPhone's is the switch's own) */
   readonly appHaptic = input<HapticKind | ''>('');
   private readonly el = inject<ElementRef<HTMLInputElement>>(ElementRef);
+  /** 1.19: where the finger came down, and whether it slid since (a scroll of the page, a swipe of a row) */
+  private x0 = 0;
+  private y0 = 0;
+  private scroll0 = 0;
+  private slid = false;
+  private touching = false;
 
   constructor() {
     const destroy = inject(DestroyRef);
     afterNextRender(() => {
       const input = this.el.nativeElement;
-      if (isIos()) return;
+      if (isIos()) {
+        // passive: the page's scroll never waits for them
+        const start = (e: TouchEvent) => this.touchStart(e);
+        const move = (e: TouchEvent) => this.touchMove(e);
+        input.addEventListener('touchstart', start, { passive: true });
+        input.addEventListener('touchmove', move, { passive: true });
+        destroy.onDestroy(() => {
+          input.removeEventListener('touchstart', start);
+          input.removeEventListener('touchmove', move);
+        });
+        return;
+      }
       // no switch needed: the button itself vibrates
       input.hidden = true;
       const target = input.previousElementSibling as HTMLElement | null;
@@ -107,8 +124,31 @@ export class HapticDirective {
     });
   }
 
+  private touchStart(e: TouchEvent): void {
+    const t = e.touches[0];
+    this.x0 = t?.clientX ?? 0;
+    this.y0 = t?.clientY ?? 0;
+    this.scroll0 = win()?.scrollY ?? 0;
+    this.slid = false;
+    this.touching = true;
+  }
+
+  private touchMove(e: TouchEvent): void {
+    const t = e.touches[0];
+    if (t && Math.hypot(t.clientX - this.x0, t.clientY - this.y0) > 10) this.slid = true;
+  }
+
   protected tap(e: Event): void {
     e.stopPropagation();
+    // 1.19: an iPhone switch also flips when the finger slides over it: scrolling the page from a glass of water
+    // added one. A finger that slid, or a page that moved under it, is not a tap: the switch goes back, nothing done.
+    const moved = this.touching && (this.slid || Math.abs((win()?.scrollY ?? 0) - this.scroll0) > 4);
+    this.slid = false;
+    this.touching = false;
+    if (moved) {
+      e.preventDefault();
+      return;
+    }
     const target = this.el.nativeElement.previousElementSibling as HTMLButtonElement | null;
     if (!target || target.disabled) return;
     vibrate(this.appHaptic() || 'tap');

@@ -4,8 +4,9 @@ import type { MacroPlan } from './macro-plan';
 /**
  * What stands out in the last 7 days, the most useful first: too much sugar, salt or saturated fat (with the
  * foods that brought the most), too little fibre or protein, or a balanced week. Averages over the days logged,
- * from 3 days on (fewer say nothing yet). Guides: sugars under 50 g a day, salt under 6 g, saturated fat under
- * 12 % of the calories, fibre about 30 g (Anses, WHO).
+ * from 3 days on (fewer say nothing yet). Guides (core/meals/sources.ts): the WHO's for sugars (under 50 g a day),
+ * salt (under 5 g, 1.19: it said 6 g, the European labelling figure, while the rest of the app said the WHO's 5 g) and
+ * saturated fat (under 10 % of the calories, 1.19: was 12 %, the Anses figure), the Anses's for fibre (about 30 g).
  */
 export interface Trend {
   key: 'sugars' | 'salt' | 'satFat' | 'fiber' | 'protein' | 'balanced';
@@ -17,6 +18,9 @@ export interface Trend {
 }
 
 export const MIN_DAYS = 3;
+/** the WHO's: salt under 5 g a day, saturated fat under 10 % of the calories */
+export const SALT_MAX = 5;
+export const SAT_FAT_SHARE = 0.1;
 
 export function trends(s: MealStats | null, plan: MacroPlan | null): Trend[] {
   const n = s?.daily.length ?? 0;
@@ -26,11 +30,11 @@ export function trends(s: MealStats | null, plan: MacroPlan | null): Trend[] {
   const sugars = per(s.totals.sugarsG);
   if (sugars != null && sugars > 50) out.push({ key: 'sugars', tone: 'warn', value: Math.round(sugars), guide: 50, sources: s.sugarSources ?? [] });
   const salt = per(s.totals.saltG);
-  if (salt != null && salt > 6) out.push({ key: 'salt', tone: 'warn', value: Math.round(salt * 10) / 10, guide: 6, sources: s.saltSources ?? [] });
+  if (salt != null && salt > SALT_MAX) out.push({ key: 'salt', tone: 'warn', value: Math.round(salt * 10) / 10, guide: SALT_MAX, sources: s.saltSources ?? [] });
   const satFat = per(s.totals.satFatG);
   const kcal = s.totals.kcal / n;
-  if (satFat != null && kcal > 0 && (satFat * 9) / kcal > 0.12) {
-    out.push({ key: 'satFat', tone: 'warn', value: Math.round(satFat), guide: Math.round((kcal * 0.12) / 9), sources: s.satFatSources ?? [] });
+  if (satFat != null && kcal > 0 && (satFat * 9) / kcal > SAT_FAT_SHARE) {
+    out.push({ key: 'satFat', tone: 'warn', value: Math.round(satFat), guide: Math.round((kcal * SAT_FAT_SHARE) / 9), sources: s.satFatSources ?? [] });
   }
   const fiber = per(s.totals.fiberG);
   if (fiber != null && fiber < 20) out.push({ key: 'fiber', tone: 'info', value: Math.round(fiber), guide: plan?.fiberG ?? 30, sources: [] });

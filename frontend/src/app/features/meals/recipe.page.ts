@@ -17,6 +17,7 @@ import { ReportSheetComponent } from '../../shared/report-sheet.component';
 import { FavoritesStore } from '../../core/meals/favorites.store';
 import { HapticDirective } from '../../core/ui/haptics';
 import { QuantitySheetComponent } from './quantity-sheet.component';
+import { SendRecipeSheetComponent } from './send-recipe-sheet.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { ShoppingStore } from '../../core/meals/shopping.store';
 import { closeSheet } from '../../core/ui/sheets';
@@ -27,7 +28,7 @@ import { SessionStore } from '../../core/auth/session.store';
 @Component({
   selector: 'app-recipe',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective, NumberStepperComponent, MicrosListComponent],
+  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective, NumberStepperComponent, MicrosListComponent, SendRecipeSheetComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -163,8 +164,9 @@ import { SessionStore } from '../../core/auth/session.store';
             }
           </section>
         }
-        @if (r.visibility !== 'PRIVATE' && canShare) {
-          <button type="button" class="btn btn-ghost btn-block send" (click)="sendLink(r)"><app-icon name="send" [size]="18" /> {{ 'meals.recipe.shareFriends.send' | t }}</button>
+        <!-- 1.19: to a friend of the app (a notification that opens it in their app), or by message -->
+        @if (r.visibility !== 'PRIVATE' && !r.hidden) {
+          <button type="button" class="btn btn-ghost btn-block send" (click)="sendSheet().open(r)"><app-icon name="send" [size]="18" /> {{ 'meals.recipe.shareFriends.send' | t }}</button>
         }
 
         <h2 class="section-title">{{ 'meals.recipe.ingredients' | t }} · {{ 'meals.servings' | t: { n: r.servings } }}</h2>
@@ -190,6 +192,8 @@ import { SessionStore } from '../../core/auth/session.store';
         @if (r.notes) {
           <h2 class="section-title">{{ 'meals.recipe.notes' | t }}</h2>
           <p class="notes card">{{ r.notes }}</p>
+          <!-- 1.19: the steps one by one, the screen kept on, the timers in one tap -->
+          <a class="btn btn-secondary btn-block" [routerLink]="['/app/meals/recipes', r.id, 'cook']"><app-icon name="play" [size]="18" /> {{ 'cook.open' | t }}</a>
         }
 
         <div class="actions">
@@ -232,6 +236,7 @@ import { SessionStore } from '../../core/auth/session.store';
         </div>
       </dialog>
       <app-quantity-sheet (confirm)="add($event)" />
+      <app-send-recipe-sheet />
       <app-report-sheet />
     </main>
   `,
@@ -651,15 +656,7 @@ export class RecipePage {
     }
   }
 
-  /** its address, to send a friend (it opens in their app) */
-  protected async sendLink(r: Recipe): Promise<void> {
-    const url = `${location.origin}/app/meals/recipes/${r.id}`;
-    try {
-      await navigator.share({ title: r.name, text: this.i18n.t('meals.recipe.shareFriends.text', { name: r.name }), url });
-    } catch {
-      /* closed: nothing */
-    }
-  }
+  protected readonly sendSheet = viewChild.required(SendRecipeSheetComponent);
   protected readonly missing = signal(false);
   protected readonly busy = signal(false);
 

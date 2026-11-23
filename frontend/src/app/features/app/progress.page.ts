@@ -11,6 +11,7 @@ import { WeightChartComponent } from './weight-chart.component';
 import { SegDirective } from '../../shared/seg.directive';
 import { MonthlyForecastComponent } from './monthly-forecast.component';
 import { MilestonesCardComponent } from './milestones-card.component';
+import { PlateauCardComponent } from './plateau-card.component';
 import { BmiSheetComponent } from './bmi-sheet.component';
 import { ShareSheetComponent } from '../../shared/share-sheet.component';
 import { bmiBand, waistClass } from '../../core/tracking/bmi';
@@ -25,7 +26,7 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
 @Component({
   selector: 'app-progress',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, BpPanelComponent, DeficitCardComponent, NeedsCardComponent, ShareSheetComponent, MilestonesCardComponent, BmiSheetComponent, MonthlyForecastComponent, SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
+  imports: [RouterLink, PlateauCardComponent, BpPanelComponent, DeficitCardComponent, NeedsCardComponent, ShareSheetComponent, MilestonesCardComponent, BmiSheetComponent, MonthlyForecastComponent, SegDirective, TranslatePipe, IconComponent, WeightChartComponent, WeighSheetComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -109,6 +110,18 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
             </section>
           }
 
+          <!-- 1.19: the recap of the month that ended, told like a story (bright in the first days of the month) -->
+          <a class="card list-row recap-row" [class.fresh]="recapFresh()" [routerLink]="['/app/progress/recap', lastMonth()]">
+            <span class="list-icon recap-ico"><app-icon name="calendar" /></span>
+            <span class="list-body">
+              <span class="list-title">{{ 'recap.entry' | t: { month: lastMonthName() } }}</span>
+              <span class="list-sub">{{ 'recap.entrySub' | t }}</span>
+            </span>
+            <app-icon name="chevronRight" />
+          </a>
+          <!-- 1.19: three weeks without moving towards the goal: why, and what helps -->
+          <app-plateau-card [logs]="all" [summary]="summary()" />
+
           <!-- 1.14: what is left, in calories: kilos × 7 700 ÷ the deficit of a day = the days -->
           @if (summary(); as s) {
             <!-- 1.17: where the calorie target comes from, step by step, with the member's own numbers -->
@@ -161,6 +174,25 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
       [sex]="summary()?.profile?.sex ?? null" [age]="summary()?.profile?.age ?? null" [waistCm]="waist()?.cm ?? null" [bodyFatPct]="bodyFat()" />
   `,
   styles: `
+    .recap-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: var(--space-3) var(--space-4);
+      color: inherit;
+      text-decoration: none;
+    }
+    .recap-ico {
+      background: var(--accent-soft) !important;
+      color: var(--accent-text) !important;
+    }
+    .recap-row.fresh {
+      border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+      background: radial-gradient(120% 140% at 0% 50%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%), var(--surface);
+    }
+    .recap-row.fresh .list-title {
+      font-weight: 750;
+    }
     .page-head .spacer {
       flex: 1;
     }
@@ -351,6 +383,15 @@ export class ProgressPage {
   protected readonly rangeDays = computed(() => RANGE_DAYS[this.range()]);
   protected readonly summary = this.tracking.summary;
   protected readonly logs = this.tracking.logs;
+  /** 1.19: the month that ended, its recap */
+  protected readonly lastMonth = computed(() => {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
+  protected readonly lastMonthName = computed(() => this.i18n.date(this.lastMonth() + '-15', { month: 'long' }));
+  protected readonly recapFresh = computed(() => new Date().getDate() <= 10);
   protected readonly hasWeights = computed(() => (this.logs() ?? []).some((l) => l.weightKg != null));
   protected readonly history = computed(() => [...(this.logs() ?? [])].reverse());
   /** month by month: at the real pace of the last weeks when it goes the right way, at the planned pace otherwise */

@@ -7,6 +7,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { closeSheet } from '../../core/ui/sheets';
 import { ToastService } from '../../core/ui/toast.service';
+import { ConfirmService } from '../../core/ui/confirm';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 
@@ -333,6 +334,7 @@ const DAYS = [1, 2, 3, 4, 5, 6, 7];
   `,
 })
 export class HealthPage {
+  private readonly confirm = inject(ConfirmService);
   protected readonly store = inject(HealthStore);
   private readonly session = inject(SessionStore);
   private readonly api = inject(ApiService);
@@ -459,7 +461,7 @@ export class HealthPage {
 
   protected async removeMed(): Promise<void> {
     const m = this.editing();
-    if (!m || !confirm(this.i18n.t('health.pills.deleteConfirm', { name: m.name }))) return;
+    if (!m || !(await this.confirm.askSentence(this.i18n.t('health.pills.deleteConfirm', { name: m.name }), this.i18n.t('common.delete')))) return;
     this.busy.set(true);
     try {
       await this.store.deleteMedication(m.id);

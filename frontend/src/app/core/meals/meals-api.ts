@@ -112,6 +112,11 @@ export class MealsApi {
 
   // ── recipes ───────────────────────────────────────────────────────────────
   /** who sees one of my recipes, without the rest of it */
+  /** 1.19: sent to friends: each one notified, a tap opens it in their app */
+  sendRecipe(id: string, to: string[]): Promise<{ sent: number }> {
+    return firstValueFrom(this.http.post<{ sent: number }>(`/api/me/recipes/${id}/send`, { to }));
+  }
+
   setVisibility(id: string, visibility: RecipeVisibility): Promise<Recipe> {
     return firstValueFrom(this.http.put<Recipe>(`/api/me/recipes/${id}/visibility`, { visibility }));
   }

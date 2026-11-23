@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { BpEntry, BpLevel, HealthStore, Moment, bpLevel } from '../../core/health/health.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -32,7 +33,7 @@ interface Point {
 @Component({
   selector: 'app-bp-panel',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, IconComponent, SegDirective, BpSheetComponent],
+  imports: [TranslatePipe, IconComponent, SegDirective, BpSheetComponent, RouterLink],
   template: `
     <section class="card avgs" [attr.aria-label]="'health.bp.week' | t">
       <h2 class="h3">{{ 'health.bp.week' | t }}</h2>
@@ -112,6 +113,16 @@ interface Point {
         <p class="small muted empty-chart">{{ 'health.bp.empty' | t }}</p>
       }
     </section>
+
+    <!-- 1.19: the readings of the doctor's protocol (3 days, morning and evening), to print or send -->
+    <a class="card list-row report" routerLink="/app/progress/bp-report">
+      <span class="list-icon report-ico"><app-icon name="heartPulse" /></span>
+      <span class="list-body">
+        <span class="list-title">{{ 'bpReport.entry' | t }}</span>
+        <span class="list-sub">{{ 'bpReport.entrySub' | t }}</span>
+      </span>
+      <app-icon name="chevronRight" />
+    </a>
 
     @if (history().length) {
       <h2 class="section-title">{{ 'health.bp.history' | t }}</h2>

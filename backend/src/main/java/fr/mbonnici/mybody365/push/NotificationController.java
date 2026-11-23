@@ -51,7 +51,11 @@ public class NotificationController {
             @Pattern(regexp = "([01]\\d|2[0-3]):[0-5]\\d") String photoTime,
             /** 1.17: the daily reminder of the challenges whose day is not done, at its own time; null (an older app): unchanged */
             Boolean challengeEnabled,
-            @Pattern(regexp = TIME) String challengeTime) {}
+            @Pattern(regexp = TIME) String challengeTime,
+            /** 1.19: the weigh-in and photo reminders at the usual time; null (an older app): unchanged */
+            Boolean smartTime,
+            /** 1.19: the usual times worked out (null: not enough days yet); read only */
+            String smartDailyTime, String smartPhotoTime) {}
 
     /** 1.17: a time of day, hh:mm */
     static final String TIME = "([01]\\d|2[0-3]):[0-5]\\d";
@@ -70,11 +74,13 @@ public class NotificationController {
     private final PushService push;
     private final UserService users;
     private final JdbcTemplate jdbc;
+    private final SmartTimes smartTimes;
 
-    public NotificationController(PushService push, UserService users, JdbcTemplate jdbc) {
+    public NotificationController(PushService push, UserService users, JdbcTemplate jdbc, SmartTimes smartTimes) {
         this.push = push;
         this.users = users;
         this.jdbc = jdbc;
+        this.smartTimes = smartTimes;
     }
 
     @GetMapping("/api/me/notifications")
@@ -90,9 +96,9 @@ public class NotificationController {
         LocalTime challengeTime = p.challengeTime() == null ? null : LocalTime.parse(p.challengeTime());
         jdbc.update("""
                 insert into notification_pref (user_id, daily_enabled, daily_time, gym_enabled, gym_days, gym_time, friends_enabled,
-                  water_enabled, updates_enabled, weekly_enabled, photo_enabled, photo_time, challenge_enabled, challenge_time)
+                  water_enabled, updates_enabled, weekly_enabled, photo_enabled, photo_time, challenge_enabled, challenge_time, smart_time)
                 values (?, ?, ?, ?, ?, ?, ?, coalesce(?, false), coalesce(?, true), coalesce(?, true), coalesce(?, true),
-                  coalesce(?, time '19:00'), coalesce(?, true), coalesce(?, time '20:00'))
+                  coalesce(?, time '19:00'), coalesce(?, true), coalesce(?, time '20:00'), coalesce(?, false))
                 on conflict (user_id) do update set daily_enabled = excluded.daily_enabled, daily_time = excluded.daily_time,
                   gym_enabled = excluded.gym_enabled, gym_days = excluded.gym_days, gym_time = excluded.gym_time,
                   friends_enabled = excluded.friends_enabled,
@@ -102,10 +108,16 @@ public class NotificationController {
                   photo_enabled = coalesce(?, notification_pref.photo_enabled),
                   photo_time = coalesce(?, notification_pref.photo_time),
                   challenge_enabled = coalesce(?, notification_pref.challenge_enabled),
-                  challenge_time = coalesce(?, notification_pref.challenge_time)""",
+                  challenge_time = coalesce(?, notification_pref.challenge_time),
+                  smart_time = coalesce(?, notification_pref.smart_time)""",
                 me, p.dailyEnabled(), LocalTime.parse(p.dailyTime()), p.gymEnabled(), p.gymDays(), LocalTime.parse(p.gymTime()),
                 p.friendsEnabled(), p.waterEnabled(), p.updatesEnabled(), p.weeklyEnabled(), p.photoEnabled(), photoTime, p.challengeEnabled(),
-                challengeTime, p.waterEnabled(), p.updatesEnabled(), p.weeklyEnabled(), p.photoEnabled(), photoTime, p.challengeEnabled(), challengeTime);
+                challengeTime, p.smartTime(), p.waterEnabled(), p.updatesEnabled(), p.weeklyEnabled(), p.photoEnabled(), photoTime, p.challengeEnabled(),
+                challengeTime, p.smartTime());
+        // 1.19: turned on: the usual times at once, not only tonight
+        if (Boolean.TRUE.equals(p.smartTime())) {
+            smartTimes.compute(me);
+        }
         return settings(auth);
     }
 
@@ -158,7 +170,12 @@ public class NotificationController {
                 rs.getTime("gym_time").toLocalTime().toString(), rs.getBoolean("friends_enabled"), rs.getBoolean("water_enabled"),
                 rs.getBoolean("updates_enabled"), rs.getBoolean("weekly_enabled"), rs.getBoolean("photo_enabled"),
                 rs.getTime("photo_time").toLocalTime().toString(), rs.getBoolean("challenge_enabled"),
-                rs.getTime("challenge_time").toLocalTime().toString()), userId).stream().findFirst()
-                .orElse(new Prefs(true, "08:00", false, "1,3,5", "18:00", true, false, true, true, true, "19:00", true, "20:00"));
+                rs.getTime("challenge_time").toLocalTime().toString(), rs.getBoolean("smart_time"), time(rs.getTime("smart_daily_time")),
+                time(rs.getTime("smart_photo_time"))), userId).stream().findFirst()
+                .orElse(new Prefs(true, "08:00", false, "1,3,5", "18:00", true, false, true, true, true, "19:00", true, "20:00", false, null, null));
+    }
+
+    private static String time(java.sql.Time t) {
+        return t == null ? null : t.toLocalTime().toString();
     }
 }

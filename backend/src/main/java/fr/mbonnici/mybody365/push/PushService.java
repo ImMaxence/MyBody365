@@ -46,7 +46,11 @@ public class PushService {
         /** 1.17: the day of a challenge not done yet (ReminderScheduler) */
         CHALLENGE_REMINDER,
         /** 1.17: the blood pressure of the morning or the evening not measured yet; an intake of the pill box not ticked yet */
-        BP_REMINDER, PILL }
+        BP_REMINDER, PILL,
+        /** 1.19: the recap of the month that just ended (ReminderScheduler, on the 1st) */
+        MONTHLY_RECAP,
+        /** 1.19: a recipe a friend sent me from its page (RecipeSends): a tap opens it in the app */
+        RECIPE_SENT }
 
     public record Subscription(String endpoint, String p256dh, String auth) {}
 
@@ -166,6 +170,12 @@ public class PushService {
         return ok;
     }
 
+    /** 1.19: only the line of the notification centre, no push (a friend who turned the friends' notifications off) */
+    public void keepOnly(UUID userId, Kind kind, Map<String, String> args) {
+        String locale = jdbc.queryForList("select locale from app_user where id = ?", String.class, userId).stream().findFirst().orElse("fr");
+        keepInCentre(userId, kind, payload(kind, "en".equals(locale), args));
+    }
+
     /** 1.17: a line of the notification centre (what the phone showed, and where a tap leads) */
     @SuppressWarnings("unchecked")
     private void keepInCentre(UUID userId, Kind kind, Map<String, Object> payload) {
@@ -231,8 +241,9 @@ public class PushService {
             case UPDATE -> "/changelog";
             case FEEDBACK -> "/app/admin/feedback";
             case TIMER -> "/app/timer";
+            case MONTHLY_RECAP -> args.getOrDefault("month", "").matches("\\d{4}-\\d{2}") ? "/app/progress/recap/" + args.get("month") : "/app/progress";
             // the recipe itself (an address of the app only)
-            case FRIEND_RECIPE -> args.getOrDefault("path", "").startsWith("/app/meals/recipes/") ? args.get("path") : "/app/meals/recipes";
+            case FRIEND_RECIPE, RECIPE_SENT -> args.getOrDefault("path", "").startsWith("/app/meals/recipes/") ? args.get("path") : "/app/meals/recipes";
             default -> "/app";
         };
         return Map.of("notification", Map.of(
@@ -334,12 +345,22 @@ public class PushService {
                 yield en ? new String[] {"Your challenge is waiting 🏆", what + " for the challenge" + with + " (day " + day + " of " + length + ")"}
                         : new String[] {"Ton défi t’attend 🏆", what + " pour le défi" + with + " (jour " + day + " sur " + length + ")"};
             }
+            case MONTHLY_RECAP -> {
+                String month = args.getOrDefault(en ? "monthEn" : "monthFr", "");
+                yield en ? new String[] {"Your " + month + " recap is ready 📅", "Your weigh-ins, your meals and your photos of the month, at a glance"}
+                        : new String[] {"Ton bilan de " + month + " est prêt 📅", "Tes pesées, tes repas et tes photos du mois, en un coup d’œil"};
+            }
             case FRIEND_CHEER -> en ? new String[] {name + " cheered you on 👏", "Bravo for what you shared: keep going"}
                     : new String[] {name + " t’encourage 👏", "Bravo pour ce que tu as partagé, continue comme ça"};
             case FRIEND_RECIPE -> {
                 String recipe = args.getOrDefault("recipe", "");
                 yield en ? new String[] {name + " shared a recipe 🍳", recipe + ", now in your friends’ recipes"}
                         : new String[] {name + " a partagé une recette 🍳", recipe + ", à découvrir dans les recettes de tes amis"};
+            }
+            case RECIPE_SENT -> {
+                String recipe = args.getOrDefault("recipe", "");
+                yield en ? new String[] {name + " sent you a recipe 🍳", "“" + recipe + "”: tap to open it"}
+                        : new String[] {name + " t’envoie une recette 🍳", "« " + recipe + " » : touche pour l’ouvrir"};
             }
             case TIMER -> {
                 String round = args.getOrDefault("round", "1");

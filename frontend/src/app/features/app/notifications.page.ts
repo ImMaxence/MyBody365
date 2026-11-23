@@ -128,6 +128,17 @@ type Toggle = 'dailyEnabled' | 'waterEnabled' | 'friendsEnabled' | 'updatesEnabl
               </span>
             </div>
           }
+          <!-- 1.19: the weigh-in and photo reminders at the time one usually does them -->
+          @if (p.dailyEnabled || p.photoEnabled) {
+            <label class="pref">
+              <span class="list-icon"><app-icon name="sparkles" /></span>
+              <span class="pref-body">
+                <span class="pref-title">{{ 'engage.notifications.smart' | t }}</span>
+                <span class="small muted">{{ smartHint() }}</span>
+              </span>
+              <input type="checkbox" role="switch" class="switch" [checked]="!!p.smartTime" (change)="toggleSmart($event)" />
+            </label>
+          }
           <label class="pref" [class.off]="!waterOn()">
             <span class="list-icon cool"><app-icon name="droplet" /></span>
             <span class="pref-body">
@@ -486,6 +497,20 @@ export class NotificationsPage {
     if (/^\d{2}:\d{2}$/.test(value)) this.save({ challengeTime: value });
   }
 
+  /** 1.19: what the usual times say: off, on with the times worked out, or on with not enough days yet */
+  protected readonly smartHint = computed(() => {
+    const p = this.prefs();
+    if (!p?.smartTime) return this.i18n.t('engage.notifications.smartHint');
+    const parts: string[] = [];
+    if (p.dailyEnabled && p.smartDailyTime) parts.push(this.i18n.t('engage.notifications.smartWeigh', { time: p.smartDailyTime }));
+    if (p.photoEnabled && p.smartPhotoTime) parts.push(this.i18n.t('engage.notifications.smartPhoto', { time: p.smartPhotoTime }));
+    return parts.length ? parts.join(' · ') : this.i18n.t('engage.notifications.smartWaiting');
+  });
+
+  protected toggleSmart(e: Event): void {
+    this.save({ smartTime: (e.target as HTMLInputElement).checked });
+  }
+
   /** shown at once, saved in order; a failure puts the screen back as the server has it */
   private save(change: Partial<NotificationPrefs>): void {
     const current = this.prefs();
@@ -495,6 +520,8 @@ export class NotificationsPage {
     this.saving = this.saving.then(async () => {
       try {
         const s = await this.api.savePrefs(next);
+        // 1.19: the usual times the server just worked out
+        this.prefs.update((p) => (p ? { ...p, smartDailyTime: s.prefs.smartDailyTime, smartPhotoTime: s.prefs.smartPhotoTime } : p));
         this.toast.show(this.i18n.t('engage.notifications.saved'));
         return s;
       } catch (e) {

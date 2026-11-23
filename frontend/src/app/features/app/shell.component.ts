@@ -19,6 +19,7 @@ import { TimerRun } from '../../core/engage/timer-run';
 import { MilestoneCelebrationComponent } from './milestone-celebration.component';
 import { CompactBarComponent } from './compact-bar.component';
 import { PullRefreshComponent } from './pull-refresh.component';
+import { ConfirmSheetComponent } from '../../shared/confirm-sheet.component';
 import { ToastService } from '../../core/ui/toast.service';
 import { ShoppingStore } from '../../core/meals/shopping.store';
 import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
@@ -44,7 +45,7 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
 @Component({
   selector: 'app-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, TranslatePipe, IconComponent, MilestoneCelebrationComponent, CompactBarComponent, PullRefreshComponent],
+  imports: [RouterOutlet, RouterLink, TranslatePipe, IconComponent, MilestoneCelebrationComponent, CompactBarComponent, PullRefreshComponent, ConfirmSheetComponent],
   template: `
     <div id="main" class="screen" #screen>
       <router-outlet />
@@ -63,6 +64,8 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
     <!-- the left edge: the back swipe (see edgeStart) -->
     <!-- a milestone reached by the weigh-in just noted, wherever it was noted -->
     <app-milestone-celebration />
+    <!-- 1.19: the questions before what cannot be undone (ConfirmService) -->
+    <app-confirm-sheet />
     <div class="edge" aria-hidden="true" (touchstart)="edgeStart($event)" (touchmove)="edgeMove($event)" (touchend)="edgeEnd($event)"
       (touchcancel)="edgeCancel()"></div>
     @if (showTabs() && (netState() || timerAway())) {
@@ -492,7 +495,7 @@ export class ShellComponent {
     const url = this.url();
     const account = this.session.account();
     // 1.16: the photo editor too: its tools fill the bottom of the screen
-    return account?.onboarded === true && account.profileComplete && !/^\/app\/(login|request|welcome|photos\/camera|meals\/scan|photos\/[^/]+\/edit)/.test(url);
+    return account?.onboarded === true && account.profileComplete && !/^\/app\/(login|request|welcome|photos\/camera|meals\/scan|photos\/[^/]+\/edit|progress\/recap|meals\/recipes\/[^/]+\/cook)/.test(url);
   });
 
   /** the band under the status bar: everywhere but the full-screen camera */

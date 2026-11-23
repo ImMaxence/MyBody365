@@ -101,6 +101,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/actuator/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/auth/**", "/api/access-requests", "/api/errors").permitAll()
+                        // 1.19: a read-only link of a member for a coach or a dietitian: its token is the access (ShareLinks)
+                        .requestMatchers("/api/shared/**").permitAll()
                         .requestMatchers("/webauthn/authenticate/options", "/login/webauthn").permitAll()
                         .requestMatchers("/webauthn/register/**", "/webauthn/register").hasRole("USER")
                         .requestMatchers("/api/**").hasRole("USER")

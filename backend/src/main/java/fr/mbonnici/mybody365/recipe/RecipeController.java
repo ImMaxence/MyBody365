@@ -11,6 +11,8 @@ import fr.mbonnici.mybody365.recipe.RecipeService.Type;
 import fr.mbonnici.mybody365.user.AppUser;
 import fr.mbonnici.mybody365.user.UserService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -41,10 +43,12 @@ public class RecipeController {
     private final RecipeLookalikes lookalikes;
     private final RecipeFinder finder;
     private final AuditService audit;
+    private final RecipeSends sends;
 
     public RecipeController(RecipeService recipes, UserService users, RecipeImporter importer, RecipeLookalikes lookalikes, RecipeFinder finder,
-            AuditService audit) {
+            AuditService audit, RecipeSends sends) {
         this.audit = audit;
+        this.sends = sends;
         this.importer = importer;
         this.lookalikes = lookalikes;
         this.finder = finder;
@@ -113,6 +117,16 @@ public class RecipeController {
             throw ApiException.badRequest("community_admins_only");
         }
         return recipes.setVisibility(me.getId(), id, v);
+    }
+
+    /** 1.19: sent to friends, each one notified (a tap opens it in their app) */
+    public record SendInput(@NotEmpty @Size(max = RecipeSends.MAX_FRIENDS) List<UUID> to) {}
+
+    public record Sent(int sent) {}
+
+    @PostMapping("/api/me/recipes/{id}/send")
+    public Sent send(@PathVariable UUID id, @Valid @RequestBody SendInput body, Authentication auth) {
+        return new Sent(sends.send(users.current(auth).getId(), id, body.to()));
     }
 
     @DeleteMapping("/api/me/recipes/{id}")

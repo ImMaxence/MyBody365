@@ -2,6 +2,36 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.19.0] - 2026-11-23
+
+Ton repas décrit en quelques mots, tes repas habituels en un appui, le bilan du mois comme une story, un lien en lecture seule pour ton coach ou ton diététicien, le relevé de tension pour ton médecin et la cuisine pas à pas
+
+### Ajouté
+- Décris ton repas : écris ou dicte avec le micro du clavier « 200 g de poulet, du riz et une pomme », et l'app retrouve chaque aliment de la table Ciqual avec son poids. Les aliments sont pris tels qu'ils se mangent (le riz et les pâtes cuits, la viande grillée), et sans quantité dite, c'est la portion d'une assiette, signalée comme estimée. Chaque ligne se pèse de nouveau ou se décoche avant d'être ajoutée, et ce qui n'est pas trouvé passe par l'ajout rapide
+- Mes repas habituels : « Garder ce repas » sur un repas de ta journée le garde sous un nom, avec les mêmes aliments et les mêmes quantités. Il revient en un appui dans « Ajouter », même sans réseau
+- Le bilan du mois, raconté comme une story : tes kilos du mois avec leur courbe, ta plus longue série de pesées et tes paliers, tes repas (les jours notés, les calories d'une journée, la note santé, ce que tu as mangé le plus souvent), ton eau, ta première et ta dernière photo, puis une image à partager, jamais avec une photo de ton corps. Une notification le 1er du mois, et le bilan est toujours dans Progrès
+- Partager avec un pro de santé (Profil) : un lien en lecture seule pour ton coach ou ton diététicien, qui montre ce que tu choisis (tes pesées et ta courbe, tes repas des 14 derniers jours, ta tension des 30 derniers jours), jamais tes photos ni ton pilulier. Il s'ouvre dans n'importe quel navigateur sans compte, pendant 7 ou 30 jours, et se retire en un appui. Tu vois combien de fois il a été ouvert, et la page s'imprime
+- Relevé pour ton médecin (Progrès, Tension) : la règle des 3 de l'automesure, 3 jours de suite, matin et soir, 3 mesures à chaque fois. Les 6 séances se cochent au fil des jours, avec les moyennes de toutes les mesures, des matins et des soirs face au seuil de 135/85, et tes traitements. Il s'imprime ou s'enregistre en PDF pour le médecin
+- Cuisiner pas à pas : les étapes d'une recette une par une en grand, l'écran qui reste allumé, un glissement pour passer à la suivante. Une durée dans une étape (« 10 minutes », « 2 heures ») devient un minuteur en un appui, qui vibre à la fin, et les ingrédients sont à un appui
+- Rappels à ton heure habituelle (Notifications, en option) : le rappel de la pesée et celui de la photo viennent 20 minutes après l'heure où tu les fais d'habitude, d'après tes 2 dernières semaines
+- Progrès : quand ton poids stagne depuis 3 semaines, une carte explique pourquoi ça arrive et ce qui aide (l'eau qui cache le gras perdu, le tour de taille, les calories oubliées, tes besoins qui baissent, bouger un peu plus), sans jamais pousser à manger moins que ton objectif
+- Raccourcis de l'icône (Android) : un appui long sur l'icône de l'app propose « Ajouter un repas », « Me peser » (la pesée s'ouvre directement) et « Photo du jour »
+- Envoyer une recette à un ami, depuis sa page : il reçoit une notification qui l'ouvre directement dans son app, sur iPhone aussi, et la retrouve dans son centre des notifications. Sur iPhone, un lien envoyé par message s'ouvre toujours dans Safari, jamais dans l'app de l'écran d'accueil : ce lien mène maintenant à une page qui explique comment l'ouvrir dans l'app au lieu de la présentation, et un lien de recette collé dans la recherche de « Ajouter » ouvre la recette
+- Sources des repères : sous les tendances de la semaine, dans « Bon à savoir » et dans la note de la journée, qui dit chaque chiffre (l'OMS pour le sel, les sucres et les graisses saturées, l'Anses pour les fibres), avec le lien vers les pages de l'OMS
+
+### Modifié
+- Repas : une ligne glissée vers la gauche découvre « Dupliquer » et « Retirer », comme dans les listes d'un téléphone. Dupliquer note la même chose une seconde fois (le deuxième café), et la fiche d'une ligne propose aussi « Dupliquer »
+- Aujourd'hui : les verres d'eau sont à côté de la flamme, à un glissement vers la gauche (les points dessous y mènent aussi), sur une rangée plus compacte. Ils ne sont plus sur le chemin du défilement de la page
+- Repas : les tendances de la semaine suivent les repères de l'OMS, comme le reste de l'app. Le sel est signalé au-delà de 5 g par jour (6 g avant, le chiffre de l'étiquetage européen) et les graisses saturées au-delà de 10 % des calories (12 % avant)
+- Supprimer une pesée, un traitement du pilulier ou une passkey, quitter une retouche de photo sans l'enregistrer : la question s'affiche dans une fenêtre de l'app (« Supprimer ta pesée d'aujourd'hui ? »), plus dans l'alerte du téléphone
+- Pesée du jour à faire : « À faire » en blanc sur un orange plus profond, l'icône ne bouge plus et la barre sur le bord est partie
+- Aujourd'hui : la carte qui invite à activer les notifications vient après ta journée, la pesée du jour reste en haut de l'écran
+
+### Corrigé
+- Aujourd'hui : faire défiler la page en partant d'un verre d'eau pouvait en ajouter un sur iPhone. Un doigt qui glisse ne compte plus comme un appui
+- Repas : « Pourquoi … kcal ? », replié, est centré dans sa carte
+- Centre des notifications : de l'espace entre le nom du jour et ses notifications
+
 ## [1.18.0] - 2026-11-23
 
 Un mode hors ligne qui marche vraiment, dès l'ouverture, avec l'heure de la coupure et du retour du réseau, les pâtisseries et les chocolats, le poids d'une part de recette, et une app qui se tient comme une app de téléphone

@@ -6,6 +6,7 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { formatBytes } from '../../core/photos/image-tools';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/ui/toast.service';
+import { ConfirmService } from '../../core/ui/confirm';
 import { AvatarImgComponent } from '../../shared/avatar-img.component';
 import { IconComponent } from '../../shared/icon.component';
 import { ClearableDirective } from '../../shared/clearable.directive';
@@ -308,6 +309,7 @@ import { LinkSheetComponent } from './link-sheet.component';
   `,
 })
 export class AdminUsersTab {
+  private readonly confirm = inject(ConfirmService);
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
   protected readonly i18n = inject(I18nService);
@@ -387,7 +389,7 @@ export class AdminUsersTab {
   }
 
   protected async toggleStatus(u: AdminUser): Promise<void> {
-    if (u.status === 'ACTIVE' && !confirm(this.i18n.t('admin.users.suspendConfirm', { email: u.email }))) return;
+    if (u.status === 'ACTIVE' && !(await this.confirm.askSentence(this.i18n.t('admin.users.suspendConfirm', { email: u.email }), this.i18n.t('admin.users.suspendOk')))) return;
     try {
       this.replace(await this.api.adminUpdateUser(u.id, { status: u.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE' }));
     } catch (e) {
@@ -405,7 +407,7 @@ export class AdminUsersTab {
   }
 
   protected async remove(u: AdminUser): Promise<void> {
-    if (!confirm(this.i18n.t('admin.users.removeConfirm', { email: u.email }))) return;
+    if (!(await this.confirm.askSentence(this.i18n.t('admin.users.removeConfirm', { email: u.email }), this.i18n.t('common.delete')))) return;
     try {
       await this.api.adminDeleteUser(u.id);
       this.userDialog().nativeElement.close();

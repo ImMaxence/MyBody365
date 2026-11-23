@@ -22,6 +22,10 @@ export interface NotificationPrefs {
   /** 1.17: the challenges whose day is not done yet, at their own time (missing from an older server) */
   challengeEnabled?: boolean;
   challengeTime?: string;
+  /** 1.19: the weigh-in and photo reminders at the usual time, and the times worked out (null: not enough days yet) */
+  smartTime?: boolean;
+  smartDailyTime?: string | null;
+  smartPhotoTime?: string | null;
 }
 
 /** 1.17: a notification the app sent, as the phone showed it (the notification centre) */

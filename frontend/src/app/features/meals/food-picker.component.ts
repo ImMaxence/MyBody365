@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { recipeLinkId } from '../../core/meals/recipe-link';
 import { HOT_DRINKS } from '../../core/meals/hot-drinks';
 import { APERO } from '../../core/meals/apero';
 import { SWEET_CHIPS } from '../../core/meals/sweets';
@@ -19,6 +20,7 @@ import { FoodThumbComponent } from '../../shared/food-thumb.component';
 import { TYPE_EMOJI } from './recipes.page';
 import { Network } from '../../core/offline/network';
 import { ServingPipe } from '../../shared/serving.pipe';
+import type { MealTemplate } from '../../core/api/habits-api';
 
 export type Picked = { kind: 'FOOD'; food: Food } | { kind: 'RECIPE'; recipe: Recipe } | { kind: 'RECENT'; item: RecentItem };
 
@@ -56,7 +58,7 @@ const PREVIEW = 5;
         [attr.aria-label]="'meals.search.label' | t"
         [placeholder]="placeholder() || ('meals.search.placeholderAll' | t)"
         [value]="query()"
-        (input)="query.set($any($event.target).value)"
+        (input)="onQuery($any($event.target))"
       />
       @if (scanLink()) {
         <a class="icon-btn scan" [routerLink]="scanLink()" [queryParams]="scanParams()" [attr.aria-label]="'meals.search.scan' | t">
@@ -74,6 +76,15 @@ const PREVIEW = 5;
       @if (withExtras()) {
         <!-- the ways in, one under the other (1.9) -->
         <nav class="sources" [attr.aria-label]="'meals.sources.title' | t">
+          <!-- 1.19: the meal said in a few words (or dictated), each food found with its weight -->
+          <button type="button" class="card list-row src describe" (click)="describe.emit()">
+            <span class="src-ico describe-ico"><app-icon name="sparkles" /></span>
+            <span class="list-body">
+              <span class="list-title">{{ 'meals.describe.title' | t }}</span>
+              <span class="list-sub">{{ 'meals.describe.sub' | t }}</span>
+            </span>
+            <app-icon name="chevronRight" />
+          </button>
           <a class="card list-row src" routerLink="/app/meals/products" [queryParams]="sourceParams()">
             <span class="src-ico logo-off"><img src="/brands/open-food-facts.svg" alt="" width="30" height="30" /></span>
             <span class="list-body">
@@ -109,6 +120,27 @@ const PREVIEW = 5;
             <app-icon name="chevronRight" />
           </button>
         </nav>
+
+        <!-- 1.19: « Mes repas habituels »: a whole meal in one tap -->
+        @if (templates().length) {
+          <h2 class="section-title">{{ 'meals.habits.title' | t }}</h2>
+          <div class="list">
+            @for (t of templates(); track t.id) {
+              <div class="list-item habit">
+                <button type="button" class="habit-main" (click)="useTemplate.emit(t)">
+                  <span class="list-icon habit-ico"><app-icon name="repeat" /></span>
+                  <span class="list-body">
+                    <span class="list-title">{{ t.name }}</span>
+                    <span class="list-sub">{{ (t.items.length === 1 ? 'meals.habits.one' : 'meals.habits.many') | t: { n: t.items.length, kcal: i18n.number(t.kcal) } }}</span>
+                  </span>
+                </button>
+                <button type="button" class="icon-btn mini" [attr.aria-label]="'meals.habits.delete' | t: { name: t.name }" (click)="dropTemplate.emit(t)">
+                  <app-icon name="trash" [size]="16" />
+                </button>
+              </div>
+            }
+          </div>
+        }
 
         <h2 class="section-title">{{ 'meals.quick.restaurant' | t }}</h2>
         <div class="slide-chips" role="group" [attr.aria-label]="'meals.quick.restaurant' | t">
@@ -404,6 +436,38 @@ const PREVIEW = 5;
       background: var(--cool-soft);
       color: var(--cool);
     }
+    .habit {
+      gap: 6px;
+      padding-right: 8px;
+    }
+    .habit-main {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      align-items: center;
+      gap: 14px;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .habit-ico {
+      background: var(--accent-soft) !important;
+      color: var(--accent-text) !important;
+    }
+    .icon-btn.mini {
+      flex: none;
+      width: 36px;
+      height: 36px;
+      color: var(--fg-3);
+    }
+    .describe-ico {
+      background: var(--flame);
+      color: #fff;
+    }
     .fav-ico {
       background: color-mix(in srgb, #e5484d 14%, transparent) !important;
       color: #e5484d !important;
@@ -584,10 +648,30 @@ export class FoodPickerComponent {
   readonly drink = output<string>();
   /** a drink at the apéro (core/meals/apero.ts) */
   readonly aperoPicked = output<string>({ alias: 'apero' });
+  /** 1.19: « Mes repas habituels », and a tap on one (to add it) or on its bin */
+  readonly templates = input<MealTemplate[]>([]);
+  readonly useTemplate = output<MealTemplate>();
+  readonly dropTemplate = output<MealTemplate>();
+  /** 1.19: « Décris ton repas » */
+  readonly describe = output<void>();
   /** 1.18: a group of « Pâtisseries et chocolats » (core/meals/sweets.ts) */
   readonly sweet = output<string>();
   /** the recipes page (with the meal it adds to) */
   readonly recipesLink = input<string | null>(null);
+  private readonly router = inject(Router);
+
+  /** 1.19: a recipe's link pasted here (sent by a friend, opened in a browser) opens the recipe */
+  protected onQuery(box: HTMLInputElement): void {
+    const id = recipeLinkId(box.value);
+    if (!id) {
+      this.query.set(box.value);
+      return;
+    }
+    box.value = '';
+    box.blur();
+    this.query.set('');
+    void this.router.navigate([`${this.recipesLink() ?? '/app/meals/recipes'}/${id}`], { queryParams: this.recipesParams() });
+  }
   readonly recipesParams = input<Record<string, string>>({});
   protected readonly hotDrinks = HOT_DRINKS.map((d) => ({ key: d.key, emoji: d.emoji }));
   protected readonly restaurant = DISHES.map((d) => ({ key: d.key, emoji: d.emoji }));

@@ -2,13 +2,17 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { I18nService } from '../i18n/i18n.service';
 import { InstallService } from '../pwa/install.service';
+import { recipeLinkId } from '../meals/recipe-link';
 import { SessionStore } from './session.store';
 
-/** /app only opens in the installed app: a browser tab is sent to the install guide. */
-export const installGate: CanActivateFn = () => {
+/** /app only opens in the installed app: a browser tab is sent to the install guide (1.19: a recipe's link, to the page that
+ * says how to open it in the app). */
+export const installGate: CanActivateFn = (_route, state) => {
   const install = inject(InstallService);
   if (install.canOpenApp()) return true;
   const router = inject(Router);
+  const recipe = recipeLinkId(state.url);
+  if (recipe) return router.createUrlTree(['/recette', recipe]);
   const lang = inject(I18nService).preferred();
   return router.createUrlTree([lang === 'en' ? '/en' : '/'], { fragment: 'install' });
 };

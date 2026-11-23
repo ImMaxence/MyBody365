@@ -4,6 +4,8 @@ import { DrinkSheetComponent } from './drink-sheet.component';
 import { AperoSheetComponent } from './apero-sheet.component';
 import { SandwichSheetComponent } from './sandwich-sheet.component';
 import { SweetsSheetComponent } from './sweets-sheet.component';
+import { DescribeSheetComponent } from './describe-sheet.component';
+import { HabitsApi, MealTemplate } from '../../core/api/habits-api';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
@@ -28,7 +30,7 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
 @Component({
   selector: 'app-meal-add',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FastFoodSheetComponent, DrinkSheetComponent, AperoSheetComponent, SandwichSheetComponent, SweetsSheetComponent, FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, FoodPickerComponent, QuantitySheetComponent],
+  imports: [FastFoodSheetComponent, DrinkSheetComponent, AperoSheetComponent, SandwichSheetComponent, SweetsSheetComponent, DescribeSheetComponent, FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, FoodPickerComponent, QuantitySheetComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -48,7 +50,14 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
         (drink)="drinkSheet.open($event)"
         (apero)="aperoSheet.open($event)"
         (sweet)="sweetsSheet.open($event)"
+        (describe)="describeSheet.open()"
+        [templates]="templates()"
+        (useTemplate)="addTemplate($event)"
+        (dropTemplate)="dropTemplate($event)"
       />
+      <!-- 1.19: the meal said in a few words -->
+      <app-describe-sheet #describeSheet [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addFoods($event, describeSheet)"
+        (quick)="describeSheet.close(); openQuick({ name: $event })" (error)="toast.error(i18n.error($event))" />
       <app-fast-food-sheet #estimate [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event)" />
       <app-drink-sheet #drinkSheet [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event, drinkSheet)" />
       <app-apero-sheet #aperoSheet [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event, aperoSheet)" />
@@ -131,9 +140,9 @@ export class MealAddPage {
   readonly dayParam = input<string | undefined>(undefined, { alias: 'day' });
   protected readonly store = inject(MealsStore);
   private readonly api = inject(MealsApi);
-  private readonly toast = inject(ToastService);
+  protected readonly toast = inject(ToastService);
   private readonly stack = inject(StackNavigation);
-  private readonly i18n = inject(I18nService);
+  protected readonly i18n = inject(I18nService);
   private readonly sheet = viewChild.required(QuantitySheetComponent);
   private readonly quickDialog = viewChild.required<ElementRef<HTMLDialogElement>>('quickDialog');
   private readonly estimateSheet = viewChild.required(FastFoodSheetComponent);
@@ -153,10 +162,17 @@ export class MealAddPage {
   });
   protected readonly day = computed(() => (this.dayParam() && /^\d{4}-\d{2}-\d{2}$/.test(this.dayParam()!) ? this.dayParam()! : localDay()));
   protected readonly recipes = signal<Recipe[]>([]);
+  /** 1.19: « Mes repas habituels » */
+  protected readonly templates = signal<MealTemplate[]>([]);
+  private readonly habits = inject(HabitsApi);
   private current: { kind: 'FOOD' | 'RECIPE'; id: string; name: string; base?: Nutrients } | null = null;
 
   constructor() {
     void this.store.loadRecent().catch(() => undefined);
+    void this.habits
+      .templates()
+      .then((t) => this.templates.set(t))
+      .catch(() => undefined);
     void this.api
       .myRecipes()
       .then((r) => this.recipes.set(r))
@@ -290,6 +306,55 @@ export class MealAddPage {
       this.toast.error(this.i18n.error(errorCode(e)));
     } finally {
       sheet.busy.set(false);
+    }
+  }
+
+  /** 1.19: a meal one has often, each of its lines added again as it was noted (waiting on the phone without network) */
+  protected async addTemplate(t: MealTemplate): Promise<void> {
+    try {
+      for (const x of t.items) {
+        const preview = { name: x.name, nutrients: x.nutrients };
+        if (x.foodId && x.grams) await this.store.add({ day: this.day(), slot: this.slot(), foodId: x.foodId, grams: x.grams }, preview);
+        else if (x.recipeId && x.servings) await this.store.add({ day: this.day(), slot: this.slot(), recipeId: x.recipeId, servings: x.servings }, preview);
+        else await this.store.add({ day: this.day(), slot: this.slot(), quick: { ...x.nutrients, name: x.name } }, preview);
+      }
+      void this.habits.templateUsed(t.id).catch(() => undefined);
+      this.toast.show(this.store.lastQueued() ? this.i18n.t('offline.queued') : this.i18n.t('meals.habits.added', { name: t.name, kcal: this.i18n.number(t.kcal) }));
+      this.stack.back('/app/meals');
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    }
+  }
+
+  protected async dropTemplate(t: MealTemplate): Promise<void> {
+    try {
+      await this.habits.deleteTemplate(t.id);
+      this.templates.update((list) => list.filter((x) => x.id !== t.id));
+      this.toast.show(this.i18n.t('meals.habits.deleted', { name: t.name }));
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    }
+  }
+
+  /** 1.19: the foods of « Décris ton repas », each on its own line, by the gram */
+  protected async addFoods(lines: { food: Food; grams: number }[], sheet: DescribeSheetComponent): Promise<void> {
+    if (!lines.length) return;
+    sheet.adding.set(true);
+    try {
+      for (const l of lines) {
+        await this.store.add(
+          { day: this.day(), slot: this.slot(), foodId: l.food.id, grams: l.grams },
+          { name: l.food.name, nutrients: scaled(l.food.per100, l.grams / 100) },
+        );
+      }
+      sheet.close();
+      const kcal = lines.reduce((t, l) => t + (l.food.per100.kcal * l.grams) / 100, 0);
+      this.toast.show(this.store.lastQueued() ? this.i18n.t('offline.queued') : this.i18n.t('meals.describe.added', { n: lines.length, kcal: this.i18n.number(kcal) }));
+      this.stack.back('/app/meals');
+    } catch (e) {
+      this.toast.error(this.i18n.error(errorCode(e)));
+    } finally {
+      sheet.adding.set(false);
     }
   }
 

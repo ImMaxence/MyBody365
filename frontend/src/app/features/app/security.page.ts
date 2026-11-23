@@ -6,6 +6,7 @@ import { SessionStore } from '../../core/auth/session.store';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { ToastService } from '../../core/ui/toast.service';
+import { ConfirmService } from '../../core/ui/confirm';
 import { TodoStore } from '../../core/support/support-api';
 import { GoogleGComponent, IconComponent } from '../../shared/icon.component';
 import { BackButtonComponent } from '../../shared/back-button.component';
@@ -95,6 +96,7 @@ import { BackButtonComponent } from '../../shared/back-button.component';
   `,
 })
 export class SecurityPage {
+  private readonly confirm = inject(ConfirmService);
   protected readonly session = inject(SessionStore);
   protected readonly i18n = inject(I18nService);
   private readonly api = inject(ApiService);
@@ -136,7 +138,7 @@ export class SecurityPage {
   }
 
   protected async remove(id: string): Promise<void> {
-    if (!confirm(this.i18n.t('security.removeConfirm'))) return;
+    if (!(await this.confirm.askSentence(this.i18n.t('security.removeConfirm'), this.i18n.t('common.delete')))) return;
     try {
       await this.api.deletePasskey(id);
       this.toast.show(this.i18n.t('security.passkeyRemoved'));

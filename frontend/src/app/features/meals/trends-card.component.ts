@@ -1,15 +1,17 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { Trend, trendText } from '../../core/meals/trends';
+import { sourcesFor } from '../../core/meals/sources';
+import { SourcesComponent } from '../../shared/sources.component';
 import { IconComponent } from '../../shared/icon.component';
 
 /** What stands out in the last 7 days (core/meals/trends.ts), on the meals page and the summary of the week. */
 @Component({
   selector: 'app-trends-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent],
+  imports: [RouterLink, TranslatePipe, IconComponent, SourcesComponent],
   host: { style: 'display: contents' },
   template: `
     @if (trends().length) {
@@ -21,6 +23,8 @@ import { IconComponent } from '../../shared/icon.component';
           }
         </ul>
         <a routerLink="/app/meals/stats" class="small more">{{ 'meals.trends.more' | t }} <app-icon name="chevronRight" [size]="14" /></a>
+        <!-- 1.19: who says each figure, with the page to read -->
+        <app-sources [keys]="sources()" />
       </section>
     }
   `,
@@ -79,6 +83,7 @@ import { IconComponent } from '../../shared/icon.component';
 })
 export class TrendsCardComponent {
   readonly trends = input<Trend[]>([]);
+  protected readonly sources = computed(() => sourcesFor(this.trends().map((t) => t.key)));
   private readonly i18n = inject(I18nService);
 
   protected text(t: Trend): string {

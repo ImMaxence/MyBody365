@@ -69,6 +69,7 @@ export const frPhotos = {
     size: 'Taille',
     fit: 'Tout voir',
     leaveConfirm: 'Quitter sans enregistrer ? Tes retouches seront perdues',
+    leaveOk: 'Quitter sans enregistrer',
     straighten: 'Redresser',
     background: 'Fond',
     backgroundHint: 'Il se voit quand la photo est plus petite que le cadre ou penchée',
