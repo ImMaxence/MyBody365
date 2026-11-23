@@ -2,6 +2,14 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.20.4] - 2026-11-23
+
+Douze recettes healthy de goûters et de gâteaux faits maison, avec leur photo
+
+### Ajouté
+- 12 recettes Healthy dans la communauté, la compote sans sucres ajoutés, la banane mûre ou la patate douce à la place du sucre, l'avoine et la farine complète à la place de la farine blanche, le skyr à la place de la crème : granola maison sans sucre ajouté, cookies à la compote de pomme, banana bread sans sucre ajouté, gâteau au yaourt à la compote, carrot cake glaçage au fromage blanc, fondant au chocolat et à la patate douce, bowl cake pomme-cannelle, tiramisu au skyr, pain d'épices au miel et à l'avoine, crackers aux graines sans farine, crêpes à l'avoine et muffins pomme, cannelle et noix. Toutes ont une note santé de 6,5 à 9 sur 10 et, sauf le bowl cake, une photo libre de Wikimedia Commons
+- Le mug cake protéiné au cacao a maintenant sa photo
+
 ## [1.20.3] - 2026-11-23
 
 « Nouvelle version disponible » lisible en entier dans le Profil

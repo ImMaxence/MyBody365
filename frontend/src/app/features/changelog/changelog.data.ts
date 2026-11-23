@@ -7,6 +7,32 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.20.4",
+    "date": "2026-11-23",
+    "summary": [
+      {
+        "t": "Douze recettes healthy de goûters et de gâteaux faits maison, avec leur photo"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "12 recettes Healthy dans la communauté, la compote sans sucres ajoutés, la banane mûre ou la patate douce à la place du sucre, l'avoine et la farine complète à la place de la farine blanche, le skyr à la place de la crème : granola maison sans sucre ajouté, cookies à la compote de pomme, banana bread sans sucre ajouté, gâteau au yaourt à la compote, carrot cake glaçage au fromage blanc, fondant au chocolat et à la patate douce, bowl cake pomme-cannelle, tiramisu au skyr, pain d'épices au miel et à l'avoine, crackers aux graines sans farine, crêpes à l'avoine et muffins pomme, cannelle et noix. Toutes ont une note santé de 6,5 à 9 sur 10 et, sauf le bowl cake, une photo libre de Wikimedia Commons"
+            }
+          ],
+          [
+            {
+              "t": "Le mug cake protéiné au cacao a maintenant sa photo"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.20.3",
     "date": "2026-11-23",
     "summary": [

@@ -1,0 +1,228 @@
+# Recettes de la communauté, 1.20.4 : Healthy, les goûters et les gâteaux faits maison. La compote sans sucres ajoutés,
+# la banane mûre ou la patate douce remplacent le sucre et une partie du beurre, l'avoine et la farine complète la
+# farine blanche, le skyr la crème.
+# Même format que les autres fichiers :
+#   = Nom | TYPES | parts
+#   code_ciqual grammes   (poids cru pour toute la recette ; le texte après les grammes n'est qu'un repère)
+#   : une étape
+
+= Granola maison healthy à la compote, sans sucre ajouté | BREAKFAST,SNACK,HEALTHY | 8
+32140 250 flocons d'avoine
+13187 150 compote de pomme sans sucres ajoutés
+13005 100 banane bien mûre
+15041 50 amandes
+15004 40 noisettes
+15064 30 graines de courge
+15011 20 graines de tournesol
+17130 20 huile de colza
+11098 5 extrait de vanille
+11025 4 cannelle
+11058 1 sel
+: Préchauffer le four à 160 °C
+: Écraser la banane avec la compote, l'huile, la vanille, la cannelle et le sel
+: Ajouter les flocons, les amandes et les noisettes concassées et les graines, puis bien mélanger
+: Étaler sur une plaque couverte de papier cuisson en tassant un peu pour former des grappes
+: Cuire 35 à 40 minutes en remuant à mi-cuisson, jusqu'à ce que le granola soit bien doré
+: Laisser refroidir complètement sur la plaque : il devient croustillant en refroidissant
+: Se garde 2 semaines dans un bocal fermé, avec un yaourt ou du lait et des fruits frais
+
+= Cookies healthy à la compote de pomme | SNACK,DESSERT,HEALTHY | 6
+32140 150 flocons d'avoine
+13187 120 compote de pomme sans sucres ajoutés
+15041 50 poudre d'amande
+22000 50 œuf
+31074 40 chocolat noir 70 %
+15005 20 cerneaux de noix
+17130 15 huile de colza
+11046 4 levure chimique
+11025 2 cannelle
+11058 0,5 sel
+: Préchauffer le four à 180 °C
+: Mixer la moitié des flocons en farine
+: Mélanger la compote, l'œuf battu et l'huile
+: Ajouter les flocons mixés et entiers, la poudre d'amande, la levure, la cannelle et le sel
+: Incorporer le chocolat et les noix concassés, puis laisser reposer 10 minutes : les flocons gonflent
+: Former 12 boules, les poser sur une plaque couverte de papier cuisson et les aplatir avec le dos d'une cuillère
+: Cuire 13 à 15 minutes : les bords dorent, le cœur reste moelleux
+: Laisser refroidir sur la plaque avant de les décoller (2 cookies par part)
+
+= Banana bread healthy sans sucre ajouté | BREAKFAST,SNACK,HEALTHY | 10
+13005 350 bananes bien mûres (3 à 4)
+22000 120 œufs (2)
+19724 125 skyr
+9415 120 farine complète T150
+32140 100 flocons d'avoine
+15041 40 poudre d'amande
+15005 40 cerneaux de noix
+17130 30 huile de colza
+11046 8 levure chimique
+11025 4 cannelle
+11507 2 bicarbonate
+11058 1 sel
+: Préchauffer le four à 180 °C et chemiser un moule à cake de papier cuisson
+: Écraser les bananes à la fourchette en gardant une demi-banane pour le dessus
+: Fouetter avec les œufs, le skyr et l'huile
+: Mixer les flocons en farine, puis les mélanger avec la farine complète, la poudre d'amande, la levure, le bicarbonate, la cannelle et le sel
+: Réunir les deux préparations sans trop travailler la pâte, puis ajouter les noix concassées
+: Verser dans le moule et poser dessus la demi-banane coupée dans la longueur
+: Cuire 45 à 50 minutes : une lame plantée au centre ressort sèche
+: Laisser tiédir 15 minutes avant de démouler : il se tranche mieux froid
+
+= Gâteau au yaourt healthy à la compote | DESSERT,SNACK,HEALTHY | 8
+19593 125 yaourt nature
+13187 200 compote de pomme sans sucres ajoutés
+22000 150 œufs (3)
+9415 150 farine complète T150
+15041 50 poudre d'amande
+31008 30 miel
+17130 30 huile de colza
+11046 11 levure chimique (1 sachet)
+13009 10 jus d'un demi-citron
+: Préchauffer le four à 180 °C et chemiser un moule rond de papier cuisson
+: Fouetter les œufs avec le miel jusqu'à ce qu'ils moussent un peu
+: Ajouter le yaourt, la compote, l'huile, le jus et le zeste du demi-citron
+: Mélanger la farine, la poudre d'amande et la levure, puis les incorporer sans trop travailler la pâte
+: Verser dans le moule et cuire 35 minutes : une lame plantée au centre ressort sèche
+: Laisser refroidir avant de démouler
+
+= Carrot cake healthy, glaçage au fromage blanc | DESSERT,SNACK,HEALTHY | 10
+20009 250 carottes
+19644 200 fromage blanc 0 % (glaçage)
+13187 150 compote de pomme sans sucres ajoutés
+9415 150 farine complète T150
+22000 120 œufs (2)
+15041 50 poudre d'amande
+15005 50 cerneaux de noix
+31034 50 sirop d'érable (dont 10 g pour le glaçage)
+17130 40 huile de colza
+13046 40 raisins secs
+11046 8 levure chimique
+11025 5 cannelle
+11006 2 gingembre en poudre
+11048 1 muscade
+: Préchauffer le four à 180 °C et chemiser un moule à cake de papier cuisson
+: Fouetter les œufs avec 40 g de sirop d'érable, la compote et l'huile
+: Mélanger la farine, la poudre d'amande, la levure et les épices, puis les incorporer
+: Ajouter les carottes râpées finement, les noix concassées et les raisins secs
+: Verser dans le moule et cuire 45 minutes : une lame plantée au centre ressort sèche
+: Laisser refroidir complètement
+: Fouetter le fromage blanc bien égoutté avec le reste du sirop d'érable et l'étaler sur le gâteau froid
+: Se garde 3 jours au réfrigérateur
+
+= Fondant healthy au chocolat et à la patate douce | DESSERT,SNACK,HEALTHY | 8
+4101 400 patate douce
+22000 180 œufs (3)
+31074 70 chocolat noir 70 %
+15041 60 poudre d'amande
+18100 30 cacao en poudre non sucré
+31008 30 miel
+11046 4 levure chimique
+11058 0,5 sel
+: Éplucher la patate douce, la couper en cubes et la cuire 15 minutes à la vapeur
+: Préchauffer le four à 180 °C
+: Faire fondre le chocolat au bain-marie
+: Mixer la patate douce chaude avec le chocolat fondu et le miel jusqu'à obtenir une purée lisse
+: Ajouter les œufs un à un, puis la poudre d'amande, le cacao, la levure et le sel
+: Verser dans un moule de 20 cm couvert de papier cuisson et cuire 25 minutes : le cœur reste fondant
+: Laisser refroidir, puis 1 heure au réfrigérateur avant de couper
+
+= Bowl cake healthy pomme et cannelle | BREAKFAST,SNACK,HEALTHY | 1
+32140 40 flocons d'avoine
+22000 60 œuf
+13039 60 demi-pomme
+13187 50 compote de pomme sans sucres ajoutés
+19033 40 lait demi-écrémé
+15005 8 cerneaux de noix
+11046 2 levure chimique
+11025 1 cannelle
+: Écraser les flocons avec l'œuf, la compote, le lait, la levure et la cannelle dans un bol qui va au micro-ondes
+: Ajouter la pomme coupée en petits dés
+: Cuire 2 minutes à 800 W, puis 30 secondes de plus si le centre est encore liquide
+: Parsemer de noix concassées et déguster tiède
+
+= Tiramisu healthy au skyr | DESSERT,HEALTHY | 6
+19724 500 skyr
+18071 250 café expresso
+24430 100 biscuits à la cuillère
+22000 120 œufs (2)
+31008 20 miel
+18100 10 cacao en poudre non sucré
+11098 5 extrait de vanille
+: Préparer le café et le laisser refroidir
+: Séparer les blancs des jaunes, puis fouetter les jaunes avec le miel et la vanille
+: Ajouter le skyr et lisser au fouet : il remplace le mascarpone
+: Monter les blancs en neige ferme et les incorporer délicatement
+: Tremper rapidement les biscuits dans le café et en tapisser le fond de 6 verrines ou d'un plat
+: Couvrir de crème, refaire une couche de biscuits, puis de crème
+: Réserver au moins 4 heures au réfrigérateur et saupoudrer de cacao au moment de servir
+
+= Pain d'épices healthy au miel et à l'avoine | BREAKFAST,SNACK,HEALTHY | 10
+9415 150 farine complète T150
+13187 150 compote de pomme sans sucres ajoutés
+22000 120 œufs (2)
+31008 80 miel
+32140 100 flocons d'avoine
+19033 100 lait demi-écrémé
+11046 8 levure chimique
+11025 5 cannelle
+11006 3 gingembre en poudre
+11048 1 muscade
+11052 0,5 clou de girofle moulu
+: Préchauffer le four à 170 °C et chemiser un moule à cake de papier cuisson
+: Faire tiédir le lait avec le miel et les épices pour bien les mélanger
+: Mixer les flocons en farine et les mélanger avec la farine complète et la levure
+: Fouetter les œufs avec la compote, puis ajouter le lait au miel
+: Verser sur les farines et mélanger juste ce qu'il faut pour une pâte lisse
+: Cuire 45 à 50 minutes : une lame plantée au centre ressort sèche
+: Il est encore meilleur le lendemain, emballé dans un film
+
+= Crackers aux graines, sans farine | SNACK,HEALTHY | 8
+15034 60 graines de lin
+15064 60 graines de courge
+15011 60 graines de tournesol
+15047 50 graines de chia
+32140 50 flocons d'avoine
+15010 40 graines de sésame
+18066 200 eau
+11058 3 sel
+: Préchauffer le four à 160 °C
+: Mélanger toutes les graines, les flocons et le sel avec l'eau
+: Laisser gonfler 15 minutes : la chia et le lin lient la pâte
+: Étaler finement entre deux feuilles de papier cuisson posées sur une plaque
+: Retirer la feuille du dessus et prédécouper des carrés au couteau
+: Cuire 50 minutes à 1 heure en tournant la plaque à mi-cuisson, jusqu'à ce qu'ils soient secs et dorés
+: Laisser refroidir sur la plaque : ils deviennent croustillants
+: Se gardent 2 semaines dans une boîte fermée, avec un houmous ou un fromage frais
+
+= Crêpes healthy à l'avoine | BREAKFAST,DESSERT,SNACK,HEALTHY | 4
+19033 350 lait demi-écrémé
+22000 120 œufs (2)
+32140 100 flocons d'avoine
+9415 50 farine complète T150
+17130 5 huile de colza (pour la poêle)
+11098 5 extrait de vanille
+11058 0,5 sel
+: Mixer les flocons très finement
+: Ajouter la farine, les œufs, le sel et la vanille, puis verser le lait petit à petit en mixant
+: Laisser reposer 30 minutes : la pâte épaissit
+: Cuire les crêpes dans une poêle chaude à peine huilée, 1 à 2 minutes de chaque côté (2 crêpes par part)
+: Garnir de fruits frais, de compote ou de fromage blanc plutôt que de pâte à tartiner
+
+= Muffins healthy pomme, cannelle et noix | BREAKFAST,SNACK,HEALTHY | 8
+13187 150 compote de pomme sans sucres ajoutés
+13039 150 pomme
+19593 125 yaourt nature
+9415 120 farine complète T150
+22000 120 œufs (2)
+32140 60 flocons d'avoine
+15005 40 cerneaux de noix
+17130 30 huile de colza
+31034 30 sirop d'érable
+11046 8 levure chimique
+11025 4 cannelle
+: Préchauffer le four à 180 °C et poser 8 caissettes dans un moule à muffins
+: Fouetter les œufs avec la compote, le yaourt, l'huile et le sirop d'érable
+: Mélanger la farine, les flocons, la levure et la cannelle, puis les verser sur les liquides sans trop mélanger
+: Ajouter la pomme en petits dés et la moitié des noix concassées
+: Remplir les caissettes aux trois quarts et parsemer du reste des noix
+: Cuire 22 à 25 minutes : les muffins sont dorés et bien gonflés
