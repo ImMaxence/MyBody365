@@ -7,6 +7,12 @@ import { TodoStore } from '../../core/support/support-api';
 import { localDay } from '../../core/tracking/tracking.store';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
+import { Network, NetEvent } from '../../core/offline/network';
+import { spanOf } from '../../core/offline/when';
+import { unreachable } from '../../core/offline/offline-cache';
+
+/** a line of the centre: a notification of the server, or (1.18) a loss or a return of the network, kept on the phone */
+type Line = SentNotification & { local?: boolean };
 
 /** the icon of each kind of notification (PushService.Kind) */
 const ICONS: Record<string, string> = {
@@ -24,6 +30,8 @@ const ICONS: Record<string, string> = {
   FRIEND_CHEER: 'thumbUp',
   FRIEND_CHALLENGE: 'trophy',
   CHALLENGE_REMINDER: 'trophy',
+  NET_LOST: 'cloudOff',
+  NET_BACK: 'cloud',
 };
 
 /**
@@ -46,21 +54,26 @@ const ICONS: Record<string, string> = {
       </header>
 
       @if (history(); as h) {
-        @if (h.total === 0) {
+        @if (h.total === 0 && !netLines().length) {
           <div class="empty">
             <span class="empty-icon"><app-icon name="bell" /></span>
             <p class="empty-title">{{ 'engage.center.empty' | t }}</p>
             <p class="small muted">{{ 'engage.center.emptyHint' | t }}</p>
           </div>
         } @else {
-          <p class="small muted">{{ (h.total === 1 ? 'engage.center.countOne' : 'engage.center.count') | t: { n: i18n.number(h.total) } }}</p>
+          @if (h.total > 0) {
+            <p class="small muted">{{ (h.total === 1 ? 'engage.center.countOne' : 'engage.center.count') | t: { n: i18n.number(h.total) } }}</p>
+          }
+          @if (away()) {
+            <p class="small away"><app-icon name="cloudOff" [size]="16" /> {{ 'engage.center.away' | t }}</p>
+          }
           @for (g of groups(); track g.day) {
             <section class="day" [attr.aria-labelledby]="'d-' + g.day">
               <h2 class="section-title" [id]="'d-' + g.day">{{ g.label }}</h2>
               <ul class="list" role="list">
                 @for (n of g.items; track n.id; let i = $index) {
                   <li [style.--i]="i">
-                    <button type="button" class="list-item note" [class.unread]="n.unread" (click)="open(n)">
+                    <button type="button" class="list-item note" [class.unread]="n.unread" [class.local]="n.local" (click)="open(n)">
                       <span class="list-icon" [attr.data-kind]="n.kind"><app-icon [name]="icon(n.kind)" /></span>
                       <span class="list-body">
                         <span class="note-head">
@@ -68,6 +81,9 @@ const ICONS: Record<string, string> = {
                           <time class="tiny muted num" [attr.datetime]="n.createdAt">{{ time(n.createdAt) }}</time>
                         </span>
                         <span class="list-sub">{{ n.body }}</span>
+                        @if (n.local) {
+                          <span class="tiny muted on-phone">{{ 'engage.center.net.onPhone' | t }}</span>
+                        }
                       </span>
                       @if (n.unread) {
                         <span class="dot" role="img" [attr.aria-label]="'engage.center.new' | t"></span>
@@ -107,8 +123,22 @@ const ICONS: Record<string, string> = {
     .small-title {
       font-size: 1.6rem;
     }
+    .page-head {
+      position: relative;
+    }
     .page-head .settings {
-      margin-left: auto;
+      position: absolute;
+      top: 0;
+      right: -6px;
+    }
+    .away {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: var(--radius-m);
+      background: var(--surface-2);
+      color: var(--fg-2);
     }
     p {
       margin: 0;
@@ -169,6 +199,21 @@ const ICONS: Record<string, string> = {
       background: var(--accent-soft);
       color: var(--accent-text);
     }
+    .list-icon[data-kind='NET_LOST'] {
+      background: color-mix(in srgb, var(--fg) 8%, var(--surface));
+      color: var(--fg-2);
+    }
+    .list-icon[data-kind='NET_BACK'] {
+      background: color-mix(in srgb, var(--success) 14%, var(--surface));
+      color: var(--success);
+    }
+    .on-phone {
+      display: block;
+      margin-top: 2px;
+    }
+    .note.local {
+      cursor: default;
+    }
     .list-icon[data-kind='WATER'] {
       background: color-mix(in srgb, #2b8cee 14%, var(--surface));
       color: color-mix(in srgb, #2b8cee 70%, var(--fg));
@@ -209,11 +254,56 @@ export class NotificationCenterPage {
   protected readonly history = signal<NotificationHistory | null>(null);
   protected readonly busy = signal(false);
   protected readonly failed = signal(false);
+  /** 1.18: shown without the server's notifications (no network, none kept): they come back with the network */
+  protected readonly away = signal(false);
+
+  private readonly network = inject(Network);
+
+  /**
+   * 1.18: the losses and returns of the network that fall within this page (the first page: everything newer than its last
+   * line; the last one: everything older than its first), as lines of the centre
+   */
+  protected readonly netLines = computed<Line[]>(() => {
+    const h = this.history();
+    if (!h) return [];
+    const at = (n: SentNotification) => new Date(n.createdAt).getTime();
+    const newest = h.page === 0 || !h.items.length ? Infinity : at(h.items[0]);
+    const oldest = h.page >= h.pages - 1 || !h.items.length ? -Infinity : at(h.items[h.items.length - 1]);
+    const log = this.network.log();
+    return log
+      .filter((e) => e.at <= newest && e.at > oldest)
+      .map((e) => this.lineOf(e, e === log[log.length - 1] && !this.network.online()));
+  });
+
+  private lineOf(e: NetEvent, stillOff: boolean): Line {
+    const t = (k: string, p?: Record<string, string | number>) => this.i18n.t('engage.center.net.' + k, p);
+    let body: string;
+    if (e.kind === 'lost') body = t(stillOff ? 'lostNow' : 'lostBody');
+    else {
+      const d = spanOf(e.at - (e.since ?? e.at), this.i18n);
+      body = e.late
+        ? t('backLate', { d })
+        : !e.sent
+          ? t('backBody', { d })
+          : t(e.sent === 1 ? 'backSentOne' : 'backSentMany', { d, n: e.sent });
+      if (e.late && e.sent) body += ' · ' + t(e.sent === 1 ? 'sentOne' : 'sentMany', { n: e.sent });
+    }
+    return {
+      id: 'net-' + e.kind + e.at,
+      kind: e.kind === 'lost' ? 'NET_LOST' : 'NET_BACK',
+      title: t(e.kind),
+      body,
+      url: '',
+      createdAt: new Date(e.at).toISOString(),
+      unread: false,
+      local: true,
+    };
+  }
 
   /** the page by day, each day under its name (« Aujourd'hui », « Hier », « lundi 16 novembre ») */
   protected readonly groups = computed(() => {
-    const items = this.history()?.items ?? [];
-    const out: { day: string; label: string; items: SentNotification[] }[] = [];
+    const items: Line[] = [...(this.history()?.items ?? []), ...this.netLines()].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+    const out: { day: string; label: string; items: Line[] }[] = [];
     for (const n of items) {
       const day = localDay(new Date(n.createdAt));
       let g = out.at(-1);
@@ -225,6 +315,15 @@ export class NotificationCenterPage {
 
   constructor() {
     void this.go(0);
+    // 1.18: back online, the server's notifications (and the return just written down) without leaving the screen
+    const back = this.network.back.subscribe(() => {
+      if (this.away()) {
+        this.away.set(false);
+        this.history.set(null);
+        void this.go(0);
+      }
+    });
+    inject(DestroyRef).onDestroy(() => back.unsubscribe());
     // left: what was there is read (the bell on Today loses its number)
     inject(DestroyRef).onDestroy(() => {
       if (!this.history()?.items.some((n) => n.unread)) return;
@@ -241,8 +340,12 @@ export class NotificationCenterPage {
     try {
       this.history.set(await this.api.history(page));
       if (page > 0 || globalThis.scrollY > 0) globalThis.scrollTo?.({ top: 0 });
-    } catch {
-      if (!this.history()) this.failed.set(true);
+    } catch (e) {
+      // 1.18: no network and nothing kept from before: an empty page, so that the losses and returns kept on the phone show
+      if (!this.history() && unreachable(e)) {
+        this.history.set({ items: [], page: 0, pages: 1, total: 0 });
+        this.away.set(true);
+      } else if (!this.history()) this.failed.set(true);
     } finally {
       this.busy.set(false);
     }
@@ -265,7 +368,8 @@ export class NotificationCenterPage {
   }
 
   /** what it was about (an address of the app only) */
-  protected open(n: SentNotification): void {
+  protected open(n: Line): void {
+    if (n.local) return;
     if (n.url.startsWith('/') && !n.url.startsWith('//')) void this.router.navigateByUrl(n.url);
   }
 }

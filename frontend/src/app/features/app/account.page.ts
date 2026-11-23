@@ -616,7 +616,13 @@ export class AccountPage {
   }
 
   protected async logout(): Promise<void> {
-    await this.session.logout();
+    try {
+      await this.session.logout();
+    } catch {
+      // 1.18: the session ends on the server: not without network
+      this.toast.error(this.i18n.t('offline.signOut'));
+      return;
+    }
     this.userData.clear();
     await this.router.navigateByUrl('/app/login');
   }

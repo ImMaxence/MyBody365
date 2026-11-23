@@ -1,6 +1,6 @@
 {
   "name": "mybody365",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "private": true,
   "description": "MyBody365 — mobile-only PWA for a one-year body transformation (Angular 22)",
   "license": "UNLICENSED",

@@ -6,6 +6,7 @@ import type { Recipe } from '../../core/api/models';
 import { errorCode } from '../../core/api/api.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { ServingPipe } from '../../shared/serving.pipe';
 import { ToastService } from '../../core/ui/toast.service';
 import { ClearableDirective } from '../../shared/clearable.directive';
 import { HealthScoreComponent } from '../../shared/health-score.component';
@@ -28,7 +29,7 @@ type Filter = 'all' | 'nophoto' | 'hidden';
 @Component({
   selector: 'app-admin-recipes-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, HealthScoreComponent, ClearableDirective],
+  imports: [RouterLink, TranslatePipe, ServingPipe, IconComponent, HealthScoreComponent, ClearableDirective],
   template: `
     <label class="search">
       <app-icon name="search" [size]="18" />
@@ -66,7 +67,7 @@ type Filter = 'all' | 'nophoto' | 'hidden';
                 <span class="body">
                   <span class="name">{{ r.name }}</span>
                   <span class="tiny muted">
-                    {{ i18n.number(r.perServing.kcal) }} kcal {{ 'meals.perServing' | t }}
+                    {{ r | serving }}
                     @if (!r.thumbUrl) {
                       · <span class="warn">{{ 'admin.recipes.noPhoto' | t }}</span>
                     }

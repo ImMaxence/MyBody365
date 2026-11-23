@@ -127,7 +127,7 @@ test.describe('admin area', () => {
     await expect(page.getByText(/^Dernière mise à jour le /).or(page.getByText('Aucune table importée'))).toBeVisible();
     // the first recipes: how many are in (the local stack has the real Ciqual table: all of them)
     await expect(page.getByRole('heading', { name: 'Recettes de départ de la communauté' })).toBeVisible();
-    await expect(page.getByText(/^\d+ recettes publiées sur 729$/)).toBeVisible();
+    await expect(page.getByText(/^\d+ recettes publiées sur 736$/)).toBeVisible();
     await expectAccessible(page);
     await expectNoHorizontalOverflow(page);
   });

@@ -317,6 +317,9 @@ export const ESTIMATE_STYLES = `
             @if (hasSoy()) {
               <p class="tiny muted">{{ 'meals.estimate.soyNote' | t }}</p>
             }
+            @if (hasOil()) {
+              <p class="tiny muted">{{ 'meals.estimate.oilNote' | t }}</p>
+            }
           }
 
           <h3 class="section-title">{{ 'meals.estimate.drink' | t }}</h3>
@@ -391,6 +394,7 @@ export class FastFoodSheetComponent {
     return d ? extrasFor(d, this.format()) : [];
   });
   protected readonly hasSoy = computed(() => this.offered().some((x) => x.key === 'soy' || x.key === 'soySweet'));
+  protected readonly hasOil = computed(() => this.offered().some((x) => x.key === 'chiliOil'));
   protected readonly Math = Math;
   protected readonly friesOptions = FRIES;
   protected readonly drinks = DRINKS;

@@ -125,6 +125,15 @@ export interface QuantityTarget {
           } @else {
             <app-number-stepper [(value)]="qty" [step]="0.5" [min]="0.25" [max]="20" [decimals]="2" [label]="'meals.quantity.servingsLabel' | t"
               [minusLabel]="'meals.quantity.minus' | t" [plusLabel]="'meals.quantity.plus' | t" />
+            <!-- 1.18: a part by its weight on the plate (the recipe's cooked serving, estimated by the server) -->
+            @if (t.recipe?.plateG; as pg) {
+              <p class="small muted plate-line num">{{ 'meals.serving.grams' | t: { g: i18n.number(Math.round((qty() * pg) / 10) * 10) } }}</p>
+              <div class="presets" role="group" [attr.aria-label]="'meals.serving.byWeight' | t">
+                @for (g of plateGrams; track g) {
+                  <button type="button" class="chip" [class.chip-accent]="qty() === servingsFor(g, pg)" (click)="qty.set(servingsFor(g, pg))">{{ g }} g</button>
+                }
+              </div>
+            }
           }
           <!-- 1.12: what it brings, with the bars of the Meals tab (the rest of the day paler) -->
           <app-nutrient-bars [item]="live()" [plan]="plan.bars()" [dayTotals]="rest()" />
@@ -169,6 +178,10 @@ export interface QuantityTarget {
       40% {
         transform: scale(1.3);
       }
+    }
+    .plate-line {
+      margin: -4px 0 0;
+      text-align: center;
     }
     .presets {
       display: flex;
@@ -260,6 +273,12 @@ export class QuantitySheetComponent {
   readonly confirm = output<number>();
 
   protected readonly presets = [50, 100, 150, 200];
+  protected readonly Math = Math;
+  /** 1.18: what is on the plate, in grams: the servings it makes (two decimals, as the stepper) */
+  protected readonly plateGrams = [150, 200, 250, 300, 400];
+  protected servingsFor(g: number, plateG: number): number {
+    return Math.max(0.25, Math.round((g / plateG) * 100) / 100);
+  }
   protected readonly target = signal<QuantityTarget | null>(null);
   protected readonly qty = signal(100);
   readonly busy = signal(false);

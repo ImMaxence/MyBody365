@@ -11,6 +11,8 @@ import { FavoritesStore } from './meals/favorites.store';
 import { FriendsStore } from './friends/friends.store';
 import { ShoppingStore } from './meals/shopping.store';
 import { HealthStore } from './health/health.store';
+import { OfflineCache } from './offline/offline-cache';
+import { Network } from './offline/network';
 
 /** Forgets everything loaded for the signed-in account (sign-out, account deleted). */
 @Injectable({ providedIn: 'root' })
@@ -27,6 +29,8 @@ export class UserDataService {
   private readonly friends = inject(FriendsStore);
   private readonly shopping = inject(ShoppingStore);
   private readonly health = inject(HealthStore);
+  private readonly cache = inject(OfflineCache);
+  private readonly network = inject(Network);
 
   clear(): void {
     this.tracking.clear();
@@ -44,5 +48,10 @@ export class UserDataService {
     this.shopping.clear();
     this.health.clear();
     this.outbox.setOwner(null);
+    // 1.18: the answers and the pictures kept for the screens without network, and the log of the network
+    void this.cache.clear();
+    this.network.clearLog();
+    // (public/sw.js keeps them; the page shares its caches)
+    void globalThis.caches?.delete('mb-images').catch(() => undefined);
   }
 }

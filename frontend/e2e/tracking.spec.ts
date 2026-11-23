@@ -153,6 +153,8 @@ test.describe('tracking', () => {
 
     // the calorie target, in plain words
     await tab(page, 'Repas').click();
+    // 1.18: folded under the ring on one line, opened on a tap
+    await page.getByRole('button', { name: /Pourquoi .* kcal/ }).click();
     await expect(page.getByText(/kcal par jour pour perdre .* kg par semaine/)).toBeVisible();
     await expect(page.getByText(/baisse d’environ \d+ kcal par kilo perdu/)).toBeVisible();
     // the sport the target counts on (the onboarding answers: a seated day, 2 sessions), already in it
@@ -182,6 +184,7 @@ test.describe('tracking', () => {
     await expect(page.getByRole('link', { name: /Mon objectif/ })).toContainText('0,25 kg / semaine');
     // the meals now say what the target counts on: the sport is already in it
     await tab(page, 'Repas').click();
+    await page.getByRole('button', { name: /Pourquoi .* kcal/ }).click();
     await expect(page.getByText(/Calculé pour une journée debout et \d+ séances? de sport par semaine/)).toBeVisible();
   });
 

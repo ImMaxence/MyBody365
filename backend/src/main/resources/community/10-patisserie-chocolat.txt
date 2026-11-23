@@ -1,0 +1,85 @@
+# 1.18 : les chocolats et les pâtisseries classiques faits maison qui manquaient (mendiants, orangettes, amandes enrobées,
+# rochers pralinés, macarons, religieuses, pâte à tartiner). Même format :
+#   = Nom | TYPES | parts
+#   code_ciqual grammes   (poids cru pour toute la recette ; le texte après les grammes n'est qu'un repère)
+#   : une étape
+
+= Mendiants au chocolat | TREAT,SNACK | 20
+31085 200 chocolat noir à pâtisser
+15041 30 amandes émondées
+15033 30 noisettes grillées
+15044 20 pistaches non salées
+13046 30 raisins secs
+31021 20 écorce d'orange confite
+: Faire fondre les deux tiers du chocolat au bain-marie, retirer du feu et ajouter le reste en morceaux en remuant
+: Déposer des petits disques de chocolat sur une feuille de papier cuisson
+: Poser dessus une amande, une noisette, une pistache, un raisin et un morceau d'orange avant que le chocolat ne prenne
+: Laisser durcir 1 heure au frais
+
+= Orangettes | TREAT,SNACK | 30
+31021 150 écorces d'orange confites en bâtonnets
+31085 150 chocolat noir à pâtisser
+: Couper les écorces en bâtonnets et les sécher sur une grille
+: Faire fondre le chocolat au bain-marie
+: Tremper chaque bâtonnet aux trois quarts dans le chocolat et le poser sur du papier cuisson
+: Laisser durcir au frais
+
+= Amandes enrobées de chocolat | TREAT,SNACK | 12
+15000 200 amandes entières
+31085 150 chocolat noir à pâtisser
+18100 10 cacao en poudre sans sucre
+: Torréfier les amandes 10 minutes au four à 160 °C et les laisser refroidir
+: Faire fondre le chocolat au bain-marie
+: Verser les amandes dans le chocolat, bien les enrober puis les séparer une à une sur du papier cuisson
+: Une fois le chocolat pris, les rouler dans le cacao
+
+= Rochers pralinés croustillants | TREAT,SNACK | 15
+31004 150 chocolat au lait
+31032 100 pâte à tartiner chocolat noisette
+15033 60 noisettes grillées concassées
+24370 50 crêpes dentelle émiettées
+: Faire fondre le chocolat au lait au bain-marie et y mélanger la pâte à tartiner
+: Ajouter les noisettes concassées et les crêpes dentelle émiettées
+: Former des petits tas sur du papier cuisson avec deux cuillères
+: Laisser prendre 1 heure au frais
+
+= Macarons au chocolat | TREAT,SNACK | 20
+15041 125 poudre d'amande
+31016 250 sucre (dont la moitié en sucre glace)
+22001 100 blancs d'œufs
+18100 15 cacao en poudre
+31085 100 chocolat noir pour la ganache
+19417 100 crème liquide pour la ganache
+: Mixer la poudre d'amande, la moitié du sucre et le cacao, puis tamiser
+: Monter les blancs en neige ferme avec le reste du sucre et incorporer le mélange en macaronnant jusqu'à une pâte brillante
+: Dresser des petits disques sur du papier cuisson, laisser croûter 30 minutes et cuire 12 minutes à 150 °C
+: Verser la crème chaude sur le chocolat pour la ganache, laisser prendre et garnir les coques deux par deux
+
+= Religieuses au chocolat | TREAT,DESSERT | 8
+18066 125 eau pour la pâte à choux
+19041 125 lait pour la pâte à choux
+16400 100 beurre
+9440 150 farine
+22000 250 cinq œufs
+19041 500 lait pour la crème
+22002 80 quatre jaunes d'œufs
+31016 100 sucre
+9510 40 fécule de maïs
+31085 180 chocolat noir (crème et glaçage)
+19417 50 crème liquide pour le glaçage
+: Porter l'eau, le lait et le beurre à ébullition, ajouter la farine d'un coup et dessécher la pâte 2 minutes, puis incorporer les œufs un à un
+: Dresser 8 gros choux et 8 petits, cuire 25 minutes à 180 °C sans ouvrir le four
+: Pour la crème, faire épaissir le lait avec les jaunes, le sucre et la fécule, puis ajouter 100 g de chocolat
+: Garnir les choux de crème, faire fondre le reste du chocolat avec la crème, glacer et poser chaque petit chou sur un gros
+
+= Pâte à tartiner chocolat noisette maison | TREAT,BREAKFAST,SNACK | 20
+15033 200 noisettes grillées
+31004 100 chocolat au lait
+31085 50 chocolat noir
+31016 50 sucre
+17440 30 huile de tournesol
+19041 80 lait
+: Mixer longuement les noisettes grillées jusqu'à obtenir une pâte coulante
+: Faire fondre les chocolats avec le lait, le sucre et l'huile
+: Mélanger avec la pâte de noisettes jusqu'à ce que tout soit lisse
+: Verser dans un pot et garder au frais, une part étant une cuillère à soupe bien pleine

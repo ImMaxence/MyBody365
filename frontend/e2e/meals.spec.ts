@@ -100,6 +100,24 @@ test.describe('meals', () => {
     await cup.getByRole('button', { name: /Ajouter au petit-déjeuner/ }).click();
     await expect(page.getByRole('button', { name: /Cappuccino · lait d’avoine, 1 sucre/ })).toBeVisible();
 
+    // 1.18: a pizza with chili oil by the teaspoon, and the chocolates of « Pâtisseries et chocolats »
+    await page.goto('/app/meals/add?slot=LUNCH');
+    await page.getByRole('group', { name: 'Au restaurant, en fast-food' }).getByRole('button', { name: /Pizza/ }).click();
+    const pizza = page.getByRole('dialog', { name: 'Pizza' });
+    await pizza.getByRole('button', { name: /Huile pimentée/ }).click();
+    await pizza.getByRole('button', { name: /Huile pimentée/ }).click();
+    await expect(pizza.getByRole('button', { name: /Huile pimentée/ })).toContainText('×2');
+    await expect(pizza.getByRole('button', { name: /Sauce pimentée/ })).toBeVisible();
+    await expect(pizza.getByText(/cuillère à café/)).toBeVisible();
+    await pizza.getByRole('button', { name: 'Masquer le panneau' }).click();
+    await page.getByRole('group', { name: 'Pâtisseries et chocolats' }).getByRole('button', { name: /Chocolats/ }).click();
+    const sweets = page.getByRole('dialog', { name: 'Chocolats' });
+    await sweets.getByRole('radio', { name: /Amandes au chocolat/ }).click();
+    await expect(sweets.getByText(/≈ 113 kcal/)).toBeVisible();
+    await expectAccessible(page);
+    await sweets.getByRole('button', { name: /Ajouter au déjeuner/ }).click();
+    await expect(page.getByRole('button', { name: /Amandes au chocolat · 5 pièces/ })).toBeVisible();
+
     // without network: the meal stays on the phone, shown as waiting, and goes once the network is back
     await page.goto('/app/meals/add?slot=SNACK');
     await page.context().setOffline(true);
@@ -110,7 +128,8 @@ test.describe('meals', () => {
     await quickSheet.getByRole('button', { name: 'Ajouter' }).click();
     await expect(page.getByText('Pas de réseau : noté sur ton téléphone, envoyé dès le retour du réseau')).toBeVisible();
     // 1.17: said offline, greyed with « Sera envoyé plus tard », then sent (« Tout est envoyé ») and back to colour
-    await expect(page.getByRole('status').filter({ hasText: 'Hors ligne : 1 saisie partira au retour du réseau' })).toBeVisible();
+    // 1.18: since when
+    await expect(page.getByRole('status').filter({ hasText: /Hors ligne depuis \d\d:\d\d · 1 en attente/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Pomme du métro/ })).toContainText('Sera envoyé plus tard');
     await page.context().setOffline(false);
     await expect(page.getByRole('status').filter({ hasText: 'Tout est envoyé' })).toBeVisible({ timeout: 15_000 });

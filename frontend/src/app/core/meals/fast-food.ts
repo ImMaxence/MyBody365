@@ -134,6 +134,12 @@ const SOY_SWEET = { ...p('soySweet', 32, 0.5, 7.5, 0, [19, 7.5, 0, 1.3, 0]), max
 /** a sauce to dip the breaded chicken in, 25 g */
 const DIP = p('dip', 50, 0, 8, 2, [25, 6, 0.3, 0.5, 0]);
 const CHEESE = p('cheese', 80, 5, 0, 7, [20, 0, 4.5, 0.4, 0]);
+/**
+ * 1.18: the chili oil of the pizzerias, by the teaspoon (5 ml, 4.5 g of olive oil with chilli in it), up to 3; and a hot
+ * sauce (sriracha, piri-piri, Tabasco-like), a tablespoon of 15 g
+ */
+const CHILI_OIL = { ...p('chiliOil', 40, 0, 0, 4.5, [4.5, 0, 0.7, 0, 0]), max: 3 };
+const CHILI_SAUCE = p('chiliSauce', 15, 0.3, 3, 0.2, [15, 2.5, 0, 0.6, 0.3]);
 
 export const DISHES: Dish[] = [
   {
@@ -174,7 +180,8 @@ export const DISHES: Dish[] = [
     ],
     usual: 'whole',
     fries: false,
-    extras: [],
+    // 1.18: what is put on it at the table
+    extras: [CHILI_OIL, CHILI_SAUCE, CHEESE],
     // the base of a whole pizza: tomato (the formats), or cream: about 70 g of crème fraîche instead of 80 g of sauce
     choice: { key: 'base', usual: 'tomato', options: [p('tomato', 0, 0, 0, 0, [0, 0, 0, 0, 0]), p('cream', 175, 0.5, -3, 20.5, [-10, -2, 14, -0.5, -1])] },
   },

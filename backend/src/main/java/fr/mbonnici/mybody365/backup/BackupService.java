@@ -547,6 +547,10 @@ public class BackupService {
                 }
                 recipes++;
             }
+            // 1.18: the recipes brought back get their plate weight (a backup does not carry it)
+            if (recipes > 0) {
+                fr.mbonnici.mybody365.recipe.PlateWeight.fill(jdbc, false);
+            }
             int photos = 0;
             for (Map<String, Object> ph : list(p.data(), "photos")) {
                 Map<String, Object> v = typed(BackupFormat.PHOTOS, ph);

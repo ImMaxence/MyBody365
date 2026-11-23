@@ -111,6 +111,16 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
             }
           </div>
           @if (targetWhy(); as why) {
+            <!-- 1.18: folded on one line: the meals come first; a dot when a suggestion waits inside -->
+            <button type="button" class="why-toggle small" [attr.aria-expanded]="whyOpen()" aria-controls="meals-whys" (click)="whyOpen.set(!whyOpen())">
+              <span class="why-ico"><app-icon name="target" [size]="15" /></span>
+              <span class="why-q">{{ (d.targetKcal ? 'meals.whyTarget' : 'meals.whyTargetNone') | t: { kcal: i18n.number(d.targetKcal ?? 0) } }}</span>
+              @if (realNote()?.action && !realNote()?.on) {
+                <span class="why-dot" aria-hidden="true"></span>
+              }
+              <span class="why-chev" aria-hidden="true"><app-icon name="chevronDown" [size]="16" /></span>
+            </button>
+            <div class="whys-wrap" id="meals-whys" [class.open]="whyOpen()" [attr.inert]="whyOpen() ? null : ''">
             <div class="whys">
               <p class="why small"><span class="why-ico"><app-icon name="info" [size]="15" /></span><span>{{ why }}</span></p>
               @if (activityNote(); as a) {
@@ -134,11 +144,9 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
                 </div>
               }
             </div>
+            </div>
           }
         </section>
-        <app-day-score [day]="d" [shares]="plan().shares" />
-
-        <app-trends-card [trends]="weekTrends()" />
 
         @for (slot of slots; track slot; let i = $index) {
           <section class="card slot" [style.--i]="i">
@@ -182,6 +190,9 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
             </div>
           </section>
         }
+        <!-- 1.18: the day's analysis after its meals: its score, the week's trends, one thing worth knowing -->
+        <app-day-score [day]="d" [shares]="plan().shares" />
+        <app-trends-card [trends]="weekTrends()" />
         <!-- 1.13: one thing worth knowing to eat well, the one the day calls for -->
         <app-know-card [day]="d" [kcal]="planKcal()" />
         <button type="button" class="guides-link tiny" (click)="guides.open()">
@@ -761,13 +772,75 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       letter-spacing: -0.01em;
     }
     /* where the target comes from, in a sentence or three, under the ring */
-    .whys {
+    .why-toggle {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      margin-top: calc(-1 * var(--space-2));
+      padding: var(--space-3) 0 0;
+      border: 0;
+      border-top: 1px solid var(--line);
+      background: none;
+      color: var(--fg-2);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .why-q {
+      flex: 1;
+      min-width: 0;
+      font-weight: 650;
+    }
+    .why-dot {
+      width: 8px;
+      height: 8px;
+      flex: none;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .why-chev {
+      display: grid;
+      place-items: center;
+      flex: none;
+      transition: transform 320ms var(--ease-out);
+    }
+    .why-toggle[aria-expanded='true'] .why-chev {
+      transform: rotate(180deg);
+    }
+    .whys-wrap {
       grid-column: 1 / -1;
       display: grid;
+      grid-template-rows: 0fr;
+      /* folded, it takes no room: the gap of the card's grid is taken back */
+      margin-top: calc(-1 * var(--space-5));
+      transition:
+        grid-template-rows 360ms var(--ease-out),
+        margin-top 360ms var(--ease-out);
+    }
+    .whys-wrap.open {
+      grid-template-rows: 1fr;
+      margin-top: calc(-1 * var(--space-2));
+    }
+    .whys {
+      display: grid;
       gap: 10px;
-      margin-top: calc(-1 * var(--space-1));
-      padding-top: var(--space-4);
-      border-top: 1px solid var(--line);
+      min-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 240ms ease;
+    }
+    .whys-wrap.open .whys {
+      opacity: 1;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .whys-wrap,
+      .whys,
+      .why-chev {
+        transition: none;
+      }
     }
     .why {
       display: flex;
@@ -953,6 +1026,8 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
   `,
 })
 export class MealsPage {
+  /** 1.18: the notes explaining the day's target, folded under the ring until asked for */
+  protected readonly whyOpen = signal(false);
   protected readonly store = inject(MealsStore);
   protected readonly shopping = inject(ShoppingStore);
   protected readonly shoppingLabel = computed(() =>

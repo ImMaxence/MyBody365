@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { isOffline } from '../offline/outbox';
 import type {
   MacroSplit,
   AccessRequestInput,
@@ -29,7 +30,8 @@ import type {
 /** The stable code of an API error ("link_used", "rate_limited"…), "offline" or "generic". */
 export function errorCode(e: unknown): string {
   if (e instanceof HttpErrorResponse) {
-    if (e.status === 0) return 'offline';
+    // 1.18: also the empty 504 the service worker answers with when the network is away
+    if (e.status === 0 || isOffline(e)) return 'offline';
     if (e.status === 429) return 'rate_limited';
     const code = (e.error as { message?: unknown } | null)?.message;
     if (typeof code === 'string' && /^[a-z_]+$/.test(code)) return code;

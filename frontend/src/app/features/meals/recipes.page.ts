@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import type { Recipe, RecipeType } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { ServingPipe } from '../../shared/serving.pipe';
 import { MealsApi } from '../../core/meals/meals-api';
 import { RecipesView } from '../../core/meals/recipes-view';
 import { FavoritesStore } from '../../core/meals/favorites.store';
@@ -45,7 +46,7 @@ function plain(s: string): string {
 @Component({
   selector: 'app-recipes',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, ClearableDirective],
+  imports: [SegDirective, NgTemplateOutlet, RouterLink, TranslatePipe, ServingPipe, IconComponent, BackButtonComponent, HealthScoreComponent, ClearableDirective],
   template: `
     <main class="page">
       <header class="page-head">
@@ -196,7 +197,7 @@ function plain(s: string): string {
           </span>
           <span class="rbody">
             <span class="rname">{{ r.name }}</span>
-            <span class="small muted">{{ i18n.number(r.perServing.kcal) }} kcal {{ 'meals.perServing' | t }}</span>
+            <span class="small muted">{{ r | serving }}</span>
             <span class="rmeta tiny">
               @if (origin === 'community') {
                 <span>{{ 'meals.recipe.by' | t: { name: r.author ?? '' } }}</span>

@@ -4,6 +4,7 @@ import { errorCode } from '../../core/api/api.service';
 import type { FoundRecipe, IngredientFamily } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { ServingPipe } from '../../shared/serving.pipe';
 import { MealsApi } from '../../core/meals/meals-api';
 import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
@@ -33,7 +34,7 @@ const plain = (s: string) =>
 @Component({
   selector: 'app-recipes-with',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, ClearableDirective],
+  imports: [RouterLink, TranslatePipe, ServingPipe, IconComponent, BackButtonComponent, HealthScoreComponent, ClearableDirective],
   template: `
     <main class="page">
       <header class="page-head">
@@ -101,7 +102,7 @@ const plain = (s: string) =>
                         {{ 'meals.with.missing' | t: { list: missingText(f) } }}
                       }
                     </span>
-                    <span class="list-sub">{{ i18n.number(f.recipe.perServing.kcal) }} kcal {{ 'meals.perServing' | t }}</span>
+                    <span class="list-sub">{{ f.recipe | serving }}</span>
                   </span>
                   @if (f.recipe.health) {
                     <app-health-score [score]="f.recipe.health.score" />

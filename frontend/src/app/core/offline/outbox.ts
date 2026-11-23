@@ -146,6 +146,8 @@ export class Outbox {
       this.syncing.set(false);
       this.flushing = false;
     }
+    // 1.18: the notification centre says what went once the network was back
+    this.network.noteSent(went);
     if (went > 0 && !this.pending().length) {
       this.done.set(went);
       if (this.doneTimer) clearTimeout(this.doneTimer);

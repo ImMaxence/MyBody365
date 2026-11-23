@@ -9,6 +9,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { csrfInterceptor } from './core/api/csrf.interceptor';
 import { networkInterceptor } from './core/offline/network';
+import { offlineCacheInterceptor } from './core/offline/offline-cache';
 import { onViewTransitionCreated } from './core/nav/stack-navigation';
 
 export const appConfig: ApplicationConfig = {
@@ -40,7 +41,9 @@ export const appConfig: ApplicationConfig = {
     ),
     provideHttpClient(
       withFetch(),
-      withInterceptors([csrfInterceptor, networkInterceptor]),
+      // 1.18: the answers kept on the phone come back when the network does not let a request through (networkInterceptor,
+      // inside it, still sees the failure)
+      withInterceptors([csrfInterceptor, offlineCacheInterceptor, networkInterceptor]),
       // matches Spring Security's CookieCsrfTokenRepository
       withXsrfConfiguration({ cookieName: 'XSRF-TOKEN', headerName: 'X-XSRF-TOKEN' }),
     ),

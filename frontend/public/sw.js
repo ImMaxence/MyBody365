@@ -2,6 +2,60 @@
 // badge on the app icon. Each notification received while the app is not on screen adds one; opening the
 // app clears it (core/pwa/app-badge.ts sends MB_BADGE_CLEAR). The count is kept in a tiny cache entry,
 // as a service worker may be stopped between two notifications.
+
+// 1.18: the pictures of the app (progress photos, recipes, products, avatars) are kept on the phone for the screens
+// without network. Their address never serves another picture (a new id, or a ?v= version), so a kept copy is always
+// right: it is given at once, without asking the network. This listener comes before Angular's worker, which then never
+// sees these requests. The page deletes this cache at sign-out (core/user-data.service.ts).
+const IMAGES = 'mb-images';
+const IMAGES_MAX = 400;
+const IMAGE_URL = /^\/api\/(photos\/[^/]+\/(full|thumb)|recipes\/[^/]+\/image\/(full|thumb)|foods\/[^/]+\/image|users\/[^/]+\/avatar)$/;
+let puts = 0;
+
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin || !IMAGE_URL.test(url.pathname)) return;
+  event.stopImmediatePropagation();
+  event.respondWith(picture(req, event));
+});
+
+async function picture(req, event) {
+  let cache = null;
+  try {
+    cache = await caches.open(IMAGES);
+    const hit = await cache.match(req, { ignoreVary: true });
+    if (hit) return hit;
+  } catch {
+    /* no cache storage: the network only */
+  }
+  let res;
+  try {
+    res = await fetch(req);
+  } catch {
+    // no network and never kept: the screen shows its placeholder
+    return new Response(null, { status: 504, statusText: 'Gateway Timeout' });
+  }
+  if (cache && res.ok && res.type === 'basic' && (res.headers.get('content-type') || '').startsWith('image/')) {
+    event.waitUntil(
+      cache
+        .put(req, res.clone())
+        .then(() => (++puts % 20 === 0 ? trim(cache) : undefined))
+        .catch(() => undefined),
+    );
+  }
+  return res;
+}
+
+/** the oldest pictures go beyond IMAGES_MAX (a cache lists its entries in the order they were put) */
+async function trim(cache) {
+  const keys = await cache.keys();
+  const extra = keys.length - IMAGES_MAX;
+  if (extra <= 0) return;
+  for (const k of keys.slice(0, extra + 40)) await cache.delete(k);
+}
+
 importScripts('./ngsw-worker.js');
 
 const BADGE_CACHE = 'mb-badge';

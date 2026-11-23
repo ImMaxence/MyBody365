@@ -114,6 +114,13 @@ import { SessionStore } from '../../core/auth/session.store';
             </ul>
           }
           <div class="kcal num">{{ i18n.number(r.perServing.kcal) }} <small>kcal</small></div>
+          <!-- 1.18: how big a part is -->
+          @if (r.plateG) {
+            <p class="plate small"><app-icon name="weight" [size]="15" /> <span>{{ 'meals.serving.plate' | t: { g: i18n.number(r.plateG), n: r.servings } }}</span></p>
+            <p class="tiny muted plate-how">{{ 'meals.serving.how' | t }}</p>
+          } @else if (r.servings > 1) {
+            <p class="plate small"><app-icon name="weight" [size]="15" /> <span>{{ 'meals.serving.shareLong' | t: { n: r.servings } }}</span></p>
+          }
           <dl>
             <div><dt>{{ 'meals.protein' | t }}</dt><dd class="num">{{ g(r.perServing.proteinG) }}</dd></div>
             <div><dt>{{ 'meals.carbs' | t }}</dt><dd class="num">{{ g(r.perServing.carbsG) }}</dd></div>
@@ -368,6 +375,18 @@ import { SessionStore } from '../../core/auth/session.store';
     .kcal small {
       font-size: 1rem;
       color: var(--fg-2);
+    }
+    /* 1.18: how big a part is, and how it is estimated */
+    .plate {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: -6px 0 0;
+      font-weight: 650;
+      color: var(--fg-2);
+    }
+    .plate-how {
+      margin: -8px 0 0;
     }
     dl {
       display: grid;

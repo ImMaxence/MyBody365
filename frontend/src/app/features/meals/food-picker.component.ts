@@ -3,6 +3,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HOT_DRINKS } from '../../core/meals/hot-drinks';
 import { APERO } from '../../core/meals/apero';
+import { SWEET_CHIPS } from '../../core/meals/sweets';
 import { errorCode } from '../../core/api/api.service';
 import type { Food, RecentItem, Recipe } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
@@ -16,6 +17,8 @@ import { HealthScoreComponent } from '../../shared/health-score.component';
 import { kindKey } from '../../core/meals/products';
 import { FoodThumbComponent } from '../../shared/food-thumb.component';
 import { TYPE_EMOJI } from './recipes.page';
+import { Network } from '../../core/offline/network';
+import { ServingPipe } from '../../shared/serving.pipe';
 
 export type Picked = { kind: 'FOOD'; food: Food } | { kind: 'RECIPE'; recipe: Recipe } | { kind: 'RECENT'; item: RecentItem };
 
@@ -36,7 +39,7 @@ const PREVIEW = 5;
 @Component({
   selector: 'app-food-picker',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, HealthScoreComponent, FoodThumbComponent, ClearableDirective],
+  imports: [NgTemplateOutlet, RouterLink, TranslatePipe, IconComponent, HealthScoreComponent, FoodThumbComponent, ClearableDirective, ServingPipe],
   template: `
     <!-- 1.13: a search form (role="search", name="q"): iOS offers no contact to fill in, Enter closes the keyboard -->
     <form class="search" role="search" action="" (submit)="$event.preventDefault(); blur($event)">
@@ -61,6 +64,11 @@ const PREVIEW = 5;
         </a>
       }
     </form>
+
+    <!-- 1.18: without network, the searches already made answer from the phone, the others find nothing -->
+    @if (offline() && words() >= 2) {
+      <p class="small off-note" role="status"><app-icon name="cloudOff" [size]="16" /> {{ 'offline.searchOff' | t }}</p>
+    }
 
     @if (words() < 2) {
       @if (withExtras()) {
@@ -106,6 +114,13 @@ const PREVIEW = 5;
         <div class="slide-chips" role="group" [attr.aria-label]="'meals.quick.restaurant' | t">
           @for (c of restaurant; track c.key) {
             <button type="button" (click)="dish.emit(c.key)"><span aria-hidden="true">{{ c.emoji }}</span> {{ 'meals.quick.dishes.' + c.key | t }}</button>
+          }
+        </div>
+        <!-- 1.18: the bakery's window, the chocolates, the sweets -->
+        <h2 class="section-title">{{ 'meals.sweets.title' | t }}</h2>
+        <div class="slide-chips" role="group" [attr.aria-label]="'meals.sweets.title' | t">
+          @for (c of sweets; track c.key) {
+            <button type="button" (click)="sweet.emit(c.key)"><span aria-hidden="true">{{ c.emoji }}</span> {{ 'meals.sweets.groups.' + c.key | t }}</button>
           }
         </div>
         <h2 class="section-title">{{ 'meals.drinks.title' | t }}</h2>
@@ -316,7 +331,7 @@ const PREVIEW = 5;
         </span>
         <span class="list-body">
           <span class="list-title">{{ r.name }}</span>
-          <span class="list-sub">{{ i18n.number(r.perServing.kcal) }} kcal {{ 'meals.perServing' | t }}{{ r.mine ? '' : ' · ' + (r.shared ? ('meals.recipe.community' | t) : (r.author ?? '')) }}</span>
+          <span class="list-sub">{{ r | serving }}{{ r.mine ? '' : ' · ' + (r.shared ? ('meals.recipe.community' | t) : (r.author ?? '')) }}</span>
         </span>
         @if (r.health) {
           <app-health-score [score]="r.health.score" />
@@ -325,6 +340,16 @@ const PREVIEW = 5;
     </ng-template>
   `,
   styles: `
+    .off-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 0;
+      padding: 10px 12px;
+      border-radius: var(--radius-m);
+      background: var(--surface-2);
+      color: var(--fg-2);
+    }
     .row-thumb {
       --thumb: 38px;
       --thumb-radius: 12px;
@@ -534,6 +559,8 @@ export class FoodPickerComponent {
   private readonly api = inject(MealsApi);
   protected readonly i18n = inject(I18nService);
   private readonly favorites = inject(FavoritesStore);
+  private readonly network = inject(Network);
+  protected readonly offline = computed(() => !this.network.online());
 
   /** which sources are searched */
   readonly mode = input<PickerMode>('all');
@@ -557,12 +584,15 @@ export class FoodPickerComponent {
   readonly drink = output<string>();
   /** a drink at the apéro (core/meals/apero.ts) */
   readonly aperoPicked = output<string>({ alias: 'apero' });
+  /** 1.18: a group of « Pâtisseries et chocolats » (core/meals/sweets.ts) */
+  readonly sweet = output<string>();
   /** the recipes page (with the meal it adds to) */
   readonly recipesLink = input<string | null>(null);
   readonly recipesParams = input<Record<string, string>>({});
   protected readonly hotDrinks = HOT_DRINKS.map((d) => ({ key: d.key, emoji: d.emoji }));
   protected readonly restaurant = DISHES.map((d) => ({ key: d.key, emoji: d.emoji }));
   protected readonly apero = APERO.map((d) => ({ key: d.key, emoji: d.emoji }));
+  protected readonly sweets = SWEET_CHIPS;
   protected emojiOf(r: Recipe): string {
     return TYPE_EMOJI[r.type];
   }

@@ -56,7 +56,7 @@ function writeFlag(key: string): void {
       <header class="head">
         <div>
           <p class="eyebrow">{{ todayLabel() }}</p>
-          <h1 class="display hello">{{ greeting() }}</h1>
+          <h1 class="display hello" [attr.data-title]="'nav.today' | t">{{ greeting() }}</h1>
         </div>
         <div class="head-actions">
           <!-- 1.17: the notification centre, with the number of new ones -->
@@ -223,11 +223,17 @@ function writeFlag(key: string): void {
       <h2 class="section-title">{{ 'today.todo' | t }}</h2>
       <div class="list">
         <!-- 1.17: noted without network: greyed with « Sera envoyé plus tard », back to colour once sent -->
+        <!-- 1.18: not done yet today: it stands out (warm, its icon breathing, « À faire ») until it is -->
         <button type="button" class="list-item task" [class.done]="weighedIn() || !!weighWaiting()" [class.is-waiting]="!!weighWaiting()"
-          [class.is-arrived]="arrived() === 'weigh'" (click)="weigh()">
+          [class.todo-now]="weighToDo()" [class.is-arrived]="arrived() === 'weigh'" (click)="weigh()">
           <span class="list-icon"><app-icon [name]="weighedIn() || weighWaiting() ? 'check' : 'weight'" /></span>
           <span class="list-body">
-            <span class="list-title">{{ 'today.weighIn' | t }}</span>
+            <span class="list-title weigh-title">
+              <span class="weigh-name">{{ 'today.weighIn' | t }}</span>
+              @if (weighToDo()) {
+                <span class="todo-chip">{{ 'today.weighTodo' | t }}</span>
+              }
+            </span>
             <span class="list-sub">
               @if (weighWaiting(); as w) {
                 {{ 'today.weighInDone' | t: { kg: i18n.number(w.kg, 1) } }}
@@ -241,7 +247,11 @@ function writeFlag(key: string): void {
               <app-waiting-note [waitId]="w.id" />
             }
           </span>
-          <app-icon [name]="weighedIn() || weighWaiting() ? 'pencil' : 'plus'" />
+          @if (weighToDo()) {
+            <span class="weigh-go" aria-hidden="true"><app-icon name="plus" [size]="18" [stroke]="2.6" /></span>
+          } @else {
+            <app-icon [name]="weighedIn() || weighWaiting() ? 'pencil' : 'plus'" />
+          }
         </button>
         <!-- 1.9: an optional evening weigh-in, from 5 pm once the morning one is done; 1.10: always there, greyed until then -->
         <button type="button" class="list-item task evening" [class.done]="eveningKg() != null" [class.locked]="eveningLocked()"
@@ -753,6 +763,90 @@ function writeFlag(key: string): void {
       background: #16a34a;
       color: #fff;
     }
+    /* 1.18: the weigh-in of the day, not done yet: warm, a bar of the flame on its edge, its icon breathing */
+    .task.todo-now {
+      position: relative;
+      background:
+        radial-gradient(130% 160% at 0% 50%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 70%),
+        color-mix(in srgb, var(--accent) 5%, var(--surface));
+    }
+    .task.todo-now::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 4px;
+      border-radius: 0 4px 4px 0;
+      background: var(--flame);
+    }
+    .task.todo-now .list-icon {
+      background: var(--flame);
+      color: #fff;
+      animation: weigh-breathe 2.4s ease-in-out infinite;
+    }
+    @keyframes weigh-breathe {
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 40%, transparent);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 0%, transparent);
+        transform: scale(1.06);
+      }
+    }
+    .weigh-title {
+      display: flex !important;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .weigh-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .task.todo-now .weigh-name {
+      font-weight: 750;
+    }
+    .todo-chip {
+      flex: none;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-size: 11px;
+      font-weight: 750;
+      line-height: 1.5;
+      animation: chip-in 420ms cubic-bezier(0.34, 1.6, 0.5, 1) both;
+    }
+    @keyframes chip-in {
+      from {
+        transform: scale(0.6);
+        opacity: 0;
+      }
+    }
+    .weigh-go {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      flex: none;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 6px 14px -6px var(--accent-glow);
+    }
+    .task.todo-now:active .weigh-go {
+      transform: scale(0.9);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .task.todo-now .list-icon,
+      .todo-chip {
+        animation: none;
+      }
+    }
     .water-ico {
       background: var(--cool-soft) !important;
       color: var(--cool) !important;
@@ -982,6 +1076,8 @@ export class TodayPage {
   protected readonly pending = signal(0);
 
   protected readonly weighedIn = computed(() => this.summary()?.streak.todayDone === true);
+  /** 1.18: today's weigh-in still to do (once the summary is known: never a flash before it comes) */
+  protected readonly weighToDo = computed(() => !!this.summary() && !this.weighedIn() && !this.weighWaiting());
   protected readonly streakDays = computed(() => this.summary()?.streak.days ?? 0);
   /** the streak's look, chosen by the member (the flame in orange by default) */
   protected readonly icons = STREAK_ICONS;

@@ -484,6 +484,8 @@ export interface RecentItem {
   group?: string;
   health?: number | null;
   liquid?: boolean;
+  /** 1.18: what the line was worth by 100 g (a food) or by serving (a recipe): offered again without network */
+  base?: Nutrients;
 }
 
 /** TREAT (1.9): « Plaisir », pastries and treats; HEALTHY (1.13): « Healthy », put first */
@@ -523,6 +525,8 @@ export interface Recipe {
   health?: HealthDto | null;
   /** 1.14: vitamins and minerals of a serving */
   micros?: Partial<Record<string, number>>;
+  /** 1.18: what a serving weighs on the plate, cooked (estimated by the server; none: entered with its calories only) */
+  plateG?: number | null;
   /** each line: its calories for the weight, its food's values per 100 g, whether it counts as fruit and vegetables */
   ingredients?: { foodId?: string; name: string; grams: number; kcal: number; per100?: Nutrients; fruitVeg?: boolean; health?: number | null }[];
   createdAt: string;

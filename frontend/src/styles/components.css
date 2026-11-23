@@ -513,6 +513,28 @@
 .list-item + .list-item {
   border-top: 1px solid var(--line);
 }
+/* 1.18: a touch screen lights the row under the finger, as a phone list does (a hover on a computer): at once on the press,
+   fading out on the release; a short delay so that a scroll starting on a row does not flash it */
+@media (hover: none) {
+  :is(a, button).list-item,
+  :is(a, button).list-row {
+    transition: background-color 260ms ease;
+  }
+  :is(a, button).list-item:active:not(:disabled),
+  :is(a, button).list-row:active:not(:disabled) {
+    background-color: color-mix(in srgb, var(--fg) 7%, var(--surface));
+    transition-duration: 0s;
+    transition-delay: 50ms;
+  }
+  a.card:not(.list-row),
+  button.card:not(.list-row) {
+    transition: transform 220ms var(--ease-out);
+  }
+  a.card:not(.list-row):active,
+  button.card:not(.list-row):active {
+    transform: scale(0.985);
+  }
+}
 @media (hover: hover) and (pointer: fine) {
   a.list-item:hover,
   button.list-item:hover {
@@ -858,6 +880,14 @@ html.tabs-away .toast-host {
   gap: 2px;
   min-height: 0;
   margin-top: calc(-1 * var(--space-2));
+  position: relative;
+}
+/* 1.18: an action of a pushed screen (share, settings) at the top right, on the line of the back button, never alone under
+   the large title */
+.page-head:has(.back-link) > .icon-btn {
+  position: absolute;
+  top: 0;
+  right: -6px;
 }
 .section-title {
   margin: var(--space-2) 0 calc(-1 * var(--space-2));

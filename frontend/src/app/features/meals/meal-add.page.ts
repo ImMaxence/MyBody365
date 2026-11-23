@@ -3,9 +3,11 @@ import { EstimatedItem, FastFoodSheetComponent } from './fast-food-sheet.compone
 import { DrinkSheetComponent } from './drink-sheet.component';
 import { AperoSheetComponent } from './apero-sheet.component';
 import { SandwichSheetComponent } from './sandwich-sheet.component';
+import { SweetsSheetComponent } from './sweets-sheet.component';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
+import { unreachable } from '../../core/offline/offline-cache';
 import type { Food, Nutrients, RecentItem, Recipe, Slot } from '../../core/api/models';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -26,7 +28,7 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
 @Component({
   selector: 'app-meal-add',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FastFoodSheetComponent, DrinkSheetComponent, AperoSheetComponent, SandwichSheetComponent, FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, FoodPickerComponent, QuantitySheetComponent],
+  imports: [FastFoodSheetComponent, DrinkSheetComponent, AperoSheetComponent, SandwichSheetComponent, SweetsSheetComponent, FormsModule, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, FoodPickerComponent, QuantitySheetComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -45,12 +47,15 @@ const SLOTS: Slot[] = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'];
         (dish)="$event === 'sandwich' ? sandwichSheet.open() : estimate.open($event)"
         (drink)="drinkSheet.open($event)"
         (apero)="aperoSheet.open($event)"
+        (sweet)="sweetsSheet.open($event)"
       />
       <app-fast-food-sheet #estimate [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event)" />
       <app-drink-sheet #drinkSheet [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event, drinkSheet)" />
       <app-apero-sheet #aperoSheet [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event, aperoSheet)" />
       <!-- 1.17: a sandwich made up piece by piece -->
       <app-sandwich-sheet #sandwichSheet [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event, sandwichSheet)" />
+      <!-- 1.18: the bakery's window, the chocolates, the sweets -->
+      <app-sweets-sheet #sweetsSheet [slotLabel]="'meals.addTo.' + slot() | t" (confirm)="addEstimate($event, sweetsSheet)" />
       <app-quantity-sheet (confirm)="add($event)" />
 
       <dialog class="sheet" #quickDialog [attr.aria-label]="'meals.quick.title' | t">
@@ -172,9 +177,43 @@ export class MealAddPage {
     else if (p.item.kind === 'QUICK') this.openQuick(p.item);
     else {
       const r = p.item;
-      const load = r.kind === 'FOOD' ? this.api.food(r.id).then((f) => this.openFood(f, r.grams)) : this.api.recipe(r.id).then((x) => this.openRecipe(x, r.servings));
+      // 1.18: without network and never opened before, from what the line itself was worth
+      const load =
+        r.kind === 'FOOD'
+          ? this.api
+              .food(r.id)
+              .catch((e: unknown) => this.fromRecent(r, e) as Food)
+              .then((f) => this.openFood(f, r.grams))
+          : this.api
+              .recipe(r.id)
+              .catch((e: unknown) => this.fromRecent(r, e) as Recipe)
+              .then((x) => this.openRecipe(x, r.servings));
       load.catch((e) => this.toast.error(this.i18n.error(errorCode(e))));
     }
+  }
+
+  /**
+   * 1.18: a food or a recipe of the recents with no network to fetch it: what the recent line says is enough to note it
+   * again (its values by 100 g or by serving, its name); anything else fails as it did
+   */
+  private fromRecent(r: RecentItem, e: unknown): Food | Recipe {
+    if (!unreachable(e) || !r.base) throw e;
+    if (r.kind === 'FOOD') {
+      return { id: r.id, source: 'CIQUAL', name: r.name, per100: r.base, nutriscoreEstimated: false, mine: false, liquid: r.liquid } satisfies Food;
+    }
+    return {
+      id: r.id,
+      name: r.name,
+      type: 'LUNCH',
+      servings: 1,
+      shared: false,
+      visibility: 'PRIVATE',
+      hidden: false,
+      mine: false,
+      perServing: r.base,
+      score: 0,
+      createdAt: new Date().toISOString(),
+    } satisfies Recipe;
   }
 
   /** a portion with only its calories: from the button, a search that found nothing, or the recents */
@@ -230,7 +269,7 @@ export class MealAddPage {
 
   /** a meal at the snack bar, by estimate: each item on its own line (no line for a glass of water) */
   /** the items of an estimate (fast food, or a drink), each on its own line */
-  protected async addEstimate(items: EstimatedItem[], from?: DrinkSheetComponent | AperoSheetComponent | SandwichSheetComponent): Promise<void> {
+  protected async addEstimate(items: EstimatedItem[], from?: DrinkSheetComponent | AperoSheetComponent | SandwichSheetComponent | SweetsSheetComponent): Promise<void> {
     const sheet = from ?? this.estimateSheet();
     const lines = items.filter((i) => i.kcal >= 1);
     if (!lines.length) return;
@@ -275,7 +314,9 @@ export class MealAddPage {
 
   private openRecipe(r: Recipe, initial?: number): void {
     this.current = { kind: 'RECIPE', id: r.id, name: r.name, base: r.perServing };
-    this.sheet().open({ name: r.name, detail: this.i18n.t('meals.perServing'), unit: 'serving', base: r.perServing, initial, recipe: r, day: this.day() });
+    // 1.18: how big a part is, when the server could tell
+    const detail = r.plateG ? this.i18n.t('meals.serving.sheet', { g: this.i18n.number(r.plateG) }) : this.i18n.t('meals.perServing');
+    this.sheet().open({ name: r.name, detail, unit: 'serving', base: r.perServing, initial, recipe: r, day: this.day() });
   }
 
   protected async add(qty: number): Promise<void> {

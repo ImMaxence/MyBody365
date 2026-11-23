@@ -7,6 +7,122 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.18.0",
+    "date": "2026-11-23",
+    "summary": [
+      {
+        "t": "Un mode hors ligne qui marche vraiment, dès l'ouverture, avec l'heure de la coupure et du retour du réseau, les pâtisseries et les chocolats, le poids d'une part de recette, et une app qui se tient comme une app de téléphone"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "Hors ligne : l'app s'ouvre sans réseau sur ce qu'elle montrait la dernière fois (ta journée, tes repas, tes photos, tes progrès, tes notifications) au lieu de l'écran de connexion. Les photos et les images déjà vues restent affichées, tes favoris et tes derniers repas s'ajoutent comme d'habitude, et les recherches déjà faites répondent encore"
+            }
+          ],
+          [
+            {
+              "t": "Hors ligne : la pastille dit depuis quand tu n'as plus de réseau (« Hors ligne depuis 14:32 ») et combien de saisies attendent. Touchée, elle ouvre le centre des notifications, qui garde chaque coupure et chaque retour du réseau avec leur heure, le temps passé sans réseau et ce qui a été envoyé au retour. Quand le réseau revient, la pastille dit « Réseau retrouvé à 14:47 »"
+            }
+          ],
+          [
+            {
+              "t": "Pâtisseries et chocolats, à côté des plats du fast-food : viennoiseries (croissant, pain au chocolat, chouquettes…), pâtisseries (éclair, religieuse, mille-feuille, Paris-Brest, tartes, flan, fraisier, bûche…), petits gâteaux (macaron, financier, cannelé, cookie…), chocolats (carrés de noir, au lait ou blanc, amandes au chocolat, rochers, truffes, orangettes, mendiants, pâte à tartiner…) et confiseries. À la pièce, à la part, au carré, à la cuillère ou à la poignée, avec la note santé, d'après la table Ciqual"
+            }
+          ],
+          [
+            {
+              "t": "Recettes de la communauté : mendiants, orangettes, amandes enrobées de chocolat, rochers pralinés, macarons au chocolat, religieuses et pâte à tartiner maison"
+            }
+          ],
+          [
+            {
+              "t": "Pizza : l'huile pimentée (à la cuillère à café, jusqu'à 3), la sauce pimentée et le fromage en plus"
+            }
+          ],
+          [
+            {
+              "t": "Recettes : le poids d'une part une fois cuite, partout où une recette dit « la part » (« 412 kcal la part · ≈ 380 g »), dans la recherche des repas comme sur la page des recettes. Il est estimé d'après les ingrédients : les pâtes, le riz et les légumes secs gonflent à la cuisson, la viande perd de l'eau, les sauces réduisent. En ajoutant une recette à un repas, une part se choisit aussi au poids de ton assiette (200 g, 300 g…)"
+            }
+          ],
+          [
+            {
+              "t": "Comme une app de téléphone : en faisant défiler un écran, son titre passe en petit dans une barre en haut, avec le retour sur les écrans ouverts depuis un onglet. Tirer un onglet vers le bas depuis son haut l'actualise. Toucher l'onglet déjà ouvert remonte en haut de l'écran, ou l'actualise si tu y es déjà"
+            }
+          ],
+          [
+            {
+              "t": "Les lignes des listes s'éclairent sous le doigt quand tu appuies dessus"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "Aujourd'hui : la pesée du jour se voit tant qu'elle n'est pas faite, en couleur avec « À faire », et un point rouge sur l'onglet Aujourd'hui la rappelle depuis les autres onglets"
+            }
+          ],
+          [
+            {
+              "t": "Repas : tes repas viennent juste après le résumé de la journée, la note du jour et les tendances de la semaine après eux. Le détail du calcul de ton objectif se replie sur une ligne « Pourquoi 1 850 kcal ? »"
+            }
+          ],
+          [
+            {
+              "t": "L'app s'ouvre tout de suite depuis ton téléphone, même avec un réseau faible, au lieu d'attendre le serveur. Un écran qui n'a pas de réponse au bout de 10 secondes montre ce qu'il avait gardé"
+            }
+          ],
+          [
+            {
+              "t": "Au retour du réseau, chaque onglet redemande ce qu'il affichait"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Hors ligne : l'app ouvrait l'écran de connexion au lieu de tes écrans, et la plupart des écrans restaient vides sans réseau"
+            }
+          ],
+          [
+            {
+              "t": "Pendant une mise à jour du serveur, l'app ne renvoie plus vers l'écran de connexion"
+            }
+          ],
+          [
+            {
+              "t": "Se déconnecter sans réseau ne laisse plus l'app à moitié déconnectée : elle dit que la déconnexion attend le retour du réseau"
+            }
+          ],
+          [
+            {
+              "t": "Hors ligne, une erreur dit « Pas de connexion » au lieu d'une erreur inconnue"
+            }
+          ],
+          [
+            {
+              "t": "Mode sombre : la carte « Active les notifications » n'a plus de grand disque gris sur son texte quand les notifications sont bloquées"
+            }
+          ],
+          [
+            {
+              "t": "L'action d'un écran ouvert depuis un onglet (partager la liste de courses, les réglages des notifications) reste en haut à droite, au lieu de tomber seule sous le grand titre"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.17.0",
     "date": "2026-11-22",
     "summary": [

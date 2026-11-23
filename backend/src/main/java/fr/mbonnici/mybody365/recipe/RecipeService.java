@@ -112,7 +112,9 @@ public class RecipeService {
             /** 1.13: the health score of a serving's dish, with its reasons (null: entered by hand, or with alcohol) */
             FoodService.Health health,
             /** 1.14: vitamins and minerals of a serving (empty: unknown) */
-            Map<String, Double> micros) {}
+            Map<String, Double> micros,
+            /** 1.18: what a serving weighs on the plate, cooked (PlateWeight; null: entered with its calories only) */
+            Double plateG) {}
 
     /** a recipe as stored */
     public record RecipeRow(UUID id, UUID ownerId, String ownerName, String name, Type type, List<Type> types, int servings, String notes, boolean shared,
@@ -121,7 +123,9 @@ public class RecipeService {
             /** 1.13: the health score (null: no ingredient to judge it from, or alcohol in it) */
             HealthScore.Result health,
             /** 1.14: vitamins and minerals of a serving */
-            Map<String, Double> micros) {
+            Map<String, Double> micros,
+            /** 1.18: a cooked serving's weight */
+            Double plateG) {
 
         String imageKey(boolean thumb) {
             return ObjectStorage.userPrefix(ownerId) + "r/" + id + "_" + imageVersion + (thumb ? "_t." : ".") + imageFormat;
@@ -152,7 +156,7 @@ public class RecipeService {
     private static final String SELECT = """
             select r.id, r.owner_id, u.display_name, r.name, r.type, r.types, r.servings, r.notes, r.shared, r.visibility, r.hidden, r.image_format, r.image_bytes,
               r.image_version, r.kcal, r.protein_g, r.carbs_g, r.sugars_g, r.fat_g, r.sat_fat_g, r.fiber_g, r.salt_g, r.serving_g,
-              r.nutriscore, r.score, r.created_at, r.fruit_veg, r.alcohol, r.micros::text as micros
+              r.nutriscore, r.score, r.created_at, r.fruit_veg, r.alcohol, r.micros::text as micros, r.plate_g
             from recipe r join app_user u on u.id = r.owner_id""";
 
     private static RecipeRow map(ResultSet rs, int i) throws SQLException {
@@ -160,6 +164,8 @@ public class RecipeService {
         boolean noImage = rs.wasNull();
         double serving = rs.getDouble("serving_g");
         boolean noServing = rs.wasNull();
+        double plate = rs.getDouble("plate_g");
+        boolean noPlate = rs.wasNull();
         return new RecipeRow(rs.getObject("id", UUID.class), rs.getObject("owner_id", UUID.class), rs.getString("display_name"),
                 rs.getString("name"), Type.valueOf(rs.getString("type")), types(rs.getString("type"), rs.getString("types")), rs.getInt("servings"),
                 rs.getString("notes"),
@@ -168,7 +174,7 @@ public class RecipeService {
                 rs.getInt("image_version"), Nutrients.from(rs), noServing ? null : serving, rs.getString("nutriscore"), rs.getInt("score"),
                 rs.getTimestamp("created_at").toInstant(), health(rs.getString("name"), types(rs.getString("type"), rs.getString("types")),
                         Nutrients.from(rs), noServing ? null : serving, rs.getObject("fruit_veg") == null ? null : rs.getDouble("fruit_veg"),
-                        rs.getBoolean("alcohol")), fr.mbonnici.mybody365.nutrition.Micros.parse(rs.getString("micros")));
+                        rs.getBoolean("alcohol")), fr.mbonnici.mybody365.nutrition.Micros.parse(rs.getString("micros")), noPlate ? null : plate);
     }
 
     /**
@@ -228,7 +234,7 @@ public class RecipeService {
                 r.imageFormat() == null ? null : base + "full" + v, r.imageFormat() == null ? null : base + "thumb" + v, ingredients,
                 r.createdAt(), manual, lines, source, source == null ? null : sourceName(source), r.imageFormat() == null ? null : credit,
                 r.imageFormat() == null ? null : license, r.imageFormat() == null ? null : imageSource, FoodService.Health.of(r.health()),
-                fr.mbonnici.mybody365.nutrition.Micros.rounded(r.micros()));
+                fr.mbonnici.mybody365.nutrition.Micros.rounded(r.micros()), r.plateG());
     }
 
     private List<IngredientDto> ingredients(UUID recipeId) {
@@ -490,7 +496,7 @@ public class RecipeService {
         boolean wasShared = Boolean.TRUE.equals(jdbc.queryForObject("select shared from recipe where id = ?", Boolean.class, id));
         jdbc.update("""
                 update recipe set name = ?, type = ?, types = ?, servings = ?, notes = ?, shared = ?, visibility = ?, kcal = ?, protein_g = ?, carbs_g = ?,
-                  sugars_g = null, fat_g = ?, sat_fat_g = null, fiber_g = null, salt_g = null, serving_g = null, nutriscore = null,
+                  sugars_g = null, fat_g = ?, sat_fat_g = null, fiber_g = null, salt_g = null, serving_g = null, plate_g = null, nutriscore = null,
                   fruit_veg = null, alcohol = false, micros = null,
                   manual_nutrition = true, ingredient_lines = ?, source_url = ?, updated_at = now(),
                   shared_at = case when ? and not ? then now() else shared_at end
@@ -527,9 +533,11 @@ public class RecipeService {
         double plants = 0;
         boolean alcohol = false;
         fr.mbonnici.mybody365.nutrition.Micros.Mix micros = new fr.mbonnici.mybody365.nutrition.Micros.Mix();
+        List<PlateWeight.Line> plate = new ArrayList<>();
         int position = 0;
         for (IngredientInput ing : in.ingredients()) {
             Food f = foods.usable(ing.foodId(), userId);
+            plate.add(new PlateWeight.Line(f.name(), f.category(), ing.grams()));
             Nutrients n = f.per100();
             jdbc.update("""
                     insert into recipe_ingredient (id, recipe_id, position, food_id, name, grams, kcal, protein_g, carbs_g, sugars_g, fat_g,
@@ -562,9 +570,11 @@ public class RecipeService {
                 perServing.sugarsG(), perServing.fatG(), perServing.satFatG(), perServing.fiberG(), perServing.saltG(), grams / in.servings(), grade,
                 in.resolved() == Visibility.PUBLIC, wasShared, id);
         jdbc.update("""
-                update recipe set manual_nutrition = false, ingredient_lines = null, source_url = ?, fruit_veg = ?, alcohol = ?, micros = ?::jsonb
+                update recipe set manual_nutrition = false, ingredient_lines = null, source_url = ?, fruit_veg = ?, alcohol = ?, micros = ?::jsonb,
+                  plate_g = ?
                 where id = ?""", source(in.sourceUrl()), Math.round(1000 * plants / grams) / 10.0, alcohol,
-                fr.mbonnici.mybody365.nutrition.Micros.json(micros.known(1.0 / in.servings())), id);
+                fr.mbonnici.mybody365.nutrition.Micros.json(micros.known(1.0 / in.servings())),
+                PlateWeight.perServing(in.name().strip(), plate, in.servings()), id);
     }
 
     /**
@@ -603,9 +613,9 @@ public class RecipeService {
         UUID copy = UUID.randomUUID();
         jdbc.update("""
                 insert into recipe (id, owner_id, name, type, types, servings, notes, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g,
-                  salt_g, serving_g, nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol, micros)
+                  salt_g, serving_g, nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol, micros, plate_g)
                 select ?, ?, name, type, types, servings, notes, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g, salt_g, serving_g,
-                  nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol, micros from recipe where id = ?""", copy, userId, id);
+                  nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol, micros, plate_g from recipe where id = ?""", copy, userId, id);
         jdbc.update("""
                 insert into recipe_ingredient (id, recipe_id, position, food_id, name, grams, kcal, protein_g, carbs_g, sugars_g, fat_g,
                   sat_fat_g, fiber_g, salt_g)
@@ -620,7 +630,7 @@ public class RecipeService {
                 RecipeRow c = row(copy);
                 RecipeRow withImage = new RecipeRow(c.id(), c.ownerId(), c.ownerName(), c.name(), c.type(), c.types(), c.servings(), c.notes(), false,
                         Visibility.PRIVATE, false, r.imageFormat(), (long) (full.length + thumb.length), 1, c.perServing(), c.servingG(), c.nutriscore(), 0,
-                        c.createdAt(), c.health(), c.micros());
+                        c.createdAt(), c.health(), c.micros(), c.plateG());
                 storage.put(withImage.imageKey(false), full, contentType(r.imageFormat()));
                 storage.put(withImage.imageKey(true), thumb, contentType(r.imageFormat()));
                 // the photo goes with its credit
@@ -656,7 +666,7 @@ public class RecipeService {
         int version = r.imageVersion() + 1;
         RecipeRow next = new RecipeRow(r.id(), r.ownerId(), r.ownerName(), r.name(), r.type(), r.types(), r.servings(), r.notes(), r.shared(),
                 r.visibility(), r.hidden(), img.format(), size, version, r.perServing(), r.servingG(), r.nutriscore(), r.score(), r.createdAt(), r.health(),
-                r.micros());
+                r.micros(), r.plateG());
         storage.put(next.imageKey(false), img.full(), img.contentType());
         storage.put(next.imageKey(true), img.thumb(), img.contentType());
         jdbc.update("""
@@ -678,7 +688,7 @@ public class RecipeService {
         int version = r.imageVersion() + 1;
         RecipeRow next = new RecipeRow(r.id(), r.ownerId(), r.ownerName(), r.name(), r.type(), r.types(), r.servings(), r.notes(), r.shared(),
                 r.visibility(), r.hidden(), img.format(), size, version, r.perServing(), r.servingG(), r.nutriscore(), r.score(), r.createdAt(), r.health(),
-                r.micros());
+                r.micros(), r.plateG());
         storage.put(next.imageKey(false), img.full(), img.contentType());
         storage.put(next.imageKey(true), img.thumb(), img.contentType());
         jdbc.update("""

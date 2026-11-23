@@ -101,6 +101,7 @@ export class PhotoQueue {
   async flush(): Promise<void> {
     if (this.flushing || !this.owner || !this.items().length || typeof indexedDB === 'undefined') return;
     this.flushing = true;
+    let went = 0;
     try {
       for (const s of await this.all()) {
         if (s.owner !== this.owner) continue;
@@ -109,6 +110,7 @@ export class PhotoQueue {
           const photo = await this.api.uploadPhoto(s.blob, s.day, s.pose);
           await run('readwrite', (st) => st.delete(s.id));
           this.arrived.next({ queued: s.id, photo });
+          went++;
         } catch (e) {
           const status = e instanceof HttpErrorResponse ? e.status : 0;
           if (isOffline(e) || status === 0 || status === 401 || status === 403 || status >= 500) break;
@@ -121,6 +123,8 @@ export class PhotoQueue {
       this.flushing = false;
       await this.refresh();
     }
+    // 1.18: told in the notification centre, with the return of the network
+    this.network.noteSent(went);
   }
 
   async clear(): Promise<void> {

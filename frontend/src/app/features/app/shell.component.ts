@@ -14,10 +14,17 @@ import { IconComponent } from '../../shared/icon.component';
 import { Outbox } from '../../core/offline/outbox';
 import { Network } from '../../core/offline/network';
 import { PhotoQueue } from '../../core/offline/photo-queue';
+import { clockOf, whenOf } from '../../core/offline/when';
 import { TimerRun } from '../../core/engage/timer-run';
 import { MilestoneCelebrationComponent } from './milestone-celebration.component';
+import { CompactBarComponent } from './compact-bar.component';
+import { PullRefreshComponent } from './pull-refresh.component';
 import { ToastService } from '../../core/ui/toast.service';
 import { ShoppingStore } from '../../core/meals/shopping.store';
+import { TrackingStore, localDay } from '../../core/tracking/tracking.store';
+import { MealsStore } from '../../core/meals/meals.store';
+import { PhotosStore } from '../../core/photos/photos.store';
+import { FriendsStore } from '../../core/friends/friends.store';
 
 /** how far (share of the width) or how fast (px/ms, the last moves) the screen must travel to go back */
 const DISTANCE = 0.4;
@@ -37,7 +44,7 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
 @Component({
   selector: 'app-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, TranslatePipe, IconComponent, MilestoneCelebrationComponent],
+  imports: [RouterOutlet, RouterLink, TranslatePipe, IconComponent, MilestoneCelebrationComponent, CompactBarComponent, PullRefreshComponent],
   template: `
     <div id="main" class="screen" #screen>
       <router-outlet />
@@ -46,6 +53,12 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
       <!-- under the status bar: a solid band of the page colour, so that nothing scrolls under the time and the
            battery (iOS 26 blurs what passes there, with no setting to turn it off) -->
       <div class="status-shield" aria-hidden="true"></div>
+      <!-- 1.18: the screen's title, small, once its large title has scrolled away (with the chevron on a pushed screen) -->
+      <app-compact-bar />
+    }
+    @if (showTabs()) {
+      <!-- 1.18: pull a tab down from its top to ask the server again -->
+      <app-pull-refresh [allowed]="canPull" [run]="refreshAll" [label]="'common.refreshing' | t" />
     }
     <!-- the left edge: the back swipe (see edgeStart) -->
     <!-- a milestone reached by the weigh-in just noted, wherever it was noted -->
@@ -66,14 +79,18 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
         <!-- 1.17: no network (what is done waits, greyed), it comes back (sent one by one, a spinner), then all sent -->
         @switch (netState()) {
           @case ('offline') {
-            <p class="outbox off" role="status">
+            <!-- 1.18: since when (the notification centre keeps the losses and the returns) -->
+            <p class="outbox-wrap" role="status"><a class="outbox off" routerLink="/app/notifications">
               <app-icon name="cloudOff" [size]="15" />
               @if (waitingCount(); as n) {
-                {{ (n === 1 ? 'offline.offOne' : 'offline.offMany') | t: { n: n } }}
+                {{ (n === 1 ? 'offline.offSinceOne' : 'offline.offSinceMany') | t: { n: n, time: sinceText() } }}
               } @else {
-                {{ 'offline.off' | t }}
+                {{ 'offline.offSince' | t: { time: sinceText() } }}
               }
-            </p>
+            </a></p>
+          }
+          @case ('back') {
+            <p class="outbox done" role="status"><app-icon name="cloud" [size]="15" /> {{ 'offline.backAt' | t: { time: backText() } }}</p>
           }
           @case ('sending') {
             <p class="outbox sending" role="status"><span class="spin" aria-hidden="true"></span> {{ (waitingCount() === 1 ? 'offline.sendingOne' : 'offline.sendingMany') | t: { n: waitingCount() } }}</p>
@@ -92,7 +109,8 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
       <nav class="tabbar" [attr.aria-label]="'nav.main' | t" [style.--i]="activeIndex()" (focusin)="revealTabs()">
         <span class="indicator" [class.hidden]="activeIndex() < 0" aria-hidden="true"></span>
         @for (tab of tabs; track tab.path; let i = $index) {
-          <a [routerLink]="tab.path" [replaceUrl]="true" [class.active]="activeIndex() === i" [attr.aria-current]="activeIndex() === i ? 'page' : null">
+          <a [routerLink]="tab.path" [replaceUrl]="true" [class.active]="activeIndex() === i" [attr.aria-current]="activeIndex() === i ? 'page' : null"
+            (click)="tabTap(i)">
             <span class="ico">
               <app-icon [name]="tab.icon" [size]="23" [stroke]="activeIndex() === i ? 2.3 : 1.9" />
               <!-- 1.12: a red dot on each tab where something waits (Profile, Today, Meals, Photos) -->
@@ -211,10 +229,30 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
       background: var(--surface);
       box-shadow: var(--shadow-1), inset 0 0 0 1px var(--line);
       color: var(--fg-2);
+      max-width: calc(100% - 24px);
       font-size: var(--fs-s);
       font-weight: 650;
-      white-space: nowrap;
+      line-height: 1.3;
+      text-align: center;
       pointer-events: none;
+    }
+    /* 1.18: the offline pill is a link (to the notification centre) inside the status that screen readers hear */
+    .outbox-wrap {
+      display: flex;
+      justify-content: center;
+      max-width: calc(100% - 24px);
+      margin: 0;
+      pointer-events: none;
+    }
+    .outbox-wrap .outbox {
+      max-width: 100%;
+    }
+    a.outbox {
+      pointer-events: auto;
+      text-decoration: none;
+    }
+    .outbox app-icon {
+      flex: none;
     }
     .status-shield {
       position: fixed;
@@ -383,10 +421,21 @@ export class ShellComponent {
   /** 1.17: what waits for the network: the outbox and the photos */
   protected readonly waitingCount = computed(() => this.outbox.pending().length + this.photoQueue.items().length);
   /** 1.17: no network, being sent, still waiting (the server away), all sent a moment ago, or nothing to say */
-  protected readonly netState = computed<'offline' | 'sending' | 'waiting' | 'done' | null>(() => {
+  protected readonly netState = computed<'offline' | 'sending' | 'waiting' | 'done' | 'back' | null>(() => {
     if (!this.network.online()) return 'offline';
     if (this.waitingCount() > 0) return this.outbox.syncing() || this.photoQueue.sending() ? 'sending' : 'waiting';
-    return this.outbox.done() > 0 ? 'done' : null;
+    if (this.outbox.done() > 0) return 'done';
+    // 1.18: back with nothing to send: said with its time
+    return this.network.backAt() != null ? 'back' : null;
+  });
+  /** 1.18: « 14:32 », « hier 22:10 » */
+  protected readonly sinceText = computed(() => {
+    const at = this.network.since();
+    return at ? whenOf(at, this.i18n) : '';
+  });
+  protected readonly backText = computed(() => {
+    const at = this.network.backAt();
+    return at ? clockOf(at, this.i18n) : '';
   });
   protected readonly timer = inject(TimerRun);
   /** a run of the timer goes on, and its screen is not the one shown */
@@ -429,7 +478,7 @@ export class ShellComponent {
       case '/app/account':
         return this.todo.profile();
       case '/app':
-        return this.todo.today();
+        return this.todo.today() || this.weighDue();
       case '/app/meals':
         return this.shoppingLeft() > 0;
       case '/app/photos':
@@ -482,6 +531,8 @@ export class ShellComponent {
   constructor() {
     // sent later and refused by the server (rare: a day too far, a food deleted meanwhile): said once
     this.outbox.refused.pipe(takeUntilDestroyed()).subscribe(() => this.toastService.error(this.i18n.t('offline.refused')));
+    // 1.18: the network is back: what the tabs showed from the phone is asked again, once what waited has gone
+    this.network.back.pipe(takeUntilDestroyed()).subscribe(() => setTimeout(() => this.catchUp(), 1200));
     this.router.events
       .pipe(
         filter((e) => e instanceof NavigationEnd),
@@ -517,6 +568,66 @@ export class ShellComponent {
       doc.addEventListener('visibilitychange', onShow);
       destroy.onDestroy(() => doc.removeEventListener('visibilitychange', onShow));
     }
+  }
+
+  private readonly compact = viewChild(CompactBarComponent);
+  private readonly ptr = viewChild(PullRefreshComponent);
+
+  /** 1.18: a pull to refresh may start: on a tab (not a pushed screen), nothing moving */
+  protected readonly canPull = () => this.stack.depth() === 0 && !this.stack.busy() && !this.leaving;
+
+  /**
+   * 1.18: the tab already open, touched again: back to the top of its screen, as an iPhone app; already at the top, it asks
+   * the server again (the circle of the pull to refresh). On a pushed screen, the tab's link takes it back to its first one.
+   */
+  protected tabTap(i: number): void {
+    if (this.activeIndex() !== i || this.stack.depth() > 0) return;
+    const win = this.doc.defaultView;
+    if (!win) return;
+    if (win.scrollY > 4) win.scrollTo({ top: 0, behavior: 'smooth' });
+    else void this.ptr()?.refresh();
+  }
+
+  /** 1.18: what a pull to refresh asks again: the stores of the tabs, without the 30 s of freshness, and what waits is sent */
+  protected readonly refreshAll = async (): Promise<void> => {
+    if (!this.session.account()?.onboarded) return;
+    await Promise.allSettled([
+      this.outbox.flush(),
+      this.photoQueue.flush(),
+      this.trackingStore.ensure(0),
+      this.trackingStore.ensureLogs(0),
+      this.mealsStore.load(this.mealsStore.day()),
+      this.mealsStore.loadToday(),
+      this.photosStore.load(),
+      this.friendsStore.ensure(0),
+      this.shopping.load(),
+      this.todo.refresh(),
+    ]);
+    // still no network: what is shown is what was kept
+    if (!this.network.online()) this.toastService.show(this.i18n.t('offline.kept'));
+  };
+
+  private readonly trackingStore = inject(TrackingStore);
+  /** 1.18: today's weigh-in still to do (the summary known, none waiting for the network): a dot on Today, as the photo on Photos */
+  private readonly weighDue = computed(() => {
+    const s = this.trackingStore.summary();
+    return !!s && !s.streak.todayDone && !this.outbox.of('weigh', localDay()).length;
+  });
+  private readonly mealsStore = inject(MealsStore);
+  private readonly photosStore = inject(PhotosStore);
+  private readonly friendsStore = inject(FriendsStore);
+
+  /** 1.18: back from offline: the stores of the tabs again from the server (core/api/kept.ts: what came before is stale) */
+  private catchUp(): void {
+    if (!this.session.account()?.onboarded || !this.network.online()) return;
+    void this.trackingStore.ensure();
+    void this.mealsStore.ensure().catch(() => undefined);
+    void this.mealsStore.ensureToday();
+    void this.mealsStore.ensureWeekStats();
+    void this.photosStore.ensureFresh().catch(() => undefined);
+    void this.friendsStore.ensure();
+    void this.shopping.ensure().catch(() => undefined);
+    void this.todo.refresh();
   }
 
   /**
@@ -783,6 +894,7 @@ export class ShellComponent {
 
   /** the copy on top, the previous screen underneath */
   private lift(): void {
+    this.compact()?.hide();
     const screen = this.screen().nativeElement;
     const ghost = screen.cloneNode(true) as HTMLElement;
     ghost.removeAttribute('id');

@@ -111,8 +111,12 @@ public class MealService {
             List<Source> sugarSources, List<Source> saltSources, List<Source> satFatSources) {}
 
     /** a food, a recipe or a quick portion logged lately, with the amount used last time (the portion's nutrients for QUICK) */
+    /**
+     * base (1.18): what the line was worth by 100 g (a food) or by serving (a recipe), from its own snapshot, so that the app
+     * offers it again without network (no food or recipe to fetch first)
+     */
     public record RecentDto(String kind, UUID id, String name, String detail, Double grams, Double servings, double kcal,
-            String nutriscore, Nutrients quick, String thumbUrl, String group, Double health, boolean liquid) {}
+            String nutriscore, Nutrients quick, String thumbUrl, String group, Double health, boolean liquid, Nutrients base) {}
 
     private final JdbcTemplate jdbc;
     private final FoodService foods;
@@ -409,7 +413,7 @@ public class MealService {
         List<RecentDto> out = new ArrayList<>();
         List<Object[]> rows = new ArrayList<>(jdbc.query("""
                 select distinct on (coalesce(e.food_id, e.recipe_id)) e.food_id, e.recipe_id, e.name, e.detail, e.grams, e.servings, e.kcal,
-                  e.nutriscore, e.created_at, e.health, e.liquid, f.source as food_source, f.category as food_category, f.image_path as food_image,
+                  e.protein_g, e.carbs_g, e.sugars_g, e.fat_g, e.sat_fat_g, e.fiber_g, e.salt_g, e.nutriscore, e.created_at, e.health, e.liquid, f.source as food_source, f.category as food_category, f.image_path as food_image,
                   r.type as recipe_type, r.image_format as recipe_image, r.image_version as recipe_image_version
                 from meal_entry e left join food f on f.id = e.food_id left join recipe r on r.id = e.recipe_id
                 where e.user_id = ? and (e.food_id is not null or e.recipe_id is not null)
@@ -420,9 +424,13 @@ public class MealService {
             Double servings = rs.wasNull() ? null : s;
             UUID food = rs.getObject("food_id", UUID.class);
             UUID recipe = rs.getObject("recipe_id", UUID.class);
+            Nutrients n = Nutrients.from(rs);
+            Nutrients base = food != null
+                    ? (grams != null && grams > 0 ? n.times(100 / grams).rounded() : null)
+                    : (servings != null && servings > 0 ? n.times(1 / servings).rounded() : null);
             return new Object[] {new RecentDto(food != null ? "FOOD" : "RECIPE", food != null ? food : recipe, rs.getString("name"),
                     rs.getString("detail"), grams, servings, Math.round(rs.getDouble("kcal")), rs.getString("nutriscore"), null, thumbOf(rs),
-                    groupOf(rs), health(rs), rs.getBoolean("liquid")),
+                    groupOf(rs), health(rs), rs.getBoolean("liquid"), base),
                     rs.getTimestamp("created_at").toInstant()};
         }, userId));
         // quick portions (and lines whose food is gone): offered again by name, as one portion
@@ -435,7 +443,7 @@ public class MealService {
             double factor = rs.wasNull() || s <= 0 ? 1 : 1 / s;
             Nutrients n = Nutrients.from(rs).times(factor).rounded();
             return new Object[] {new RecentDto("QUICK", null, rs.getString("name"), null, null, 1.0, Math.round(n.kcal()), null, n, null, null,
-                    health(rs), false),
+                    health(rs), false, null),
                     rs.getTimestamp("created_at").toInstant()};
         }, userId));
         rows.sort(Comparator.comparing((Object[] r) -> (Instant) r[1]).reversed());

@@ -6,6 +6,7 @@ import type { Lookalike, Nutrients, RecipeDraft, RecipeType, RecipeVisibility } 
 import { closeSheet } from '../../core/ui/sheets';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { ServingPipe } from '../../shared/serving.pipe';
 import { SessionStore } from '../../core/auth/session.store';
 import { MealsApi } from '../../core/meals/meals-api';
 import { scaled } from '../../core/meals/meals.store';
@@ -62,7 +63,7 @@ interface Line {
 @Component({
   selector: 'app-recipe-edit',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RecipeImportSheetComponent, SegDirective, FormsModule, TranslatePipe, IconComponent, BackButtonComponent, NumberStepperComponent, FoodPickerComponent, HealthScoreComponent],
+  imports: [RecipeImportSheetComponent, SegDirective, FormsModule, TranslatePipe, ServingPipe, IconComponent, BackButtonComponent, NumberStepperComponent, FoodPickerComponent, HealthScoreComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -259,7 +260,7 @@ interface Line {
               </span>
               <span class="list-body">
                 <span class="list-title">{{ l.recipe.name }}</span>
-                <span class="list-sub">{{ originOf(l) }} · {{ i18n.number(l.recipe.perServing.kcal) }} kcal {{ 'meals.perServing' | t }}</span>
+                <span class="list-sub">{{ originOf(l) }} · {{ l.recipe | serving }}</span>
                 @if (l.common) {
                   <span class="list-sub common">{{ (l.common === 1 ? 'meals.recipe.lookalike.commonOne' : 'meals.recipe.lookalike.common') | t: { n: l.common } }}</span>
                 }

@@ -68,6 +68,10 @@ const LATER = 'mb-push-later';
       background: rgba(255, 255, 255, 0.18);
       pointer-events: none;
     }
+    /* 1.18: the white halo is for the orange card: on the plain card of « blocked » it drew a grey disc over the text (dark) */
+    .push.blocked::after {
+      display: none;
+    }
     .bell {
       display: grid;
       place-items: center;
