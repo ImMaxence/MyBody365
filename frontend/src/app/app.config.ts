@@ -23,6 +23,8 @@ export const appConfig: ApplicationConfig = {
       // 1.14: the app (its sign-in screen included) speaks the device's language until one is chosen; the site's pages
       // set their own
       if (path.startsWith('/app')) i18n.set(lang);
+      // 1.20: the app's own texts at the same time (its routes wait for them anyway)
+      if (path.startsWith('/app')) void i18n.loadApp(lang);
       return i18n.load(lang);
     }),
     // unhandled errors also go to the admins' error journal

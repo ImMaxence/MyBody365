@@ -139,6 +139,24 @@ export function friedName(name: string): boolean {
   return FRIED.test(plainName(name));
 }
 
+/** 1.20: the Ciqual groups of oils and fats, and their names (as the server's HealthScore.fat) */
+const FAT_GROUPS = new Set(['huiles et graisses végétales', 'beurres', 'margarines', 'autres matières grasses', 'huiles de poissons']);
+const FAT_NAME = /^(huile|huiles|beurre|margarine|graisse|saindoux|lard|ghee)\b/;
+
+export function isFat(name: string, category?: string | null): boolean {
+  return (!!category && FAT_GROUPS.has(category.trim().toLowerCase())) || FAT_NAME.test(plainName(name));
+}
+
+/**
+ * 1.20: a recipe made of foods is fried when a fried food is in it, or when its name says fried and fats make at least 5 % of
+ * its weight (frying soaks some up): oven-baked nems with a few grams of oil are not (as the server's HealthScore.friedRecipe)
+ */
+export function friedRecipe(name: string, lines: { grams: number; name?: string; fat?: boolean }[]): boolean {
+  const grams = lines.reduce((t, l) => t + (l.grams > 0 ? l.grams : 0), 0);
+  const fat = lines.reduce((t, l) => t + (l.grams > 0 && (l.fat ?? isFat(l.name ?? '')) ? l.grams : 0), 0);
+  return lines.some((l) => friedName(l.name ?? '')) || (friedName(name) && grams > 0 && fat / grams >= 0.05);
+}
+
 function plainName(s: string): string {
   return s
     .normalize('NFD')
@@ -176,7 +194,7 @@ export const GRADE_SCORE: Record<string, number> = { a: 9, b: 7, c: 5, d: 3, e: 
  * share of fruit, vegetables, legumes and nuts, a fried name; a recipe only of drinks is judged as a drink
  */
 export function recipeHealth(
-  lines: { grams: number; per100: Partial<HealthInput> & { kcal: number }; fruitVeg?: boolean }[],
+  lines: { grams: number; per100: Partial<HealthInput> & { kcal: number }; fruitVeg?: boolean; name?: string; fat?: boolean }[],
   name = '',
   drink = false,
 ): Health | null {
@@ -205,7 +223,7 @@ export function recipeHealth(
     fiberG: sum('fiberG'),
     saltG: sum('saltG'),
     fruitVeg: (100 * plants) / grams,
-    fried: friedName(name),
+    fried: friedRecipe(name, lines),
     drink,
   });
 }

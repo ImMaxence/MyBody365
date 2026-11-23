@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminGuard, authGuard, guestGuard, installGate } from './core/auth/guards';
+import { appTexts } from './core/i18n/app-texts.guard';
 import { LandingPage } from './features/landing/landing.page';
 import { TABS } from './app.tabs';
 import { confirmLeave } from './core/nav/leave-guard';
@@ -14,16 +15,16 @@ export const routes: Routes = [
   // invitation / recovery links: work in any browser tab
   { path: 'link', loadComponent: () => import('./features/link/link.page').then((m) => m.LinkPage) },
   // friend links: work in any browser tab too (QR codes often open outside the installed app)
-  { path: 'friends/add', loadComponent: () => import('./features/friends/friend-link.page').then((m) => m.FriendLinkPage) },
+  { path: 'friends/add', canActivate: [appTexts], loadComponent: () => import('./features/friends/friend-link.page').then((m) => m.FriendLinkPage) },
   // 1.19: a member's read-only link for a coach or a dietitian (the token after the #): any browser, no account
-  { path: 'partage', loadComponent: () => import('./features/share/shared.page').then((m) => m.SharedPage) },
+  { path: 'partage', canActivate: [appTexts], loadComponent: () => import('./features/share/shared.page').then((m) => m.SharedPage) },
   // 1.19: a recipe's link opened in a browser (an iPhone opens links in Safari, never in the installed app)
   { path: 'recette/:id', loadComponent: () => import('./features/share/recipe-link.page').then((m) => m.RecipeLinkPage) },
 
   // the app: installed only
   {
     path: 'app',
-    canActivate: [installGate],
+    canActivate: [installGate, appTexts],
     loadComponent: () => import('./features/app/shell.component').then((m) => m.ShellComponent),
     children: [
       { path: 'login', canActivate: [guestGuard], loadComponent: () => import('./features/app/login.page').then((m) => m.LoginPage), data: { depth: 0 } },
@@ -48,6 +49,8 @@ export const routes: Routes = [
           // 1.11: what to cook with what I have, and the shopping list
           { path: 'meals/recipes/with', loadComponent: () => import('./features/meals/recipes-with.page').then((m) => m.RecipesWithPage), data: { depth: 2, back: '/app/meals/recipes' } },
           { path: 'meals/shopping', loadComponent: () => import('./features/meals/shopping.page').then((m) => m.ShoppingPage), data: { depth: 1, back: '/app/meals' } },
+          // 1.20: the meals planned for this week and the next
+          { path: 'meals/plan', loadComponent: () => import('./features/meals/plan.page').then((m) => m.PlanPage), data: { depth: 1, back: '/app/meals' } },
           { path: 'meals/recipes/new', loadComponent: () => import('./features/meals/recipe-edit.page').then((m) => m.RecipeEditPage), data: { depth: 2, back: '/app/meals/recipes' } },
           { path: 'meals/recipes/:id', loadComponent: () => import('./features/meals/recipe.page').then((m) => m.RecipePage), data: { depth: 2, back: '/app/meals/recipes' } },
           // 1.19: the steps of a recipe, one by one, the screen kept on

@@ -18,6 +18,7 @@ import {
   Router,
   ViewTransitionInfo,
 } from '@angular/router';
+import { ZoomPlace, flight, flyer, takeZoom } from './zoom';
 
 /**
  * Native-app navigation: every screen of the app has a depth in route data (`depth`: 0 for the tab
@@ -126,7 +127,17 @@ export class StackNavigation {
   /** the browser's view transition, kept from the app's navigations */
   private vtOff = false;
   /** the still copy of the screen being left, while it goes, and what it came from */
-  private ghost: { el: HTMLElement; depth: number; path: string; anims: Animation[] } | null = null;
+  private ghost: {
+    el: HTMLElement;
+    depth: number;
+    path: string;
+    anims: Animation[];
+    /** 1.20: the tile touched (the photo grows from it), the picture of the screen left (it shrinks back into its tile) */
+    zoom?: ZoomPlace | null;
+    back?: ZoomPlace | null;
+    /** what a zoom changed, put back when the copy goes */
+    cleanup?: () => void;
+  } | null = null;
 
   constructor() {
     // 1.12: the browser keeps its hands off the scroll. Left to itself ('auto', what the router leaves when its own
@@ -191,6 +202,8 @@ export class StackNavigation {
     if (inside) this.viewTransitionsOff();
     this.own =
       inside && !this.silent && !win.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // 1.20: no transition of the app's own: no zoom either, and the tile touched is forgotten
+    if (!this.own) takeZoom();
   }
 
   // ── the app's own transitions (1.12.1) ─────────────────────────────────────
@@ -242,11 +255,23 @@ export class StackNavigation {
     el.style.zIndex = '94';
     el.style.pointerEvents = 'none';
     main.parentElement.appendChild(el);
+    // 1.20: leaving a screen with a picture that zooms (the viewer): where it is, to shrink back into its tile
+    const shown = main.querySelector<HTMLImageElement>('img[data-zoom-target]');
+    const back = shown?.dataset['zoomKey']
+      ? {
+          key: shown.dataset['zoomKey'],
+          rect: shown.getBoundingClientRect(),
+          src: shown.currentSrc || shown.src,
+          radius: win.getComputedStyle(shown.closest('[data-zoom-frame]') ?? shown).borderRadius,
+        }
+      : null;
     this.ghost = {
       el,
       depth: this.depth(),
       path: pathOf(this.router.routerState.snapshot.root),
       anims: [],
+      zoom: takeZoom(),
+      back,
     };
   }
 
@@ -279,6 +304,13 @@ export class StackNavigation {
         root.dataset['nav'] = kind;
         main.style.position = 'relative';
         main.style.zIndex = '95';
+        // 1.20: a photo opened from the grid grows from its tile, and shrinks back into it on the way back
+        if ((kind === 'push' && this.zoomIn(g, main, ms)) || (kind === 'pop' && this.zoomOut(g, main, ms))) {
+          void Promise.all(g.anims.map((a) => a.finished))
+            .catch(() => undefined)
+            .then(() => this.ghost === g && this.drop());
+          return;
+        }
         if (kind === 'push') {
           g.anims = [
             g.el.animate(
@@ -338,12 +370,71 @@ export class StackNavigation {
     );
   }
 
+  /** 1.20: the photo just opened grows from the tile touched to its place in the viewer, the grid fading under it */
+  private zoomIn(g: NonNullable<typeof this.ghost>, main: HTMLElement, ms: number): boolean {
+    const z = g.zoom;
+    const win = this.doc.defaultView;
+    if (!z || !win) return false;
+    const target = Array.from(main.querySelectorAll<HTMLImageElement>('img[data-zoom-target]')).find((i) => i.dataset['zoomKey'] === z.key);
+    const to = target?.getBoundingClientRect();
+    if (!target || !to?.width || !to.height) return false;
+    const fly = flyer(this.doc, z);
+    const radius = win.getComputedStyle(target.closest('[data-zoom-frame]') ?? target).borderRadius;
+    const root = this.doc.documentElement;
+    target.style.visibility = 'hidden';
+    root.dataset['zoom'] = '1';
+    g.cleanup = () => {
+      target.style.removeProperty('visibility');
+      fly.remove();
+      delete root.dataset['zoom'];
+    };
+    const duration = Math.round(ms * 0.8);
+    const easing = 'cubic-bezier(0.32, 0.72, 0, 1)';
+    g.anims = [
+      fly.animate(flight(z.rect, to, z.radius, radius), { duration, easing, fill: 'forwards' }),
+      main.animate([{ opacity: 0 }, { opacity: 1 }], { duration: Math.round(duration * 0.7), easing: 'ease-out' }),
+      g.el.animate([{ opacity: 1 }, { opacity: 0 }], { duration, easing: 'ease', fill: 'forwards' }),
+    ];
+    return true;
+  }
+
+  /** 1.20: back to the grid: the photo shrinks into its tile (when the tile is in sight), the viewer fading away */
+  private zoomOut(g: NonNullable<typeof this.ghost>, main: HTMLElement, ms: number): boolean {
+    const b = g.back;
+    const win = this.doc.defaultView;
+    if (!b || !win) return false;
+    const tile = Array.from(main.querySelectorAll<HTMLElement>('[data-zoom-key]')).find((t) => t.dataset['zoomKey'] === b.key && !t.matches('img'));
+    const img = tile?.querySelector('img');
+    const to = img?.getBoundingClientRect();
+    if (!tile || !to?.width || to.bottom < 0 || to.top > win.innerHeight) return false;
+    const fly = flyer(this.doc, b);
+    const left = g.el.querySelector<HTMLElement>('img[data-zoom-target]');
+    if (left) left.style.visibility = 'hidden';
+    tile.style.visibility = 'hidden';
+    g.el.style.zIndex = '96';
+    g.cleanup = () => {
+      tile.style.removeProperty('visibility');
+      fly.remove();
+    };
+    const duration = Math.round(ms * 0.75);
+    g.anims = [
+      fly.animate(flight(b.rect, to, b.radius, win.getComputedStyle(tile).borderRadius), {
+        duration,
+        easing: 'cubic-bezier(0.32, 0.72, 0, 1)',
+        fill: 'forwards',
+      }),
+      g.el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: Math.round(duration * 0.6), easing: 'ease', fill: 'forwards' }),
+    ];
+    return true;
+  }
+
   /** the copy gone, the screen as it is (at once when another navigation starts) */
   private drop(): void {
     const g = this.ghost;
     if (!g) return;
     this.ghost = null;
     for (const a of g.anims) a.cancel();
+    g.cleanup?.();
     g.el.remove();
     const main = this.main();
     main?.style.removeProperty('position');

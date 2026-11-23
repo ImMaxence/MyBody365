@@ -13,7 +13,11 @@ function challenge(members: ChallengeMember[], ended = false): Challenge {
 
 describe('challenge texts', () => {
   let i18n: I18nService;
-  beforeEach(() => (i18n = TestBed.inject(I18nService)));
+  // 1.20: the app's texts are a file of their own, loaded as the app opens
+  beforeEach(async () => {
+    i18n = TestBed.inject(I18nService);
+    await i18n.loadApp('fr');
+  });
 
   it('says where I stand while it goes on, the ties sharing a rank', () => {
     expect(challengeDay(challenge([]), i18n)).toBe('Jour 3 sur 7');

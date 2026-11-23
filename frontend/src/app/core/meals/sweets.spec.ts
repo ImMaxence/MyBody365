@@ -1,6 +1,6 @@
 import { SWEETS, sweetGroup, sweetTotal } from './sweets';
-import { fr } from '../i18n/locales/fr';
-import { en } from '../i18n/locales/en';
+import { frApp as fr } from '../i18n/locales/fr-app';
+import { enApp as en } from '../i18n/locales/en-app';
 
 describe('pastries and chocolates (1.18)', () => {
   it('counts a croissant, two squares of dark chocolate and five chocolate almonds from their weight', () => {

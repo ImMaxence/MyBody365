@@ -391,7 +391,7 @@ test.describe('meals', () => {
     await sheet.getByRole('button', { name: '+' }).click();
     await sheet.getByRole('button', { name: 'Ajouter à ma liste' }).click();
     await expect(page.getByText('Ingrédients ajoutés à ta liste de courses')).toBeVisible();
-    await page.getByRole('button', { name: 'Voir' }).click();
+    await page.getByRole('button', { name: 'Voir', exact: true }).click();
     // by aisle, the vegetables first; ticked in the basket, a line typed by hand
     await expect(page.getByRole('heading', { name: 'Liste de courses', level: 1 })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Fruits et légumes/ })).toBeVisible();

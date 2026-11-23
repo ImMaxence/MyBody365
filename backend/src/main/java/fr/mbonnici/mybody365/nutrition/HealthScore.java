@@ -64,6 +64,24 @@ public final class HealthScore {
         return name != null && FRIED.matcher(SearchText.normalize(name)).find();
     }
 
+    /** 1.20: the Ciqual groups of oils and fats */
+    private static final Set<String> FATS = Set.of("huiles et graisses végétales", "beurres", "margarines", "autres matières grasses", "huiles de poissons");
+    private static final Pattern FAT_NAME = Pattern.compile("^(huile|huiles|beurre|margarine|graisse|saindoux|lard|ghee)\\b");
+
+    /** 1.20: an oil or a fat (its group, its product group, or its name) */
+    public static boolean fat(String category, String pnns, String name) {
+        return (category != null && FATS.contains(category.strip().toLowerCase(Locale.ROOT))) || "Fats".equals(pnns)
+                || FAT_NAME.matcher(SearchText.normalize(name)).find();
+    }
+
+    /**
+     * 1.20: a recipe made of foods is fried when a fried food is in it, or when its name says fried and fats make at least 5 %
+     * of its weight (frying soaks some up): oven-baked nems with a few grams of oil are not
+     */
+    public static boolean friedRecipe(String name, boolean friedIngredient, double fatGrams, double grams) {
+        return friedIngredient || (fried(name) && grams > 0 && fatGrams / grams >= 0.05);
+    }
+
     /** a food of the table: what its source tells of it */
     public static Input of(FoodStore.Food f) {
         return of(f.source(), f.name(), f.category(), f.per100(), f.info());

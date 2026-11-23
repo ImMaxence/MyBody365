@@ -156,7 +156,7 @@ public class RecipeService {
     private static final String SELECT = """
             select r.id, r.owner_id, u.display_name, r.name, r.type, r.types, r.servings, r.notes, r.shared, r.visibility, r.hidden, r.image_format, r.image_bytes,
               r.image_version, r.kcal, r.protein_g, r.carbs_g, r.sugars_g, r.fat_g, r.sat_fat_g, r.fiber_g, r.salt_g, r.serving_g,
-              r.nutriscore, r.score, r.created_at, r.fruit_veg, r.alcohol, r.micros::text as micros, r.plate_g
+              r.nutriscore, r.score, r.created_at, r.fruit_veg, r.alcohol, r.micros::text as micros, r.plate_g, r.fried
             from recipe r join app_user u on u.id = r.owner_id""";
 
     private static RecipeRow map(ResultSet rs, int i) throws SQLException {
@@ -174,20 +174,22 @@ public class RecipeService {
                 rs.getInt("image_version"), Nutrients.from(rs), noServing ? null : serving, rs.getString("nutriscore"), rs.getInt("score"),
                 rs.getTimestamp("created_at").toInstant(), health(rs.getString("name"), types(rs.getString("type"), rs.getString("types")),
                         Nutrients.from(rs), noServing ? null : serving, rs.getObject("fruit_veg") == null ? null : rs.getDouble("fruit_veg"),
-                        rs.getBoolean("alcohol")), fr.mbonnici.mybody365.nutrition.Micros.parse(rs.getString("micros")), noPlate ? null : plate);
+                        rs.getBoolean("alcohol"), (Boolean) rs.getObject("fried")), fr.mbonnici.mybody365.nutrition.Micros.parse(rs.getString("micros")), noPlate ? null : plate);
     }
 
     /**
      * 1.13: a dish judged per 100 g (a drink per 100 ml) like a food: its nutrients, its share of fruit, vegetables, legumes
      * and nuts, a fried name; cooked at home, so neither raw nor industrial
      */
-    static HealthScore.Result health(String name, List<Type> types, Nutrients perServing, Double servingG, Double fruitVeg, boolean alcohol) {
+    static HealthScore.Result health(String name, List<Type> types, Nutrients perServing, Double servingG, Double fruitVeg, boolean alcohol,
+            Boolean fried) {
         if (servingG == null || servingG <= 0 || alcohol) {
             return null;
         }
         boolean drink = types.size() == 1 && types.getFirst() == Type.DRINK;
+        // 1.20: what its ingredients say (oven-baked nems are not fried), its name only for a recipe noted by hand
         return HealthScore.score(new HealthScore.Input(perServing.times(100 / servingG), drink, false, false, null, null, false, fruitVeg,
-                HealthScore.fried(name)));
+                fried != null ? fried : HealthScore.fried(name)));
     }
 
     public RecipeRow row(UUID id) {
@@ -497,7 +499,7 @@ public class RecipeService {
         jdbc.update("""
                 update recipe set name = ?, type = ?, types = ?, servings = ?, notes = ?, shared = ?, visibility = ?, kcal = ?, protein_g = ?, carbs_g = ?,
                   sugars_g = null, fat_g = ?, sat_fat_g = null, fiber_g = null, salt_g = null, serving_g = null, plate_g = null, nutriscore = null,
-                  fruit_veg = null, alcohol = false, micros = null,
+                  fruit_veg = null, alcohol = false, micros = null, free_sugars_g = null, fried = null,
                   manual_nutrition = true, ingredient_lines = ?, source_url = ?, updated_at = now(),
                   shared_at = case when ? and not ? then now() else shared_at end
                 where id = ?""",
@@ -532,6 +534,10 @@ public class RecipeService {
         double fruitVeg = 0;
         double plants = 0;
         boolean alcohol = false;
+        double free = 0;
+        boolean freeKnown = false;
+        boolean friedIngredient = false;
+        double fatGrams = 0;
         fr.mbonnici.mybody365.nutrition.Micros.Mix micros = new fr.mbonnici.mybody365.nutrition.Micros.Mix();
         List<PlateWeight.Line> plate = new ArrayList<>();
         int position = 0;
@@ -554,6 +560,15 @@ public class RecipeService {
                 plants += ing.grams();
             }
             alcohol |= HealthScore.of(f).alcohol();
+            friedIngredient |= HealthScore.fried(f.name());
+            if (HealthScore.fat(f.category(), f.info() == null ? null : f.info().pnns(), f.name())) {
+                fatGrams += ing.grams();
+            }
+            Double fs = fr.mbonnici.mybody365.nutrition.FreeSugars.of(f, ing.grams());
+            if (fs != null) {
+                free += fs;
+                freeKnown = true;
+            }
             micros.add(f.micros(), ing.grams(), n.kcal() * ing.grams() / 100);
         }
         Nutrients perServing = total.times(1.0 / in.servings());
@@ -571,10 +586,11 @@ public class RecipeService {
                 in.resolved() == Visibility.PUBLIC, wasShared, id);
         jdbc.update("""
                 update recipe set manual_nutrition = false, ingredient_lines = null, source_url = ?, fruit_veg = ?, alcohol = ?, micros = ?::jsonb,
-                  plate_g = ?
+                  plate_g = ?, free_sugars_g = ?, fried = ?
                 where id = ?""", source(in.sourceUrl()), Math.round(1000 * plants / grams) / 10.0, alcohol,
                 fr.mbonnici.mybody365.nutrition.Micros.json(micros.known(1.0 / in.servings())),
-                PlateWeight.perServing(in.name().strip(), plate, in.servings()), id);
+                PlateWeight.perServing(in.name().strip(), plate, in.servings()), freeKnown ? Math.round(free / in.servings() * 100) / 100.0 : null,
+                HealthScore.friedRecipe(in.name(), friedIngredient, fatGrams, grams), id);
     }
 
     /**
@@ -613,9 +629,9 @@ public class RecipeService {
         UUID copy = UUID.randomUUID();
         jdbc.update("""
                 insert into recipe (id, owner_id, name, type, types, servings, notes, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g,
-                  salt_g, serving_g, nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol, micros, plate_g)
+                  salt_g, serving_g, nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol, micros, plate_g, free_sugars_g, fried)
                 select ?, ?, name, type, types, servings, notes, kcal, protein_g, carbs_g, sugars_g, fat_g, sat_fat_g, fiber_g, salt_g, serving_g,
-                  nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol, micros, plate_g from recipe where id = ?""", copy, userId, id);
+                  nutriscore, manual_nutrition, ingredient_lines, source_url, fruit_veg, alcohol, micros, plate_g, free_sugars_g, fried from recipe where id = ?""", copy, userId, id);
         jdbc.update("""
                 insert into recipe_ingredient (id, recipe_id, position, food_id, name, grams, kcal, protein_g, carbs_g, sugars_g, fat_g,
                   sat_fat_g, fiber_g, salt_g)

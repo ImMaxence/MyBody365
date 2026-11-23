@@ -1,4 +1,4 @@
-import type { frMeals } from './fr-meals';
+import type { frMeals, frPlan } from './fr-meals';
 import type { Widen } from './widen';
 
 /** Meals (0.4): the day, adding a food, the barcode, own foods, recipes and the community. */
@@ -64,6 +64,8 @@ export const enMeals: Widen<typeof frMeals> = {
     deleted: 'Removed from your meals',
     duplicate: 'Duplicate',
     duplicated: '“{name}” added again',
+    undo: 'Undo',
+    restored: 'Back in your meals',
     seeRecipe: 'See the recipe',
     dayOngoing: 'Your day so far: {score} out of 10. This food is {share} % of your calories today',
     dayDone: 'Your day: {score} out of 10. This food is {share} % of your calories that day',
@@ -367,8 +369,8 @@ export const enMeals: Widen<typeof frMeals> = {
     title: 'Sources of the guides',
     who: 'WHO, “Healthy diet”: less than 5 g of salt a day, free sugars and saturated fat under 10 % of the calories, about 50 g of free sugars for 2,000 kcal',
     whoSalt: 'WHO, “Sodium reduction”: less than 5 g of salt a day, just under a teaspoon',
-    sugarsNote: 'The app counts all the sugars of the foods, fruit and dairy included: against the WHO’s 50 g of free sugars, the guide is a cautious one',
-    ansesFibre: 'Anses (France), guidelines for adults: about 30 g of fibre a day',
+    sugarsNote: 'Added sugars: the WHO’s free sugars (added, honey, syrups, fruit juices), estimated from each food, since the tables give only the total. Those of whole fruit, vegetables and plain milk do not count, those of savoury dishes count half, and when in doubt they count',
+    ansesFibre: 'Anses (France), “Updating the PNNS guidelines” (2016, in French): about 30 g of fibre a day for adults',
     protein: 'Protein: 1.6 to 2 g per kilo of your goal weight depending on your split, the guide MyBody365 works out to keep your muscles while you lose fat',
     read: 'Read on {host}',
     newTab: 'opens in a new tab',
@@ -377,7 +379,7 @@ export const enMeals: Widen<typeof frMeals> = {
     title: 'This week’s trends',
     more: 'See the statistics',
     mostly: 'Mostly: {from}',
-    sugars: 'A lot of sugars: {g} g a day on average, the WHO advises under {guide} g of free sugars',
+    sugars: 'A lot of added sugars: {g} g a day on average (estimated), the WHO advises under {guide} g',
     salt: 'A lot of salt: {g} g a day on average, the WHO advises under {guide} g',
     satFat: 'A lot of saturated fat: {g} g a day, the WHO advises under {guide} g for you',
     fiber: 'Little fibre: {g} g a day, aim for {guide} g with vegetables, fruit, pulses and wholegrains',
@@ -404,6 +406,7 @@ export const enMeals: Widen<typeof frMeals> = {
   },
   stats: {
     title: 'Stats',
+    short: 'Stats',
     period: 'Period',
     periods: { d7: '7 days', d30: '30 days', d90: '3 months' },
     avg: 'Daily average',
@@ -455,7 +458,7 @@ export const enMeals: Widen<typeof frMeals> = {
       protein: 'Protein: {g} g a day on average for a guide of {guide} g. Skyr, eggs, fish or pulses fill you up and protect your muscles',
       proteinPct: 'Protein makes up only {pct}% of your calories: skyr, eggs, fish or pulses fill you up and protect your muscles',
       fiber: 'Fibre: {g} g a day on average, aim for about 30 g with vegetables, fruit and whole grains',
-      sugars: 'Sugars: {g} g a day on average, try to stay under 50 g',
+      sugars: 'Added sugars: {g} g a day on average (estimated), try to stay under 50 g',
       salt: 'Salt: {g} g a day on average, the WHO advises under 5 g',
       grades: '{pct}% of your calories come from foods rated under 4.5 out of 10: swap one for a better-rated food',
       weekend: 'At the weekend, you eat {kcal} kcal a day more than on weekdays',
@@ -946,9 +949,9 @@ export const enMeals: Widen<typeof frMeals> = {
         soFar: 'Protein {p}%, carbs {c}%, fat {f}% so far (guide {tp}, {tc}, {tf})',
       },
       quality: { title: 'Food quality', detail: 'Average health score of what you ate: {grade} out of 10' },
-      nutrients: { title: 'Sugar, salt, fat and fibre', fiber: 'fibre {v} g', sugars: 'sugars {v} g', salt: 'salt {v} g', satFat: 'saturated fat {v} g' },
+      nutrients: { title: 'Sugar, salt, fat and fibre', fiber: 'fibre {v} g', sugars: 'added sugars {v} g', salt: 'salt {v} g', satFat: 'saturated fat {v} g' },
     },
-    checks: { sugars: 'Sugars', salt: 'Salt', satFat: 'Saturated fat', fiber: 'Fibre', max: '{v} g max', min: '{v} g aimed' },
+    checks: { sugars: 'Added sugars', salt: 'Salt', satFat: 'Saturated fat', fiber: 'Fibre', max: '{v} g max', min: '{v} g aimed' },
   },
   /** 1.13: the food groups of Open Food Facts (PNNS), to tell products apart */
   kinds: {
@@ -1138,6 +1141,50 @@ export const enMeals: Widen<typeof frMeals> = {
 };
 
 /** 1.11: the shopping list, by supermarket aisle */
+/** 1.20: « Mon planning », the meals planned for the days to come (features/meals/plan.page.ts) */
+export const enPlan: Widen<typeof frPlan> = {
+  title: 'My meal plan',
+  short: 'Plan',
+  lead: 'Plan your meals to know what to cook and what to buy: on the day, one tap notes them in your meals',
+  weeks: 'Weeks',
+  thisWeek: 'This week',
+  nextWeek: 'Next week',
+  dayKcal: '≈ {kcal} kcal planned',
+  eaten: 'Eaten',
+  remove: 'Remove “{name}” from the plan',
+  add: 'Plan',
+  toShopping: 'Add to the shopping list',
+  shoppingHint: 'The recipes and usual meals planned this week, for their servings',
+  addLabel: 'Plan a meal',
+  addTitle: 'Plan for {day}',
+  slot: 'Meal',
+  what: 'What',
+  tabs: { recipe: 'A recipe', template: 'A usual meal', note: 'A note' },
+  change: 'Change',
+  planIt: 'Plan it',
+  searchRecipes: 'Search my recipes and favourites',
+  perServing: '{kcal} kcal a serving',
+  noRecipe: 'No recipe here: search all the recipes',
+  allRecipes: 'All the recipes',
+  noTemplate: 'No usual meal yet: keep a meal of your day with “Keep this meal”',
+  noteLabel: 'Your note',
+  notePlaceholder: 'Restaurant with Léa, family dinner…',
+  today: 'Today',
+  tomorrow: 'Tomorrow',
+  yesterday: 'Yesterday',
+  kinds: { NOTE: 'A note', TEMPLATE: 'Usual meal' },
+  planned: '“{name}” planned for {day}',
+  eatenToast: '“{name}” noted in your meals',
+  removed: '“{name}” removed from the plan',
+  shoppingDone: 'The planned meals are on your shopping list',
+  whenTitle: 'Plan this recipe',
+  whichDay: 'Which day',
+  see: 'See',
+  planShort: 'Plan',
+  planFor: 'Plan for {day} · {slot}',
+  plannedLabel: 'Planned',
+};
+
 export const enShopping = {
   title: 'Shopping list',
   short: 'Shopping',

@@ -407,8 +407,8 @@ const PREVIEW = 5;
       text-decoration: none;
       transition: transform var(--dur-1) var(--ease-out);
     }
-    .src:active,
-    .quick:active {
+    .src.is-pressed,
+    .quick.is-pressed {
       transform: scale(0.98);
     }
     .src-ico {

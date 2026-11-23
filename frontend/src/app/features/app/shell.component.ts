@@ -393,7 +393,7 @@ const SETTLE = `transform ${SETTLE_MS}ms ${EASE}, filter ${SETTLE_MS}ms ${EASE}`
         transform: scale(0);
       }
     }
-    a:active .ico {
+    a.is-pressed .ico {
       transform: scale(0.86);
     }
     a.active {

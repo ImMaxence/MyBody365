@@ -1,3 +1,4 @@
+import { markZoom } from '../../core/nav/zoom';
 import { WaitingNoteComponent } from '../../shared/waiting-note.component';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
@@ -96,7 +97,9 @@ interface Month {
               <h2 class="section-title"><span class="month-name">{{ m.label }}</span> <span class="faint">· {{ 'photos.count' | t: { n: m.photos.length } }}</span></h2>
               <div class="grid">
                 @for (p of m.photos; track p.id; let i = $index) {
+                  <!-- 1.20: the photo grows from its tile into the viewer (core/nav/zoom.ts) -->
                   <a class="tile" [class.is-arrived]="store.arrived().has(p.id)" [routerLink]="['/app/photos', p.id]" [style.--i]="i"
+                    [attr.data-zoom-key]="p.id" (pointerdown)="markZoom($event.currentTarget)"
                     [attr.aria-label]="'photos.open' | t: { date: i18n.date(p.day) }">
                     <img [src]="p.thumbUrl" alt="" loading="lazy" decoding="async" />
                     <span class="tile-day num">{{ dayOf(p.day) }}</span>
@@ -181,7 +184,7 @@ interface Month {
       filter: blur(8px) saturate(0.6);
       clip-path: inset(0 round 14px);
     }
-    .blurred .tile:active img {
+    .blurred .tile.is-pressed img {
       transform: scale(1.2);
     }
     .blur-note {
@@ -199,7 +202,7 @@ interface Month {
       text-decoration: none;
       transition: transform var(--dur-2) var(--ease-out);
     }
-    .today:active {
+    .today.is-pressed {
       transform: scale(0.98);
     }
     /* white on the deep flame (contrast AA everywhere), a warm glow in the corner */
@@ -282,7 +285,7 @@ interface Month {
       object-fit: cover;
       transition: transform var(--dur-3) var(--ease-out);
     }
-    .tile:active img {
+    .tile.is-pressed img {
       transform: scale(1.05);
     }
     .tile-day {
@@ -346,6 +349,8 @@ interface Month {
   `,
 })
 export class PhotosPage {
+  /** 1.20: the tile touched, the photo grows from it into the viewer */
+  protected readonly markZoom = markZoom;
   protected readonly store = inject(PhotosStore);
   protected readonly i18n = inject(I18nService);
   private readonly router = inject(Router);

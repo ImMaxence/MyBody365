@@ -35,7 +35,7 @@ import { IconComponent } from '../../shared/icon.component';
               <ul class="friends" role="list">
                 @for (f of list; track f.id) {
                   <li>
-                    <app-avatar-img [src]="f.avatarUrl" [name]="f.name" [size]="38" />
+                    <span class="avatar" aria-hidden="true"><app-avatar-img [src]="f.avatarUrl" [name]="f.name" [size]="38" /></span>
                     <span class="who">
                       <b class="small">{{ f.name }}</b>
                       <span class="tiny muted">&#64;{{ f.username }}</span>
@@ -88,6 +88,28 @@ import { IconComponent } from '../../shared/icon.component';
     }
     .friends li + li {
       border-top: 1px solid var(--line);
+    }
+    /* 1.20: round, as everywhere in the app */
+    .avatar {
+      display: grid;
+      flex: none;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      overflow: hidden;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      font-weight: 750;
+    }
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    /* the list scrolls: a glow under its button would be cut by its edge */
+    .friends .btn {
+      box-shadow: none;
     }
     .who {
       display: grid;

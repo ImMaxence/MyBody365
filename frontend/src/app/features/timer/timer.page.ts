@@ -253,7 +253,7 @@ function same(a: Settings, b: Settings): boolean {
       background: var(--surface-3);
       transition: transform var(--dur-1) var(--ease-out);
     }
-    .step:active {
+    .step.is-pressed {
       transform: scale(0.9);
     }
     .step:disabled {
@@ -279,7 +279,7 @@ function same(a: Settings, b: Settings): boolean {
       cursor: pointer;
       animation: bump 220ms var(--ease-out);
     }
-    .val:active {
+    .val.is-pressed {
       background: var(--surface-2);
     }
     .disclaimer {
@@ -459,7 +459,7 @@ function same(a: Settings, b: Settings): boolean {
       color: #fff;
       box-shadow: 0 16px 34px -14px var(--phase);
     }
-    .ctl:active {
+    .ctl.is-pressed {
       transform: scale(0.9);
     }
     @keyframes rise {

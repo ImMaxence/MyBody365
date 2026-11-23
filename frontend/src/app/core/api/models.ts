@@ -352,6 +352,8 @@ export interface FoodInput {
 export type Slot = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK';
 
 export interface MealEntry {
+  /** 1.20: its free sugars, estimated from what it is (null: not known) */
+  freeSugarsG?: number | null;
   id: string;
   day: string;
   slot: Slot;
@@ -385,6 +387,8 @@ export interface MealDay {
   /** 1.14: the vitamins and minerals of the day, and the share of its calories whose are known (0 to 1) */
   micros?: Partial<Record<string, number>>;
   microsCoverage?: number;
+  /** 1.20: the free sugars of the day (added, honey, syrups, juices), estimated from what each food is */
+  freeSugarsG?: number | null;
 }
 
 /** 1.14: the vitamins and minerals of the last days, and those that run low */
@@ -431,6 +435,8 @@ export interface MealStats {
   grades: { grade: string | null; kcal: number }[];
   /** the foods that brought the most of it over the period (grams) */
   sugarSources?: NutrientSource[];
+  /** 1.20: the free sugars of the period (the sugars sources are theirs) */
+  freeSugarsG?: number | null;
   saltSources?: NutrientSource[];
   satFatSources?: NutrientSource[];
 }

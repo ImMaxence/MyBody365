@@ -276,7 +276,7 @@ function plain(s: string): string {
       text-decoration: none;
       transition: transform var(--dur-2) var(--ease-out);
     }
-    .with:active {
+    .with.is-pressed {
       transform: scale(0.98);
     }
     .with-ico {
@@ -463,7 +463,11 @@ export class RecipesPage {
   /** opened from « Ajouter au déjeuner »: the recipes are added to that meal */
   readonly slotParam = input<string | undefined>(undefined, { alias: 'slot' });
   readonly dayParam = input<string | undefined>(undefined, { alias: 'day' });
-  protected readonly mealParams = computed(() => (this.slotParam() ? { slot: this.slotParam(), day: this.dayParam() ?? null } : {}));
+  /** 1.20: opened from « Mon planning »: the recipe chosen is planned for that day (YYYY-MM-DD) and meal */
+  readonly planParam = input<string | undefined>(undefined, { alias: 'plan' });
+  protected readonly mealParams = computed(() =>
+    this.planParam() ? { plan: this.planParam(), slot: this.slotParam() ?? null } : this.slotParam() ? { slot: this.slotParam(), day: this.dayParam() ?? null } : {},
+  );
   private readonly api = inject(MealsApi);
   private readonly favorites = inject(FavoritesStore);
   protected readonly favs = computed(() => this.favorites.recipes() ?? []);

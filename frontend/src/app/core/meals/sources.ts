@@ -1,9 +1,10 @@
 /**
  * 1.19: where the app's nutrition guides come from, shown under the trends of the week, « Bon à savoir » and the
  * score of the day. The two WHO pages were read on 2026-11-23 and state these figures: salt under 5 g a day, free
- * sugars under 10 % of the energy (about 50 g for 2 000 kcal), saturated fat under 10 % of the energy. The Anses
- * figure (30 g of fibre a day) is cited without a link: its site refuses automated reading, the page could not be
- * checked. The protein guide is the app's own (core/meals/macro-plan.ts).
+ * sugars under 10 % of the energy (about 50 g for 2 000 kcal), saturated fat under 10 % of the energy. The Anses figure
+ * (30 g of fibre a day, « un AS à 30 g de fibres totales alimentaires par jour a été retenu ») is its 2016 report on the
+ * PNNS guidelines (1.20: found through a search engine, its site refusing automated reading). The protein guide is the
+ * app's own (core/meals/macro-plan.ts).
  */
 export type SourceKey = 'who' | 'whoSalt' | 'sugarsNote' | 'ansesFibre' | 'protein';
 
@@ -26,7 +27,11 @@ export const SOURCES: Record<SourceKey, Source> = {
     host: 'who.int',
   },
   sugarsNote: { key: 'sugarsNote' },
-  ansesFibre: { key: 'ansesFibre' },
+  ansesFibre: {
+    key: 'ansesFibre',
+    url: { fr: 'https://www.anses.fr/fr/system/files/NUT2012SA0103Ra-1.pdf', en: 'https://www.anses.fr/fr/system/files/NUT2012SA0103Ra-1.pdf' },
+    host: 'anses.fr',
+  },
   protein: { key: 'protein' },
 };
 

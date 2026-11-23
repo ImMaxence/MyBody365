@@ -48,7 +48,7 @@ const TITLES: [RegExp, string][] = [
       letter-spacing: -0.01em;
       transition: opacity var(--dur-1);
     }
-    .back-link:active {
+    .back-link.is-pressed {
       opacity: 0.45;
     }
     .txt {

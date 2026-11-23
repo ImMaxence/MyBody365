@@ -1,9 +1,4 @@
-import { frAdminFoods, frAdminModeration, frAdminStats } from './fr-admin';
-import { frBackup } from './fr-backup';
-import { frEngage } from './fr-engage';
-import { frFriends } from './fr-friends';
-import { frMeals, frShopping } from './fr-meals';
-import { frPhotos } from './fr-photos';
+import type { frApp } from './fr-app';
 import type { Widen } from './widen';
 
 /** French: the reference dictionary. en.ts must have exactly the same keys (checked by the compiler). */
@@ -44,6 +39,7 @@ export const fr = {
   },
 
   errors: {
+    plan_full: 'Ton planning est plein : retire des repas prévus',
     recipe_private: 'Partage d’abord la recette avec tes amis pour la leur envoyer',
     recipe_not_visible: 'Ton ami ne peut pas voir cette recette : elle est partagée avec les amis de son auteur seulement',
     too_many_sends: 'Beaucoup d’envois aujourd’hui : réessaie demain',
@@ -793,15 +789,6 @@ export const fr = {
       warning: 'Le pilulier suit ton ordonnance, il ne donne aucun conseil. Une notification peut arriver en retard sur iPhone : pour un traitement vital, garde aussi une alarme. Le nom de tes médicaments n’apparaît jamais sur l’écran verrouillé',
     },
   },
-  photos: frPhotos,
-  meals: frMeals,
-  shopping: frShopping,
-  engage: frEngage,
-  friends: frFriends,
-  backup: frBackup,
-  adminFoods: frAdminFoods,
-  adminStats: frAdminStats,
-  adminModeration: frAdminModeration,
 
   soon: {
     title: 'Bientôt ici',
@@ -1488,4 +1475,8 @@ export const fr = {
   },
 };
 
-export type Dictionary = Widen<typeof fr>;
+/** 1.20: the texts of the site and of what every screen shares (in the first load) */
+export type CoreDictionary = Widen<typeof fr>;
+/** 1.20: the texts of the app's own screens, a file of their own (fr-app.ts) */
+export type AppDictionary = Widen<typeof frApp>;
+export type Dictionary = CoreDictionary & AppDictionary;

@@ -55,7 +55,7 @@ describe('day score', () => {
     const lunch = dayScore(day({ kcal: 1300, proteinG: 110, carbsG: 120, fatG: 40, sugarsG: 12, saltG: 7, satFatG: 9, fiberG: 6 }, [entry(1300, 'b')], today), today)!;
     // the calories and the split wait, so does the fibre; the salt is over its guide: that is the tip
     expect(lunch.waiting.map((w) => w.key)).toEqual(['kcal', 'macros']);
-    expect(lunch.checks.find((c) => c.key === 'fiber')).toMatchObject({ waiting: true, min: true, limit: 25 });
+    expect(lunch.checks.find((c) => c.key === 'fiber')).toMatchObject({ waiting: true, min: true, limit: 30 });
     expect(lunch.checks.find((c) => c.key === 'salt')).toMatchObject({ ok: false, limit: 5 });
     expect(lunch.tip).toBe('salt');
     // a perfect day, over: nothing to change

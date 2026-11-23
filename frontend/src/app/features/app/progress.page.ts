@@ -264,7 +264,7 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
     a.stat.bmi {
       text-decoration: none;
     }
-    .stat.bmi:active {
+    .stat.bmi.is-pressed {
       transform: scale(0.97);
     }
     .stat.bmi .label > svg:last-child {

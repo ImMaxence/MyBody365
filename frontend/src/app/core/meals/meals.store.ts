@@ -357,10 +357,14 @@ export class MealsStore {
     const deletes = new Map(all.filter((p) => p.kind === 'meal-delete' && p.target).map((p) => [p.target!, p]));
     if (!waiting.length && !edits.size && !deletes.size) return d;
     let totals = d.totals;
+    // 1.20: the free sugars of the day follow too (a line waiting counts all its sugars, as the server would without its estimate)
+    let free = d.freeSugarsG;
+    const freeOf = (e: MealEntry) => e.freeSugarsG ?? e.nutrients.sugarsG ?? 0;
     const entries = d.entries.map((e): MealEntry => {
       const del = deletes.get(e.id);
       if (del) {
         totals = plus(totals, scaled(e.nutrients, -1));
+        if (free != null) free -= freeOf(e);
         return { ...e, pending: 'delete', waitId: del.id };
       }
       const edit = edits.get(e.id);
@@ -369,6 +373,7 @@ export class MealsStore {
       const f = patch.grams != null && e.grams ? patch.grams / e.grams : patch.servings != null && e.servings ? patch.servings / e.servings : 1;
       const nutrients = scaled(e.nutrients, f);
       totals = plus(plus(totals, scaled(e.nutrients, -1)), nutrients);
+      if (free != null) free += freeOf(e) * (f - 1);
       return {
         ...e,
         slot: patch.slot ?? e.slot,
@@ -394,8 +399,9 @@ export class MealsStore {
         waitId: p.id,
       });
       totals = plus(totals, v.nutrients as Nutrients);
+      if (free != null) free += (v.nutrients as Nutrients).sugarsG ?? 0;
     }
-    return { ...d, entries, totals };
+    return { ...d, entries, totals, freeSugarsG: free == null ? free : Math.max(0, Math.round(free * 10) / 10) };
   }
 
   private apply(server: MealDay, fetched = true): void {

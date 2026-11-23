@@ -752,7 +752,7 @@ const YEAR = [82.4, 81.1, 79.9, 78.6, 77.8, 76.9, 75.8, 75.1, 74.2, 73.4, 72.6, 
       pointer-events: none;
       transition: transform var(--dur-1) var(--ease-out);
     }
-    .frames:active .handle {
+    .frames.is-pressed .handle {
       transform: translate(-50%, -50%) scale(1.12);
     }
     .frames input {

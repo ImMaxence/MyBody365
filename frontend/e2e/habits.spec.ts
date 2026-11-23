@@ -148,11 +148,15 @@ test.describe('1.19', () => {
     await expect(page.getByText('Retiré de tes repas')).toBeVisible();
     await expect(rows).toHaveCount(1);
     await expectAccessible(page);
+    // 1.20: a slip of the finger is undone from the toast
+    await page.getByRole('button', { name: 'Annuler' }).click();
+    await expect(page.getByText('Remis dans tes repas')).toBeVisible();
+    await expect(rows).toHaveCount(2);
 
     // a tap opens the line's sheet, where both are too (for the keyboard and the screen readers)
     await rows.first().locator('.entry').click();
     await page.getByRole('button', { name: 'Dupliquer' }).click();
-    await expect(rows).toHaveCount(2);
+    await expect(rows).toHaveCount(3);
   });
 });
 

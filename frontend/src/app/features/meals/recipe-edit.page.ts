@@ -11,7 +11,7 @@ import { SessionStore } from '../../core/auth/session.store';
 import { MealsApi } from '../../core/meals/meals-api';
 import { scaled } from '../../core/meals/meals.store';
 import { isFruitVeg } from '../../core/meals/nutriscore';
-import { recipeHealth } from '../../core/meals/health';
+import { isFat, recipeHealth } from '../../core/meals/health';
 import { HealthScoreComponent } from '../../shared/health-score.component';
 import { StackNavigation } from '../../core/nav/stack-navigation';
 import { prepareImage } from '../../core/photos/image-tools';
@@ -52,6 +52,8 @@ interface Line {
   per100: Nutrients;
   /** a fruit, a vegetable or a legume: its share lifts the Nutri-Score */
   fruitVeg?: boolean;
+  /** 1.20: an oil or a fat (a dish with a fried name is fried only with enough of it) */
+  fat?: boolean;
   /** the line as the imported recipe wrote it, to check the food found for it */
   from?: string;
 }
@@ -424,7 +426,7 @@ interface Line {
       color: inherit;
       transition: transform var(--dur-1) var(--ease-out);
     }
-    .import-cta:active {
+    .import-cta.is-pressed {
       transform: scale(0.98);
     }
     .import-ico {
@@ -798,6 +800,7 @@ export class RecipeEditPage {
             grams: m.grams!,
             per100: m.food!.per100,
             fruitVeg: isFruitVeg(m.food!.category),
+            fat: isFat(m.food!.name, m.food!.category),
             from: m.line,
           })),
         );
@@ -862,10 +865,10 @@ export class RecipeEditPage {
     const at = this.replacing;
     if (at !== null && this.lines()[at]) {
       // the same line, another food: the weight already checked stays
-      this.lines.update((l) => l.map((x, j) => (j === at ? { ...x, foodId: f.id, name, per100: f.per100, fruitVeg: isFruitVeg(f.category) } : x)));
+      this.lines.update((l) => l.map((x, j) => (j === at ? { ...x, foodId: f.id, name, per100: f.per100, fruitVeg: isFruitVeg(f.category), fat: isFat(f.name, f.category) } : x)));
     } else {
       const grams = (line && gramsOf(line)) || f.servingG || 100;
-      this.lines.update((l) => [...l, { foodId: f.id, name, grams, per100: f.per100, fruitVeg: isFruitVeg(f.category), from: line ?? undefined }]);
+      this.lines.update((l) => [...l, { foodId: f.id, name, grams, per100: f.per100, fruitVeg: isFruitVeg(f.category), fat: isFat(f.name, f.category), from: line ?? undefined }]);
       if (line) this.skip(line);
     }
     this.replacing = null;

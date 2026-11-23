@@ -280,7 +280,7 @@ const OTHER_STEP = 10;
       .step-btn:disabled {
         opacity: 0.4;
       }
-      .step-btn:active {
+      .step-btn.is-pressed {
         transform: scale(0.94);
       }
       .label {

@@ -928,7 +928,7 @@ export class MealStatsPage {
     const perDay = (v?: number) => (v == null ? null : v / n);
     const fiber = perDay(s.totals.fiberG);
     if (fiber != null && fiber > 0 && fiber < 22) out.push({ icon: 'leaf', tone: 'info', text: t('fiber', { g: this.i18n.number(fiber) }) });
-    const sugars = perDay(s.totals.sugarsG);
+    const sugars = perDay(s.freeSugarsG ?? s.totals.sugarsG);
     // too much sugar or salt: and what brought the most of it
     const from = (list?: { name: string }[]) =>
       list?.length ? '. ' + this.i18n.t('meals.trends.mostly', { from: list.slice(0, 2).map((x) => x.name).join(', ') }) : '';

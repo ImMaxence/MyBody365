@@ -27,7 +27,8 @@ export function trends(s: MealStats | null, plan: MacroPlan | null): Trend[] {
   if (!s || n < MIN_DAYS) return [];
   const per = (v?: number) => (v == null ? null : v / n);
   const out: Trend[] = [];
-  const sugars = per(s.totals.sugarsG);
+  // 1.20: the free sugars (estimated from what each food is), the total sugars for a server that does not say them
+  const sugars = per(s.freeSugarsG ?? s.totals.sugarsG);
   if (sugars != null && sugars > 50) out.push({ key: 'sugars', tone: 'warn', value: Math.round(sugars), guide: 50, sources: s.sugarSources ?? [] });
   const salt = per(s.totals.saltG);
   if (salt != null && salt > SALT_MAX) out.push({ key: 'salt', tone: 'warn', value: Math.round(salt * 10) / 10, guide: SALT_MAX, sources: s.saltSources ?? [] });

@@ -1,12 +1,15 @@
 import { DOCUMENT, Injectable, InjectionToken, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { fr, type Dictionary } from './locales/fr';
+import { fr, type AppDictionary, type CoreDictionary, type Dictionary } from './locales/fr';
 
 /**
  * The English texts, given at once where the size of the bundle does not matter (the server, which
  * prerenders /en). In the browser they are a file of their own, loaded the first time English is needed.
  */
-export const ENGLISH = new InjectionToken<Dictionary>('english texts');
+export const ENGLISH = new InjectionToken<CoreDictionary>('english texts');
+/** 1.20: the texts of the app's own screens, given at once on the server (a file of their own in the browser) */
+export const FRENCH_APP = new InjectionToken<AppDictionary>('french texts of the app');
+export const ENGLISH_APP = new InjectionToken<AppDictionary>('english texts of the app');
 
 export type Lang = 'fr' | 'en';
 type Params = Record<string, string | number>;
@@ -20,10 +23,21 @@ export class I18nService {
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly lang = signal<Lang>('fr');
-  private readonly english = signal<Dictionary | null>(inject(ENGLISH, { optional: true }));
+  private readonly english = signal<CoreDictionary | null>(inject(ENGLISH, { optional: true }));
   private loading: Promise<void> | null = null;
-  /** English once its file is there (French for the instant it takes) */
-  readonly dict = computed<Dictionary>(() => (this.lang() === 'en' ? (this.english() ?? fr) : fr));
+  /** 1.20: the texts of the app's own screens, in each language, once their file is there */
+  private readonly frenchApp = signal<AppDictionary | null>(inject(FRENCH_APP, { optional: true }));
+  private readonly englishApp = signal<AppDictionary | null>(inject(ENGLISH_APP, { optional: true }));
+  private appLoading: Partial<Record<Lang, Promise<void>>> = {};
+  /** the app's screens were opened: a change of language brings their texts in the new one too */
+  private appWanted = false;
+  /** English once its file is there (French for the instant it takes); the app's texts once loaded */
+  readonly dict = computed<Dictionary>(() => {
+    const en = this.lang() === 'en';
+    const core = en ? (this.english() ?? fr) : fr;
+    const app = en ? (this.englishApp() ?? this.frenchApp()) : this.frenchApp();
+    return (app ? { ...core, ...app } : core) as Dictionary;
+  });
   readonly locale = computed(() => (this.lang() === 'fr' ? 'fr-FR' : 'en-GB'));
   readonly other = computed<Lang>(() => (this.lang() === 'fr' ? 'en' : 'fr'));
 
@@ -52,8 +66,25 @@ export class I18nService {
     return first ? (first.startsWith('fr') ? 'fr' : 'en') : 'en';
   }
 
+  /**
+   * 1.20: the texts of the app's own screens in the language on screen (the app's routes wait for them, guard appTexts).
+   * English ones that cannot load (offline before they were ever kept) fall back on the French ones.
+   */
+  loadApp(lang: Lang = this.lang()): Promise<void> {
+    this.appWanted = true;
+    const has = lang === 'en' ? this.englishApp() : this.frenchApp();
+    if (has) return Promise.resolve();
+    return (this.appLoading[lang] ??= (lang === 'en' ? import('./locales/en-app').then((m) => this.englishApp.set(m.enApp)) : import('./locales/fr-app').then((m) => this.frenchApp.set(m.frApp)))
+      .catch(() => {
+        this.appLoading[lang] = undefined;
+        if (lang === 'en') return this.loadApp('fr');
+        return undefined;
+      }));
+  }
+
   /** the texts of a language, ready (the app waits for them before its first screen) */
   load(lang: Lang): Promise<void> {
+    if (this.appWanted) void this.loadApp(lang);
     if (lang !== 'en' || this.english()) return Promise.resolve();
     this.loading ??= import('./locales/en')
       .then((m) => this.english.set(m.en))

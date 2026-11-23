@@ -29,7 +29,7 @@ import { IconComponent } from '../../shared/icon.component';
       </header>
       @if (photo(); as p) {
         <!-- 1.9: a swipe goes to the photo before or after (the grid's order), the next one already there on the side -->
-        <figure class="frame" (pointerdown)="down($event)" (pointermove)="move($event)" (pointerup)="up($event)" (pointercancel)="cancel()">
+        <figure class="frame" data-zoom-frame (pointerdown)="down($event)" (pointermove)="move($event)" (pointerup)="up($event)" (pointercancel)="cancel()">
           <div class="track" #track>
             <div class="slide">
               @if (newer(); as n) {
@@ -38,7 +38,7 @@ import { IconComponent } from '../../shared/icon.component';
             </div>
             <div class="slide">
               <!-- a long press keeps « Enregistrer l’image » here: one's own photo, worth keeping -->
-              <img class="savable" [src]="p.url" [attr.width]="p.width" [attr.height]="p.height" alt="" draggable="false" />
+              <img class="savable" [src]="p.url" [attr.width]="p.width" [attr.height]="p.height" alt="" draggable="false" data-zoom-target [attr.data-zoom-key]="p.id" />
             </div>
             <div class="slide">
               @if (older(); as o) {
@@ -130,6 +130,10 @@ import { IconComponent } from '../../shared/icon.component';
       animation: zoom-in 360ms var(--ease-out);
       /* the page still scrolls up and down, a sideways move is the swipe */
       touch-action: pan-y;
+    }
+    /* 1.20: opened from its tile, the photo flies there itself */
+    :host-context(html[data-zoom]) .frame {
+      animation: none;
     }
     .track {
       display: flex;

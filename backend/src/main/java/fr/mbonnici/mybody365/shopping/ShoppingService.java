@@ -104,6 +104,17 @@ public class ShoppingService {
         return list(userId);
     }
 
+    /** 1.20: a food of a usual meal planned: by its food (merged with the same one already there), its aisle from its category */
+    @Transactional
+    public void addFood(UUID userId, UUID foodId, String name, Double grams, String label) {
+        if (name == null || name.isBlank()) {
+            return;
+        }
+        List<String> category = jdbc.queryForList("select category from food where id = ?", String.class, foodId);
+        // a food of one's own deleted since: by its name only
+        add(userId, category.isEmpty() ? null : foodId, name.strip(), category.isEmpty() ? null : category.getFirst(), grams, label);
+    }
+
     /** a line typed by the member */
     @Transactional
     public ShoppingList addLine(UUID userId, String name) {

@@ -543,7 +543,7 @@ function writeFlag(key: string): void {
       -webkit-tap-highlight-color: transparent;
       transition: transform var(--dur-1) var(--ease-out);
     }
-    .streak:active {
+    .streak.is-pressed {
       transform: scale(0.99);
     }
     .flame {
@@ -597,8 +597,8 @@ function writeFlag(key: string): void {
       background: linear-gradient(135deg, var(--st-from), var(--st-to));
       box-shadow: 0 8px 18px -8px var(--st-glow);
     }
-    .icon-choice:active,
-    .color-choice:active {
+    .icon-choice.is-pressed,
+    .color-choice.is-pressed {
       transform: scale(0.92);
     }
     .color-grid {
@@ -896,7 +896,7 @@ function writeFlag(key: string): void {
       color: #fff;
       box-shadow: 0 6px 14px -6px var(--accent-glow);
     }
-    .task.todo-now:active .weigh-go {
+    .task.todo-now.is-pressed .weigh-go {
       transform: scale(0.9);
     }
     @media (prefers-reduced-motion: reduce) {
@@ -959,7 +959,7 @@ function writeFlag(key: string): void {
       gap: var(--space-4);
       transition: transform var(--dur-1) var(--ease-out);
     }
-    .goal:active {
+    .goal.is-pressed {
       transform: scale(0.99);
     }
     .goal-top {

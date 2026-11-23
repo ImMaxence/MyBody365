@@ -10,6 +10,7 @@ import { StackNavigation } from './core/nav/stack-navigation';
 import { ThemeService } from './core/theme/theme.service';
 import { bootSplash } from './core/ui/boot-splash';
 import { installSheets } from './core/ui/sheets';
+import { installPress } from './core/ui/press';
 import { ToastService } from './core/ui/toast.service';
 import { IconComponent } from './shared/icon.component';
 
@@ -22,7 +23,7 @@ import { IconComponent } from './shared/icon.component';
     <div class="toast-host" aria-live="polite">
       @for (toast of toasts.toasts(); track toast.id) {
         <div class="toast" [class.error]="toast.kind === 'error'" role="status" (click)="toasts.dismiss(toast.id)">
-          <app-icon [name]="toast.kind === 'error' ? 'alert' : toast.action ? 'sparkles' : 'check'" />
+          <app-icon [name]="toast.icon ?? (toast.kind === 'error' ? 'alert' : toast.action ? 'sparkles' : 'check')" />
           <span class="toast-text">{{ toast.text }}</span>
           @if (toast.action; as action) {
             <button type="button" class="toast-action" (click)="action.run()">{{ action.label }}</button>
@@ -48,6 +49,8 @@ export class App {
     bootSplash(this.document, inject(Router), inject(EnvironmentInjector), !browser);
     // every bottom sheet closes by a click outside, a tap on its grip or a swipe down
     if (browser) installSheets(this.document);
+    // 1.20: a button pressed only by a real tap, never by a finger scrolling over it
+    if (browser) installPress(this.document);
     // a new version is downloaded in the background, then switched to without a word: the next time the app
     // goes to the background (the reload is not seen, the session stays). Nothing to tap. The app looks for a
     // new version each time it comes back to the front.

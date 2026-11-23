@@ -42,8 +42,8 @@ export const ESTIMATE_STYLES = `
       text-align: left;
       transition: background-color var(--dur-2), box-shadow var(--dur-2), transform var(--dur-1) var(--ease-out);
     }
-    .opt:active,
-    .chip-opt:active {
+    .opt.is-pressed,
+    .chip-opt.is-pressed {
       transform: scale(0.97);
     }
     .opt[aria-checked='true'] {

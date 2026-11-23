@@ -78,7 +78,7 @@ let uid = 0;
       user-select: none;
       transition: transform var(--dur-1) var(--ease-out), background-color var(--dur-2);
     }
-    .step:active {
+    .step.is-pressed {
       transform: scale(0.9);
       background: var(--accent-soft);
       color: var(--accent-text);

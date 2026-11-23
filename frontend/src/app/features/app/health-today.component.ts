@@ -162,7 +162,7 @@ import { BpSheetComponent } from './bp-sheet.component';
       text-align: left;
       transition: transform var(--dur-1) var(--ease-out);
     }
-    .bp-row:active {
+    .bp-row.is-pressed {
       transform: scale(0.98);
     }
     .bp-moment {

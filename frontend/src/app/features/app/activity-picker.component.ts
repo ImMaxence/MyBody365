@@ -52,7 +52,7 @@ export const JOBS: Job[] = ['SEATED', 'STANDING', 'PHYSICAL'];
       text-align: left;
       transition: border-color var(--dur-2), background-color var(--dur-2), transform var(--dur-1) var(--ease-out);
     }
-    .choice:active {
+    .choice.is-pressed {
       transform: scale(0.98);
     }
     .choice[aria-checked='true'] {

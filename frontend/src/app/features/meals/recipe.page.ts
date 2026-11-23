@@ -18,6 +18,8 @@ import { FavoritesStore } from '../../core/meals/favorites.store';
 import { HapticDirective } from '../../core/ui/haptics';
 import { QuantitySheetComponent } from './quantity-sheet.component';
 import { SendRecipeSheetComponent } from './send-recipe-sheet.component';
+import { PlanWhenSheetComponent } from './plan-when-sheet.component';
+import { PlanStore } from '../../core/meals/plan.store';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
 import { ShoppingStore } from '../../core/meals/shopping.store';
 import { closeSheet } from '../../core/ui/sheets';
@@ -28,7 +30,7 @@ import { SessionStore } from '../../core/auth/session.store';
 @Component({
   selector: 'app-recipe',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective, NumberStepperComponent, MicrosListComponent, SendRecipeSheetComponent],
+  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective, NumberStepperComponent, MicrosListComponent, SendRecipeSheetComponent, PlanWhenSheetComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -140,7 +142,13 @@ import { SessionStore } from '../../core/auth/session.store';
         }
 
         <div class="main-actions">
-          <button type="button" class="btn btn-primary grow" (click)="openAdd(r)"><app-icon name="plus" /> {{ addLabel() }}</button>
+          <button type="button" class="btn btn-primary grow" (click)="openAdd(r)"><app-icon [name]="planDay() ? 'calendar' : 'plus'" /> {{ addLabel() }}</button>
+          <!-- 1.20: planned for a day of the next two weeks (« Mon planning ») -->
+          @if (!planDay()) {
+            <button type="button" class="btn btn-secondary fav" [attr.aria-label]="'plan.planShort' | t" (click)="planSheet().open(r, planSlot(r))">
+              <app-icon name="calendar" />
+            </button>
+          }
           <span class="haptic">
             <button type="button" class="btn btn-secondary fav" [class.on]="favorite()" [attr.aria-pressed]="favorite()"
               [attr.aria-label]="(favorite() ? 'meals.favorites.remove' : 'meals.favorites.add') | t" (click)="toggleFavorite(r)">
@@ -237,6 +245,7 @@ import { SessionStore } from '../../core/auth/session.store';
       </dialog>
       <app-quantity-sheet (confirm)="add($event)" />
       <app-send-recipe-sheet />
+      <app-plan-when-sheet />
       <app-report-sheet />
     </main>
   `,
@@ -346,7 +355,7 @@ import { SessionStore } from '../../core/auth/session.store';
       color: var(--fg-2);
       transition: background-color var(--dur-2), color var(--dur-2), transform var(--dur-2) var(--ease-out);
     }
-    .vote:active {
+    .vote.is-pressed {
       transform: scale(0.9);
     }
     .vote.on {
@@ -575,6 +584,11 @@ export class RecipePage {
   /** opened from « Ajouter au déjeuner »: the recipe goes to that meal (else the one of the hour, today) */
   readonly slotParam = input<string | undefined>(undefined, { alias: 'slot' });
   readonly dayParam = input<string | undefined>(undefined, { alias: 'day' });
+  /** 1.20: opened from « Mon planning » (through the recipes): the recipe is planned for that day, not noted */
+  readonly planParam = input<string | undefined>(undefined, { alias: 'plan' });
+  protected readonly planDay = computed(() => (/^\d{4}-\d{2}-\d{2}$/.test(this.planParam() ?? '') ? this.planParam()! : null));
+  protected readonly planSheet = viewChild.required(PlanWhenSheetComponent);
+  private readonly plans = inject(PlanStore);
   private readonly slot = computed<Slot>(() =>
     (['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'] as string[]).includes(this.slotParam() ?? '') ? (this.slotParam() as Slot) : slotNow(),
   );
@@ -592,6 +606,11 @@ export class RecipePage {
   protected readonly i18n = inject(I18nService);
   /** « Ajouter au déjeuner » when opened from that meal, « Ajouter à un repas » otherwise */
   protected readonly addLabel = computed(() => {
+    const plan = this.planDay();
+    if (plan) {
+      const day = this.i18n.date(plan, { weekday: 'long', day: 'numeric' });
+      return this.i18n.t('plan.planFor', { day, slot: this.i18n.t('meals.slots.' + this.slot()).toLowerCase() });
+    }
     if (!this.slotParam()) return this.i18n.t('meals.recipe.addToMeal');
     const to = this.i18n.t('meals.addTo.' + this.slot());
     return this.i18n.t('meals.estimate.add', { slot: to.charAt(0).toLowerCase() + to.slice(1) });
@@ -688,11 +707,17 @@ export class RecipePage {
     }
   }
 
+  /** 1.20: the meal a recipe is planned for at first: the one asked, else its type's (a breakfast, a lunch…), else the dinner */
+  protected planSlot(r: Recipe): Slot {
+    if (this.slotParam()) return this.slot();
+    return r.type === 'BREAKFAST' || r.type === 'LUNCH' || r.type === 'SNACK' ? r.type : r.type === 'DESSERT' || r.type === 'DRINK' || r.type === 'TREAT' ? 'SNACK' : 'DINNER';
+  }
+
   protected openAdd(r: Recipe): void {
     const slot: Slot = this.slot();
     this.sheet().open(
       { name: r.name, detail: this.i18n.t('meals.addTo.' + slot), unit: 'serving', base: r.perServing, recipe: r },
-      this.slotParam() ? this.addLabel() : this.i18n.t('meals.addTo.' + slot),
+      this.slotParam() || this.planDay() ? this.addLabel() : this.i18n.t('meals.addTo.' + slot),
     );
   }
 
@@ -700,6 +725,20 @@ export class RecipePage {
     const r = this.recipe();
     if (!r) return;
     this.sheet().busy.set(true);
+    const plan = this.planDay();
+    if (plan) {
+      // 1.20: planned, then back to the plan (past the recipes)
+      try {
+        await this.plans.add({ day: plan, slot: this.slot(), recipeId: r.id, servings });
+        this.sheet().close();
+        this.toast.show(this.i18n.t('plan.planned', { name: r.name, day: this.addLabel().replace(/^[^ ]+ [^ ]+ /, '') }));
+        this.stack.backTo('/app/meals/plan');
+      } catch (e) {
+        this.sheet().busy.set(false);
+        this.toast.error(this.i18n.error(errorCode(e)));
+      }
+      return;
+    }
     try {
       await this.meals.add({ day: this.day(), slot: this.slot(), recipeId: r.id, servings }, { name: r.name, nutrients: scaled(r.perServing, servings) });
       this.sheet().close();

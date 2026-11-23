@@ -178,7 +178,7 @@ const plain = (s: string) =>
         transform var(--dur-1) var(--ease-out),
         background-color var(--dur-2);
     }
-    .chip-btn:active {
+    .chip-btn.is-pressed {
       transform: scale(0.95);
     }
     .chip-btn.on {

@@ -28,6 +28,7 @@ import { healthAlerts } from '../../core/meals/health';
 import type { HealthDto, Food } from '../../core/api/models';
 import { DayScoreComponent } from './day-score.component';
 import { ShoppingStore } from '../../core/meals/shopping.store';
+import { PlanItem, PlanStore } from '../../core/meals/plan.store';
 import { FoodThumbComponent } from '../../shared/food-thumb.component';
 import { BarsPlan, NutrientBarsComponent } from '../../shared/nutrient-bars.component';
 import type { Nutrients } from '../../core/api/models';
@@ -46,8 +47,18 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
         <h1 class="title">{{ 'meals.title' | t }}</h1>
       </header>
       <nav class="shortcuts" [attr.aria-label]="'meals.title' | t">
-        <a routerLink="/app/meals/stats" class="btn btn-secondary tile"><app-icon name="bars" [size]="20" /> {{ 'meals.stats.title' | t }}</a>
+        <a routerLink="/app/meals/stats" class="btn btn-secondary tile" [attr.aria-label]="'meals.stats.title' | t"><app-icon name="bars" [size]="20" /> {{ 'meals.stats.short' | t }}</a>
         <a routerLink="/app/meals/recipes" class="btn btn-secondary tile"><app-icon name="book" [size]="20" /> {{ 'meals.recipes' | t }}</a>
+        <!-- 1.20: the meals planned for the week, a dot when something is planned for the day on screen -->
+        <a routerLink="/app/meals/plan" class="btn btn-secondary tile" [attr.aria-label]="'plan.title' | t">
+          <span class="tile-ico">
+            <app-icon name="calendar" [size]="20" />
+            @if (plans.forDay(store.day()).length) {
+              <i class="dot" aria-hidden="true"></i>
+            }
+          </span>
+          {{ 'plan.short' | t }}
+        </a>
         <!-- 1.11: the shopping list, with the lines left to buy -->
         <a routerLink="/app/meals/shopping" class="btn btn-secondary tile" [attr.aria-label]="shoppingLabel()">
           <span class="tile-ico">
@@ -191,6 +202,21 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
                   </li>
                 }
               </ul>
+            }
+            <!-- 1.20: what was planned for this meal (« Mon planning »), noted in one tap -->
+            @for (p of plannedFor(slot); track p.id) {
+              <div class="planned">
+                <span class="planned-ico" aria-hidden="true"><app-icon name="calendar" [size]="15" /></span>
+                <span class="planned-text small">
+                  <span class="tiny muted">{{ 'plan.plannedLabel' | t }}</span>
+                  <b>{{ p.name }}</b>
+                </span>
+                @if (p.kind !== 'NOTE' && store.day() <= today()) {
+                  <button type="button" class="btn btn-secondary btn-s" [disabled]="busy()" (click)="eatPlanned(p)">
+                    <app-icon name="check" [size]="15" [stroke]="2.6" /> {{ 'plan.eaten' | t }}
+                  </button>
+                }
+              </div>
             }
             <div class="slot-actions">
               <a class="btn btn-ghost btn-s add" routerLink="/app/meals/add" [queryParams]="{ slot, day: store.day() }">
@@ -438,7 +464,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
     }
     .shortcuts {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: var(--space-2);
       margin-top: calc(-1 * var(--space-2));
     }
@@ -512,11 +538,6 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       overflow: hidden;
       transition: background-color var(--dur-2);
     }
-    @media (hover: hover) and (pointer: fine) {
-      .day-label:hover {
-        background: var(--surface-3);
-      }
-    }
     .day-label app-icon {
       color: var(--fg-2);
     }
@@ -589,7 +610,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       color: var(--fg-2);
       transition: color var(--dur-2), transform var(--dur-1) var(--ease-out);
     }
-    .wday:active {
+    .wday.is-pressed {
       transform: scale(0.94);
     }
     .wday:disabled {
@@ -703,7 +724,7 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       animation-delay: calc(min(var(--i), 41) * 6ms);
       transition: transform var(--dur-1) var(--ease-out);
     }
-    .cal-day:active {
+    .cal-day.is-pressed {
       transform: scale(0.92);
     }
     .cal-day .num {
@@ -1007,6 +1028,36 @@ const STATUS_ICON: Record<Exclude<DayStatus, null>, string | null> = { ok: 'chec
       border-top: 1px solid var(--line);
       text-align: left;
     }
+    /* 1.20: a meal planned for this slot, dashed until it is eaten */
+    .planned {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: var(--space-2);
+      padding: 8px 10px;
+      border: 1.5px dashed color-mix(in srgb, var(--accent) 45%, var(--line-strong));
+      border-radius: var(--radius-m);
+    }
+    .planned-ico {
+      display: grid;
+      flex: none;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      color: var(--accent-text);
+    }
+    .planned-text {
+      display: grid;
+      flex: 1;
+      min-width: 0;
+    }
+    .planned-text b {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     /* 1.19: the actions behind a line, uncovered by a swipe to the left */
     .swipe {
       position: relative;
@@ -1139,6 +1190,24 @@ export class MealsPage {
   protected readonly whyOpen = signal(false);
   protected readonly store = inject(MealsStore);
   protected readonly shopping = inject(ShoppingStore);
+  /** 1.20: the meals planned (« Mon planning »), shown in their slot on their day */
+  protected readonly plans = inject(PlanStore);
+
+  protected plannedFor(slot: Slot): PlanItem[] {
+    return this.plans.forDay(this.store.day()).filter((p) => p.slot === slot);
+  }
+
+  protected async eatPlanned(p: PlanItem): Promise<void> {
+    this.busy.set(true);
+    try {
+      await this.plans.eat(p);
+      this.toast.show(this.store.lastQueued() ? this.i18n.t('offline.queued') : this.i18n.t('plan.eatenToast', { name: p.name }));
+    } catch (err) {
+      this.toast.error(this.i18n.error(errorCode(err)));
+    } finally {
+      this.busy.set(false);
+    }
+  }
   protected readonly shoppingLabel = computed(() =>
     this.shopping.left() > 0 ? this.i18n.t('shopping.shortLeft', { n: this.shopping.left() }) : this.i18n.t('shopping.title'),
   );
@@ -1321,6 +1390,7 @@ export class MealsPage {
 
   constructor() {
     void this.shopping.ensure().catch(() => undefined);
+    void this.plans.ensure().catch(() => undefined);
     // 1.16: what was seen less than 30 s ago stays as it is (core/api/kept.ts)
     void this.store.ensure().catch(() => undefined);
     void this.tracking.ensure();
@@ -1473,15 +1543,9 @@ export class MealsPage {
 
   /** 1.19: from the line's swipe or its sheet: the same again (a second coffee), noted now */
   protected async duplicate(e: MealEntry): Promise<void> {
-    const input =
-      e.foodId && e.grams
-        ? { foodId: e.foodId, grams: e.grams }
-        : e.recipeId && e.servings
-          ? { recipeId: e.recipeId, servings: e.servings }
-          : { quick: { ...e.nutrients, name: e.name } };
     this.busy.set(true);
     try {
-      await this.store.add({ day: e.day, slot: e.slot, ...input }, { name: e.name, nutrients: e.nutrients });
+      await this.addAgain(e);
       this.dialog().nativeElement.close();
       this.toast.show(this.store.lastQueued() ? this.i18n.t('offline.queued') : this.i18n.t('meals.entry.duplicated', { name: e.name }));
     } catch (err) {
@@ -1491,11 +1555,38 @@ export class MealsPage {
     }
   }
 
+  /** the same line noted again (its food and amount, its recipe and servings, or its portion as it was) */
+  private addAgain(e: MealEntry): Promise<unknown> {
+    const input =
+      e.foodId && e.grams
+        ? { foodId: e.foodId, grams: e.grams }
+        : e.recipeId && e.servings
+          ? { recipeId: e.recipeId, servings: e.servings }
+          : { quick: { ...e.nutrients, name: e.name } };
+    return this.store.add({ day: e.day, slot: e.slot, ...input }, { name: e.name, nutrients: e.nutrients });
+  }
+
+  /** 1.20: « Retiré de tes repas · Annuler » for a few seconds: a swipe asks nothing, a slip of the finger is undone in one tap */
+  private removed(e: MealEntry): void {
+    if (this.store.lastQueued()) {
+      this.toast.show(this.i18n.t('offline.queued'));
+      return;
+    }
+    this.toast.show(this.i18n.t('meals.entry.deleted'), 'info', 5000, {
+      label: this.i18n.t('meals.entry.undo'),
+      run: () => {
+        this.addAgain(e)
+          .then(() => this.toast.show(this.i18n.t('meals.entry.restored')))
+          .catch((err: unknown) => this.toast.error(this.i18n.error(errorCode(err))));
+      },
+    }, 'trash');
+  }
+
   /** 1.19: from the line's swipe, without opening its sheet */
   protected async removeLine(e: MealEntry): Promise<void> {
     try {
       await this.store.remove(e.id);
-      this.toast.show(this.i18n.t(this.store.lastQueued() ? 'offline.queued' : 'meals.entry.deleted'));
+      this.removed(e);
     } catch (err) {
       this.toast.error(this.i18n.error(errorCode(err)));
     }
@@ -1506,7 +1597,7 @@ export class MealsPage {
     try {
       await this.store.remove(e.id);
       this.dialog().nativeElement.close();
-      this.toast.show(this.i18n.t(this.store.lastQueued() ? 'offline.queued' : 'meals.entry.deleted'));
+      this.removed(e);
     } catch (err) {
       this.toast.error(this.i18n.error(errorCode(err)));
     } finally {

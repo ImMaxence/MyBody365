@@ -1,12 +1,6 @@
-import { enAdminFoods, enAdminModeration, enAdminStats } from './en-admin';
-import { enBackup } from './en-backup';
-import { enEngage } from './en-engage';
-import { enFriends } from './en-friends';
-import { enMeals, enShopping } from './en-meals';
-import { enPhotos } from './en-photos';
-import type { Dictionary } from './fr';
+import type { CoreDictionary } from './fr';
 
-export const en: Dictionary = {
+export const en: CoreDictionary = {
   meta: {
     title: 'MyBody365 — 365 days to transform your body',
     description:
@@ -43,6 +37,7 @@ export const en: Dictionary = {
   },
 
   errors: {
+    plan_full: 'Your plan is full: remove some planned meals',
     recipe_private: 'Share the recipe with your friends first to send it to them',
     recipe_not_visible: 'Your friend cannot see this recipe: it is shared with its author’s friends only',
     too_many_sends: 'A lot of sends today: try again tomorrow',
@@ -792,15 +787,6 @@ export const en: Dictionary = {
       warning: 'The pill box follows your prescription, it gives no advice. A notification can be late on an iPhone: for a vital treatment, keep an alarm too. Your medicines are never named on the locked screen',
     },
   },
-  photos: enPhotos,
-  meals: enMeals,
-  shopping: enShopping,
-  engage: enEngage,
-  friends: enFriends,
-  backup: enBackup,
-  adminFoods: enAdminFoods,
-  adminStats: enAdminStats,
-  adminModeration: enAdminModeration,
 
   soon: {
     title: 'Coming soon',

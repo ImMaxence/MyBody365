@@ -7,6 +7,82 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.20.0",
+    "date": "2026-11-23",
+    "summary": [
+      {
+        "t": "Ton planning des repas de la semaine, les sucres ajoutés estimés aliment par aliment, une photo qui s'ouvre en grandissant depuis sa vignette, et une app plus légère au premier lancement"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "Mon planning (Repas) : prévois tes repas de cette semaine et de la suivante, une recette pour ses parts, un repas habituel ou une simple note (« Restaurant avec Léa »). Le jour venu, ils s'affichent dans leur repas et « C'est mangé » les note en un appui, même sans réseau. Les recettes et les repas habituels prévus vont sur ta liste de courses en un appui, pour leurs parts. Une recette se prévoit aussi depuis sa page, avec le bouton calendrier"
+            }
+          ],
+          [
+            {
+              "t": "Sucres ajoutés : les tables ne donnent que le total des sucres, l'app estime maintenant ceux qui comptent pour l'OMS (ajoutés, miel, sirops, jus de fruits) d'après ce qu'est chaque aliment. Ceux des fruits entiers, des légumes, des légumineuses et du lait nature ne comptent plus, ceux des plats salés comptent pour moitié, et dans le doute ils comptent. La note de la journée, les tendances de la semaine et les statistiques s'en servent, et « Surtout : » nomme les vrais responsables (le soda, plus la pomme)"
+            }
+          ],
+          [
+            {
+              "t": "Photos : une photo s'ouvre en grandissant depuis sa vignette, et y retourne quand tu reviens à la grille"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "Repas : retirer une ligne affiche « Annuler » pendant quelques secondes, pour rattraper un glissement de trop"
+            }
+          ],
+          [
+            {
+              "t": "Note de la journée : les fibres visent 30 g, comme tes repères du jour (25 g avant), le repère de l'Anses, avec le lien vers son rapport dans les sources"
+            }
+          ],
+          [
+            {
+              "t": "Repas : quatre raccourcis en haut de l'écran, Stats, Recettes, Planning et Courses"
+            }
+          ],
+          [
+            {
+              "t": "L'app et le site se chargent plus vite au premier lancement : les textes des écrans de l'app arrivent à part, à l'ouverture de l'app"
+            }
+          ],
+          [
+            {
+              "t": "Boutons : l'effet d'appui ne s'allume plus quand le doigt passe sur un bouton en faisant défiler la page, seulement pour un vrai appui, et l'app n'a plus aucun effet de survol"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Note santé d'une recette : « Frit » vient maintenant de ses ingrédients (un aliment frit, ou un plat au nom de friture avec assez de matière grasse pour l'avoir absorbée), plus de son nom seul. Des nems passés au four avec un filet d'huile ne sont plus « Frits »"
+            }
+          ],
+          [
+            {
+              "t": "Envoyer à un ami : les photos de profil sont rondes, et l'ombre coupée sous le bouton « Envoyer » est partie"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.19.0",
     "date": "2026-11-23",
     "summary": [

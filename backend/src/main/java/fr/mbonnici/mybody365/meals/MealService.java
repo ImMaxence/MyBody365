@@ -2,6 +2,7 @@ package fr.mbonnici.mybody365.meals;
 
 import fr.mbonnici.mybody365.common.ApiException;
 import fr.mbonnici.mybody365.nutrition.FoodService;
+import fr.mbonnici.mybody365.nutrition.FreeSugars;
 import fr.mbonnici.mybody365.nutrition.HealthScore;
 import fr.mbonnici.mybody365.nutrition.Micros;
 import fr.mbonnici.mybody365.nutrition.FoodStore.Food;
@@ -77,11 +78,15 @@ public class MealService {
             /** 1.13: its health score out of 10 (null: unknown, or alcohol) and whether its amount is in millilitres */
             Double health, boolean liquid,
             /** 1.14: the vitamins and minerals it brings (its food's or its recipe's as they are now; empty: unknown) */
-            Map<String, Double> micros) {}
+            Map<String, Double> micros,
+            /** 1.20: its free sugars, estimated from what it is (nutrition/FreeSugars); null: not known */
+            Double freeSugarsG) {}
 
     public record DayDto(LocalDate day, Integer targetKcal, Nutrients totals, List<EntryDto> entries,
             /** 1.14: the vitamins and minerals of the day, and the share of its calories whose are known (0 to 1) */
-            Map<String, Double> micros, double microsCoverage) {}
+            Map<String, Double> micros, double microsCoverage,
+            /** 1.20: the free sugars of the day (a line without its estimate counts all its sugars) */
+            Double freeSugarsG) {}
 
     /**
      * 1.14: the vitamins and minerals over the last days: the mean of the days noted, the share of their calories whose are
@@ -108,7 +113,9 @@ public class MealService {
     public record StatsDto(int days, LocalDate from, LocalDate to, Integer targetKcal, List<DayTotal> daily, Nutrients totals,
             List<FoodStat> topByCount, List<FoodStat> topByKcal, List<SlotStat> slots, List<GradeStat> grades,
             /** the foods that brought the most sugars, salt and saturated fat */
-            List<Source> sugarSources, List<Source> saltSources, List<Source> satFatSources) {}
+            List<Source> sugarSources, List<Source> saltSources, List<Source> satFatSources,
+            /** 1.20: the free sugars of the period (the sugars sources are the free sugars' too) */
+            Double freeSugarsG) {}
 
     /** a food, a recipe or a quick portion logged lately, with the amount used last time (the portion's nutrients for QUICK) */
     /**
@@ -133,7 +140,7 @@ public class MealService {
     /** 1.12: the lines with what their picture needs: the food's category and picture, the recipe's type and photo */
     private static final String JOINED = """
             select e.id, e.day, e.slot, e.food_id, e.recipe_id, e.name, e.detail, e.grams, e.servings, e.kcal, e.protein_g, e.carbs_g,
-              e.fat_g, e.sugars_g, e.fiber_g, e.sat_fat_g, e.salt_g, e.nutriscore, e.created_at, e.health, e.liquid,
+              e.fat_g, e.sugars_g, e.fiber_g, e.sat_fat_g, e.salt_g, e.nutriscore, e.created_at, e.health, e.liquid, e.free_sugars_g,
               f.micros::text as food_micros, r.micros::text as recipe_micros, f.source as food_source, f.category as food_category, f.image_path as food_image,
               r.type as recipe_type, r.image_format as recipe_image, r.image_version as recipe_image_version
             from meal_entry e left join food f on f.id = e.food_id left join recipe r on r.id = e.recipe_id""";
@@ -164,11 +171,13 @@ public class MealService {
         boolean noGrams = rs.wasNull();
         double servings = rs.getDouble("servings");
         boolean noServings = rs.wasNull();
+        double free = rs.getDouble("free_sugars_g");
+        Double freeSugars = rs.wasNull() ? null : Math.round(free * 10) / 10.0;
         return new EntryDto(rs.getObject("id", UUID.class), rs.getObject("day", LocalDate.class), Slot.valueOf(rs.getString("slot")),
                 rs.getObject("food_id", UUID.class), rs.getObject("recipe_id", UUID.class), rs.getString("name"), rs.getString("detail"),
                 noGrams ? null : grams, noServings ? null : servings, Nutrients.from(rs).rounded(), rs.getString("nutriscore"),
                 rs.getTimestamp("created_at").toInstant(), thumbOf(rs), groupOf(rs), health(rs), rs.getBoolean("liquid"),
-                Micros.rounded(microsOf(rs, noGrams ? null : grams, noServings ? null : servings)));
+                Micros.rounded(microsOf(rs, noGrams ? null : grams, noServings ? null : servings)), freeSugars);
     }
 
     /** 1.14: a line's vitamins and minerals: its food's per 100 g for its grams, its recipe's per serving for its servings */
@@ -200,8 +209,15 @@ public class MealService {
         Map<String, Double> micros = new java.util.LinkedHashMap<>();
         Map<String, Double> knownBy = new java.util.HashMap<>();
         double known = 0;
+        double free = 0;
+        boolean freeKnown = false;
         for (EntryDto e : entries) {
             total = total.plus(e.nutrients());
+            Double f = e.freeSugarsG() != null ? e.freeSugarsG() : e.nutrients().sugarsG();
+            if (f != null) {
+                free += f;
+                freeKnown = true;
+            }
             Micros.add(micros, e.micros());
             if (!e.micros().isEmpty()) {
                 known += e.nutrients().kcal();
@@ -214,7 +230,8 @@ public class MealService {
         double coverage = kcal > 0 ? Math.min(1, known / kcal) : 0;
         // a vitamin unknown for most of the day (not in the tables for its foods) is not shown: it would look missing
         micros.keySet().removeIf(k -> kcal <= 0 || knownBy.getOrDefault(k, 0d) / kcal < 0.5);
-        return new DayDto(day, target(userId), total.rounded(), entries, Micros.rounded(micros), Math.round(coverage * 100) / 100.0);
+        return new DayDto(day, target(userId), total.rounded(), entries, Micros.rounded(micros), Math.round(coverage * 100) / 100.0,
+                freeKnown ? round(free) : null);
     }
 
     /** 1.14: the vitamins and minerals of the last days (today counted only once it is over: a day going on is not a lack) */
@@ -324,19 +341,24 @@ public class MealService {
                   when 'e' then 1 end) h from meal_entry where user_id = ? and day between ? and ?) x
                 group by 1 order by min(case when h is null then 9 when h >= 8 then 1 when h >= 6.5 then 2 when h >= 4.5 then 3 when h >= 2.5 then 4 else 5 end)""",
                 (rs, i) -> new GradeStat(rs.getString("grade"), Math.round(rs.getDouble("kcal"))), userId, from, to);
+        Double free = jdbc.queryForObject("select sum(coalesce(free_sugars_g, sugars_g)) from meal_entry where user_id = ? and day between ? and ?",
+                Double.class, userId, from, to);
         return new StatsDto(days, from, to, target(userId), daily, sum == null ? Nutrients.ZERO : sum.rounded(), byCount, byKcal, slots,
-                grades, sources(userId, from, to, "sugars_g"), sources(userId, from, to, "salt_g"), sources(userId, from, to, "sat_fat_g"));
+                grades, sources(userId, from, to, "free_sugars"), sources(userId, from, to, "salt_g"), sources(userId, from, to, "sat_fat_g"),
+                free == null ? null : round(free));
     }
 
     /** the three foods that brought the most of a nutrient (a column of ours, never a word from outside) */
     private List<Source> sources(UUID userId, LocalDate from, LocalDate to, String column) {
-        if (!List.of("sugars_g", "salt_g", "sat_fat_g").contains(column)) {
+        if (!List.of("free_sugars", "salt_g", "sat_fat_g").contains(column)) {
             throw new IllegalArgumentException(column);
         }
+        // 1.20: the sugars' sources are the free sugars' (an apple a day never tops the list)
+        String value = "free_sugars".equals(column) ? "coalesce(free_sugars_g, sugars_g)" : column;
         return jdbc.query("""
                 select max(name) name, count(*) n, sum(%1$s) g from meal_entry
                 where user_id = ? and day between ? and ? and %1$s > 0
-                group by coalesce(food_id::text, recipe_id::text, lower(name)) order by g desc limit 3""".formatted(column),
+                group by coalesce(food_id::text, recipe_id::text, lower(name)) order by g desc limit 3""".formatted(value),
                 (rs, i) -> new Source(rs.getString("name"), rs.getInt("n"), Math.round(rs.getDouble("g") * 10) / 10.0), userId, from, to);
     }
 
@@ -351,17 +373,26 @@ public class MealService {
             QuickInput q = in.quick();
             insert(userId, in.day(), in.slot(), null, null, q.name().strip(), null, null, 1.0,
                     new Nutrients(q.kcal(), q.proteinG(), q.carbsG(), q.sugarsG(), q.fatG(), q.satFatG(), q.fiberG(), q.saltG()), q.nutriscore(),
-                    q.health() == null ? null : Math.round(q.health() * 2) / 2.0, false);
+                    q.health() == null ? null : Math.round(q.health() * 2) / 2.0, false, q.sugarsG());
         } else if (in.foodId() != null) {
             Food f = foods.usable(in.foodId(), userId);
             double grams = in.grams() != null ? in.grams() : f.servingG() != null ? f.servingG() : 100;
             insert(userId, in.day(), in.slot(), f.id(), null, f.name(), f.brand(), grams, null, f.per100().times(grams / 100), f.nutriscore(),
-                    FoodService.health(f), FoodService.liquid(f));
+                    FoodService.health(f), FoodService.liquid(f), FreeSugars.of(f, grams));
         } else {
             RecipeRow r = recipes.viewable(in.recipeId(), userId, false);
             double servings = in.servings() != null ? in.servings() : 1;
+            Double perServing = jdbc.queryForObject("select free_sugars_g from recipe where id = ?", Double.class, r.id());
+            Double sugars = r.perServing().sugarsG();
+            // spelled out: a ternary mixing double and null unboxes the null (a recipe made by hand has neither)
+            Double free = null;
+            if (perServing != null) {
+                free = perServing * servings;
+            } else if (sugars != null) {
+                free = sugars * servings;
+            }
             insert(userId, in.day(), in.slot(), null, r.id(), r.name(), null, null, servings, r.perServing().times(servings), r.nutriscore(),
-                    r.health() == null ? null : r.health().score(), false);
+                    r.health() == null ? null : r.health().score(), false, free);
         }
         return day(userId, in.day());
     }
@@ -383,9 +414,9 @@ public class MealService {
         Nutrients n = e.nutrients().times(factor);
         jdbc.update("""
                 update meal_entry set slot = ?, grams = ?, servings = ?, kcal = ?, protein_g = ?, carbs_g = ?, fat_g = ?, sugars_g = ?,
-                  fiber_g = ?, sat_fat_g = ?, salt_g = ? where id = ? and user_id = ?""",
+                  fiber_g = ?, sat_fat_g = ?, salt_g = ?, free_sugars_g = free_sugars_g * ? where id = ? and user_id = ?""",
                 (in.slot() == null ? e.slot() : in.slot()).name(), grams, servings, n.kcal(), n.proteinG(), n.carbsG(), n.fatG(), n.sugarsG(),
-                n.fiberG(), n.satFatG(), n.saltG(), id, userId);
+                n.fiberG(), n.satFatG(), n.saltG(), factor, id, userId);
         return day(userId, e.day());
     }
 
@@ -404,7 +435,7 @@ public class MealService {
                 MealService::map, userId, in.fromDay(), in.slot().name());
         for (EntryDto e : from) {
             insert(userId, in.toDay(), in.slot(), e.foodId(), e.recipeId(), e.name(), e.detail(), e.grams(), e.servings(), e.nutrients(),
-                    e.nutriscore(), e.health(), e.liquid());
+                    e.nutriscore(), e.health(), e.liquid(), e.freeSugarsG());
         }
         return day(userId, in.toDay());
     }
@@ -454,13 +485,14 @@ public class MealService {
     }
 
     private void insert(UUID userId, LocalDate day, Slot slot, UUID foodId, UUID recipeId, String name, String detail, Double grams,
-            Double servings, Nutrients n, String nutriscore, Double health, boolean liquid) {
+            Double servings, Nutrients n, String nutriscore, Double health, boolean liquid, Double freeSugars) {
         jdbc.update("""
                 insert into meal_entry (id, user_id, day, slot, food_id, recipe_id, name, detail, grams, servings, kcal, protein_g, carbs_g,
-                  fat_g, sugars_g, fiber_g, sat_fat_g, salt_g, nutriscore, created_at, health, liquid)
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                  fat_g, sugars_g, fiber_g, sat_fat_g, salt_g, nutriscore, created_at, health, liquid, free_sugars_g)
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 UUID.randomUUID(), userId, day, slot.name(), foodId, recipeId, name, detail, grams, servings, n.kcal(), n.proteinG(),
-                n.carbsG(), n.fatG(), n.sugarsG(), n.fiberG(), n.satFatG(), n.saltG(), nutriscore, Timestamp.from(Instant.now()), health, liquid);
+                n.carbsG(), n.fatG(), n.sugarsG(), n.fiberG(), n.satFatG(), n.saltG(), nutriscore, Timestamp.from(Instant.now()), health, liquid,
+                freeSugars == null ? null : Math.max(0, Math.min(freeSugars, n.sugarsG() == null ? freeSugars : n.sugarsG())));
     }
 
     private EntryDto own(UUID userId, UUID id) {

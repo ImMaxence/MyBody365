@@ -108,7 +108,7 @@ export function paceForDate(kgToGo: number, wish: string, weightKg: number, toda
       text-align: left;
       transition: border-color var(--dur-2), background-color var(--dur-2), transform var(--dur-1) var(--ease-out), opacity var(--dur-2);
     }
-    .choice:active {
+    .choice.is-pressed {
       transform: scale(0.98);
     }
     .choice:disabled {

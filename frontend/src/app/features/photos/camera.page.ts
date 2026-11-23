@@ -247,7 +247,7 @@ function savedTimer(): Timer {
       color: #fff;
       transition: background-color var(--dur-2), transform var(--dur-2) var(--ease-out);
     }
-    .round:active {
+    .round.is-pressed {
       transform: scale(0.92);
     }
     .round.on {
@@ -286,7 +286,7 @@ function savedTimer(): Timer {
         color var(--dur-2),
         transform var(--dur-2) var(--ease-out);
     }
-    .pill:active {
+    .pill.is-pressed {
       transform: scale(0.95);
     }
     .pill.on {
@@ -345,7 +345,7 @@ function savedTimer(): Timer {
       background: #fff;
       transition: transform var(--dur-2) var(--ease-out), background-color var(--dur-2);
     }
-    .shutter:active span {
+    .shutter.is-pressed span {
       transform: scale(0.86);
     }
     .shutter:disabled span {

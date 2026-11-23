@@ -40,6 +40,14 @@ test.describe('photos', () => {
     await tab(page, 'Photos').click();
     await tile.click();
     await expect(page.getByText('Profil · Pas de pesée ce jour-là').or(page.getByText(/Profil · .* kg ce jour-là/))).toBeVisible();
+    // 1.20: it grew from its tile; once there, no flying copy is left and the photo itself shows (and back the same way)
+    await expect(page.locator('.zoom-flyer')).toHaveCount(0);
+    await expect(page.locator('img[data-zoom-target]')).toBeVisible();
+    await page.goBack();
+    await expect(tile).toBeVisible();
+    await expect(page.locator('.zoom-flyer')).toHaveCount(0);
+    await tile.click();
+    await expect(page.locator('img[data-zoom-target]')).toBeVisible();
     const img = page.locator('figure.frame img');
     await expect(img).toHaveJSProperty('complete', true);
     expect(await img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBe(600);

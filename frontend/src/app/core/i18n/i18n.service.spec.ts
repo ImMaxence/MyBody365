@@ -1,7 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { I18nService, interpolate } from './i18n.service';
-import { en } from './locales/en';
-import { fr } from './locales/fr';
+import { en as enCore } from './locales/en';
+import { enApp } from './locales/en-app';
+import { fr as frCore } from './locales/fr';
+import { frApp } from './locales/fr-app';
+
+// 1.20: the site's texts and the app's (two files each), checked as one dictionary
+const fr = { ...frCore, ...frApp };
+const en = { ...enCore, ...enApp };
 
 /** every leaf path of a dictionary, arrays included ("landing.faq.0.q") */
 function paths(o: unknown, prefix = ''): string[] {
@@ -15,6 +21,18 @@ describe('I18nService', () => {
   beforeEach(() => {
     i18n = TestBed.inject(I18nService);
     i18n.set('fr');
+  });
+
+  it('the texts of the app come in a file of their own, in the language on screen (1.20)', async () => {
+    expect(i18n.t('plan.title')).toBe('plan.title');
+    await i18n.loadApp();
+    expect(i18n.t('plan.title')).toBe('Mon planning');
+    expect(i18n.t('common.cancel')).toBe('Annuler');
+    i18n.set('en');
+    await i18n.load('en');
+    await i18n.loadApp('en');
+    expect(i18n.t('plan.title')).toBe('My meal plan');
+    expect(i18n.t('common.cancel')).toBe('Cancel');
   });
 
   it('French and English have exactly the same texts', () => {

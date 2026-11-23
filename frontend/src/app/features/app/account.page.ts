@@ -266,7 +266,7 @@ import { AvatarZoom } from '../../shared/avatar-zoom';
       overflow: visible;
       transition: transform var(--dur-1) var(--ease-out);
     }
-    .avatar-btn:active {
+    .avatar-btn.is-pressed {
       transform: scale(0.94);
     }
     .avatar-btn.busy {
@@ -330,11 +330,6 @@ import { AvatarZoom } from '../../shared/avatar-zoom';
       color: var(--accent-text);
       font-weight: 700;
       transition: background-color var(--dur-2);
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .handle:hover {
-        background: var(--accent-soft);
-      }
     }
     .icon-btn.mini {
       width: 32px;

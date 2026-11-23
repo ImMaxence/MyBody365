@@ -73,7 +73,7 @@ export function firstLink(text: string): string | null {
       color: var(--fg-2);
       transform: translateY(-50%);
     }
-    .url-clear:active {
+    .url-clear.is-pressed {
       background: var(--surface-2);
     }
     .note {

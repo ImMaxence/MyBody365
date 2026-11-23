@@ -6,6 +6,20 @@ import org.junit.jupiter.api.Test;
 
 class NutritionUnitTest {
 
+    /** 1.20: a recipe is fried by its ingredients, its name only with enough fat to have soaked it up */
+    @Test
+    void ovenBakedNemsAreNotFried() {
+        // nems of chicken, vegetables and rice paper, 2 g of olive oil for 849 g: baked
+        assertThat(HealthScore.friedRecipe("Nems poulet légumes", false, 2, 849)).isFalse();
+        // a fried chicken with 50 g of oil for 600 g, fries in a dish
+        assertThat(HealthScore.friedRecipe("Poulet frit maison", false, 50, 600)).isTrue();
+        assertThat(HealthScore.friedRecipe("Assiette du soir", true, 0, 500)).isTrue();
+        assertThat(HealthScore.fat("huiles et graisses végétales", null, "Huile d'olive vierge extra")).isTrue();
+        assertThat(HealthScore.fat(null, "Fats", "Lesieur")).isTrue();
+        assertThat(HealthScore.fat(null, null, "Huile dolive")).isTrue();
+        assertThat(HealthScore.fat("légumes", null, "Carotte, cuite à la vapeur")).isFalse();
+    }
+
     @Test
     void nutriscoreOfWellKnownFoods() {
         // a hazelnut spread: very sweet and fatty

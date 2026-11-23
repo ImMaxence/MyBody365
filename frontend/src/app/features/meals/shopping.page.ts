@@ -212,7 +212,7 @@ import { IconComponent } from '../../shared/icon.component';
         color var(--dur-2),
         transform var(--dur-2) var(--ease-out);
     }
-    .tick:active .box {
+    .tick.is-pressed .box {
       transform: scale(0.88);
     }
     .done .box {

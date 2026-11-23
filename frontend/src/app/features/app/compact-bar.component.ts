@@ -82,7 +82,7 @@ import { IconComponent } from '../../shared/icon.component';
       -webkit-tap-highlight-color: transparent;
       transition: opacity var(--dur-1);
     }
-    .back:active {
+    .back.is-pressed {
       opacity: 0.45;
     }
     @media (prefers-reduced-motion: reduce) {

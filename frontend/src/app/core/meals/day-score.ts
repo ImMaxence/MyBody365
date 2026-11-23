@@ -1,5 +1,6 @@
 import type { MealDay } from '../api/models';
 import { GRADE_SCORE } from './health';
+import { FIBER_G } from './macro-plan';
 
 export type ScorePart = 'kcal' | 'macros' | 'quality' | 'nutrients';
 
@@ -49,10 +50,13 @@ export interface DayScore {
 }
 
 
-/** the daily guides: at most 50 g of sugars and 5 g of salt, saturated fat under 10 % of the calories, 25 g of fibre */
+/**
+ * the daily guides: at most 50 g of free sugars (1.20: estimated, the total sugars before) and 5 g of salt, saturated fat under
+ * 10 % of the calories (the WHO's), 30 g of fibre (1.20: the Anses's, as in the guides of the day; it was 25 g here)
+ */
 const SUGARS_MAX = 50;
 const SALT_MAX = 5;
-const FIBER_MIN = 25;
+const FIBER_MIN = FIBER_G;
 
 /**
  * How balanced and healthy a day of meals is, out of 10, from what is known:
@@ -126,7 +130,8 @@ export function dayScore(day: MealDay, today: string, shares: { p: number; c: nu
 
   // nutrients: the usual daily guides (fibre is only judged once the day is over)
   const checks: NutrientCheck[] = [];
-  if (t.sugarsG != null) checks.push({ key: 'sugars', value: Math.round(t.sugarsG), limit: SUGARS_MAX, min: false, ok: t.sugarsG <= SUGARS_MAX, waiting: false });
+  const sugars = day.freeSugarsG ?? t.sugarsG;
+  if (sugars != null) checks.push({ key: 'sugars', value: Math.round(sugars), limit: SUGARS_MAX, min: false, ok: sugars <= SUGARS_MAX, waiting: false });
   if (t.saltG != null) checks.push({ key: 'salt', value: Math.round(t.saltG * 10) / 10, limit: SALT_MAX, min: false, ok: t.saltG <= SALT_MAX, waiting: false });
   if (t.satFatG != null) {
     checks.push({ key: 'satFat', value: Math.round(t.satFatG), limit: Math.round((t.kcal * 0.1) / 9), min: false, ok: t.satFatG * 9 <= t.kcal * 0.1, waiting: false });

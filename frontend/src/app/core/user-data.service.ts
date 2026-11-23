@@ -10,6 +10,7 @@ import { WaterStore } from './tracking/water.store';
 import { FavoritesStore } from './meals/favorites.store';
 import { FriendsStore } from './friends/friends.store';
 import { ShoppingStore } from './meals/shopping.store';
+import { PlanStore } from './meals/plan.store';
 import { HealthStore } from './health/health.store';
 import { OfflineCache } from './offline/offline-cache';
 import { Network } from './offline/network';
@@ -28,6 +29,7 @@ export class UserDataService {
   private readonly favorites = inject(FavoritesStore);
   private readonly friends = inject(FriendsStore);
   private readonly shopping = inject(ShoppingStore);
+  private readonly plan = inject(PlanStore);
   private readonly health = inject(HealthStore);
   private readonly cache = inject(OfflineCache);
   private readonly network = inject(Network);
@@ -46,6 +48,7 @@ export class UserDataService {
     this.favorites.clear();
     this.friends.clear();
     this.shopping.clear();
+    this.plan.clear();
     this.health.clear();
     this.outbox.setOwner(null);
     // 1.18: the answers and the pictures kept for the screens without network, and the log of the network

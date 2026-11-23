@@ -1,7 +1,18 @@
-import { averageHealth, friedName, healthAlerts, healthBand, healthScore, recipeHealth } from './health';
+import { averageHealth, friedName, friedRecipe, healthAlerts, healthBand, healthScore, recipeHealth } from './health';
 
 /** the same foods as the server's test (backend NutritionUnitTest.healthScore): both sides must agree */
 describe('health score', () => {
+  it('a recipe is fried by its ingredients, its name only with enough fat to have soaked it up (1.20)', () => {
+    const nems = [
+      { grams: 200, name: 'Poulet, filet sans peau cru' },
+      { grams: 109, name: 'Galette de riz · Mei Asia' },
+      { grams: 2, name: 'Huile dolive · Lesieur' },
+    ];
+    expect(friedRecipe('Nems poulet légumes', nems)).toBe(false);
+    expect(friedRecipe('Nems frits', [...nems.slice(0, 2), { grams: 40, name: 'Huile d’olive vierge extra' }])).toBe(true);
+    expect(friedRecipe('Assiette du soir', [{ grams: 150, name: 'Frites, fast-food' }, { grams: 100, name: 'Steak haché' }])).toBe(true);
+  });
+
   const score = (p: Parameters<typeof healthScore>[0]) => healthScore(p)?.score;
 
   it('rates plain foods well and processed ones badly, where the Nutri-Score does not', () => {

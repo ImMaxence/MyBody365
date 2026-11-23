@@ -428,11 +428,8 @@ import { POSTS_SEEN_KEY } from '../../core/friends/friends-api';
       animation: rise 220ms var(--ease-out) both;
       animation-delay: calc(var(--i) * 25ms);
     }
-    @media (hover: hover) and (pointer: fine) {
-      .suggestions li.active,
-      .suggestions li:hover {
-        background: var(--accent-soft);
-      }
+    .suggestions li.active {
+      background: var(--accent-soft);
     }
     .suggestions .who-copy {
       flex: 1;
@@ -491,7 +488,7 @@ import { POSTS_SEEN_KEY } from '../../core/friends/friends-api';
       border-radius: 50%;
       transition: transform var(--dur-1) var(--ease-out);
     }
-    .round:active {
+    .round.is-pressed {
       transform: scale(0.88);
     }
     .round.yes {
@@ -602,7 +599,7 @@ import { POSTS_SEEN_KEY } from '../../core/friends/friends-api';
       color: var(--accent-text);
       transition: transform var(--dur-2) var(--ease-out), background-color var(--dur-2);
     }
-    .nudge:active {
+    .nudge.is-pressed {
       transform: scale(0.88);
     }
     .nudge.sent {

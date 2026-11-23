@@ -159,7 +159,7 @@ const FPS: Record<Speed, number> = { slow: 3, normal: 6, fast: 12 };
       box-shadow: 0 12px 30px -12px var(--accent-glow);
       transition: transform var(--dur-2) var(--ease-out);
     }
-    .play:active {
+    .play.is-pressed {
       transform: scale(0.92);
     }
     .speeds {

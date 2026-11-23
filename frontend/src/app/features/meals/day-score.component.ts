@@ -159,7 +159,7 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
       transition: transform var(--dur-1) var(--ease-out);
       animation: pop-in 420ms var(--ease-out) both;
     }
-    .pill:active {
+    .pill.is-pressed {
       transform: scale(0.98);
     }
     .pill app-icon {
@@ -442,7 +442,7 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
   `,
 })
 export class DayScoreComponent {
-  protected readonly sourceKeys: SourceKey[] = ['who', 'whoSalt'];
+  protected readonly sourceKeys: SourceKey[] = ['who', 'whoSalt', 'sugarsNote', 'ansesFibre'];
   readonly day = input.required<MealDay>();
   /** the member's split, in % of the calories (the macros are judged against it) */
   readonly shares = input<{ p: number; c: number; f: number } | undefined>(undefined);

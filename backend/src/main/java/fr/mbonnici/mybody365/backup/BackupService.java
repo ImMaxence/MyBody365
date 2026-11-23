@@ -615,6 +615,10 @@ public class BackupService {
                 insert("meal_entry", v, Map.of("id", UUID.randomUUID(), "user_id", userId));
                 meals++;
             }
+            // 1.20: the free sugars and the fried word of what came back (a backup carries neither)
+            if (recipes > 0 || meals > 0) {
+                fr.mbonnici.mybody365.meals.FreeSugarsFill.fillMissing(jdbc);
+            }
             int workouts = 0;
             for (Map<String, Object> w : list(p.data(), "workouts")) {
                 Map<String, Object> v = typed(BackupFormat.WORKOUTS, w);
