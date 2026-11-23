@@ -2,6 +2,13 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.20.3] - 2026-11-23
+
+« Nouvelle version disponible » lisible en entier dans le Profil
+
+### Corrigé
+- Profil, « Nouvelle version disponible » : le titre et le texte étaient coupés par le bouton. Ils s'affichent maintenant en entier, le petit rond rouge est sur l'icône de rechargement et « Recharger » juste en dessous
+
 ## [1.20.2] - 2026-11-23
 
 Un écran de démarrage centré dès la première image, qui dit quand il n'y a pas de réseau, et une nouvelle version à recharger depuis le Profil

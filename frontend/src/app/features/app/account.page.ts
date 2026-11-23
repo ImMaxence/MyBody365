@@ -156,14 +156,16 @@ import { AvatarZoom } from '../../shared/avatar-zoom';
         <!-- 1.20.2: a new version came while the app stayed open: switched to now in one tap (else it comes by itself the
              next time the app goes to the background) -->
         @if (update.ready()) {
-          <button type="button" class="list-item update-row" [disabled]="reloading()" (click)="reloadApp()">
-            <span class="list-icon update-ico" [class.turning]="reloading()"><app-icon name="refresh" /></span>
+          <button type="button" class="list-item update-row" [class.reloading]="reloading()" [disabled]="reloading()" (click)="reloadApp()">
+            <span class="list-icon update-ico" [class.turning]="reloading()">
+              <app-icon name="refresh" />
+              <span class="ico-dot" aria-hidden="true"></span>
+            </span>
             <span class="list-body">
               <span class="list-title">{{ 'account.update.title' | t }}</span>
               <span class="list-sub">{{ 'account.update.sub' | t: { v: version } }}</span>
+              <span class="reload-pill"><app-icon name="refresh" [size]="16" [stroke]="2.4" /> {{ 'account.update.reload' | t }}</span>
             </span>
-            <span class="row-dot" aria-hidden="true"></span>
-            <span class="reload-pill">{{ 'account.update.reload' | t }}</span>
           </button>
         }
         <a routerLink="/app/account/changelog" class="list-item">
@@ -417,12 +419,34 @@ import { AvatarZoom } from '../../shared/avatar-zoom';
       color: var(--accent-text);
     }
     /* 1.20.2: a new version to reload */
-    .update-ico {
-      background: var(--accent-soft);
-      color: var(--accent-text);
+    .update-row {
+      align-items: flex-start;
     }
-    .update-ico.turning app-icon {
+    .update-ico {
+      position: relative;
+      background: var(--accent-soft) !important;
+      color: var(--accent-text) !important;
+    }
+    .update-ico.turning > app-icon,
+    .update-row.reloading .reload-pill app-icon {
       animation: turn 900ms linear infinite;
+    }
+    /* the small red dot, on the refresh icon */
+    .ico-dot {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #e5341c;
+      box-shadow: 0 0 0 2px var(--surface);
+      animation: dot-in 420ms cubic-bezier(0.34, 1.6, 0.5, 1) both;
+    }
+    /* the whole text, on as many lines as it needs */
+    .update-row .list-title,
+    .update-row .list-sub {
+      white-space: normal;
     }
     @keyframes turn {
       to {
@@ -430,7 +454,11 @@ import { AvatarZoom } from '../../shared/avatar-zoom';
       }
     }
     .reload-pill {
-      flex: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      justify-self: start;
+      margin-top: 8px;
       padding: 7px 14px;
       border-radius: 999px;
       background: var(--flame-deep);

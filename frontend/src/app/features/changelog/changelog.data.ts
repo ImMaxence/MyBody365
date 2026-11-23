@@ -7,6 +7,27 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.20.3",
+    "date": "2026-11-23",
+    "summary": [
+      {
+        "t": "« Nouvelle version disponible » lisible en entier dans le Profil"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Profil, « Nouvelle version disponible » : le titre et le texte étaient coupés par le bouton. Ils s'affichent maintenant en entier, le petit rond rouge est sur l'icône de rechargement et « Recharger » juste en dessous"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.20.2",
     "date": "2026-11-23",
     "summary": [
