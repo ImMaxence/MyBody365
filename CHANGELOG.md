@@ -2,6 +2,17 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.20.2] - 2026-11-23
+
+Un écran de démarrage centré dès la première image, qui dit quand il n'y a pas de réseau, et une nouvelle version à recharger depuis le Profil
+
+### Ajouté
+- Démarrage sans réseau : l'anneau du logo s'arrête et l'écran dit « Pas de connexion internet · Accès en mode hors ligne », le temps de le lire, puis l'app s'ouvre sur ce que ton téléphone a gardé
+- Nouvelle version pendant que l'app reste ouverte : un point rouge s'allume sur l'onglet Profil, et « Nouvelle version disponible » propose « Recharger » pour l'avoir tout de suite. Sans rien toucher, elle s'installe toujours toute seule la prochaine fois que l'app passe en arrière-plan. L'app en cherche une toutes les 15 minutes quand elle reste ouverte, et quand tu ouvres le Profil
+
+### Corrigé
+- Écran de démarrage sur iPhone : le logo apparaissait plus haut que le centre de l'écran, avec une barre de défilement à droite, puis sautait au centre. Il est centré sur l'écran dès la première image, et rien ne défile pendant le chargement
+
 ## [1.20.1] - 2026-11-23
 
 Le scan du code-barres pour les ingrédients d'une recette, et une seule date d'arrivée à ton objectif sur l'écran Progrès

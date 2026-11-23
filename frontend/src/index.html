@@ -27,12 +27,23 @@
   <!-- the hero title is the largest paint: its font must not wait for the stylesheet -->
   <link rel="preload" href="/fonts/archivo-display.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <!-- 1.15: the logo in the middle while the app starts (core/ui/boot-splash.ts); the prerendered public pages drop it -->
+  <!-- 1.15: the logo in the middle while the app starts (core/ui/boot-splash.ts); the prerendered public pages drop it.
+       1.20.2: nothing scrolls while it is up; in the iPhone's installed app it is centred on the screen itself, iOS giving
+       a viewport too short for a moment at start (the logo started too high, then jumped: this script, its SHA-256 in the
+       CSP); without network its ring stops and it says so (the message comes from boot-splash.ts) -->
+  <script>try{var h=screen.height;if(navigator.standalone&&innerHeight>innerWidth&&h-innerHeight<121)document.documentElement.style.setProperty('--boot-cy',h/2+'px')}catch(e){}</script>
   <style id="boot-style">
-    .boot{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;background:#f3f1ec;transition:opacity .34s ease,visibility 0s .34s}
-    @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .boot{background:#0a0a0c}}
-    :root[data-theme=dark] .boot{background:#0a0a0c}
-    .boot svg{width:96px;height:96px;border-radius:28%;box-shadow:0 18px 50px -18px rgba(255,90,30,.55);animation:boot-in .5s cubic-bezier(.2,.9,.3,1.15) both;transition:transform .34s ease}
+    html{overflow:hidden}
+    .boot{position:fixed;inset:0;z-index:2000;background:#f3f1ec;color:#16130f;--boot-dim:#57524a;transition:opacity .34s ease,visibility 0s .34s}
+    @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .boot{background:#0a0a0c;color:#f6f3ee;--boot-dim:#b3afa7}}
+    :root[data-theme=dark] .boot{background:#0a0a0c;color:#f6f3ee;--boot-dim:#b3afa7}
+    .boot svg{position:absolute;left:50%;top:var(--boot-cy,50%);width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:28%;box-shadow:0 18px 50px -18px rgba(255,90,30,.55);animation:boot-in .5s cubic-bezier(.2,.9,.3,1.15) both;transition:transform .34s ease}
+    .boot-off{position:absolute;left:24px;right:24px;top:calc(var(--boot-cy,50%) + 76px);display:grid;gap:2px;margin:0;text-align:center;font:500 15px/1.45 "Inter Variable",ui-sans-serif,system-ui,-apple-system,sans-serif;animation:boot-off .4s ease both}
+    .boot-off strong{font-size:16px;font-weight:700}
+    .boot-off span{color:var(--boot-dim)}
+    .boot.offline .boot-spin,.boot.offline .boot-ring{animation-play-state:paused}
+    .boot.offline .boot-ring{opacity:.3;transition:opacity .4s ease}
+    @keyframes boot-off{from{opacity:0;transform:translateY(6px)}}
     .boot-ring{stroke-dasharray:84 200;animation:boot-draw .9s .12s cubic-bezier(.65,0,.35,1) both}
     .boot-spin{transform-box:view-box;transform-origin:24px 24px;animation:boot-spin 1.5s 1s linear infinite}
     .boot-flame{transform-box:fill-box;transform-origin:50% 90%;animation:boot-flame .55s .3s cubic-bezier(.2,.9,.3,1.3) both,boot-breathe 1.3s .85s ease-in-out infinite alternate}
@@ -43,7 +54,7 @@
     @keyframes boot-spin{to{transform:rotate(360deg)}}
     @keyframes boot-flame{from{opacity:0;transform:scale(.4)}}
     @keyframes boot-breathe{to{transform:scale(1.08)}}
-    @media (prefers-reduced-motion:reduce){.boot svg,.boot-ring,.boot-spin,.boot-flame{animation:none}}
+    @media (prefers-reduced-motion:reduce){.boot svg,.boot-ring,.boot-spin,.boot-flame,.boot-off{animation:none}}
   </style>
 </head>
 <body>

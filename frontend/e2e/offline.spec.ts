@@ -21,6 +21,12 @@ test.describe('offline (1.18)', () => {
     // no network, and the app started again (a phone closes the apps left in the background)
     await page.context().setOffline(true);
     await page.reload();
+    // 1.20.2: the logo at start says it, its ring stopped, long enough to be read, then the app opens
+    const boot = page.locator('#boot');
+    await expect(boot).toHaveClass(/offline/);
+    await expect(boot.getByRole('status')).toContainText('Pas de connexion internet');
+    await expect(boot.getByRole('status')).toContainText('Accès en mode hors ligne');
+    await expect(boot).toHaveCount(0, { timeout: 12_000 });
     // the app, not the sign-in screen: the day as it was (the onboarding weighed day 1: nothing « À faire »)
     await expect(page).toHaveURL(/\/app\/?(\?.*)?$/);
     await expect(weigh).toContainText('kg');

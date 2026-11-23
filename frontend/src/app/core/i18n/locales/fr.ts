@@ -824,6 +824,12 @@ export const fr = {
     roleAdmin: 'Administrateur',
     changelog: 'Nouveautés',
     changelogSub: 'Version {v}',
+    /** 1.20.2: a new version ready while the app stayed open */
+    update: {
+      title: 'Nouvelle version disponible',
+      sub: 'Tu as la {v} : recharge pour passer à la nouvelle',
+      reload: 'Recharger',
+    },
     photo: 'Photo de profil',
     photoChange: 'Changer la photo de profil',
     photoZoom: 'Voir ma photo de profil en grand',
@@ -1104,6 +1110,9 @@ export const fr = {
     never: 'Ne descends jamais sous ton objectif du jour pour forcer : ça fatigue et fait reprendre',
   },
   offline: {
+    /** 1.20.2: under the logo at start, without network */
+    bootTitle: 'Pas de connexion internet',
+    bootText: 'Accès en mode hors ligne',
     queued: 'Pas de réseau : noté sur ton téléphone, envoyé dès le retour du réseau',
     one: '1 saisie en attente de réseau',
     many: '{n} saisies en attente de réseau',

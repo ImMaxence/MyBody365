@@ -1,10 +1,8 @@
 import { ChangeDetectionStrategy, Component, DOCUMENT, EnvironmentInjector, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
-import { filter } from 'rxjs';
 import { I18nService } from './core/i18n/i18n.service';
 import { Router, RouterOutlet } from '@angular/router';
+import { AppUpdate } from './core/pwa/app-update';
 import { InstallService } from './core/pwa/install.service';
 import { StackNavigation } from './core/nav/stack-navigation';
 import { ThemeService } from './core/theme/theme.service';
@@ -51,36 +49,8 @@ export class App {
     if (browser) installSheets(this.document);
     // 1.20: a button pressed only by a real tap, never by a finger scrolling over it
     if (browser) installPress(this.document);
-    // a new version is downloaded in the background, then switched to without a word: the next time the app
-    // goes to the background (the reload is not seen, the session stays). Nothing to tap. The app looks for a
-    // new version each time it comes back to the front.
-    const updates = inject(SwUpdate);
-    if (!updates.isEnabled) return;
-    let ready = false;
-    updates.versionUpdates
-      .pipe(
-        filter((e): e is VersionReadyEvent => e.type === 'VERSION_READY'),
-        takeUntilDestroyed(),
-      )
-      .subscribe(() => {
-        ready = true;
-        if (this.document.visibilityState === 'hidden') this.switchVersion(updates);
-      });
-    // a broken cache (files of an old version gone): start again from the network
-    updates.unrecoverable.pipe(takeUntilDestroyed()).subscribe(() => this.document.location.reload());
-    this.document.addEventListener('visibilitychange', () => {
-      if (this.document.visibilityState === 'hidden') {
-        if (ready) this.switchVersion(updates);
-      } else {
-        void updates.checkForUpdate().catch(() => false);
-      }
-    });
-  }
-
-  private switchVersion(updates: SwUpdate): void {
-    void updates
-      .activateUpdate()
-      .then(() => this.document.location.reload())
-      .catch(() => undefined);
+    // a new version is downloaded in the background, then switched to without a word the next time the app goes to
+    // the background; 1.20.2: while it stays open in front, it is said in the Profile, with « Recharger » (core/pwa/app-update.ts)
+    if (browser) inject(AppUpdate).start();
   }
 }

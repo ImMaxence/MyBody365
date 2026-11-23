@@ -821,6 +821,11 @@ export const en: CoreDictionary = {
     roleAdmin: 'Administrator',
     changelog: 'What’s new',
     changelogSub: 'Version {v}',
+    update: {
+      title: 'New version available',
+      sub: 'You have {v}: reload to switch to the new one',
+      reload: 'Reload',
+    },
     photo: 'Profile picture',
     photoChange: 'Change the profile picture',
     photoZoom: 'See my profile picture big',
@@ -1101,6 +1106,8 @@ export const en: CoreDictionary = {
     never: 'Never go below your target of the day to force it: it tires you and brings the weight back',
   },
   offline: {
+    bootTitle: 'No internet connection',
+    bootText: 'Opening in offline mode',
     queued: 'No network: noted on your phone, sent as soon as the network is back',
     one: '1 entry waiting for the network',
     many: '{n} entries waiting for the network',

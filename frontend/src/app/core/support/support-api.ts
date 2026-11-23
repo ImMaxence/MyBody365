@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { fresh } from '../api/kept';
+import { AppUpdate } from '../pwa/app-update';
 
 export type FeedbackKind = 'IDEA' | 'BUG' | 'OTHER';
 
@@ -86,15 +87,17 @@ export class SupportApi {
 @Injectable({ providedIn: 'root' })
 export class TodoStore {
   private readonly api = inject(SupportApi);
+  /** 1.20.2: a new version ready while the app stays open */
+  private readonly update = inject(AppUpdate);
   readonly todo = signal<Todo | null>(null);
   readonly admin = computed(() => {
     const t = this.todo();
     return t ? t.adminRequests + t.adminFeedback + t.adminErrors : 0;
   });
-  /** something waits in the profile */
+  /** something waits in the profile (1.20.2: a new version to reload too) */
   readonly profile = computed(() => {
     const t = this.todo();
-    return !!t && (t.passkey || t.drive || this.admin() > 0);
+    return this.update.ready() || (!!t && (t.passkey || t.drive || this.admin() > 0));
   });
 
   /** 1.12: something to answer on Today (a friend request, a challenge invitation) */

@@ -11,6 +11,7 @@ import { UserDataService } from '../../core/user-data.service';
 import { prepareImage } from '../../core/photos/image-tools';
 import { closeSheet } from '../../core/ui/sheets';
 import { ToastService } from '../../core/ui/toast.service';
+import { AppUpdate } from '../../core/pwa/app-update';
 import { IconComponent } from '../../shared/icon.component';
 import { CURRENT_VERSION } from '../changelog/changelog.version';
 import { SegDirective } from '../../shared/seg.directive';
@@ -152,6 +153,19 @@ import { AvatarZoom } from '../../shared/avatar-zoom';
           </span>
           <app-icon name="chevronRight" />
         </button>
+        <!-- 1.20.2: a new version came while the app stayed open: switched to now in one tap (else it comes by itself the
+             next time the app goes to the background) -->
+        @if (update.ready()) {
+          <button type="button" class="list-item update-row" [disabled]="reloading()" (click)="reloadApp()">
+            <span class="list-icon update-ico" [class.turning]="reloading()"><app-icon name="refresh" /></span>
+            <span class="list-body">
+              <span class="list-title">{{ 'account.update.title' | t }}</span>
+              <span class="list-sub">{{ 'account.update.sub' | t: { v: version } }}</span>
+            </span>
+            <span class="row-dot" aria-hidden="true"></span>
+            <span class="reload-pill">{{ 'account.update.reload' | t }}</span>
+          </button>
+        }
         <a routerLink="/app/account/changelog" class="list-item">
           <span class="list-icon"><app-icon name="sparkles" /></span>
           <span class="list-body">
@@ -402,6 +416,31 @@ import { AvatarZoom } from '../../shared/avatar-zoom';
       background: var(--accent-soft);
       color: var(--accent-text);
     }
+    /* 1.20.2: a new version to reload */
+    .update-ico {
+      background: var(--accent-soft);
+      color: var(--accent-text);
+    }
+    .update-ico.turning app-icon {
+      animation: turn 900ms linear infinite;
+    }
+    @keyframes turn {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    .reload-pill {
+      flex: none;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: var(--flame-deep);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .update-row:disabled {
+      opacity: 1;
+    }
     /* something to do there (a passkey, the Drive backup) */
     .row-dot {
       width: 10px;
@@ -488,10 +527,20 @@ export class AccountPage {
   /** « Auto · Français » */
   protected readonly settingsSub = computed(() => `${this.i18n.t('theme.' + this.theme.mode())} · ${this.i18n.lang() === 'en' ? 'English' : 'Français'}`);
   protected readonly version = CURRENT_VERSION;
+  /** 1.20.2: a new version ready while the app stayed open */
+  protected readonly update = inject(AppUpdate);
+  protected readonly reloading = signal(false);
 
   constructor() {
     if (!this.tracking.summary()) void this.tracking.load();
     void this.todo.ensure();
+    // here to look at the version: a new one is looked for (at most every 2 minutes)
+    this.update.checkSoon();
+  }
+
+  protected reloadApp(): void {
+    this.reloading.set(true);
+    void this.update.reload();
   }
 
   protected openFeedback(): void {
