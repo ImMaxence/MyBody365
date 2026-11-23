@@ -273,4 +273,34 @@ test.describe('tracking', () => {
     await expect(page.getByRole('link', { name: /^Poids de départ : 82,0 kg, modifier$/ })).toBeVisible();
     await expect(page.locator('.stat', { hasText: 'Actuel' })).toContainText('78,0');
   });
+
+  test('the real pace next to the calculation, one date for the goal everywhere (1.20)', async ({ page }) => {
+    await signIn(page, 'new');
+    // three weeks losing 1,05 kg a week (0,15 kg a day), faster than the plan
+    const xsrf = (await page.context().cookies()).find((c) => c.name === 'XSRF-TOKEN')?.value ?? '';
+    const day = (offset: number) => {
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+    for (let i = 0; i <= 20; i++) {
+      const res = await page.request.put(`/api/me/logs/${day(i - 20)}`, { headers: { 'X-XSRF-TOKEN': xsrf }, data: { weightKg: Math.round((76 - 0.15 * i) * 100) / 100 } });
+      expect(res.ok()).toBe(true);
+    }
+    await page.goto('/app/progress');
+
+    // the calculation of the plan, then what the scale says, with its date
+    const card = page.locator('app-deficit-card');
+    const real = card.locator('.real');
+    // (the French spaces before « : » and before « kg » do not break)
+    await expect(real).toContainText(/Ton rythme réel, ces 4 dernières semaines\s:\s1,05\skg par semaine/);
+    await expect(real).toContainText(/Plus vite que ce calcul \(0,\d+\skg par semaine\)\s:\sà ce rythme, tu y serais vers le /);
+    const date = (await real.textContent())!.match(/vers le (.+?)\s*$/)![1];
+
+    // the month by month forecast: the same pace, the plan next to it, the same day
+    const forecast = page.locator('app-monthly-forecast');
+    await expect(forecast.getByText(/^À ton rythme réel des 4 dernières semaines\s:\s1,05\skg par semaine, ton plan en prévoit 0,\d+$/)).toBeVisible();
+    await expect(forecast.getByText(`Objectif atteint vers le ${date}`)).toBeVisible();
+    await expectAccessible(page);
+  });
 });

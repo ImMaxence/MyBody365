@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRe
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
-import type { Lookalike, Nutrients, RecipeDraft, RecipeType, RecipeVisibility } from '../../core/api/models';
+import type { Food, Lookalike, Nutrients, RecipeDraft, RecipeType, RecipeVisibility } from '../../core/api/models';
 import { closeSheet } from '../../core/ui/sheets';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
@@ -19,6 +19,7 @@ import { ToastService } from '../../core/ui/toast.service';
 import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 import { NumberStepperComponent } from '../../shared/number-stepper.component';
+import { BarcodeScannerComponent } from './barcode-scanner.component';
 import { FoodPickerComponent, Picked } from './food-picker.component';
 import { RecipeImportSheetComponent, firstLink } from './recipe-import-sheet.component';
 import { RECIPE_TYPES, TYPE_EMOJI } from './recipes.page';
@@ -65,7 +66,7 @@ interface Line {
 @Component({
   selector: 'app-recipe-edit',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RecipeImportSheetComponent, SegDirective, FormsModule, TranslatePipe, ServingPipe, IconComponent, BackButtonComponent, NumberStepperComponent, FoodPickerComponent, HealthScoreComponent],
+  imports: [RecipeImportSheetComponent, SegDirective, FormsModule, TranslatePipe, ServingPipe, IconComponent, BackButtonComponent, NumberStepperComponent, FoodPickerComponent, HealthScoreComponent, BarcodeScannerComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -241,7 +242,14 @@ interface Line {
         <div class="sheet-grip"></div>
         <h2 class="h3">{{ 'meals.recipe.pickTitle' | t }}</h2>
         @if (pickerOpen()) {
-          <app-food-picker [withExtras]="false" [start]="pickerQuery()" (picked)="addLine($event)" />
+          <app-food-picker [withExtras]="false" [start]="pickerQuery()" [scanHere]="true" (scan)="openScanner()" (picked)="addLine($event)" />
+        }
+      </dialog>
+
+      <!-- 1.20: an ingredient by its barcode, the camera on top of the form (which stays as it was) -->
+      <dialog class="scanner" #scanner [attr.aria-label]="'meals.scan.title' | t" (close)="scannerClosed()">
+        @if (scanning()) {
+          <app-barcode-scanner [level]="2" (found)="scanned($event)" (closed)="scannerDialog().nativeElement.close()" />
         }
       </dialog>
 
@@ -520,6 +528,23 @@ interface Line {
     .picker {
       min-height: min(70dvh, calc(var(--vvh, 100dvh) - 12px));
     }
+    /* 1.20: the scanner over the whole screen, above the form */
+    dialog.scanner {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: #050506;
+      color: #fff;
+    }
+    dialog.scanner::backdrop {
+      background: #050506;
+    }
     .line-name {
       display: grid;
       gap: 1px;
@@ -669,6 +694,10 @@ export class RecipeEditPage {
   protected readonly preview = signal<string | null>(null);
   protected readonly busy = signal(false);
   protected readonly pickerOpen = signal(false);
+  /** 1.20: the barcode scanner, on top of the form */
+  protected readonly scannerDialog = viewChild.required<ElementRef<HTMLDialogElement>>('scanner');
+  protected readonly scanning = signal(false);
+  private scanAdded = false;
   private image: Blob | null = null;
   private imageRemoved = false;
   private objectUrl: string | null = null;
@@ -874,6 +903,31 @@ export class RecipeEditPage {
     this.replacing = null;
     this.pickerDialog().nativeElement.close();
     this.pickerOpen.set(false);
+  }
+
+  /**
+   * 1.20: an ingredient by its barcode. The search sheet steps aside (still there, as it was), the camera takes the
+   * whole screen; the product found becomes a line like a food picked in the search (the same line kept when
+   * its food is being changed, the weight of an imported line).
+   */
+  protected openScanner(): void {
+    this.scanAdded = false;
+    this.pickerDialog().nativeElement.close();
+    this.scanning.set(true);
+    this.scannerDialog().nativeElement.showModal();
+  }
+
+  protected scanned(food: Food): void {
+    this.scanAdded = true;
+    this.addLine({ kind: 'FOOD', food });
+    this.scannerDialog().nativeElement.close();
+    this.toast.show(this.i18n.t('meals.recipe.scanAdded', { name: food.brand ? `${food.name} · ${food.brand}` : food.name }));
+  }
+
+  /** the scanner closed (its cross, Escape, the phone's back): the camera goes; without a product, back to the search */
+  protected scannerClosed(): void {
+    this.scanning.set(false);
+    if (!this.scanAdded && this.pickerOpen()) this.pickerDialog().nativeElement.showModal();
   }
 
   protected skip(line: string): void {

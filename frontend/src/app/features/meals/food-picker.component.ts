@@ -64,6 +64,11 @@ const PREVIEW = 5;
         <a class="icon-btn scan" [routerLink]="scanLink()" [queryParams]="scanParams()" [attr.aria-label]="'meals.search.scan' | t">
           <app-icon name="barcode" />
         </a>
+      } @else if (scanHere()) {
+        <!-- 1.20: the scanner opened by the screen itself, on top of it (the recipe editor keeps its form) -->
+        <button type="button" class="icon-btn scan" [attr.aria-label]="'meals.search.scan' | t" (click)="scan.emit()">
+          <app-icon name="barcode" />
+        </button>
       }
     </form>
 
@@ -635,6 +640,9 @@ export class FoodPickerComponent {
   readonly placeholder = input('');
   readonly scanLink = input<string | null>(null);
   readonly scanParams = input<Record<string, string>>({});
+  /** 1.20: a scan button that asks the screen to open the scanner itself (no page change) */
+  readonly scanHere = input(false);
+  readonly scan = output<void>();
   readonly createLink = input<string | null>(null);
   readonly createParams = input<Record<string, string>>({});
   /** the meal the pages of a source add to */

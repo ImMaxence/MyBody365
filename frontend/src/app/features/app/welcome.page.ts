@@ -172,7 +172,7 @@ type Step = 'consent' | 'about' | 'body' | 'check' | 'goal' | 'plan';
                   <span class="mid">{{ p.goal.planDate ? i18n.date(p.goal.planDate, { day: 'numeric', month: 'long' }) : '—' }}</span>
                 </div>
               </div>
-              <app-monthly-forecast [fromKg]="p.current.weightKg ?? p.profile.startWeightKg" [goalKg]="p.goal.goalKg" [kgPerWeek]="p.profile.weeklyRateKg" />
+              <app-monthly-forecast [fromKg]="p.current.weightKg ?? p.profile.startWeightKg" [goalKg]="p.goal.goalKg" [kgPerWeek]="p.profile.weeklyRateKg" [reachOn]="p.goal.planDate ?? null" />
               @if (p.energy.floorApplied) {
                 <p class="notice notice-accent"><app-icon name="alert" /> {{ 'setup.planFloor' | t }}</p>
               }

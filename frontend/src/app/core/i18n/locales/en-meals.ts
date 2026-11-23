@@ -278,6 +278,7 @@ export const enMeals: Widen<typeof frMeals> = {
     nutrition: 'Per serving · {g} g',
     totals: 'Per serving',
     pickTitle: 'Pick an ingredient',
+    scanAdded: '“{name}” added to the recipe',
     lookalike: {
       title: 'It may already exist',
       text: 'These recipes look a lot like yours. Open one to add it to a meal or copy it, or create yours anyway',

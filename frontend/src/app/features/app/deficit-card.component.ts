@@ -11,6 +11,8 @@ const KCAL_PER_KG = 7700;
  * 1.14: « Le calcul de ton objectif », on Progress: what is left in calories (kilos × 7 700), divided by the deficit of a
  * day, gives the days, then the date. The deficit of the plan (the daily expense minus the target), or another one to
  * see: the ones over 1 % of the weight a week are not offered, a day under the floor (1 200 or 1 500 kcal) is said.
+ * 1.20: the real pace of the last 4 weeks is said next to it, with its date (the one of Today, of the curve and of the
+ * forecast): the plan's date alone looked like a second goal date.
  */
 @Component({
   selector: 'app-deficit-card',
@@ -49,6 +51,16 @@ const KCAL_PER_KG = 7700;
         <p class="small">{{ 'progress.deficit.eat' | t: { eat: i18n.number(c.eat), tdee: i18n.number(c.tdee) } }}</p>
         @if (c.tooLow) {
           <p class="alert small"><app-icon name="alert" [size]="16" /> <span>{{ 'progress.deficit.tooLow' | t: { min: i18n.number(c.floor) } }}</span></p>
+        }
+        <!-- 1.20: what the scale says next to this calculation, with the date of Today, of the curve and of the forecast -->
+        @if (c.real; as r) {
+          <p class="real small">
+            <app-icon name="activity" [size]="16" />
+            <span>
+              <strong>{{ 'progress.deficit.real' | t: { kg: kg(r.kg) } }}</strong>
+              {{ 'progress.deficit.real' + r.vs | t: { kg: kg(r.pace), date: i18n.date(r.date, { day: 'numeric', month: 'long', year: 'numeric' }) } }}
+            </span>
+          </p>
         }
         <p class="tiny muted">{{ 'progress.deficit.note' | t }}</p>
       </section>
@@ -125,6 +137,28 @@ const KCAL_PER_KG = 7700;
       margin-top: 1px;
       color: #e2711d;
     }
+    .real {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: var(--space-3);
+      border-radius: 16px;
+      background: var(--cool-soft);
+    }
+    .real app-icon {
+      flex: none;
+      margin-top: 2px;
+      color: var(--cool);
+    }
+    .real > span {
+      color: var(--fg-2);
+    }
+    .real strong {
+      display: block;
+      margin-bottom: 2px;
+      font-weight: 700;
+      color: var(--fg);
+    }
   `,
 })
 export class DeficitCardComponent {
@@ -156,6 +190,17 @@ export class DeficitCardComponent {
     const date = new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
     const eat = losing ? tdee - deficit : tdee + deficit;
     const floor = s.profile.sex === 'MALE' ? 1500 : 1200;
-    return { kg, losing, tdee, total, deficit, days, date, eat, floor, tooLow: losing && eat < floor, options };
+    // 1.20: the real pace of the last 4 weeks, when it goes the right way, against the pace of this deficit
+    const pace = (deficit * 7) / KCAL_PER_KG;
+    const trend = s.goal.trendKgPerWeek;
+    const good = trend != null && Math.abs(trend) >= 0.05 && (losing ? trend < 0 : trend > 0) && !!s.goal.trendDate;
+    const vs = !good ? null : Math.abs(trend!) >= pace * 1.1 ? 'Faster' : Math.abs(trend!) <= pace * 0.9 ? 'Slower' : 'Same';
+    const real = good ? { kg: Math.abs(trend!), date: s.goal.trendDate!, pace, vs } : null;
+    return { kg, losing, tdee, total, deficit, days, date, eat, floor, tooLow: losing && eat < floor, options, real };
   });
+
+  /** kilos a week: 0,5 or 0,68, never 0,50 */
+  protected kg(n: number): string {
+    return this.i18n.number(n, Math.round(n * 100) % 10 === 0 ? 1 : 2);
+  }
 }

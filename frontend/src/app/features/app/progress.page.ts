@@ -130,7 +130,7 @@ const RANGE_DAYS: Record<Range, number> = { m1: 30, m3: 90, all: 0 };
           }
 
           @if (forecast(); as f) {
-            <app-monthly-forecast [fromKg]="f.from" [goalKg]="f.goal" [kgPerWeek]="f.pace" [basis]="f.basis" />
+            <app-monthly-forecast [fromKg]="f.from" [goalKg]="f.goal" [kgPerWeek]="f.pace" [basis]="f.basis" [reachOn]="f.reachOn" [planKgPerWeek]="f.plan" />
           }
 
           <app-milestones-card (share)="shareSheet.open('MILESTONE', '', $event)" />
@@ -403,7 +403,15 @@ export class ProgressPage {
     const losing = goal < from;
     const trend = s.goal.trendKgPerWeek;
     const goodTrend = trend != null && Math.abs(trend) >= 0.05 && (losing ? trend < 0 : trend > 0);
-    return { from, goal, pace: goodTrend ? Math.abs(trend!) : s.profile.weeklyRateKg, basis: (goodTrend ? 'trend' : 'plan') as 'trend' | 'plan' };
+    return {
+      from,
+      goal,
+      pace: goodTrend ? Math.abs(trend!) : s.profile.weeklyRateKg,
+      basis: (goodTrend ? 'trend' : 'plan') as 'trend' | 'plan',
+      // 1.20: the server's day, the one of Today and of the curve; the plan said next to the real pace
+      reachOn: (goodTrend ? s.goal.trendDate : s.goal.planDate) ?? null,
+      plan: s.profile.weeklyRateKg,
+    };
   });
   protected readonly goalDate = computed(() => this.summary()?.goal.trendDate ?? this.summary()?.goal.planDate ?? null);
   /** the BMI of the last weigh-in (as the server computes it) */

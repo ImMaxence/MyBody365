@@ -91,6 +91,17 @@ describe('monthly forecast', () => {
     expect(rows.at(-1)!.progress).toBe(1);
   });
 
+  it('ends on the day the server gives, the one of Today and of the curve (1.20)', () => {
+    // 0.98 kg a week rounded: the server's slope says 20 June, the forecast says 20 June too
+    const rows = monthlyForecast(104.1, 75, 0.98, '2026-11-23', '2027-06-20');
+    expect(rows.at(-1)!.reachedOn).toBe('2027-06-20');
+    expect(rows.at(-1)!.kg).toBe(75);
+    expect(rows.map((r) => r.month).at(-1)).toBe('2027-06');
+    // a day already gone (or none) is worked out at the pace
+    expect(monthlyForecast(80, 76, 0.5, '2026-11-16', '2026-11-01').at(-1)!.reachedOn).toBe('2027-01-11');
+    expect(monthlyForecast(80, 76, 0.5, '2026-11-16', null).at(-1)!.reachedOn).toBe('2027-01-11');
+  });
+
   it('works the other way for a gain, and gives nothing without a pace', () => {
     const rows = monthlyForecast(60, 62, 0.25, '2026-11-16');
     expect(rows[0].change).toBeGreaterThan(0);

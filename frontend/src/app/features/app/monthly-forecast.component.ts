@@ -19,15 +19,19 @@ export interface MonthRow {
   reachedOn?: string;
 }
 
-/** Month by month, from today's weight to the goal at a steady pace (24 months at most). */
-export function monthlyForecast(fromKg: number, goalKg: number, kgPerWeek: number, today = localDay()): MonthRow[] {
+/**
+ * Month by month, from today's weight to the goal at a steady pace (24 months at most). 1.20: `reachOn`, the day of the
+ * goal worked out by the server (the one of Today and of the curve), is kept as it is, so no screen says another day.
+ */
+export function monthlyForecast(fromKg: number, goalKg: number, kgPerWeek: number, today = localDay(), reachOn?: string | null): MonthRow[] {
   const total = Math.abs(goalKg - fromKg);
   if (total < 0.1 || kgPerWeek <= 0) return [];
   const dir = goalKg < fromKg ? -1 : 1;
-  const perDay = kgPerWeek / 7;
   const start = new Date(today + 'T12:00:00');
   // the day of the goal, then the weight on the last day of each month until then
-  const reach = new Date(start.getTime() + Math.ceil(total / perDay - 1e-9) * DAY);
+  const given = reachOn && reachOn > today ? new Date(reachOn + 'T12:00:00') : null;
+  const reach = given ?? new Date(start.getTime() + Math.ceil(total / (kgPerWeek / 7) - 1e-9) * DAY);
+  const perDay = given ? total / Math.max(1, Math.round((given.getTime() - start.getTime()) / DAY)) : kgPerWeek / 7;
   const rows: MonthRow[] = [];
   let before = fromKg;
   for (let i = 0; i < 24; i++) {
@@ -169,11 +173,19 @@ export class MonthlyForecastComponent {
   readonly kgPerWeek = input.required<number>();
   /** which pace: the real one (the trend of the last weeks) or the planned one */
   readonly basis = input<'trend' | 'plan'>('plan');
+  /** 1.20: the day of the goal as the server says it (the forecast ends on it) */
+  readonly reachOn = input<string | null>(null);
+  /** 1.20: the planned pace, said next to the real one */
+  readonly planKgPerWeek = input<number | null>(null);
   protected readonly i18n = inject(I18nService);
-  protected readonly rows = computed(() => monthlyForecast(this.fromKg(), this.goalKg(), this.kgPerWeek()));
-  protected readonly caption = computed(() =>
-    this.i18n.t('progress.forecast.' + this.basis(), { kg: this.i18n.number(this.kgPerWeek(), 2) }),
-  );
+  protected readonly rows = computed(() => monthlyForecast(this.fromKg(), this.goalKg(), this.kgPerWeek(), localDay(), this.reachOn()));
+  protected readonly caption = computed(() => {
+    const plan = this.planKgPerWeek();
+    const key = this.basis() === 'trend' && plan ? 'trendVsPlan' : this.basis();
+    // the plan as it was chosen: 0,5 kg, never 0,50
+    const planText = plan ? this.i18n.number(plan, Math.round(plan * 100) % 10 === 0 ? 1 : 2) : '';
+    return this.i18n.t('progress.forecast.' + key, { kg: this.i18n.number(this.kgPerWeek(), 2), plan: planText });
+  });
   private readonly year = new Date().getFullYear();
 
   protected monthName(month: string): string {

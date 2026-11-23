@@ -509,4 +509,41 @@ test.describe('meals', () => {
     await expect(page).toHaveURL(recipeUrl);
     await expect(page.getByRole('heading', { name: title, level: 1 })).toBeVisible();
   });
+
+  test('an ingredient of a recipe by its barcode, the recipe in progress kept (1.20)', async ({ page }) => {
+    await signIn(page, 'new');
+    await page.goto('/app/meals/recipes/new');
+    await page.getByLabel('Nom de la recette').fill('Tartines du matin');
+    await page.getByRole('button', { name: 'Ajouter un ingrédient' }).click();
+    const picker = page.locator('dialog.picker');
+    await picker.getByRole('button', { name: 'Scanner un code-barres' }).click();
+    // the camera over the whole screen, on top of the form; no camera here: the code typed by hand
+    const scanner = page.getByRole('dialog', { name: 'Scanner un produit' });
+    await expect(scanner).toBeVisible();
+    await expect(picker).toBeHidden();
+    await scanner.getByLabel('Code-barres').fill('3228857000166');
+    await scanner.getByRole('button', { name: 'Chercher' }).click();
+    await expect(scanner).toBeHidden();
+    await expect(page.getByText('« 100% mie Complet-Volkoren · Harrys » ajouté à la recette')).toBeVisible();
+    // the form as it was, the product as a line
+    await expect(page.getByLabel('Nom de la recette')).toHaveValue('Tartines du matin');
+    await expect(page.locator('.line-food', { hasText: '100% mie Complet-Volkoren · Harrys' })).toBeVisible();
+    await expectAccessible(page);
+
+    // the scanner closed without a product: back to the search it came from
+    await page.getByRole('button', { name: 'Ajouter un ingrédient' }).click();
+    await picker.getByRole('button', { name: 'Scanner un code-barres' }).click();
+    await scanner.getByRole('button', { name: 'Fermer le scanner' }).click();
+    await expect(scanner).toBeHidden();
+    await expect(picker.getByRole('searchbox')).toBeVisible();
+
+    // the add screen's scanner, a page of its own, still opens the product's amount
+    await page.goto('/app/meals/add?slot=LUNCH');
+    await page.getByRole('link', { name: 'Scanner un code-barres' }).click();
+    await expect(page.getByRole('heading', { name: 'Scanner un produit', level: 1 })).toBeVisible();
+    await page.getByRole('textbox', { name: 'Code-barres' }).fill('3228857000166');
+    await page.getByRole('button', { name: 'Chercher' }).click();
+    await expect(page).toHaveURL(/\/app\/meals\/add/);
+    await expect(page.getByRole('dialog').getByText('100% mie Complet-Volkoren', { exact: true })).toBeVisible();
+  });
 });

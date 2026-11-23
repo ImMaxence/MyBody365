@@ -7,6 +7,32 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.20.1",
+    "date": "2026-11-23",
+    "summary": [
+      {
+        "t": "Le scan du code-barres pour les ingrédients d'une recette, et une seule date d'arrivée à ton objectif sur l'écran Progrès"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Créer une recette : un ingrédient s'ajoute aussi en scannant son code-barres, comme dans « Ajouter un repas ». Le scanner s'ouvre par-dessus la recette en cours, qui reste telle quelle"
+            }
+          ],
+          [
+            {
+              "t": "Progrès : « Le calcul de ton objectif » donnait une autre date que la prévision mois par mois et l'écran Aujourd'hui, sans dire pourquoi. Lui part de ton plan, eux de ton rythme réel des 4 dernières semaines. Ton rythme réel s'affiche maintenant sous le calcul, avec la date où il te mène, la prévision dit ce que prévoit ton plan, et elle tombe toujours le même jour que l'écran Aujourd'hui et la courbe"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.20.0",
     "date": "2026-11-23",
     "summary": [

@@ -275,6 +275,8 @@ export const frMeals = {
     nutrition: 'Par part · {g} g',
     totals: 'Par part',
     pickTitle: 'Choisir un ingrédient',
+    /** 1.20: an ingredient scanned */
+    scanAdded: '« {name} » ajouté à la recette',
     lookalike: {
       title: 'Elle existe peut-être déjà',
       text: 'Ces recettes ressemblent beaucoup à la tienne. Ouvre-en une pour l’ajouter à un repas ou la copier, ou crée la tienne quand même',
