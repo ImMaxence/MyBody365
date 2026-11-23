@@ -44,7 +44,7 @@
 : Incorporer le chocolat et les noix concassés, puis laisser reposer 10 minutes : les flocons gonflent
 : Former 12 boules, les poser sur une plaque couverte de papier cuisson et les aplatir avec le dos d'une cuillère
 : Cuire 13 à 15 minutes : les bords dorent, le cœur reste moelleux
-: Laisser refroidir sur la plaque avant de les décoller (2 cookies par part)
+: Laisser refroidir sur la plaque avant de les décoller (2 cookies par portion)
 
 = Banana bread healthy sans sucre ajouté | BREAKFAST,SNACK,HEALTHY | 10
 13005 350 bananes bien mûres (3 à 4)
@@ -205,7 +205,7 @@
 : Mixer les flocons très finement
 : Ajouter la farine, les œufs, le sel et la vanille, puis verser le lait petit à petit en mixant
 : Laisser reposer 30 minutes : la pâte épaissit
-: Cuire les crêpes dans une poêle chaude à peine huilée, 1 à 2 minutes de chaque côté (2 crêpes par part)
+: Cuire les crêpes dans une poêle chaude à peine huilée, 1 à 2 minutes de chaque côté (2 crêpes par portion)
 : Garnir de fruits frais, de compote ou de fromage blanc plutôt que de pâte à tartiner
 
 = Muffins healthy pomme, cannelle et noix | BREAKFAST,SNACK,HEALTHY | 8
@@ -226,3 +226,16 @@
 : Ajouter la pomme en petits dés et la moitié des noix concassées
 : Remplir les caissettes aux trois quarts et parsemer du reste des noix
 : Cuire 22 à 25 minutes : les muffins sont dorés et bien gonflés
+
+# 1.20.5 : les œufs brouillés tout simples, un filet d'huile d'olive, sel, poivre et paprika
+= Œufs brouillés à l'huile d'olive | BREAKFAST,LUNCH,DINNER,HEALTHY | 1
+22000 165 œufs (3)
+17270 5 huile d'olive (1 cuillère à café)
+11058 0,5 sel (1 pincée)
+11015 0,5 poivre noir
+11049 0,5 paprika
+: Battre les œufs à la fourchette avec le sel, le poivre et le paprika, sans les faire mousser
+: Chauffer l'huile d'olive à feu doux dans une poêle antiadhésive
+: Verser les œufs et remuer sans arrêt avec une spatule, en ramenant les bords vers le centre
+: Retirer du feu quand ils sont encore un peu baveux : ils finissent de cuire dans la poêle
+: Servir aussitôt, avec du pain complet ou des crudités

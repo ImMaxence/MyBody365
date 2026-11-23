@@ -207,15 +207,15 @@ class CommunityRecipesTest extends AbstractIntegrationTest {
     @Test
     void theAdminsSeeWhereTheFirstRecipesStand() throws Exception {
         AppUser admin = account("admin@example.com", AppUser.Role.ADMIN);
-        // the real files: all 748 wait for the foods of the real Ciqual table, the missing codes are named
+        // the real files: all 749 wait for the foods of the real Ciqual table, the missing codes are named
         String status = mvc.perform(get("/api/admin/foods/community").with(as(admin))).andExpect(status().isOk())
-                .andExpect(jsonPath("$.total").value(748)).andReturn().getResponse().getContentAsString();
+                .andExpect(jsonPath("$.total").value(749)).andReturn().getResponse().getContentAsString();
         int waiting = com.jayway.jsonpath.JsonPath.read(status, "$.waiting");
         int added = com.jayway.jsonpath.JsonPath.read(status, "$.added");
-        assertThat(waiting + added).isEqualTo(748);
+        assertThat(waiting + added).isEqualTo(749);
         assertThat((java.util.List<?>) com.jayway.jsonpath.JsonPath.read(status, "$.missing")).isNotEmpty().hasSizeLessThanOrEqualTo(20);
         // publishing again is harmless; a member sees nothing of it
-        mvc.perform(post("/api/admin/foods/community").with(as(admin)).with(csrf())).andExpect(status().isOk()).andExpect(jsonPath("$.total").value(748));
+        mvc.perform(post("/api/admin/foods/community").with(as(admin)).with(csrf())).andExpect(status().isOk()).andExpect(jsonPath("$.total").value(749));
         mvc.perform(get("/api/admin/foods/community").with(as(lea))).andExpect(status().isForbidden());
     }
 

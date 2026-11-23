@@ -30,7 +30,7 @@ test.describe('1.20', () => {
     await sheet.getByRole('button', { name: 'Prévoir', exact: true }).click();
     await expect(page.getByText(/«\sRiz sauté aux légumes\s» prévu pour aujourd’hui/)).toBeVisible();
     await expect(today.getByText('Riz sauté aux légumes')).toBeVisible();
-    await expect(today.getByText(/1,5 part\(s\) · 675 kcal/)).toBeVisible();
+    await expect(today.getByText(/1,5 portion\(s\) · 675 kcal/)).toBeVisible();
 
     // tomorrow at noon: a note
     const tomorrow = page.locator('section.day').nth(1);

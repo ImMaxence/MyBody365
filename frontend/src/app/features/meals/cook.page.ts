@@ -6,6 +6,7 @@ import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { StackNavigation } from '../../core/nav/stack-navigation';
 import { haptic } from '../../core/ui/haptics';
 import { IconComponent } from '../../shared/icon.component';
+import { lineInStep, scaleLine, stepIngredients } from '../../core/meals/step-ingredients';
 
 /** a duration said in a step (« 10 minutes », « 1 h 30 », « 45 min »), in seconds */
 const DURATION = /(\d+(?:[.,]\d+)?)\s*(heures?|h|minutes?|min|mn|secondes?|s)\b(?:\s*(\d{1,2})\b)?/gi;
@@ -27,7 +28,8 @@ export function durations(step: string): { label: string; seconds: number }[] {
  * 1.19: « Cuisiner pas à pas »: the steps of a recipe one by one, in big letters, the screen kept on while cooking (Wake
  * Lock), a swipe or the buttons from one to the next; a duration in a step (« 10 minutes ») is a timer in one tap, which
  * rings (vibrates) at its end even on another step; the ingredients one tap away. Works without network once the recipe
- * was seen.
+ * was seen. 1.20.5: for the number of portions chosen before (?portions=), and under each step the ingredients it speaks of,
+ * with their amounts.
  */
 @Component({
   selector: 'app-cook',
@@ -40,7 +42,7 @@ export function durations(step: string): { label: string; seconds: number }[] {
         <div class="titles">
           <h1 class="name">{{ recipe()?.name ?? '' }}</h1>
           @if (steps().length) {
-            <span class="tiny muted num">{{ 'cook.stepOf' | t: { n: index() + 1, total: steps().length } }}</span>
+            <span class="tiny muted num">{{ 'cook.stepOf' | t: { n: index() + 1, total: steps().length } }} · {{ 'cook.forPortions' | t: { n: count() } }}</span>
           }
         </div>
         <button type="button" class="icon-btn" [attr.aria-pressed]="showIngredients()" [attr.aria-label]="'cook.ingredients' | t"
@@ -50,13 +52,13 @@ export function durations(step: string): { label: string; seconds: number }[] {
 
       @if (showIngredients() && recipe(); as r) {
         <section class="ingredients card" [attr.aria-label]="'cook.ingredients' | t">
-          <h2 class="h3">{{ 'cook.ingredients' | t }} · {{ 'meals.servings' | t: { n: r.servings } }}</h2>
+          <h2 class="h3">{{ 'cook.ingredients' | t }} · {{ 'meals.servings' | t: { n: count() } }}</h2>
           <ul>
             @for (ing of r.ingredients ?? []; track $index) {
-              <li><span>{{ ing.name }}</span><b class="num">{{ i18n.number(ing.grams) }} g</b></li>
+              <li><span>{{ ing.name }}</span><b class="num">{{ grams(ing.grams) }}</b></li>
             }
             @for (line of r.ingredientLines ?? []; track $index) {
-              <li><span>{{ line }}</span></li>
+              <li><span>{{ scaled(line) }}</span></li>
             }
           </ul>
         </section>
@@ -67,6 +69,14 @@ export function durations(step: string): { label: string; seconds: number }[] {
           <section class="step" [class.back]="dir() < 0" aria-live="polite">
             <span class="num-big" aria-hidden="true">{{ index() + 1 }}</span>
             <p class="text">{{ s }}</p>
+            <!-- 1.20.5: the ingredients this step speaks of, for the portions chosen -->
+            @if (uses().length) {
+              <ul class="uses" [attr.aria-label]="'cook.stepIngredients' | t">
+                @for (u of uses(); track $index) {
+                  <li><span>{{ u.name }}</span>@if (u.amount) {<b class="num">{{ u.amount }}</b>}</li>
+                }
+              </ul>
+            }
             @if (timersOf(s).length) {
               <div class="timers">
                 @for (d of timersOf(s); track d.seconds) {
@@ -163,7 +173,9 @@ export function durations(step: string): { label: string; seconds: number }[] {
       display: flex;
       flex: 1;
       flex-direction: column;
-      justify-content: center;
+      justify-content: safe center;
+      min-height: 0;
+      overflow-y: auto;
       gap: 16px;
       animation: step-in 420ms cubic-bezier(0.32, 0.72, 0, 1) both;
     }
@@ -195,6 +207,29 @@ export function durations(step: string): { label: string; seconds: number }[] {
       font-size: clamp(1.35rem, 6vw, 1.8rem);
       font-weight: 600;
       line-height: 1.35;
+    }
+    .uses {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: var(--surface-2);
+      list-style: none;
+    }
+    .uses li {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 1.02rem;
+      font-weight: 600;
+    }
+    .uses li span {
+      min-width: 0;
+    }
+    .uses li b {
+      flex: none;
+      color: var(--accent-text);
     }
     .timers {
       display: flex;
@@ -247,6 +282,8 @@ export function durations(step: string): { label: string; seconds: number }[] {
 })
 export class CookPage {
   readonly id = input.required<string>();
+  /** 1.20.5: the portions chosen before cooking (the recipe's own when none) */
+  readonly portions = input<string | undefined>();
   protected readonly i18n = inject(I18nService);
   private readonly api = inject(MealsApi);
   private readonly stack = inject(StackNavigation);
@@ -271,6 +308,25 @@ export class CookPage {
       .filter((s) => s.length > 1),
   );
   protected readonly step = computed(() => this.steps()[this.index()] ?? '');
+  /** how many portions are cooked, and by how much the amounts change */
+  protected readonly count = computed(() => {
+    const n = Math.round(Number(this.portions()));
+    return n >= 1 && n <= 50 ? n : (this.recipe()?.servings ?? 1);
+  });
+  private readonly factor = computed(() => this.count() / (this.recipe()?.servings || 1));
+  /** the ingredients of this step: their short name (before the first comma) and their amount */
+  protected readonly uses = computed(() => {
+    const r = this.recipe();
+    const step = this.step();
+    if (!r || !step) return [];
+    const ings = r.ingredients ?? [];
+    const found = stepIngredients(
+      step,
+      ings.map((i) => i.name),
+    ).map((i) => ({ name: ings[i].name.split(',')[0].trim(), amount: this.grams(ings[i].grams) }));
+    const lines = (r.ingredientLines ?? []).filter((l) => lineInStep(step, l)).map((l) => ({ name: this.scaled(l), amount: '' }));
+    return [...found, ...lines];
+  });
 
   constructor() {
     effect(() => {
@@ -288,6 +344,16 @@ export class CookPage {
       void this.lock?.release().catch(() => undefined);
       if (this.timer) clearInterval(this.timer);
     });
+  }
+
+  /** a weight for the portions chosen: to the gram, to the half gram under 10 g */
+  protected grams(g: number): string {
+    const v = g * this.factor();
+    return this.i18n.number(v >= 10 ? Math.round(v) : Math.round(v * 2) / 2, v >= 10 || Number.isInteger(Math.round(v * 2) / 2) ? 0 : 1) + ' g';
+  }
+
+  protected scaled(line: string): string {
+    return scaleLine(line, this.factor());
   }
 
   protected timersOf(step: string): { label: string; seconds: number }[] {

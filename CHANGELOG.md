@@ -2,6 +2,23 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.20.5] - 2026-11-23
+
+Le nombre de portions demandé avant de cuisiner, les ingrédients de chaque étape, et une note santé juste pour les flocons d'avoine et le sel
+
+### Ajouté
+- Cuisiner pas à pas : l'app demande d'abord combien de portions tu veux cuisiner, puis chaque étape affiche les ingrédients dont elle parle, avec leur quantité pour ce nombre de portions. La liste complète des ingrédients suit aussi
+- Recette Healthy : des œufs brouillés tout simples, un filet d'huile d'olive, une pincée de sel, poivre et paprika
+
+### Modifié
+- « Portion » à la place de « part » dans toute l'app (« 255 kcal la portion », « Nombre de portions »…)
+- Ajouter à ma liste de courses : la même question, combien de portions veux-tu cuisiner
+- Note santé : un aliment transformé (fromage, pain, chocolat) est dit « Transformé », « Ultra-transformé » restant pour les produits industriels
+
+### Corrigé
+- Note santé des flocons d'avoine : 9 sur 10 au lieu de 6,5. La table Ciqual les range avec les céréales du petit-déjeuner, que l'app comptait toutes comme ultra-transformées. Les flocons nature et le pop-corn nature sans huile comptent maintenant comme des aliments bruts, les céréales sans sucres ajoutés comme simplement transformées
+- Le sel, les épices, la levure, le bicarbonate, la vanille et la gélatine n'ont plus de note santé à eux seuls : on en met une pincée, et le sel d'une recette compte toujours dans sa note, selon sa quantité. Les repas déjà notés avec ces aliments sont mis à jour
+
 ## [1.20.4] - 2026-11-23
 
 Douze recettes healthy de goûters et de gâteaux faits maison, avec leur photo

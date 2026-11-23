@@ -12,17 +12,23 @@ import java.util.regex.Pattern;
  * The health score of MyBody365 (1.13), out of 10 by halves, in place of the Nutri-Score. The same rules as the app
  * (frontend core/meals/health.ts): change one, change both.
  *
- * <p>A food starts at 6. Sugars, saturated fat, salt, energy, ultra-processing (NOVA 4), frying, additives and sweeteners
+ * <p>A food starts at 6. Sugars, saturated fat, salt, energy, ultra-processing (NOVA 4) or processing (NOVA 3), frying, additives and sweeteners
  * take points away; fibre, protein, fruit / vegetables / legumes / nuts, a light food, a raw food (NOVA 1) and good fats
  * bring some back. An oil, a butter or a margarine is judged on the share of saturated fat in its fat (olive oil scores
  * well, butter badly), eaten by the spoonful. A drink other than milk starts at 10, water being the reference, and loses
- * points for its sugars, its energy and its sweeteners. Alcohol has no score.
+ * points for its sugars, its energy and its sweeteners. Alcohol has no score, nor what is put in by the pinch (1.20.5: salt, spices).
  */
 public final class HealthScore {
 
     /** what is known of a food, per 100 g (per 100 ml for a drink) */
     public record Input(Nutrients per100, boolean drink, boolean water, boolean alcohol, Integer nova, Integer additives, boolean sweeteners,
-            Double fruitVeg, boolean fried) {}
+            Double fruitVeg, boolean fried, boolean seasoning) {
+
+        public Input(Nutrients per100, boolean drink, boolean water, boolean alcohol, Integer nova, Integer additives, boolean sweeteners,
+                Double fruitVeg, boolean fried) {
+            this(per100, drink, water, alcohol, nova, additives, sweeteners, fruitVeg, fried, false);
+        }
+    }
 
     /** the score and its reasons, the weightiest first (codes the app words: fiber, protein… / sugars, satFat…) */
     public record Result(double score, List<String> pros, List<String> cons) {}
@@ -51,6 +57,16 @@ public final class HealthScore {
     private static final Pattern LIQUID_NAME = Pattern.compile("^(lait|boisson|jus|soupe|veloute|bouillon|smoothie|milk ?shake|kefir|lassi|nectar|"
             + "eau|the|tisane|infusion|cafe|soda|limonade|sirop dilue|yaourt a boire|lait fermente)\\b");
     private static final Pattern NOT_LIQUID = Pattern.compile("\\b(glace|glaces|sorbet|sorbets|creme glacee|concentre|en poudre|poudre|soluble)\\b");
+
+    /**
+     * 1.20.5: plain foods that Ciqual files among industrial ones: rolled grains among the breakfast cereals (oat flakes, a
+     * mix of flakes) and plain popcorn among the crackers are raw foods; a cereal with no added sugar is only processed
+     */
+    private static final Pattern PLAIN_IN_ULTRA = Pattern.compile("^(flocons|melange de flocons)\\b|\\b(pop corn|mais eclate)\\b.*\\bsans huile\\b");
+    private static final Pattern NO_ADDED_SUGAR = Pattern.compile("\\bsans sucres? ajoutes?\\b");
+    /** 1.20.5: what is put in by the pinch has no score of its own (salt, spices, raising agents, vanilla, gelatine) */
+    private static final Set<String> SEASONING_GROUPS = Set.of("épices", "sels");
+    private static final Pattern SEASONING_NAME = Pattern.compile("^(levure chimique|bicarbonate|vanille|gelatine|agar|arome)\\b");
 
     private HealthScore() {}
 
@@ -98,14 +114,22 @@ public final class HealthScore {
             boolean drink = cat.equals("boissons sans alcool") || cat.equals("eaux");
             // spelled out: a ternary mixing 1 and null unboxes the null
             Integer nova = null;
+            String plain = SearchText.normalize(name);
             if (!fried && CIQUAL_RAW.contains(cat)) {
                 nova = 1;
             } else if (CIQUAL_ULTRA.contains(cat)) {
-                nova = 4;
+                if (PLAIN_IN_ULTRA.matcher(plain).find()) {
+                    nova = 1;
+                } else if (NO_ADDED_SUGAR.matcher(plain).find()) {
+                    nova = 3;
+                } else {
+                    nova = 4;
+                }
             } else if (CIQUAL_PROCESSED.contains(cat)) {
                 nova = 3;
             }
-            return new Input(n, drink, water, alcohol, nova, null, false, CIQUAL_FRUIT_VEG.contains(cat) ? 100d : null, fried);
+            boolean seasoning = SEASONING_GROUPS.contains(cat) || (cat.equals("aides culinaires") && SEASONING_NAME.matcher(plain).find());
+            return new Input(n, drink, water, alcohol, nova, null, false, CIQUAL_FRUIT_VEG.contains(cat) ? 100d : null, fried, seasoning);
         }
         String pnns = p.pnns() == null ? "" : p.pnns();
         boolean alcohol = pnns.equals("Alcoholic beverages");
@@ -144,7 +168,7 @@ public final class HealthScore {
 
     /** null when the sugars, the saturated fat or the salt are unknown (a portion noted with its calories only), or for alcohol */
     public static Result score(Input p) {
-        if (p.alcohol()) {
+        if (p.alcohol() || p.seasoning()) {
             return null;
         }
         if (p.water()) {
@@ -174,7 +198,7 @@ public final class HealthScore {
             cons.add(new Object[] {"salt", Math.min(2, above(n.saltG(), 0.2) * 4)});
             cons.add(new Object[] {"satFat", Math.min(2, above(n.satFatG(), 0.5))});
             if (nova != null && nova == 3) {
-                cons.add(new Object[] {"ultra", 0.5});
+                cons.add(new Object[] {"processed", 0.5});
             }
             if (p.sweeteners()) {
                 cons.add(new Object[] {"sweeteners", 2.5});
@@ -210,7 +234,7 @@ public final class HealthScore {
                 }
             }
             if (nova != null && nova == 3) {
-                cons.add(new Object[] {"ultra", 0.5});
+                cons.add(new Object[] {"processed", 0.5});
             }
             if (p.fried()) {
                 cons.add(new Object[] {"fried", 1.5});

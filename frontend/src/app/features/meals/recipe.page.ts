@@ -196,12 +196,13 @@ import { SessionStore } from '../../core/auth/session.store';
           }
         </ul>
         <!-- 1.11: its ingredients on the shopping list, for as many as wanted -->
-        <button type="button" class="btn btn-secondary btn-block" (click)="openShopping(r)"><app-icon name="cart" [size]="18" /> {{ 'shopping.addRecipe' | t }}</button>
+        <button type="button" class="btn btn-secondary btn-block" (click)="openPortions(r, 'shop')"><app-icon name="cart" [size]="18" /> {{ 'shopping.addRecipe' | t }}</button>
         @if (r.notes) {
           <h2 class="section-title">{{ 'meals.recipe.notes' | t }}</h2>
           <p class="notes card">{{ r.notes }}</p>
           <!-- 1.19: the steps one by one, the screen kept on, the timers in one tap -->
-          <a class="btn btn-secondary btn-block" [routerLink]="['/app/meals/recipes', r.id, 'cook']"><app-icon name="play" [size]="18" /> {{ 'cook.open' | t }}</a>
+          <!-- 1.20.5: how many portions first, the amounts of each step follow -->
+          <button type="button" class="btn btn-secondary btn-block" (click)="openPortions(r, 'cook')"><app-icon name="play" [size]="18" /> {{ 'cook.open' | t }}</button>
         }
 
         <div class="actions">
@@ -232,15 +233,24 @@ import { SessionStore } from '../../core/auth/session.store';
       } @else {
         <div class="hero skeleton"></div>
       }
-      <dialog class="sheet" #shopSheet [attr.aria-label]="'shopping.addRecipe' | t">
+      <!-- 1.20.5: how many portions, before cooking or the shopping list -->
+      <dialog class="sheet" #shopSheet [attr.aria-label]="(portionsFor() === 'cook' ? 'cook.open' : 'shopping.addRecipe') | t">
         <div class="sheet-grip"></div>
         <div class="stack">
           <div>
-            <h2 class="h3">{{ 'shopping.addRecipe' | t }}</h2>
-            <p class="small muted">{{ 'shopping.addRecipeText' | t }}</p>
+            <h2 class="h3">{{ (portionsFor() === 'cook' ? 'cook.open' : 'shopping.addRecipe') | t }}</h2>
+            <p class="small muted">{{ (portionsFor() === 'cook' ? 'cook.cookText' : 'shopping.addRecipeText') | t }}</p>
           </div>
-          <app-number-stepper [(value)]="shopServings" [step]="1" [min]="1" [max]="50" [decimals]="0" [label]="'shopping.servings' | t" />
-          <button type="button" class="btn btn-primary btn-block" [disabled]="busy()" (click)="addToShopping()"><app-icon name="cart" /> {{ 'shopping.addConfirm' | t }}</button>
+          <p class="question">{{ 'cook.question' | t }}</p>
+          <app-number-stepper [(value)]="shopServings" [step]="1" [min]="1" [max]="50" [decimals]="0" [label]="'cook.portions' | t" />
+          @if (recipe(); as r) {
+            <p class="tiny muted base">{{ 'cook.base' | t: { n: ('meals.servings' | t: { n: r.servings }) } }}</p>
+          }
+          @if (portionsFor() === 'cook') {
+            <button type="button" class="btn btn-primary btn-block" (click)="cook()"><app-icon name="play" /> {{ 'cook.start' | t }}</button>
+          } @else {
+            <button type="button" class="btn btn-primary btn-block" [disabled]="busy()" (click)="addToShopping()"><app-icon name="cart" /> {{ 'shopping.addConfirm' | t }}</button>
+          }
         </div>
       </dialog>
       <app-quantity-sheet (confirm)="add($event)" />
@@ -250,6 +260,15 @@ import { SessionStore } from '../../core/auth/session.store';
     </main>
   `,
   styles: `
+    /* 1.20.5: how many portions */
+    .question {
+      margin: 0;
+      font-weight: 650;
+    }
+    .base {
+      margin: -4px 0 0;
+      text-align: center;
+    }
     .micros-card {
       display: grid;
       gap: var(--space-3);
@@ -629,10 +648,21 @@ export class RecipePage {
   private readonly shopSheet = viewChild.required<ElementRef<HTMLDialogElement>>('shopSheet');
   private readonly shopping = inject(ShoppingStore);
   protected readonly shopServings = signal(2);
+  /** 1.20.5: what the portions are asked for */
+  protected readonly portionsFor = signal<'shop' | 'cook'>('shop');
 
-  protected openShopping(r: Recipe): void {
+  protected openPortions(r: Recipe, what: 'shop' | 'cook'): void {
+    this.portionsFor.set(what);
     this.shopServings.set(r.servings);
     this.shopSheet().nativeElement.showModal();
+  }
+
+  /** 1.20.5: the steps one by one, the amounts for the portions chosen */
+  protected cook(): void {
+    const r = this.recipe();
+    if (!r) return;
+    this.shopSheet().nativeElement.close();
+    void this.router.navigate(['/app/meals/recipes', r.id, 'cook'], { queryParams: { portions: this.shopServings() } });
   }
 
   protected async addToShopping(): Promise<void> {

@@ -1094,6 +1094,13 @@ export const en: CoreDictionary = {
     timer: 'Timer {label}',
     stop: 'Stop',
     ok: 'It’s ready',
+    question: 'How many servings do you want to cook?',
+    portions: 'Servings',
+    base: 'The recipe is for {n}',
+    cookText: 'The amounts of each step follow the number of servings',
+    start: 'Cook',
+    forPortions: '{n} serving(s)',
+    stepIngredients: 'For this step',
   },
   plateau: {
     title: 'Your weight has stalled for 3 weeks',

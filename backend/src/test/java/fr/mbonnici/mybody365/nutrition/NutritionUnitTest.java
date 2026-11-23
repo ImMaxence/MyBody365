@@ -20,6 +20,32 @@ class NutritionUnitTest {
         assertThat(HealthScore.fat("légumes", null, "Carotte, cuite à la vapeur")).isFalse();
     }
 
+    /** 1.20.5: plain oat flakes are raw, not an industrial cereal; salt and spices have no score of their own */
+    @Test
+    void oatFlakesAreExcellentAndSaltHasNoScore() {
+        Nutrients oats = new Nutrients(369, 10.6, 57.7, 1.04, 7.82, 1.37, 11.2, 0.011);
+        HealthScore.Result flakes = HealthScore.score(HealthScore.of(FoodStore.Source.CIQUAL, "Flocons d'avoine", "céréales de petit-déjeuner", oats, null));
+        assertThat(flakes.score()).isEqualTo(9);
+        assertThat(flakes.cons()).doesNotContain("ultra");
+        assertThat(flakes.pros()).contains("fiber", "raw");
+        // a sweet cereal of the same group stays ultra-processed, a cheese is processed
+        Nutrients choco = new Nutrients(390, 8.0, 75.0, 26.8, 4.5, 1.5, 6.1, 0.6);
+        assertThat(HealthScore.score(HealthScore.of(FoodStore.Source.CIQUAL, "Céréales pour petit déjeuner chocolatées, non fourrées",
+                "céréales de petit-déjeuner", choco, null)).cons()).contains("ultra");
+        Nutrients comte = new Nutrients(409, 28.0, 0.5, 0.5, 33.0, 21.0, 0d, 0.8);
+        assertThat(HealthScore.score(HealthScore.of(FoodStore.Source.CIQUAL, "Comté", "fromages et alternatives végétales", comte, null)).cons())
+                .doesNotContain("ultra");
+        Nutrients salt = new Nutrients(0, 0d, 0d, 0d, 0d, 0d, 0d, 99.8);
+        assertThat(HealthScore.score(HealthScore.of(FoodStore.Source.CIQUAL, "Sel blanc alimentaire, iodé", "sels", salt, null))).isNull();
+        assertThat(HealthScore.score(HealthScore.of(FoodStore.Source.CIQUAL, "Noix de muscade", "épices", new Nutrients(506, 6d, 28d, 28d, 36d, 26d, 21d, 0d),
+                null))).isNull();
+        assertThat(HealthScore.score(HealthScore.of(FoodStore.Source.CIQUAL, "Levure chimique ou poudre à lever", "aides culinaires",
+                new Nutrients(108, 0d, 27d, 0d, 0d, 0d, 0d, 25d), null))).isNull();
+        // the stock cube stays judged on its salt
+        assertThat(HealthScore.score(HealthScore.of(FoodStore.Source.CIQUAL, "Bouillon de volaille, déshydraté", "aides culinaires",
+                new Nutrients(250, 10d, 20d, 5d, 15d, 7d, 0d, 50d), null))).isNotNull();
+    }
+
     @Test
     void nutriscoreOfWellKnownFoods() {
         // a hazelnut spread: very sweet and fatty

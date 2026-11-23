@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-/** The community’s recipes (resources/community): 200 in 1.7, 129 more in 1.9, 200 more in 1.10, 200 « Healthy » in 1.13, 7 chocolates and pastries in 1.18, 12 « Healthy » snacks and cakes in 1.20.4, every one complete and within the API’s limits. */
+/** The community’s recipes (resources/community): 200 in 1.7, 129 more in 1.9, 200 more in 1.10, 200 « Healthy » in 1.13, 7 chocolates and pastries in 1.18, 12 « Healthy » snacks and cakes in 1.20.4, plain scrambled eggs in 1.20.5, every one complete and within the API’s limits. */
 class CommunityRecipesFilesTest {
 
     @Test
@@ -21,9 +21,9 @@ class CommunityRecipesFilesTest {
         for (Resource f : new PathMatchingResourcePatternResolver().getResources("classpath:community/*.txt")) {
             all.addAll(CommunityRecipes.parse(f.getContentAsString(StandardCharsets.UTF_8)));
         }
-        assertThat(all).hasSize(748);
+        assertThat(all).hasSize(749);
         // 1.13: the « Healthy » ones, put first on the recipes page
-        assertThat(all.stream().filter(s -> s.types().contains(fr.mbonnici.mybody365.recipe.RecipeService.Type.HEALTHY)).count()).isEqualTo(212);
+        assertThat(all.stream().filter(s -> s.types().contains(fr.mbonnici.mybody365.recipe.RecipeService.Type.HEALTHY)).count()).isEqualTo(213);
         Set<String> keys = new HashSet<>();
         for (CommunityRecipes.Seed s : all) {
             assertThat(keys.add(s.key())).as("one key per recipe: " + s.name()).isTrue();
@@ -51,7 +51,7 @@ class CommunityRecipesFilesTest {
         // 1.20.4: healthy snacks and cakes, the sugar of a compote, a ripe banana or a sweet potato
         assertThat(all).extracting(CommunityRecipes.Seed::name).contains("Granola maison healthy à la compote, sans sucre ajouté",
                 "Cookies healthy à la compote de pomme", "Banana bread healthy sans sucre ajouté", "Tiramisu healthy au skyr",
-                "Crackers aux graines, sans farine");
+                "Crackers aux graines, sans farine", "Œufs brouillés à l'huile d'olive");
         assertThat(all.stream().filter(s -> s.types().contains(RecipeService.Type.TREAT)).count()).isGreaterThanOrEqualTo(45);
         assertThat(all.stream().filter(s -> s.types().contains(RecipeService.Type.DRINK)).count()).isGreaterThanOrEqualTo(15);
     }

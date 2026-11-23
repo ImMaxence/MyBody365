@@ -7,6 +7,67 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.20.5",
+    "date": "2026-11-23",
+    "summary": [
+      {
+        "t": "Le nombre de portions demandé avant de cuisiner, les ingrédients de chaque étape, et une note santé juste pour les flocons d'avoine et le sel"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "Cuisiner pas à pas : l'app demande d'abord combien de portions tu veux cuisiner, puis chaque étape affiche les ingrédients dont elle parle, avec leur quantité pour ce nombre de portions. La liste complète des ingrédients suit aussi"
+            }
+          ],
+          [
+            {
+              "t": "Recette Healthy : des œufs brouillés tout simples, un filet d'huile d'olive, une pincée de sel, poivre et paprika"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "« Portion » à la place de « part » dans toute l'app (« 255 kcal la portion », « Nombre de portions »…)"
+            }
+          ],
+          [
+            {
+              "t": "Ajouter à ma liste de courses : la même question, combien de portions veux-tu cuisiner"
+            }
+          ],
+          [
+            {
+              "t": "Note santé : un aliment transformé (fromage, pain, chocolat) est dit « Transformé », « Ultra-transformé » restant pour les produits industriels"
+            }
+          ]
+        ]
+      },
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Note santé des flocons d'avoine : 9 sur 10 au lieu de 6,5. La table Ciqual les range avec les céréales du petit-déjeuner, que l'app comptait toutes comme ultra-transformées. Les flocons nature et le pop-corn nature sans huile comptent maintenant comme des aliments bruts, les céréales sans sucres ajoutés comme simplement transformées"
+            }
+          ],
+          [
+            {
+              "t": "Le sel, les épices, la levure, le bicarbonate, la vanille et la gélatine n'ont plus de note santé à eux seuls : on en met une pincée, et le sel d'une recette compte toujours dans sa note, selon sa quantité. Les repas déjà notés avec ces aliments sont mis à jour"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.20.4",
     "date": "2026-11-23",
     "summary": [

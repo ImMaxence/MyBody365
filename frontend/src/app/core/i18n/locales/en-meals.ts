@@ -1067,6 +1067,7 @@ export const enMeals: Widen<typeof frMeals> = {
       salt: 'Salty',
       energy: 'Very high in calories',
       ultra: 'Ultra-processed',
+      processed: 'Processed',
       fried: 'Fried',
       additives: 'Several additives',
       sweeteners: 'Sweeteners',

@@ -4,7 +4,7 @@
  * sweeteners and additives, and the quality of the fat of an oil or a butter. The same rules as the server
  * (backend nutrition/HealthScore.java): change one, change both.
  *
- * A food starts at 6. Sugars, saturated fat, salt, energy, ultra-processing, frying and additives take points away; fibre,
+ * A food starts at 6. Sugars, saturated fat, salt, energy, ultra-processing (1.20.5: or processing), frying and additives take points away; fibre,
  * protein, fruit / vegetables / legumes / nuts, a light food, a raw food and good fats bring some back. A plain drink
  * starts at 10 (water is the reference) and loses points for its sugars, its energy and its sweeteners. Alcohol has no
  * score: no amount of it is good for health.
@@ -33,7 +33,7 @@ export interface HealthInput {
 }
 
 export type HealthPro = 'fiber' | 'protein' | 'fruitVeg' | 'goodFats' | 'raw' | 'light' | 'water';
-export type HealthCon = 'sugars' | 'satFat' | 'salt' | 'energy' | 'ultra' | 'fried' | 'additives' | 'sweeteners';
+export type HealthCon = 'sugars' | 'satFat' | 'salt' | 'energy' | 'ultra' | 'processed' | 'fried' | 'additives' | 'sweeteners';
 
 export interface Health {
   /** out of 10, by halves */
@@ -72,7 +72,7 @@ export function healthScore(p: HealthInput): Health | null {
     cons.push(['energy', Math.min(2, above(p.kcal, 5) * 0.04)]);
     cons.push(['salt', Math.min(2, above(p.saltG, 0.2) * 4)]);
     cons.push(['satFat', Math.min(2, above(p.satFatG, 0.5))]);
-    if (nova === 3) cons.push(['ultra', 0.5]);
+    if (nova === 3) cons.push(['processed', 0.5]);
     if (p.sweeteners) cons.push(['sweeteners', 2.5]);
     pros.push(['protein', Math.min(1, (p.proteinG ?? 0) * 0.3)]);
     pros.push(['fiber', Math.min(0.5, (p.fiberG ?? 0) * 0.3)]);
@@ -97,7 +97,7 @@ export function healthScore(p: HealthInput): Health | null {
       if (fat >= 10 && ratio <= 0.2 && !p.fried) pros.push(['goodFats', 1]);
       else if (fat >= 10 && ratio <= 0.3 && !p.fried) pros.push(['goodFats', 0.5]);
     }
-    if (nova === 3) cons.push(['ultra', 0.5]);
+    if (nova === 3) cons.push(['processed', 0.5]);
     if (p.fried) cons.push(['fried', 1.5]);
     if (p.sweeteners) cons.push(['sweeteners', 0.5]);
     pros.push(['fiber', Math.min(2.5, (p.fiberG ?? 0) * 0.35)]);

@@ -179,8 +179,8 @@ test.describe('meals', () => {
     await expect(page.getByRole('button', { name: 'Choisir les aliments' })).toBeVisible();
     await page.getByLabel('Ingrédients, un par ligne').fill('450 g de pain\n160 g de crème fraîche');
     await page.getByRole('button', { name: 'Enregistrer' }).click();
-    await expect(page.getByText(/Indique les calories par part/)).toBeVisible();
-    await page.getByLabel('Calories par part').fill('215');
+    await expect(page.getByText(/Indique les calories par portion/)).toBeVisible();
+    await page.getByLabel('Calories par portion').fill('215');
     await page.getByRole('button', { name: 'Enregistrer' }).click();
     await expect(page.getByRole('heading', { name: 'Bruschetta maison', level: 1 })).toBeVisible();
     await expect(page.getByText('160 g de crème fraîche')).toBeVisible();
@@ -329,7 +329,7 @@ test.describe('meals', () => {
     await adminPage.getByLabel('Nom de la recette').fill(shared);
     await adminPage.getByRole('radio', { name: /À la main/ }).click();
     await adminPage.getByLabel('Ingrédients, un par ligne').fill('200 g de tomates\n1 c. à soupe d’huile d’olive');
-    await adminPage.getByLabel('Calories par part').fill('180');
+    await adminPage.getByLabel('Calories par portion').fill('180');
     await adminPage.getByRole('radio', { name: /Communauté/ }).click();
     await adminPage.getByRole('button', { name: 'Enregistrer' }).click();
     // 1.10: the team's salads of the earlier runs look like it (on a database that kept them): created anyway
@@ -359,7 +359,7 @@ test.describe('meals', () => {
     await otherPage.getByLabel('Nom de la recette').fill(shared);
     await otherPage.getByRole('radio', { name: /À la main/ }).click();
     await otherPage.getByLabel('Ingrédients, un par ligne').fill('250 g de tomates');
-    await otherPage.getByLabel('Calories par part').fill('150');
+    await otherPage.getByLabel('Calories par portion').fill('150');
     await otherPage.getByRole('button', { name: 'Enregistrer' }).click();
     const looks = otherPage.getByRole('dialog', { name: 'Elle existe peut-être déjà' });
     await expect(looks.getByRole('button', { name: new RegExp(shared) })).toContainText('Communauté');
@@ -368,7 +368,7 @@ test.describe('meals', () => {
     await expect(otherPage.getByRole('heading', { name: shared, level: 1 })).toBeVisible();
     await otherPage.goBack();
     await expect(otherPage.getByLabel('Nom de la recette')).toHaveValue(shared);
-    await expect(otherPage.getByLabel('Calories par part')).toHaveValue('150');
+    await expect(otherPage.getByLabel('Calories par portion')).toHaveValue('150');
     // mine anyway: asked once, saved now
     await otherPage.getByRole('button', { name: 'Enregistrer' }).click();
     await expect(otherPage.getByRole('heading', { name: shared, level: 1 })).toBeVisible();
@@ -545,5 +545,34 @@ test.describe('meals', () => {
     await page.getByRole('button', { name: 'Chercher' }).click();
     await expect(page).toHaveURL(/\/app\/meals\/add/);
     await expect(page.getByRole('dialog').getByText('100% mie Complet-Volkoren', { exact: true })).toBeVisible();
+  });
+
+  test('how many portions before cooking, then the ingredients of each step for them (1.20.5)', async ({ page }) => {
+    await signIn(page, 'new');
+    await page.goto('/app/meals/recipes');
+    await page.getByRole('searchbox', { name: 'Chercher parmi toutes les recettes' }).fill('cookies compote');
+    await page.getByRole('link', { name: /Cookies healthy à la compote de pomme/ }).first().click();
+    await expect(page.getByText('Ingrédients · 6 portion(s)')).toBeVisible();
+    // 12 portions in place of 6: every amount doubles
+    await page.getByRole('button', { name: 'Cuisiner pas à pas' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Cuisiner pas à pas' });
+    await expect(sheet.getByText('La recette est prévue pour 6 portion(s)')).toBeVisible();
+    for (let i = 0; i < 6; i++) await sheet.getByRole('button', { name: '+' }).click();
+    await sheet.getByRole('button', { name: 'Cuisiner', exact: true }).click();
+    await expect(page.getByText(/Étape 1 sur \d+ · 12 portion\(s\)/)).toBeVisible();
+    // the oven: nothing to weigh; the flakes: 2 × 150 g
+    await expect(page.locator('.uses')).toHaveCount(0);
+    await page.getByRole('button', { name: /Suivant/ }).click();
+    const uses = page.getByRole('list', { name: 'Pour cette étape' });
+    await expect(uses.getByRole('listitem')).toHaveCount(1);
+    await expect(uses).toContainText('Flocons d’avoine'.replace('’', "'"));
+    await expect(uses).toContainText(/300\sg/);
+    await page.getByRole('button', { name: /Suivant/ }).click();
+    // the compote, the egg and the oil, doubled
+    await expect(uses).toContainText('Purée de pommes');
+    await expect(uses).toContainText(/240\sg/);
+    await expect(uses).toContainText('Oeuf cru');
+    await expect(uses).toContainText(/100\sg/);
+    await expectAccessible(page);
   });
 });

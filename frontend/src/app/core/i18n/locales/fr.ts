@@ -199,7 +199,7 @@ export const fr = {
       photo: 'Photo du jour',
       taken: 'Prise',
       meals: 'Déjeuner',
-      mealItems: ['Bowl poulet curry · 1 part', 'Skyr nature', 'Pomme'],
+      mealItems: ['Bowl poulet curry · 1 portion', 'Skyr nature', 'Pomme'],
       vitamins: 'Vitamines et minéraux du jour',
       vitaminNames: ['Vitamine C', 'Fer', 'Calcium'],
       vitaminLow: 'Peu de calcium cette semaine : pense aux laitages, aux amandes',
@@ -1070,7 +1070,7 @@ export const fr = {
       title: 'Repas des 14 derniers jours',
       target: 'Objectif du jour : {kcal} kcal',
       macros: 'Protéines {p} g · glucides {c} g · lipides {f} g',
-      servings: '{n} parts',
+      servings: '{n} portions',
       none: 'Aucun repas noté ces 14 derniers jours',
     },
     bp: {
@@ -1098,6 +1098,14 @@ export const fr = {
     timer: 'Minuteur {label}',
     stop: 'Arrêter',
     ok: 'C’est prêt',
+    /** 1.20.5: how many portions, asked before cooking or shopping, and the ingredients of each step */
+    question: 'Combien de portions veux-tu cuisiner ?',
+    portions: 'Portions',
+    base: 'La recette est prévue pour {n}',
+    cookText: 'Les quantités de chaque étape s’adaptent au nombre de portions',
+    start: 'Cuisiner',
+    forPortions: '{n} portion(s)',
+    stepIngredients: 'Pour cette étape',
   },
   plateau: {
     title: 'Ton poids stagne depuis 3 semaines',

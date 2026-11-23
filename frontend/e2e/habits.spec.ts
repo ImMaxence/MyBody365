@@ -79,8 +79,13 @@ test.describe('1.19', () => {
     expect(made.status()).toBe(201);
     const recipe = (await made.json()) as { id: string };
     await page.goto(`/app/meals/recipes/${recipe.id}`);
-    await page.getByRole('link', { name: 'Cuisiner pas à pas' }).click();
-    await expect(page.getByText('Étape 1 sur 2')).toBeVisible();
+    // 1.20.5: how many portions first
+    await page.getByRole('button', { name: 'Cuisiner pas à pas' }).click();
+    const portions = page.getByRole('dialog', { name: 'Cuisiner pas à pas' });
+    await expect(portions.getByText('Combien de portions veux-tu cuisiner')).toBeVisible();
+    await portions.getByRole('button', { name: '+' }).click();
+    await portions.getByRole('button', { name: 'Cuisiner', exact: true }).click();
+    await expect(page.getByText(/Étape 1 sur 2 · 3 portion\(s\)/)).toBeVisible();
     await expect(page.locator('.step .text')).toHaveText('Rincer le riz');
     await page.getByRole('button', { name: /Suivant/ }).click();
     await page.getByRole('button', { name: '15 minutes' }).click();
