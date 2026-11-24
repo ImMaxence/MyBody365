@@ -529,9 +529,9 @@ const PREVIEW = 5;
       opacity: 0.6;
       transition: opacity var(--dur-2) var(--ease-out) 150ms;
     }
+    /* 1.20.6: on a page the box scrolls away with the list (sticky, it slid under the compact title bar) */
     .search {
-      position: sticky;
-      top: calc(var(--safe-top) + 4px);
+      position: relative;
       z-index: 3;
       display: flex;
       align-items: center;
@@ -544,6 +544,7 @@ const PREVIEW = 5;
     }
     /* in a sheet, the box sticks to the sheet's own top (the status bar is not there) */
     :host-context(dialog.sheet) .search {
+      position: sticky;
       top: 0;
     }
     .search .input {

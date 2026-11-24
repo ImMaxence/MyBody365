@@ -7,6 +7,27 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.20.6",
+    "date": "2026-11-24",
+    "summary": [
+      {
+        "t": "La barre de recherche des aliments ne passe plus sous le titre en haut de l'écran"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Corrigé",
+        "items": [
+          [
+            {
+              "t": "Ajouter un repas : en faisant défiler la page, la barre de recherche restait accrochée en haut et glissait sous le titre compact. Elle défile maintenant avec le reste de la page"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.20.5",
     "date": "2026-11-23",
     "summary": [

@@ -2,6 +2,13 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.20.6] - 2026-11-24
+
+La barre de recherche des aliments ne passe plus sous le titre en haut de l'écran
+
+### Corrigé
+- Ajouter un repas : en faisant défiler la page, la barre de recherche restait accrochée en haut et glissait sous le titre compact. Elle défile maintenant avec le reste de la page
+
 ## [1.20.5] - 2026-11-23
 
 Le nombre de portions demandé avant de cuisiner, les ingrédients de chaque étape, et une note santé juste pour les flocons d'avoine et le sel
