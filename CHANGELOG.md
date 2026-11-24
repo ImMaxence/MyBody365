@@ -2,6 +2,13 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.20.7] - 2026-11-24
+
+Une fiche sur les bonnes graisses dans « Bon à savoir »
+
+### Ajouté
+- Repas, « Bon à savoir » : une fiche « Les bonnes graisses, à garder même pour maigrir ». L'huile d'olive ou de colza, les noix, l'avocat et les poissons gras, pourquoi leurs graisses insaturées protègent le cœur, les oméga-3 qui manquent souvent, et pourquoi on les mesure (9 kcal le gramme) plutôt que de les supprimer
+
 ## [1.20.6] - 2026-11-24
 
 La barre de recherche des aliments ne passe plus sous le titre en haut de l'écran

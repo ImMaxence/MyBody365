@@ -1107,6 +1107,10 @@ export const enMeals: Widen<typeof frMeals> = {
         title: 'Lowering the bad cholesterol',
         text: 'It rises mostly with saturated fat and trans fat (« partially hydrogenated oil » on a pack), far more than with the cholesterol of eggs or prawns. What lowers it: olive or rapeseed oil instead of butter, fibre (oats, legumes, fruit and vegetables), nuts, oily fish, and moving',
       },
+      goodFats: {
+        title: 'Good fats, worth keeping even to lose weight',
+        text: 'Olive or rapeseed oil, walnuts, almonds, avocado, oily fish (salmon, sardines, mackerel): their unsaturated fats protect the heart and lower the bad cholesterol when they replace butter or cream. Omega-3s are often lacking: fish twice a week, one of them oily, rapeseed oil or walnuts. They stay rich, 9 kcal a gram, about 90 kcal a tablespoon of oil: measure them rather than cut them out',
+      },
       sugars: {
         title: 'Sugar, above all the kind you drink',
         text: 'Sodas, juices, syrups, biscuits, breakfast cereals, desserts: added sugar makes you hungry again and is easily stored. The WHO advises less than 50 g of free sugars a day (added, honey, syrups, fruit juices), ideally 25 g: a can of soda already holds 35 g. The sugar of whole fruit, with its fibre, is not the problem',

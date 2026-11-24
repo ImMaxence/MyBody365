@@ -7,13 +7,14 @@ import { IconComponent } from '../../shared/icon.component';
 import { SourcesComponent } from '../../shared/sources.component';
 import type { SourceKey } from '../../core/meals/sources';
 
-type Item = 'kcalKg' | 'volume' | 'satFat' | 'cholesterol' | 'sugars' | 'salt' | 'ultra' | 'fiber' | 'water' | 'fruits' | 'vitamins';
-const ITEMS: Item[] = ['satFat', 'cholesterol', 'sugars', 'fiber', 'kcalKg', 'volume', 'vitamins', 'fruits', 'water', 'salt', 'ultra'];
+type Item = 'kcalKg' | 'volume' | 'satFat' | 'cholesterol' | 'goodFats' | 'sugars' | 'salt' | 'ultra' | 'fiber' | 'water' | 'fruits' | 'vitamins';
+const ITEMS: Item[] = ['satFat', 'cholesterol', 'goodFats', 'sugars', 'fiber', 'kcalKg', 'volume', 'vitamins', 'fruits', 'water', 'salt', 'ultra'];
 const ICON: Record<Item, string> = {
   kcalKg: 'weight',
   volume: 'utensils',
   satFat: 'alert',
   cholesterol: 'activity',
+  goodFats: 'heartPulse',
   sugars: 'zap',
   salt: 'info',
   ultra: 'layers',
@@ -27,7 +28,8 @@ const ICON: Record<Item, string> = {
  * 1.13: « Bon à savoir », on the Meals tab: one thing worth knowing to eat well, the one the day calls for (too much
  * saturated fat, sugar or salt already), else one a day in turn; « Tous les repères » opens them all: saturated fat and
  * the bad cholesterol, sugar, salt, ultra-processed products, and 1 kg of fat ≈ 7 700 kcal. 1.15: eating in volume (a bowl of
- * potato salad rather than a small rich plate), said too on a day already over its calories.
+ * potato salad rather than a small rich plate), said too on a day already over its calories. 1.20.6: the good fats
+ * (unsaturated, omega-3), kept even to lose weight, by the spoonful.
  */
 @Component({
   selector: 'app-know-card',
@@ -134,6 +136,7 @@ const ICON: Record<Item, string> = {
       color: var(--cool);
     }
     .i-ico[data-k='fruits'],
+    .i-ico[data-k='goodFats'],
     .i-ico[data-k='volume'],
     .i-ico[data-k='fiber'] {
       background: color-mix(in srgb, var(--success, #1f9d55) 14%, transparent);

@@ -7,6 +7,27 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.20.7",
+    "date": "2026-11-24",
+    "summary": [
+      {
+        "t": "Une fiche sur les bonnes graisses dans « Bon à savoir »"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Ajouté",
+        "items": [
+          [
+            {
+              "t": "Repas, « Bon à savoir » : une fiche « Les bonnes graisses, à garder même pour maigrir ». L'huile d'olive ou de colza, les noix, l'avocat et les poissons gras, pourquoi leurs graisses insaturées protègent le cœur, les oméga-3 qui manquent souvent, et pourquoi on les mesure (9 kcal le gramme) plutôt que de les supprimer"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.20.6",
     "date": "2026-11-24",
     "summary": [

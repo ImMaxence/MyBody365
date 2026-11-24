@@ -1105,6 +1105,10 @@ export const frMeals = {
         title: 'Faire baisser le mauvais cholestérol',
         text: 'Il monte surtout avec les graisses saturées et les graisses trans (« huile partiellement hydrogénée » sur un paquet), bien plus qu’avec le cholestérol des œufs ou des crevettes. Ce qui le fait baisser : l’huile d’olive ou de colza à la place du beurre, des fibres (avoine, légumineuses, fruits et légumes), des fruits à coque, du poisson gras, et bouger',
       },
+      goodFats: {
+        title: 'Les bonnes graisses, à garder même pour maigrir',
+        text: 'Huile d’olive ou de colza, noix, amandes, avocat, poissons gras (saumon, sardine, maquereau) : leurs graisses insaturées protègent le cœur et font baisser le mauvais cholestérol quand elles remplacent le beurre ou la crème. Les oméga-3 manquent souvent : du poisson deux fois par semaine dont un gras, de l’huile de colza ou des noix. Elles restent caloriques, 9 kcal le gramme, environ 90 kcal la cuillère à soupe d’huile : on les mesure plutôt que de les supprimer',
+      },
       sugars: {
         title: 'Le sucre, surtout celui qui se boit',
         text: 'Sodas, jus, sirops, biscuits, céréales du matin, desserts : le sucre ajouté redonne faim et se stocke facilement. L’OMS conseille moins de 50 g de sucres libres par jour (ajoutés, miel, sirops, jus de fruits), et idéalement 25 g : une canette de soda en contient déjà 35 g. Le sucre des fruits entiers, avec leurs fibres, n’est pas le problème',
