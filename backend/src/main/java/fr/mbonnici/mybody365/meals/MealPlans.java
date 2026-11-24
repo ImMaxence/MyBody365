@@ -132,7 +132,7 @@ public class MealPlans {
         List<PlanItem> items = list(userId, from, to);
         for (PlanItem p : items) {
             if (p.kind() == Kind.RECIPE) {
-                shopping.addRecipe(userId, p.recipeId(), (int) Math.max(1, Math.min(50, Math.round(p.servings() == null ? 1 : p.servings()))));
+                shopping.addRecipe(userId, p.recipeId(), (int) Math.max(1, Math.min(150, Math.round(p.servings() == null ? 1 : p.servings()))));
             }
         }
         Map<UUID, MealTemplates.TemplateDto> mine = templates.list(userId).stream()
@@ -145,7 +145,7 @@ public class MealPlans {
             for (MealTemplates.Item line : t.items()) {
                 if (line.recipeId() != null) {
                     shopping.addRecipe(userId, line.recipeId(),
-                            (int) Math.max(1, Math.min(50, Math.round(line.servings() == null ? 1 : line.servings()))));
+                            (int) Math.max(1, Math.min(150, Math.round(line.servings() == null ? 1 : line.servings()))));
                 } else if (line.foodId() != null) {
                     shopping.addFood(userId, line.foodId(), line.name(), line.grams(), t.name());
                 }

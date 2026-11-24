@@ -311,7 +311,7 @@ export class CookPage {
   /** how many portions are cooked, and by how much the amounts change */
   protected readonly count = computed(() => {
     const n = Math.round(Number(this.portions()));
-    return n >= 1 && n <= 50 ? n : (this.recipe()?.servings ?? 1);
+    return n >= 1 && n <= 150 ? n : (this.recipe()?.servings ?? 1);
   });
   private readonly factor = computed(() => this.count() / (this.recipe()?.servings || 1));
   /** the ingredients of this step: their short name (before the first comma) and their amount */

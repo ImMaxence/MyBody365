@@ -242,7 +242,7 @@ import { SessionStore } from '../../core/auth/session.store';
             <p class="small muted">{{ (portionsFor() === 'cook' ? 'cook.cookText' : 'shopping.addRecipeText') | t }}</p>
           </div>
           <p class="question">{{ 'cook.question' | t }}</p>
-          <app-number-stepper [(value)]="shopServings" [step]="1" [min]="1" [max]="50" [decimals]="0" [label]="'cook.portions' | t" />
+          <app-number-stepper [(value)]="shopServings" [step]="1" [min]="1" [max]="150" [decimals]="0" [label]="'cook.portions' | t" />
           @if (recipe(); as r) {
             <p class="tiny muted base">{{ 'cook.base' | t: { n: ('meals.servings' | t: { n: r.servings }) } }}</p>
           }

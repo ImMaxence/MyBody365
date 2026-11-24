@@ -2,6 +2,13 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.20.8] - 2026-11-24
+
+Des recettes jusqu'à 150 portions
+
+### Modifié
+- Recettes : le nombre de portions va maintenant jusqu'à 150 au lieu de 50, pour un buffet ou une grosse fournée. Ça vaut aussi pour les portions à cuisiner, celles envoyées sur la liste de courses et les recettes importées depuis un site, et un ingrédient peut peser jusqu'à 30 kg au lieu de 10
+
 ## [1.20.7] - 2026-11-24
 
 Une fiche sur les bonnes graisses dans « Bon à savoir »

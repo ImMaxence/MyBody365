@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ShoppingController {
 
-    public record RecipeToAdd(@NotNull UUID recipeId, @NotNull @Min(1) @Max(50) Integer servings) {}
+    public record RecipeToAdd(@NotNull UUID recipeId, @NotNull @Min(1) @Max(150) Integer servings) {}
 
     public record LineToAdd(@NotNull @Size(min = 1, max = 300) String name) {}
 

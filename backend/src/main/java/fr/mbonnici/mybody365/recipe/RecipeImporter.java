@@ -306,7 +306,7 @@ public class RecipeImporter {
         }
     }
 
-    /** "Pour 14 personnes", "4", ["4", "4 servings"] → the first number, between 1 and 50 */
+    /** "Pour 14 personnes", "4", ["4", "4 servings"] → the first number, between 1 and 150 */
     static Integer servings(JsonNode y) {
         if (y == null) {
             return null;
@@ -326,7 +326,7 @@ public class RecipeImporter {
             return null;
         }
         int s = (int) Math.round(v);
-        return s >= 1 && s <= 50 ? s : null;
+        return s >= 1 && s <= 150 ? s : null;
     }
 
     /** the recipe's category, or its name: a best guess the member can change */

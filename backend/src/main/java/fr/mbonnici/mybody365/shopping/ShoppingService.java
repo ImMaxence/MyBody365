@@ -77,7 +77,7 @@ public class ShoppingService {
     @Transactional
     public ShoppingList addRecipe(UUID userId, UUID recipeId, int servings) {
         RecipeRow r = recipes.viewable(recipeId, userId, false);
-        double factor = Math.clamp(servings, 1, 50) / (double) r.servings();
+        double factor = Math.clamp(servings, 1, 150) / (double) r.servings();
         record Line(UUID foodId, String name, double grams, String category, boolean usable) {}
         List<Line> lines = jdbc.query("""
                 select ri.food_id, ri.name, ri.grams, f.category, (f.id is not null and (f.source <> 'USER' or f.owner_id = ?)) as usable

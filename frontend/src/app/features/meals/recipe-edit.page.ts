@@ -121,7 +121,7 @@ interface Line {
         <p class="tiny muted types-hint">{{ 'meals.recipe.typesHint' | t }}</p>
 
         <span class="label">{{ 'meals.recipe.servingsLabel' | t }}</span>
-        <app-number-stepper [(value)]="servings" [step]="1" [min]="1" [max]="50" [decimals]="0" [label]="'meals.recipe.servingsLabel' | t" />
+        <app-number-stepper [(value)]="servings" [step]="1" [min]="1" [max]="150" [decimals]="0" [label]="'meals.recipe.servingsLabel' | t" />
 
         <h2 class="section-title">{{ 'meals.recipe.ingredients' | t }}</h2>
         <div class="seg" role="radiogroup" [attr.aria-label]="'meals.recipe.mode.title' | t">

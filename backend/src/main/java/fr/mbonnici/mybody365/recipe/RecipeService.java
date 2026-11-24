@@ -54,12 +54,12 @@ public class RecipeService {
     /** who sees a recipe besides its owner: nobody, the friends, every member */
     public enum Visibility { PRIVATE, FRIENDS, PUBLIC }
 
-    public record IngredientInput(@NotNull UUID foodId, @NotNull @DecimalMin("0.5") @DecimalMax("10000") Double grams) {}
+    public record IngredientInput(@NotNull UUID foodId, @NotNull @DecimalMin("0.5") @DecimalMax("30000") Double grams) {}
 
     public record RecipeInput(
             @NotBlank @Size(max = 120) String name,
             @NotNull Type type,
-            @NotNull @Min(1) @Max(50) Integer servings,
+            @NotNull @Min(1) @Max(150) Integer servings,
             @Size(max = 4000) String notes,
             Boolean shared,
             @NotNull @Size(max = 60) List<@Valid IngredientInput> ingredients,

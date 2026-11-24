@@ -30,7 +30,7 @@ class CommunityRecipesFilesTest {
             assertThat(s.key()).matches("[a-z0-9-]{3,140}");
             assertThat(s.name()).hasSizeLessThanOrEqualTo(120);
             assertThat(s.types()).as(s.name()).isNotEmpty().hasSizeLessThanOrEqualTo(6);
-            assertThat(s.servings()).as(s.name()).isBetween(1, 50);
+            assertThat(s.servings()).as(s.name()).isBetween(1, 150);
             assertThat(s.lines()).as(s.name()).hasSizeBetween(2, 60);
             assertThat(s.lines()).allSatisfy(l -> assertThat(l.grams()).isBetween(0.5, 10000.0));
             assertThat(s.steps()).as(s.name()).isNotEmpty();

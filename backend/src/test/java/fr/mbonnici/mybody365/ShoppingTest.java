@@ -125,6 +125,26 @@ class ShoppingTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void aRecipeForUpTo150Portions() throws Exception {
+        // 1.20.8: 150 portions (50 before), an ingredient up to 30 kg (10 kg before); 151 is refused
+        UUID courgette = jdbc.queryForObject("select id from food where source = 'CIQUAL' and source_code = '91001'", UUID.class);
+        String body = """
+                {"name":"Ratatouille du buffet","type":"LUNCH","servings":%d,"ingredients":[{"foodId":"%s","grams":%d}]}""";
+        mvc.perform(post("/api/me/recipes").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(body.formatted(150, courgette, 30000))).andExpect(status().isCreated())
+                .andExpect(jsonPath("$.servings").value(150));
+        mvc.perform(post("/api/me/recipes").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(body.formatted(151, courgette, 400))).andExpect(status().isBadRequest());
+        mvc.perform(post("/api/me/recipes").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content(body.formatted(150, courgette, 30001))).andExpect(status().isBadRequest());
+        // the ratatouille (written for 2) for 150 on the shopping list: 75 times its 400 g of courgettes
+        addRecipe(lea, ratatouille, 150);
+        mvc.perform(get("/api/me/shopping").with(as(lea))).andExpect(jsonPath("$.items[0].grams").value(30000.0));
+        mvc.perform(post("/api/me/shopping/recipes").with(as(lea)).with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"recipeId\":\"" + ratatouille + "\",\"servings\":151}")).andExpect(status().isBadRequest());
+    }
+
+    @Test
     void whatToCookWithWhatIHave() throws Exception {
         // the ingredients one can choose, without what every kitchen has (oil, water)
         mvc.perform(get("/api/recipes/ingredients").with(as(lea))).andExpect(status().isOk())

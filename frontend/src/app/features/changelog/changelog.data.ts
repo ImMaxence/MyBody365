@@ -7,6 +7,27 @@ export const INTRO: Segment[] = [{"t":"Toutes les évolutions de MyBody365, de l
 
 export const RELEASES: Release[] = [
   {
+    "version": "1.20.8",
+    "date": "2026-11-24",
+    "summary": [
+      {
+        "t": "Des recettes jusqu'à 150 portions"
+      }
+    ],
+    "sections": [
+      {
+        "title": "Modifié",
+        "items": [
+          [
+            {
+              "t": "Recettes : le nombre de portions va maintenant jusqu'à 150 au lieu de 50, pour un buffet ou une grosse fournée. Ça vaut aussi pour les portions à cuisiner, celles envoyées sur la liste de courses et les recettes importées depuis un site, et un ingrédient peut peser jusqu'à 30 kg au lieu de 10"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
     "version": "1.20.7",
     "date": "2026-11-24",
     "summary": [
