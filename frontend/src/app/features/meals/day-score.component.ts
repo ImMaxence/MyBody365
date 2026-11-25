@@ -10,6 +10,7 @@ import { localDay } from '../../core/tracking/tracking.store';
 import { IconComponent } from '../../shared/icon.component';
 import { SourcesComponent } from '../../shared/sources.component';
 import type { SourceKey } from '../../core/meals/sources';
+import { MicrosGuideComponent } from './micros-guide.component';
 
 const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'leaf', nutrients: 'sparkles' };
 
@@ -17,7 +18,7 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
 @Component({
   selector: 'app-day-score',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, TranslatePipe, IconComponent, SourcesComponent],
+  imports: [NgTemplateOutlet, TranslatePipe, IconComponent, SourcesComponent, MicrosGuideComponent],
   template: `
     @if (score(); as s) {
       <button type="button" class="pill" [attr.data-band]="s.band" (click)="openSheet(sheet)" [attr.aria-label]="'meals.score.open' | t: { score: i18n.number(s.score, 1) }">
@@ -104,6 +105,8 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
                 {{ 'meals.micros.partial' | t: { pct: Math.round((day().microsCoverage ?? 0) * 100) } }}
               }
             </p>
+            <!-- 1.21: what each one is for -->
+            <button type="button" class="btn btn-ghost btn-s guide-link" (click)="guide.open()"><app-icon name="info" [size]="16" /> {{ 'meals.micros.guideLink' | t }}</button>
           } @else {
             <p class="small muted">{{ 'meals.micros.none' | t }}</p>
           }
@@ -112,6 +115,8 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
           <app-sources [keys]="sourceKeys" />
         </div>
       </dialog>
+      <!-- 1.21: what each vitamin is for, a sheet of its own on top of this one (not inside it) -->
+      <app-micros-guide #guide />
       <ng-template #checksList let-checks>
         <ul class="checks">
           @for (x of checks; track x.key) {
@@ -315,6 +320,10 @@ const ICON: Record<string, string> = { kcal: 'flame', macros: 'pie', quality: 'l
     /* 1.14: vitamins and minerals */
     .micro-title {
       margin-top: var(--space-2);
+    }
+    .guide-link {
+      justify-self: start;
+      margin-left: calc(var(--space-2) * -1);
     }
     .micros {
       display: grid;

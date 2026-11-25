@@ -14,6 +14,7 @@ import { IconComponent } from '../../shared/icon.component';
 import { ClearableDirective } from '../../shared/clearable.directive';
 import { HealthScoreComponent } from '../../shared/health-score.component';
 import { SegDirective } from '../../shared/seg.directive';
+import { localDay } from '../../core/tracking/tracking.store';
 
 /** 1.13: « Healthy » first, before every other filter */
 export const RECIPE_TYPES: RecipeType[] = ['HEALTHY', 'BREAKFAST', 'LUNCH', 'DINNER', 'SNACK', 'DESSERT', 'TREAT', 'DRINK'];
@@ -67,6 +68,16 @@ function plain(s: string): string {
         <span class="with-copy">
           <b>{{ 'meals.with.cta' | t }}</b>
           <span class="small muted">{{ 'meals.with.ctaSub' | t }}</span>
+        </span>
+        <app-icon name="chevronRight" />
+      </a>
+
+      <!-- 1.21: the fruits and vegetables of the month, their vitamins and their recipes -->
+      <a class="with card" routerLink="/app/meals/recipes/season">
+        <span class="with-ico season-ico"><app-icon name="leaf" [size]="22" /></span>
+        <span class="with-copy">
+          <b>{{ 'meals.season.cardTitle' | t: { month: seasonMonth() } }}</b>
+          <span class="small muted">{{ 'meals.season.cardSub' | t }}</span>
         </span>
         <app-icon name="chevronRight" />
       </a>
@@ -289,6 +300,10 @@ function plain(s: string): string {
       background: var(--success-soft);
       color: var(--success);
     }
+    .season-ico {
+      background: color-mix(in srgb, #e2711d 14%, transparent);
+      color: #e2711d;
+    }
     .with-copy {
       flex: 1;
       min-width: 0;
@@ -481,6 +496,8 @@ export class RecipesPage {
     return (r.types?.length ? r.types : [r.type]).map((t) => this.i18n.t('meals.recipe.types.' + t)).join(' · ');
   }
   protected readonly i18n = inject(I18nService);
+  /** 1.21: « De saison en novembre » */
+  protected readonly seasonMonth = computed(() => this.i18n.date(localDay(), { month: 'long' }));
   protected readonly types = RECIPE_TYPES;
   protected readonly emoji = TYPE_EMOJI;
   /** the tab, the filters and the search outlive the screen (back from a recipe: as left) */

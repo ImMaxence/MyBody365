@@ -575,4 +575,41 @@ test.describe('meals', () => {
     await expect(uses).toContainText(/100\sg/);
     await expectAccessible(page);
   });
+
+  test('the fruits and vegetables of the month and their recipes, what brings each vitamin, what they are for (1.21)', async ({ page }) => {
+    await signIn(page, 'user');
+    await page.goto('/app/meals/recipes');
+    await page.getByRole('link', { name: /^De saison en / }).click();
+    await expect(page.getByRole('heading', { name: 'De saison', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /^Légumes/ })).toBeVisible();
+    await expectAccessible(page);
+    await expectNoHorizontalOverflow(page);
+    // the next month, then back: the carrot is there all year, its recipes a tap away with it already chosen
+    const month = page.locator('.month-name');
+    // its text as written (the screen shows it with a capital: CSS)
+    const now = ((await month.textContent()) ?? '').trim();
+    await page.getByRole('button', { name: 'Mois suivant' }).click();
+    await expect(month).not.toHaveText(now);
+    await page.getByRole('button', { name: 'Mois précédent' }).click();
+    await expect(month).toHaveText(now);
+    await page.getByRole('link', { name: 'Les recettes avec Carotte' }).click();
+    await expect(page).toHaveURL(/\/app\/meals\/recipes\/with\?k=carotte/);
+    await expect(page.getByRole('button', { name: /^Retirer Carotte/ })).toBeVisible();
+    await expect(page.locator('a.found').first()).toBeVisible();
+
+    // a recipe made of foods: under each vitamin, the ingredients that bring it; a tap says what it is for
+    await page.locator('a.found').first().click();
+    await expect(page.getByText(/^Surtout : /).first()).toBeVisible();
+    await page.getByRole('button', { name: 'À quoi servent-ils ?' }).click();
+    const guide = page.getByRole('dialog', { name: 'À quoi servent les vitamines et les minéraux' });
+    await expect(guide).toBeVisible();
+    await expect(guide.getByText('Souvent trop peu').first()).toBeVisible();
+    await expect(guide.getByText(/Limite de sécurité/).first()).toBeAttached();
+    await expectAccessible(page);
+
+    // the stats: each one over the period, or what to log first to see them
+    await page.goto('/app/meals/stats');
+    await expect(page.getByRole('heading', { name: 'Vitamines et minéraux' })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  });
 });

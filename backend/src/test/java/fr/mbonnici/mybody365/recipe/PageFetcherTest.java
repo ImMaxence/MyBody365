@@ -40,7 +40,9 @@ class PageFetcherTest {
         assertThat(RecipeImporter.servings(json.readTree("[\"4\", \"4 servings\"]"))).isEqualTo(4);
         assertThat(RecipeImporter.servings(json.readTree("6"))).isEqualTo(6);
         assertThat(RecipeImporter.servings(json.readTree("\"une tarte\""))).isNull();
-        assertThat(RecipeImporter.servings(json.readTree("\"120\""))).isNull();
+        // 1.20.8: up to 150 portions, a buffet; beyond, a number that is no count of portions
+        assertThat(RecipeImporter.servings(json.readTree("\"120\""))).isEqualTo(120);
+        assertThat(RecipeImporter.servings(json.readTree("\"151\""))).isNull();
         assertThat(RecipeImporter.decode("Ap&eacute;ro &amp; tapas &#39;maison&#x27;")).isEqualTo("Apéro & tapas 'maison'");
     }
 }

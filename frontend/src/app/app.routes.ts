@@ -48,6 +48,7 @@ export const routes: Routes = [
           { path: 'meals/recipes', loadComponent: () => import('./features/meals/recipes.page').then((m) => m.RecipesPage), data: { depth: 1, back: '/app/meals' } },
           // 1.11: what to cook with what I have, and the shopping list
           { path: 'meals/recipes/with', loadComponent: () => import('./features/meals/recipes-with.page').then((m) => m.RecipesWithPage), data: { depth: 2, back: '/app/meals/recipes' } },
+          { path: 'meals/recipes/season', loadComponent: () => import('./features/meals/recipes-season.page').then((m) => m.RecipesSeasonPage), data: { depth: 2, back: '/app/meals/recipes' } },
           { path: 'meals/shopping', loadComponent: () => import('./features/meals/shopping.page').then((m) => m.ShoppingPage), data: { depth: 1, back: '/app/meals' } },
           // 1.20: the meals planned for this week and the next
           { path: 'meals/plan', loadComponent: () => import('./features/meals/plan.page').then((m) => m.PlanPage), data: { depth: 1, back: '/app/meals' } },

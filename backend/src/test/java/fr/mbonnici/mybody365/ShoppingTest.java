@@ -145,6 +145,39 @@ class ShoppingTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void theFruitsAndVegetablesOfTheMonthAndTheirRecipes() throws Exception {
+        // 1.21: the vitamins of a vegetable come from its raw Ciqual food
+        jdbc.update("""
+                insert into food (id, source, source_code, name, search_name, category, kcal, micros)
+                values (?, 'CIQUAL', '91101', 'Courgette, chair et peau, crue', 'courgette chair et peau crue', 'légumes', 17, '{"c": 18, "k": 300}'::jsonb)""",
+                UUID.randomUUID());
+        // in July: courgettes and tomatoes; the ratatouille has both, the omelette the courgette only
+        mvc.perform(get("/api/recipes/season").param("month", "7").with(as(lea))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.month").value(7))
+                .andExpect(jsonPath("$.produce[?(@.id == 'zucchini')].key").value(contains("courgette")))
+                .andExpect(jsonPath("$.produce[?(@.id == 'zucchini')].recipes").value(contains(2)))
+                .andExpect(jsonPath("$.produce[?(@.id == 'zucchini')].micros.c").value(contains(18.0)))
+                .andExpect(jsonPath("$.produce[?(@.id == 'tomato')].recipes").value(contains(1)))
+                .andExpect(jsonPath("$.produce[?(@.id == 'leek')]").isEmpty())
+                .andExpect(jsonPath("$.produce[0].kind").value("VEGETABLE"))
+                .andExpect(jsonPath("$.produce[-1:].kind").value(contains("FRUIT")))
+                .andExpect(jsonPath("$.recipes[0].recipe.name").value("Ratatouille légère"))
+                .andExpect(jsonPath("$.recipes[0].produce").value(containsInAnyOrder("zucchini", "tomato")))
+                .andExpect(jsonPath("$.recipes[1].recipe.name").value("Omelette poulet courgette"))
+                .andExpect(jsonPath("$.recipes.length()").value(2));
+        // in November: leeks, no courgette, and none of these recipes
+        mvc.perform(get("/api/recipes/season").param("month", "11").with(as(lea))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.produce[?(@.id == 'leek')].recipes").value(contains(0)))
+                .andExpect(jsonPath("$.produce[?(@.id == 'zucchini')]").isEmpty())
+                .andExpect(jsonPath("$.recipes.length()").value(0));
+        // 1.21: what each ingredient brings to the recipe (400 g of courgettes at 20 mg of vitamin C per 100 g)
+        jdbc.update("update food set micros = '{\"c\": 20}'::jsonb where source = 'CIQUAL' and source_code = '91001'");
+        mvc.perform(get("/api/recipes/" + ratatouille).with(as(lea))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.ingredients[?(@.name == 'Courgette, crue')].micros.c").value(contains(80.0)))
+                .andExpect(jsonPath("$.ingredients[?(@.name == 'Eau du robinet')].micros.c").isEmpty());
+    }
+
+    @Test
     void whatToCookWithWhatIHave() throws Exception {
         // the ingredients one can choose, without what every kitchen has (oil, water)
         mvc.perform(get("/api/recipes/ingredients").with(as(lea))).andExpect(status().isOk())

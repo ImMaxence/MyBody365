@@ -1,6 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { DayTotal, FoodStat, MealStats, Slot } from '../../core/api/models';
+import type { DayTotal, FoodStat, MealStats, MicrosSummary, Slot } from '../../core/api/models';
+import { MICROS, UPPER, microStatus, type MicroStatus } from '../../core/meals/micros';
+import { MicrosGuideComponent } from './micros-guide.component';
+
+/** 1.21: the vitamins most worth a look first: above the limit, then the missing ones, the unknown last */
+const STATUS_ORDER: MicroStatus[] = ['over', 'none', 'low', 'fair', 'good', 'unknown'];
 import { I18nService } from '../../core/i18n/i18n.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 import { MealsApi } from '../../core/meals/meals-api';
@@ -65,7 +70,7 @@ function niceStep(max: number): number {
 @Component({
   selector: 'app-meal-stats',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent, BackButtonComponent],
+  imports: [SegDirective, RouterLink, TranslatePipe, IconComponent, BackButtonComponent, MicrosGuideComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -285,6 +290,48 @@ function niceStep(max: number): number {
               </section>
             }
 
+            <!-- 1.21: each vitamin and mineral over the period, those missing first, and what brought them -->
+            @if (micros(); as ms) {
+              <section class="card">
+                <h2 class="c-title"><app-icon name="heart" [size]="18" /> {{ 'meals.micros.stats.title' | t }}</h2>
+                @if (ms.noted >= 3 && microRows().length) {
+                  <p class="tiny muted">{{ 'meals.micros.stats.lead' | t }}</p>
+                  <ul class="mrows" role="list">
+                    @for (m of microRows(); track m.key; let i = $index) {
+                      <li [attr.data-status]="m.status" [style.--i]="i">
+                        <button type="button" class="m-row" (click)="guide.open(m.key)">
+                          <span class="r-head">
+                            <span class="r-name">{{ 'meals.micros.names.' + m.key | t }}</span>
+                            <span class="m-tag">{{ 'meals.micros.stats.status.' + m.status | t }}</span>
+                          </span>
+                          <span class="m-line">
+                            <span class="meter"><i [style.width.%]="m.bar"></i></span>
+                            <span class="num m-pct">{{ m.pct }}&nbsp;%</span>
+                          </span>
+                          @if (m.from.length) {
+                            <span class="tiny muted">{{ 'meals.micros.mostly' | t: { list: m.from.join(', ') } }}</span>
+                          }
+                          @if (m.upper) {
+                            <span class="tiny m-over">{{ 'meals.micros.stats.over' | t: { v: m.upper } }}</span>
+                          }
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                  <!-- not known for most of the calories: named once, never shown as a lack -->
+                  @if (microUnknown().length) {
+                    <p class="tiny muted">{{ 'meals.micros.stats.unknownList' | t: { list: microUnknown() } }}</p>
+                  }
+                  <p class="tiny muted">{{ 'meals.micros.stats.note' | t: { n: ms.noted } }}</p>
+                  <button type="button" class="btn btn-ghost btn-s guide-link" (click)="guide.open()"><app-icon name="info" [size]="16" /> {{ 'meals.micros.guideLink' | t }}</button>
+                } @else if (ms.noted >= 3) {
+                  <p class="small muted">{{ 'meals.micros.stats.unknownAll' | t }}</p>
+                } @else {
+                  <p class="small muted">{{ 'meals.micros.stats.empty' | t }}</p>
+                }
+              </section>
+            }
+
             @if (tips().length) {
               <section class="card tips">
                 <h2 class="c-title"><app-icon name="bulb" [size]="18" /> {{ 'meals.stats.tips' | t }}</h2>
@@ -312,11 +359,15 @@ function niceStep(max: number): number {
         <div class="skeleton" style="height: 190px; border-radius: 24px"></div>
         <div class="skeleton" style="height: 260px; border-radius: 24px"></div>
       }
+      <app-micros-guide #guide />
     </main>
   `,
   styles: `
     .body {
       display: grid;
+      /* 1.21: one column the width of the screen: a long food name on one line (« Kiwi, chair sans peau, avec pépins,
+         cru ») is cut by its ellipsis instead of widening every card past the screen */
+      grid-template-columns: minmax(0, 1fr);
       gap: var(--space-4);
       transition: opacity var(--dur-2);
     }
@@ -700,6 +751,81 @@ function niceStep(max: number): number {
     .empty .btn {
       justify-self: center;
     }
+    /* 1.21: the vitamins and minerals, each with its status in the pastel tones of the calendar */
+    .mrows {
+      display: grid;
+      gap: var(--space-2);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .m-row {
+      display: grid;
+      gap: 5px;
+      width: 100%;
+      margin: 0;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: var(--radius-m);
+      background: var(--surface-2);
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .m-tag {
+      flex: none;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--surface-3);
+      color: var(--fg-2);
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+    .m-line {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 3.4rem;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .m-pct {
+      text-align: right;
+      font-size: var(--fs-s);
+      font-weight: 700;
+    }
+    /* the inks mixed with the text colour: readable (4.5:1) on their pastel in both themes */
+    [data-status='good'] .m-tag {
+      background: var(--cal-done);
+      color: color-mix(in srgb, var(--cal-done-ink) 70%, var(--fg));
+    }
+    [data-status='good'] .meter i {
+      background: var(--cal-done-ink);
+    }
+    [data-status='fair'] .m-tag {
+      background: var(--cal-today);
+      color: color-mix(in srgb, var(--cal-today-ink) 70%, var(--fg));
+    }
+    [data-status='fair'] .meter i {
+      background: var(--cal-today-ink);
+    }
+    [data-status='low'] .m-tag,
+    [data-status='none'] .m-tag,
+    [data-status='over'] .m-tag {
+      background: var(--cal-over);
+      color: color-mix(in srgb, var(--cal-over-ink) 70%, var(--fg));
+    }
+    [data-status='low'] .meter i,
+    [data-status='none'] .meter i,
+    [data-status='over'] .meter i {
+      background: var(--cal-over-ink);
+    }
+    .m-over {
+      color: color-mix(in srgb, var(--cal-over-ink) 70%, var(--fg));
+    }
+    .guide-link {
+      justify-self: start;
+      margin-left: calc(var(--space-2) * -1);
+    }
     @keyframes rise {
       from {
         opacity: 0;
@@ -742,6 +868,37 @@ export class MealStatsPage {
 
   protected readonly period = signal<Period>(30);
   protected readonly data = signal<MealStats | null>(null);
+  /** 1.21: the vitamins and minerals of the period */
+  protected readonly micros = signal<MicrosSummary | null>(null);
+  /** each one known: its mean a day against its reference, its status, what brought it; those missing first */
+  protected readonly microRows = computed(() => {
+    const s = this.micros();
+    if (!s) return [];
+    return MICROS.flatMap((m) => {
+      const est = s.estimate?.[m.key];
+      if (est == null) return [];
+      const status = microStatus(m, est);
+      const pct = Math.round((100 * est) / m.nrv);
+      const up = UPPER[m.key];
+      return [
+        {
+          key: m.key,
+          status,
+          pct,
+          bar: Math.min(100, pct),
+          from: s.sources?.[m.key] ?? [],
+          upper: status === 'over' && up != null ? this.i18n.number(up) + ' ' + m.unit : null,
+        },
+      ];
+    }).sort((a, b) => STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status) || a.pct - b.pct);
+  });
+  /** those not known for most of the calories: « vitamine E, vitamine B9 » */
+  protected readonly microUnknown = computed(() => {
+    const s = this.micros();
+    if (!s) return '';
+    const names = MICROS.filter((m) => s.estimate?.[m.key] == null).map((m) => this.i18n.t('meals.micros.names.' + m.key));
+    return names.map((n, i) => (i === 0 ? n : n.charAt(0).toLowerCase() + n.slice(1))).join(', ');
+  });
   protected readonly loading = signal(false);
   protected readonly topBy = signal<'count' | 'kcal'>('count');
   protected readonly activeIndex = signal<number | null>(null);
@@ -966,6 +1123,13 @@ export class MealStatsPage {
       const p = this.period();
       this.loading.set(true);
       this.activeIndex.set(null);
+      // 1.21: the vitamins of the same days (a failure only leaves their card out)
+      this.api
+        .micros(p)
+        .then((m) => {
+          if (this.period() === p) this.micros.set(m);
+        })
+        .catch(() => this.micros.set(null));
       this.api
         .stats(p)
         .then((s) => this.data.set(s))

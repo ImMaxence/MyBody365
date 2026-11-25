@@ -398,6 +398,10 @@ export interface MicrosSummary {
   coverage: number;
   average: Partial<Record<string, number>>;
   low: string[];
+  /** 1.21: the mean a day brought back to all the calories, only for those known for most of them */
+  estimate?: Partial<Record<string, number>>;
+  /** 1.21: the foods that brought each one the most (3 at most) */
+  sources?: Partial<Record<string, string[]>>;
 }
 
 /** a day of the calendar: only days with something logged come back */
@@ -534,7 +538,17 @@ export interface Recipe {
   /** 1.18: what a serving weighs on the plate, cooked (estimated by the server; none: entered with its calories only) */
   plateG?: number | null;
   /** each line: its calories for the weight, its food's values per 100 g, whether it counts as fruit and vegetables */
-  ingredients?: { foodId?: string; name: string; grams: number; kcal: number; per100?: Nutrients; fruitVeg?: boolean; health?: number | null }[];
+  ingredients?: {
+    foodId?: string;
+    name: string;
+    grams: number;
+    kcal: number;
+    per100?: Nutrients;
+    fruitVeg?: boolean;
+    health?: number | null;
+    /** 1.21: the vitamins and minerals it brings to the whole recipe, for its weight */
+    micros?: Partial<Record<string, number>>;
+  }[];
   createdAt: string;
 }
 
@@ -591,6 +605,22 @@ export interface IngredientFamily {
 }
 
 /** a recipe with some of the chosen ingredients: how many, and what else it needs */
+/** 1.21: a fruit or a vegetable of the month: its word for « avec ce que j'ai », its recipes, its vitamins per 100 g raw */
+export interface SeasonProduce {
+  id: string;
+  kind: 'VEGETABLE' | 'FRUIT';
+  key: string;
+  recipes: number;
+  micros: Partial<Record<string, number>>;
+}
+
+export interface SeasonData {
+  month: number;
+  produce: SeasonProduce[];
+  /** the recipes that use the most of them, with the ids of those they use */
+  recipes: { recipe: Recipe; produce: string[] }[];
+}
+
 export interface FoundRecipe {
   recipe: Recipe;
   have: number;

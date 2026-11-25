@@ -92,7 +92,9 @@ public class RecipeService {
     /** a line: its calories for the weight, its food's values per 100 g, and whether it counts as fruit and vegetables */
     public record IngredientDto(UUID foodId, String name, double grams, double kcal, Nutrients per100, boolean fruitVeg,
             /** 1.14: the health score of its food (null: unknown, alcohol, or the food is gone) */
-            Double health) {}
+            Double health,
+            /** 1.21: the vitamins and minerals it brings to the whole recipe, for its weight (empty: unknown) */
+            Map<String, Double> micros) {}
 
     /** per serving: the calories, the macros when known */
     public record ManualNutrition(
@@ -243,11 +245,13 @@ public class RecipeService {
         return jdbc.query("""
                 select ri.food_id, ri.name, ri.grams, ri.kcal, ri.protein_g, ri.carbs_g, ri.sugars_g, ri.fat_g, ri.sat_fat_g, ri.fiber_g, ri.salt_g,
                   f.category, f.source, f.name as food_name, f.quantity, f.generic_name, f.pnns, f.nova, f.additives, f.sweeteners, f.fruit_veg,
-                  f.scans
+                  f.scans, f.micros::text as food_micros
                 from recipe_ingredient ri left join food f on f.id = ri.food_id where ri.recipe_id = ? order by ri.position""",
                 (rs, i) -> new IngredientDto(rs.getObject("food_id", UUID.class), rs.getString("name"), rs.getDouble("grams"),
                         Math.round(rs.getDouble("kcal") * rs.getDouble("grams") / 100), Nutrients.from(rs).rounded(),
-                        HealthScore.fruitVegCategory(rs.getString("category")), ingredientHealth(rs)),
+                        HealthScore.fruitVegCategory(rs.getString("category")), ingredientHealth(rs),
+                        fr.mbonnici.mybody365.nutrition.Micros.rounded(fr.mbonnici.mybody365.nutrition.Micros.times(
+                                fr.mbonnici.mybody365.nutrition.Micros.parse(rs.getString("food_micros")), rs.getDouble("grams") / 100))),
                 recipeId);
     }
 

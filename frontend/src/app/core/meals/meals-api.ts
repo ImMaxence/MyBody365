@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import type { CiqualImport, Favorites, FoodSources, OffImport, Food, FoodInput, FoodsOverview, FoundRecipe, IngredientFamily, Lookalike, ShoppingList, MealDay, MealDays, MealInput, MealStats, MicrosSummary, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, RecipeVisibility, Slot } from '../api/models';
+import type { CiqualImport, Favorites, FoodSources, OffImport, Food, FoodInput, FoodsOverview, FoundRecipe, IngredientFamily, Lookalike, ShoppingList, MealDay, MealDays, MealInput, MealStats, MicrosSummary, RecipeDraft, RecentItem, Recipe, RecipeInput, RecipeType, RecipeVisibility, SeasonData, Slot } from '../api/models';
 
 /** an ingredient of imported recipes the tables do not know (FOOD) or cannot weigh (WEIGHT) */
 /** the community's first recipes (written by the team, computed from Ciqual) */
@@ -155,6 +155,11 @@ export class MealsApi {
 
   recipesWith(keys: string[]): Promise<FoundRecipe[]> {
     return firstValueFrom(this.http.get<FoundRecipe[]>('/api/recipes/with', { params: { k: keys } }));
+  }
+
+  /** 1.21: the fruits and vegetables of a month (this one by default), their vitamins and recipes that use them */
+  season(month?: number): Promise<SeasonData> {
+    return firstValueFrom(this.http.get<SeasonData>('/api/recipes/season', { params: month ? { month } : {} }));
   }
 
   shopping(): Promise<ShoppingList> {

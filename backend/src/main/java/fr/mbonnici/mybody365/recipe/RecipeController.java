@@ -179,6 +179,13 @@ public class RecipeController {
         return finder.find(users.current(auth).getId(), keys == null ? List.of() : keys);
     }
 
+    /** 1.21: the fruits and vegetables of a month (this one in France by default), their vitamins, and recipes that use them */
+    @GetMapping("/api/recipes/season")
+    public RecipeFinder.SeasonDto season(@RequestParam(required = false) Integer month, Authentication auth) {
+        int m = month != null && month >= 1 && month <= 12 ? month : java.time.LocalDate.now(java.time.ZoneId.of("Europe/Paris")).getMonthValue();
+        return finder.season(users.current(auth).getId(), m);
+    }
+
     /** the recipes my friends show to their friends (or to everyone) */
     @GetMapping("/api/recipes/friends")
     public List<RecipeDto> friends(@RequestParam(required = false) Type type, Authentication auth) {

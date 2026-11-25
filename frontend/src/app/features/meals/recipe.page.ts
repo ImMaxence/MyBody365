@@ -13,6 +13,8 @@ import { BackButtonComponent } from '../../shared/back-button.component';
 import { IconComponent } from '../../shared/icon.component';
 import { HealthScoreComponent } from '../../shared/health-score.component';
 import { MicrosListComponent } from './micros-list.component';
+import { MicrosGuideComponent } from './micros-guide.component';
+import { MICROS, sourcesOf } from '../../core/meals/micros';
 import { ReportSheetComponent } from '../../shared/report-sheet.component';
 import { FavoritesStore } from '../../core/meals/favorites.store';
 import { HapticDirective } from '../../core/ui/haptics';
@@ -30,7 +32,7 @@ import { SessionStore } from '../../core/auth/session.store';
 @Component({
   selector: 'app-recipe',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective, NumberStepperComponent, MicrosListComponent, SendRecipeSheetComponent, PlanWhenSheetComponent],
+  imports: [RouterLink, TranslatePipe, IconComponent, BackButtonComponent, HealthScoreComponent, QuantitySheetComponent, ReportSheetComponent, HapticDirective, NumberStepperComponent, MicrosListComponent, MicrosGuideComponent, SendRecipeSheetComponent, PlanWhenSheetComponent],
   template: `
     <main class="page">
       <header class="page-head">
@@ -136,8 +138,10 @@ import { SessionStore } from '../../core/auth/session.store';
         @if (hasMicros(r)) {
           <h2 class="section-title">{{ 'meals.micros.perServing' | t }}</h2>
           <section class="card micros-card">
-            <app-micros-list [micros]="r.micros" />
+            <!-- 1.21: under each one, the ingredients that bring it; a tap says what it is for -->
+            <app-micros-list [micros]="r.micros" [sources]="microSources()" (info)="microsGuide().open($event)" />
             <p class="tiny muted">{{ 'meals.micros.perServingNote' | t }}</p>
+            <button type="button" class="btn btn-ghost btn-s guide-link" (click)="microsGuide().open()"><app-icon name="info" [size]="16" /> {{ 'meals.micros.guideLink' | t }}</button>
           </section>
         }
 
@@ -256,6 +260,7 @@ import { SessionStore } from '../../core/auth/session.store';
       <app-quantity-sheet (confirm)="add($event)" />
       <app-send-recipe-sheet />
       <app-plan-when-sheet />
+      <app-micros-guide />
       <app-report-sheet />
     </main>
   `,
@@ -276,6 +281,10 @@ import { SessionStore } from '../../core/auth/session.store';
     }
     .micros-card p {
       margin: 0;
+    }
+    .guide-link {
+      justify-self: start;
+      margin: calc(var(--space-2) * -1) 0 0 calc(var(--space-2) * -1);
     }
     /* 1.13: what makes the dish good, what costs it points */
     .reasons {
@@ -614,6 +623,13 @@ export class RecipePage {
   private readonly day = computed(() => (this.dayParam() && /^\d{4}-\d{2}-\d{2}$/.test(this.dayParam()!) ? this.dayParam()! : localDay()));
   private readonly api = inject(MealsApi);
   protected readonly isAdmin = inject(SessionStore).isAdmin;
+
+  protected readonly microsGuide = viewChild.required(MicrosGuideComponent);
+  /** 1.21: per vitamin, the ingredients that bring it the most */
+  protected readonly microSources = computed(() => {
+    const lines = this.recipe()?.ingredients ?? [];
+    return Object.fromEntries(MICROS.map((m) => [m.key, sourcesOf(lines, m.key)]));
+  });
 
   protected hasMicros(r: Recipe): boolean {
     return !!r.micros && Object.keys(r.micros).length > 0;

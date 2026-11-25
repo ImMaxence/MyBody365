@@ -2,6 +2,19 @@
 
 Toutes les évolutions de MyBody365, de la plus récente à la plus ancienne. Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et les numéros de version [SemVer](https://semver.org/lang/fr/). Cette page est aussi publiée sur le site, rubrique Nouveautés
 
+## [1.21.0] - 2026-11-25
+
+Les fruits et légumes de saison avec leurs vitamines et leurs recettes, les ingrédients qui apportent chaque vitamine d'une recette, à quoi servent les vitamines, et les tiennes dans les statistiques
+
+### Ajouté
+- Recettes, « De saison en novembre » : les fruits et légumes du mois en France, ce que 100 g de chacun apportent le plus en vitamines et en minéraux (table Ciqual), et ses recettes en un appui. Les mois d'avant et d'après se consultent aussi, et les recettes qui utilisent le plus de produits de saison suivent
+- Recette, « Vitamines et minéraux » : sous chaque vitamine, les ingrédients qui l'apportent le plus (« Surtout : Carotte, Poireau »)
+- « À quoi servent les vitamines et les minéraux » : pourquoi tous sont essentiels, lesquels se stockent, ceux qui manquent le plus souvent en France, puis pour chacun à quoi il sert, son repère par jour, où le trouver et sa limite de sécurité. La fiche s'ouvre depuis une recette, la note du jour et les statistiques, ou en touchant une vitamine
+- Statistiques, « Vitamines et minéraux » : sur 7 jours, 30 jours ou 3 mois, ta moyenne par jour pour chacun, ceux qui manquent en premier (« Presque pas », « Pas assez », « Un peu juste », « Bien couvert », « Au-dessus de la limite ») et les aliments qui te les apportent le plus
+
+### Corrigé
+- Statistiques : un aliment au nom très long dans « Ce que tu manges le plus » (« Kiwi, chair sans peau, avec pépins, cru ») ne fait plus déborder la page sur le côté, il est coupé par des points de suspension
+
 ## [1.20.8] - 2026-11-24
 
 Des recettes jusqu'à 150 portions

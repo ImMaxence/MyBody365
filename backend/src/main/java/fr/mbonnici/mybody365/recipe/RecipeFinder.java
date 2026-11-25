@@ -97,6 +97,62 @@ public class RecipeFinder {
         return out;
     }
 
+    /** 1.21: a fruit or a vegetable of the month: its id, its kind, its word for « avec ce que j'ai », its recipes, its vitamins per 100 g */
+    public record Produce(String id, String kind, String key, int recipes, Map<String, Double> micros) {}
+
+    /** a recipe of the season: the fruits and vegetables of the month it uses */
+    public record SeasonRecipe(RecipeDto recipe, List<String> produce) {}
+
+    public record SeasonDto(int month, List<Produce> produce, List<SeasonRecipe> recipes) {}
+
+    static final int SEASON_LIMIT = 12;
+
+    /**
+     * 1.21: the fruits and vegetables of the month with their vitamins (their raw Ciqual food, when the table has it), and the
+     * recipes the member can see that use the most of them, those made mostly of them first
+     */
+    public SeasonDto season(UUID userId, int month) {
+        List<Season.Produce> produce = Season.of(month);
+        Map<String, Map<String, Double>> micros = new HashMap<>();
+        jdbc.query("select name, micros::text as micros from food where source = 'CIQUAL' and name = any(?)",
+                rs -> {
+                    micros.put(rs.getString("name"), fr.mbonnici.mybody365.nutrition.Micros.parse(rs.getString("micros")));
+                }, (Object) produce.stream().map(Season.Produce::ciqual).toArray(String[]::new));
+        Loaded l = load(userId);
+        Map<String, String> idByKey = new LinkedHashMap<>();
+        List<Produce> out = new ArrayList<>();
+        for (Season.Produce p : produce) {
+            String key = p.key();
+            idByKey.putIfAbsent(key, p.id());
+            out.add(new Produce(p.id(), p.kind().name(), key, l.counts().getOrDefault(key, 0),
+                    fr.mbonnici.mybody365.nutrition.Micros.rounded(micros.getOrDefault(p.ciqual(), Map.of()))));
+        }
+        record Scored(Entry e, List<String> ids, double share) {}
+        List<Scored> scored = new ArrayList<>();
+        for (Entry e : l.entries()) {
+            List<String> ids = e.keys().stream().filter(idByKey::containsKey).map(idByKey::get).toList();
+            if (ids.isEmpty()) {
+                continue;
+            }
+            long counted = e.keys().stream().filter(k -> !PANTRY.contains(k) && !k.startsWith("eau")).count();
+            scored.add(new Scored(e, ids, ids.size() / (double) Math.max(1, counted)));
+        }
+        scored.sort(Comparator.comparingInt((Scored s) -> -s.ids().size()).thenComparingDouble(s -> -s.share())
+                .thenComparing(s -> SearchText.normalize(s.e().name())));
+        List<SeasonRecipe> recipesOut = new ArrayList<>();
+        Set<String> names = new java.util.HashSet<>();
+        for (Scored s : scored) {
+            if (recipesOut.size() == SEASON_LIMIT) {
+                break;
+            }
+            if (!names.add(SearchText.normalize(s.e().name()))) {
+                continue;
+            }
+            recipesOut.add(new SeasonRecipe(recipes.dto(recipes.row(s.e().id()), userId, false), s.ids()));
+        }
+        return new SeasonDto(month, out, recipesOut);
+    }
+
     private Loaded load(UUID userId) {
         Map<UUID, String> names = new LinkedHashMap<>();
         Map<UUID, Set<String>> keys = new HashMap<>();

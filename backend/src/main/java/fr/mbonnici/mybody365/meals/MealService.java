@@ -90,9 +90,12 @@ public class MealService {
 
     /**
      * 1.14: the vitamins and minerals over the last days: the mean of the days noted, the share of their calories whose are
-     * known, and those under half of their reference (when enough is known to say so)
+     * known, and those under half of their reference (when enough is known to say so). 1.21: up to 3 months, the mean a day
+     * of each one brought back to all the calories (only when known for most of them: the others are missing), and the foods
+     * that bring each one the most
      */
-    public record MicrosDto(int days, int noted, double coverage, Map<String, Double> average, List<String> low) {}
+    public record MicrosDto(int days, int noted, double coverage, Map<String, Double> average, List<String> low,
+            Map<String, Double> estimate, Map<String, List<String>> sources) {}
 
     /** the totals of one day (days without anything logged are left out) */
     public record DayTotal(LocalDate day, double kcal, double proteinG, double carbsG, double fatG, int entries) {}
@@ -236,7 +239,7 @@ public class MealService {
 
     /** 1.14: the vitamins and minerals of the last days (today counted only once it is over: a day going on is not a lack) */
     public MicrosDto micros(UUID userId, int days) {
-        int n = Math.max(3, Math.min(30, days));
+        int n = Math.max(3, Math.min(90, days));
         LocalDate to = LocalDate.now(java.time.ZoneId.of("Europe/Paris")).minusDays(1);
         LocalDate from = to.minusDays(n - 1L);
         List<EntryDto> entries = jdbc.query(JOINED + " where e.user_id = ? and e.day between ? and ?", MealService::map, userId, from, to);
@@ -246,6 +249,8 @@ public class MealService {
         }
         Map<String, Double> sum = new java.util.LinkedHashMap<>();
         Map<String, Double> knownBy = new java.util.HashMap<>();
+        // 1.21: per vitamin, what each food brought (« Carotte, crue » and « Carotte, cuite » are one carrot)
+        Map<String, Map<String, Double>> by = new java.util.HashMap<>();
         double kcal = 0;
         double known = 0;
         int noted = 0;
@@ -262,13 +267,19 @@ public class MealService {
                 if (!e.micros().isEmpty()) {
                     known += e.nutrients().kcal();
                 }
-                for (String k : e.micros().keySet()) {
-                    knownBy.merge(k, e.nutrients().kcal(), Double::sum);
+                String name = sourceName(e.name());
+                for (Map.Entry<String, Double> m : e.micros().entrySet()) {
+                    knownBy.merge(m.getKey(), e.nutrients().kcal(), Double::sum);
+                    if (name != null && m.getValue() > 0) {
+                        by.computeIfAbsent(m.getKey(), x -> new java.util.HashMap<>()).merge(name, m.getValue(), Double::sum);
+                    }
                 }
             }
         }
         double coverage = kcal > 0 ? known / kcal : 0;
         Map<String, Double> average = new java.util.LinkedHashMap<>();
+        Map<String, Double> estimate = new java.util.LinkedHashMap<>();
+        Map<String, List<String>> sources = new java.util.LinkedHashMap<>();
         List<String> low = new ArrayList<>();
         for (Micros.Micro m : Micros.ALL) {
             double mean = noted == 0 ? 0 : sum.getOrDefault(m.key(), 0d) / noted;
@@ -276,11 +287,41 @@ public class MealService {
             // said only with 3 days noted and most of their calories known for this one (a value missing from the tables is
             // unknown, not none); the known part is brought back to the whole
             double share = kcal > 0 ? knownBy.getOrDefault(m.key(), 0d) / kcal : 0;
-            if (noted >= 3 && share >= 0.6 && mean / share < m.nrv() * 0.5) {
-                low.add(m.key());
+            if (noted >= 3 && share >= 0.6) {
+                estimate.put(m.key(), mean / share);
+                if (mean / share < m.nrv() * 0.5) {
+                    low.add(m.key());
+                }
+            }
+            List<String> top = topSources(by.getOrDefault(m.key(), Map.of()));
+            if (!top.isEmpty()) {
+                sources.put(m.key(), top);
             }
         }
-        return new MicrosDto(n, noted, Math.round(coverage * 100) / 100.0, Micros.rounded(average), low);
+        return new MicrosDto(n, noted, Math.round(coverage * 100) / 100.0, Micros.rounded(average), low, Micros.rounded(estimate), sources);
+    }
+
+    /**
+     * « Pois chiches - Boîte 530g · U », « Pois chiches, appertisés » → « Pois chiches », « Pain complet ou intégral (à la farine
+     * T150) » → « Pain complet »: what a line is, without brand, state, pack or other name
+     */
+    static String sourceName(String name) {
+        if (name == null) {
+            return null;
+        }
+        String head = name.split(" · ")[0].split(",")[0].split(" - ")[0].replaceAll("\\s*\\([^)]*\\)", "").split(" ou ")[0].trim();
+        return head.isEmpty() ? null : head;
+    }
+
+    /** the foods that brought a vitamin the most: 3 at most, each a tenth of it at least, the first one first */
+    static List<String> topSources(Map<String, Double> byFood) {
+        double total = byFood.values().stream().mapToDouble(Double::doubleValue).sum();
+        if (total <= 0) {
+            return List.of();
+        }
+        return byFood.entrySet().stream().filter(e -> e.getValue() / total >= 0.1)
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed().thenComparing(Map.Entry::getKey))
+                .limit(3).map(Map.Entry::getKey).toList();
     }
 
     private Integer target(UUID userId) {

@@ -340,7 +340,15 @@ class MealsTest extends AbstractIntegrationTest {
         mvc.perform(get("/api/me/meals/micros").param("days", "7").with(as(lea))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.noted").value(3))
                 .andExpect(jsonPath("$.low", org.hamcrest.Matchers.hasItems("fe", "mg")))
-                .andExpect(jsonPath("$.low", org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("c"))));
+                .andExpect(jsonPath("$.low", org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("c"))))
+                // 1.21: the mean a day (300 g of pasta: 1.5 mg of iron), what brought it, nothing said of vitamin C
+                .andExpect(jsonPath("$.estimate.fe").value(org.hamcrest.Matchers.closeTo(1.5, 0.01)))
+                .andExpect(jsonPath("$.estimate.c").doesNotExist())
+                .andExpect(jsonPath("$.sources.fe[0]").value("Pâtes"))
+                .andExpect(jsonPath("$.sources.c").doesNotExist());
+        // 1.21: the stats ask for 3 months
+        mvc.perform(get("/api/me/meals/micros").param("days", "90").with(as(lea))).andExpect(jsonPath("$.days").value(90))
+                .andExpect(jsonPath("$.noted").value(3));
         // a day with little noted says nothing: two days only, no alert
         jdbc.update("delete from meal_entry where user_id = ? and day = ?", lea.getId(), today.minusDays(3));
         mvc.perform(get("/api/me/meals/micros").with(as(lea))).andExpect(jsonPath("$.low.length()").value(0));

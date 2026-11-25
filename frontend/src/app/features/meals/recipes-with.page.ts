@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { errorCode } from '../../core/api/api.service';
 import type { FoundRecipe, IngredientFamily } from '../../core/api/models';
@@ -226,7 +226,9 @@ const plain = (s: string) =>
     }
   `,
 })
-export class RecipesWithPage {
+export class RecipesWithPage implements OnInit {
+  /** 1.21: opened from a fruit or a vegetable of the season (?k=poireau): that one chosen, alone */
+  readonly k = input<string | undefined>();
   private readonly api = inject(MealsApi);
   private readonly toast = inject(ToastService);
   protected readonly i18n = inject(I18nService);
@@ -267,6 +269,11 @@ export class RecipesWithPage {
         families = null;
         this.toast.error(this.i18n.error(errorCode(e)));
       });
+  }
+
+  ngOnInit(): void {
+    const k = this.k();
+    if (k && /^[a-z0-9-]{1,40}$/.test(k)) chosenKeys.set([k]);
   }
 
   protected pick(key: string): void {
